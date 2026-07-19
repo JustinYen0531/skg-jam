@@ -16,6 +16,7 @@ const INITIAL_PROGRESS: GameProgress = {
   phase: 'intro_game',
   deathsAt37: 0,
   seenLeaderboard: false,
+  bestScore: 0,
   viewTubeSearchedArc: false,
   watchedVideo: false,
   archiveDownloaded: false,

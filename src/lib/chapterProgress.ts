@@ -20,6 +20,7 @@ const BASE_PROGRESS: GameProgress = {
   phase: 'os_unlocked',
   deathsAt37: 3,
   seenLeaderboard: true,
+  bestScore: 37,
   viewTubeSearchedArc: false,
   watchedVideo: false,
   archiveDownloaded: false,

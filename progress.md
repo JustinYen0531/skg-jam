@@ -29,3 +29,16 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Final static verification: `npm test` 26/26, `npm run lint`, and `npm run build` passed. Build emitted a non-fatal 500 kB chunk-size advisory.
 - Browser and screenshot validation intentionally not run per user instruction.
 - TODO for manual acceptance: confirm card density and text size on the target horizontal phone viewport, then tune card counts if the feeds feel too busy.
+
+## 2026-07-19 — Public leaderboard redesign
+
+- New request: make the public leaderboard long and scrollable, mostly English anonymous visitors, visually consistent with the neon AI-ad slop layer, and remove the premature Noah/system-overflow reveal.
+- Static audit found that `highScore` was initialized to 37 but never updated, so the old player row could not represent the player's real best score.
+- Added tested public leaderboard rules: 55 visible rows, 48 anonymous entries clustered at scores 35–38, a few named outliers, exact player score insertion/ranking, no Noah/negative/overflow data, and a monotonic advertising-style beat percentage.
+- Verification after leaderboard data rules: `npm test` 35/35 passed.
+- Added persistent `bestScore` progress state. It begins at 0, updates live during a run, writes back on death, and drives the highlighted player row and sorted rank.
+- Replaced the legacy terminal table with a neon AI-ad ranking panel: fixed summary cards, a vertically scrollable 55-row list, highlighted live player row, and an exaggerated beaten-player percentage card.
+- The public panel no longer contains Noah, negative score, signed-value, or overflow copy; the story reveal remains reserved for the later hidden leaderboard phase.
+- Static check after UI integration: `npm run lint` passed.
+- Final static verification: `npm test` 35/35, `npm run lint`, and `npm run build` passed; the non-fatal 500 kB chunk advisory remains.
+- Browser validation intentionally not run. Manual acceptance should verify vertical scrolling, row density, and landscape-phone text size.

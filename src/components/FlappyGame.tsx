@@ -2,7 +2,9 @@ import React, { useEffect, useRef, useState } from 'react';
 import { GameProgress, ActiveApp } from '../types';
 import audio from '../lib/audio';
 import { EASY_FLAPPY_SETTINGS, FlappyDeathCause, getFlappyNightMix, getGateHeights, getGateSpawnX, getGateVisualStyle, nextGate37DeathCount, resolvePipeCollision } from '../lib/flappyPhysics';
-import { RefreshCw, Play, Volume2, VolumeX, ShieldAlert, CheckCircle, Zap, Flame, Crown } from 'lucide-react';
+import { calculateBeatPercentage, createPublicLeaderboard } from '../lib/leaderboard';
+import { Play, Volume2, VolumeX, CheckCircle, Zap, Flame, Crown } from 'lucide-react';
+import { LeaderboardPanel } from './LeaderboardPanel';
 
 interface FlappyGameProps {
   progress: GameProgress;
@@ -26,7 +28,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [score, setScore] = useState(0);
   const [isMuted, setIsMuted] = useState(audio.getMuted());
-  const [highScore, setHighScore] = useState(37);
+  const [highScore, setHighScore] = useState(progress.bestScore);
   
   // Real-time debug metrics to display to user
   const [currentAlt, setCurrentAlt] = useState(0);
@@ -306,6 +308,12 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
         if (state.frameCount % PACE_INTERVAL_FRAMES === 0) {
           state.score++;
           setScore(state.score);
+          setHighScore((previousBest) => Math.max(previousBest, state.score));
+          updateProgress((previousProgress) => (
+            state.score > previousProgress.bestScore
+              ? { ...previousProgress, bestScore: state.score }
+              : previousProgress
+          ));
         }
 
         // Pipe Management
@@ -721,7 +729,8 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
         return {
           ...prev,
           deathsAt37: nextDeaths,
-          phase: prev.phase === 'intro_game' && nextDeaths >= 3 ? 'os_unlocked' : prev.phase
+          phase: prev.phase === 'intro_game' && nextDeaths >= 3 ? 'os_unlocked' : prev.phase,
+          bestScore: Math.max(prev.bestScore, state.score),
         };
       });
     };
@@ -736,6 +745,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
       updateProgress((prev) => ({
         ...prev,
         phase: 'credits',
+        bestScore: Math.max(prev.bestScore, state.score),
         completedGame: true
       }));
     };
@@ -763,6 +773,10 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
     };
   }, [isPlaying, hackedMode]);
 
+
+  const playerBestScore = Math.max(progress.bestScore, highScore, score);
+  const publicLeaderboard = createPublicLeaderboard(playerBestScore);
+  const beatPercentage = calculateBeatPercentage(playerBestScore);
   return (
     <div className="flex flex-col h-full bg-slate-950 font-sans select-none overflow-hidden" id="flappy-root">
       
@@ -970,125 +984,15 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
           </div>
         )}
 
-        {/* Global Leaderboard Panel (Triggered on death) */}
         {showLeaderboard && (
-          <div className="absolute inset-0 bg-slate-950/95 flex flex-col p-4 font-mono crt-effect" id="leaderboard-panel">
-            <div className="flex items-center justify-between border-b border-purple-800/50 pb-2 mb-3">
-              <span className="text-yellow-400 font-display font-bold text-sm flex items-center gap-1.5">
-                <ShieldAlert className="w-4 h-4 text-red-500" />
-                <span>LEADERBOARD - SCORE DISCREPANCY</span>
-              </span>
-              <button 
-                onClick={resetGame}
-                className="flex items-center gap-1 text-[10px] bg-purple-900/50 border border-purple-700 hover:bg-purple-800 px-2 py-0.5 rounded text-purple-200"
-                id="retry-button"
-              >
-                <RefreshCw className="w-3 h-3" />
-                RETRY
-              </button>
-            </div>
-
-            <div className="flex-1 overflow-y-auto space-y-1 text-xs pr-1">
-              {/* Leaderboard entries */}
-              <div className="flex justify-between text-yellow-400/80 font-bold border-b border-purple-900/30 pb-1 text-[10px]">
-                <span>RANK & USERNAME</span>
-                <span>SCORE</span>
-              </div>
-
-              {/* ARC_184 */}
-              <div className="flex justify-between items-center bg-yellow-950/20 border border-yellow-500/30 p-1.5 rounded">
-                <div className="flex items-center gap-1">
-                  <span className="text-yellow-400">#01</span>
-                  <span className="text-white font-bold">ARC_184</span>
-                  <span className="bg-yellow-500/20 text-yellow-300 text-[8px] px-1 rounded border border-yellow-500/30">RECORD HOLDER</span>
-                </div>
-                <span className="text-yellow-400 font-bold">184</span>
-              </div>
-
-              {/* Fake cheater discussion comments context */}
-              <div className="flex justify-between items-center bg-slate-900/30 p-1.5 rounded border border-purple-900/20">
-                <div className="flex items-center gap-1 text-purple-300">
-                  <span>#02</span>
-                  <span>Modded_Flap</span>
-                </div>
-                <span className="text-white font-bold">38</span>
-              </div>
-              <div className="flex justify-between items-center bg-slate-900/30 p-1.5 rounded border border-purple-900/20">
-                <div className="flex items-center gap-1 text-purple-300">
-                  <span>#03</span>
-                  <span>LumenHacker</span>
-                </div>
-                <span className="text-white font-bold">38</span>
-              </div>
-
-              {/* The major userbase barrier: Score 37! */}
-              <div className="py-1 text-center bg-red-950/10 border border-red-500/20 text-[9px] text-red-400 rounded my-1.5">
-                ⚠️ [CRITICAL] 65,535 ENTRIES HIDDEN: RANK #4 TO #65,539 PRECISELY TIED AT 37 ⚠️
-              </div>
-
-              <div className="flex justify-between items-center bg-red-950/20 p-1.5 rounded border border-red-500/30">
-                <div className="flex items-center gap-1 text-red-400">
-                  <span>#65540</span>
-                  <span>Your_Score_Current</span>
-                </div>
-                <span className="text-red-400 font-bold">{score}</span>
-              </div>
-
-              {/* Purged legacy player records: the database quietly forgot them */}
-              <div className="mt-2 space-y-1 opacity-70">
-                <div className="text-[8px] text-slate-600 font-bold tracking-wider">LEGACY RECORDS · SYNC FAILED</div>
-                {([
-                  ['USER_00291', '2014-02-11'],
-                  ['USER_01847', '2014-03-02'],
-                  ['USER_00033', '2014-03-27'],
-                ] as const).map(([uid, lastActive]) => (
-                  <div key={uid} className="flex justify-between items-center bg-slate-900/20 p-1.5 rounded border border-slate-900/60 text-slate-600 text-[10px]">
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-3.5 h-3.5 rounded-full bg-slate-800 border border-slate-700 shrink-0"></span>
-                      <span className="line-through decoration-slate-700">{uid}</span>
-                      <span className="text-[7px] border border-slate-800 px-1 rounded">PROFILE: UNAVAILABLE</span>
-                    </div>
-                    <span className="text-[8px]">LAST ACTIVE: {lastActive}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Hidden overflow negative score Noah Kade */}
-              <div className="mt-4 border-t border-dashed border-emerald-500/20 pt-2">
-                <pre className="text-[8px] text-emerald-500/70 crt-text leading-snug mb-1.5">{`SCORE_TABLE v1.04
-ENTRY COUNT: 65536
-SORT MODE: UNSIGNED
-WARNING: SIGNED VALUE DETECTED`}</pre>
-                <div className="flex justify-between items-center bg-emerald-950/10 p-1.5 rounded border border-emerald-500/30">
-                  <div className="flex items-center gap-1 text-emerald-400">
-                    <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-1 rounded font-bold">SYSTEM OVERFLOW</span>
-                    <span>NOAH_KADE</span>
-                  </div>
-                  <span className="text-emerald-400 font-bold crt-text">-65535</span>
-                </div>
-                <div className="text-[8px] text-emerald-500/60 mt-1 text-right">
-                  * 16-bit Signed Integer Overflow parsed on complete.
-                </div>
-              </div>
-            </div>
-
-            {/* Protagonist Inner Dialogue / Clue trigger */}
-            <div className="mt-3 bg-black border border-purple-900 p-2 rounded text-xs text-purple-200 flex flex-col gap-1.5" id="protagonist-monologue">
-              <p className="italic">
-                "Wait... almost every regular player is completely locked at score 37. But ARC_184 has 184 points. How did he break the unbeatable barrier?"
-              </p>
-              <div className="flex items-center justify-between mt-1 text-[10px] text-purple-400">
-                <span>Check ViewTube for his video.</span>
-                <button
-                  onClick={onHome}
-                  className="px-2 py-0.5 bg-purple-950 rounded border border-purple-700 hover:text-white"
-                  id="go-investigate"
-                >
-                  Go Investigate
-                </button>
-              </div>
-            </div>
-          </div>
+          <LeaderboardPanel
+            entries={publicLeaderboard}
+            playerBestScore={playerBestScore}
+            beatPercentage={beatPercentage}
+            onRetry={resetGame}
+            onClose={() => { audio.playTick(); setShowLeaderboard(false); }}
+            onInvestigate={onHome}
+          />
         )}
       </div>
 

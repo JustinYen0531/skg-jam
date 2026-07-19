@@ -5,6 +5,7 @@ export interface GameProgress {
   phase: 'intro_game' | 'os_unlocked' | 'passed_37' | 'credits' | 'ending_choice';
   deathsAt37: number;
   seenLeaderboard: boolean;
+  bestScore: number;
   
   // Investigation state
   viewTubeSearchedArc: boolean;
