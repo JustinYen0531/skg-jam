@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { GameProgress, ActiveApp } from '../types';
 import audio from '../lib/audio';
-import { EASY_FLAPPY_SETTINGS, FlappyDeathCause, getGateHeights, getGateVisualStyle, nextGate37DeathCount, resolvePipeCollision } from '../lib/flappyPhysics';
+import { EASY_FLAPPY_SETTINGS, FlappyDeathCause, getFlappyNightMix, getGateHeights, getGateSpawnX, getGateVisualStyle, nextGate37DeathCount, resolvePipeCollision } from '../lib/flappyPhysics';
 import { RefreshCw, Play, Volume2, VolumeX, ShieldAlert, CheckCircle, Zap, Flame, Crown } from 'lucide-react';
 
 interface FlappyGameProps {
@@ -140,14 +140,28 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
 
       // --- Background Rendering ---
       if (!hackedMode) {
-        // Pseudo-generative oversaturated ad style gradient with low-cost blue-purple
+        // Level 1 begins in bright daylight. The night overlay only fades in at
+        // score 36 and becomes complete at the sealed Level 2 boundary.
+        const nightMix = getFlappyNightMix(state.score);
         const bgGrad = ctx.createLinearGradient(0, 0, 0, height);
-        bgGrad.addColorStop(0, '#24106B'); // Deep Dark Blue-Purple
-        bgGrad.addColorStop(0.35, '#3B18B8'); // Royal Violet
-        bgGrad.addColorStop(0.7, '#7048E8'); // Bright Lavender
-        bgGrad.addColorStop(1, '#21C7FF'); // Cyan Accent
+        bgGrad.addColorStop(0, '#72d8ff');
+        bgGrad.addColorStop(0.35, '#a8ddff');
+        bgGrad.addColorStop(0.7, '#b8b8ff');
+        bgGrad.addColorStop(1, '#42d5ff');
         ctx.fillStyle = bgGrad;
         ctx.fillRect(0, 0, width, height);
+
+        if (nightMix > 0) {
+          const nightGrad = ctx.createLinearGradient(0, 0, 0, height);
+          nightGrad.addColorStop(0, '#020617');
+          nightGrad.addColorStop(0.45, '#11103d');
+          nightGrad.addColorStop(1, '#06283f');
+          ctx.save();
+          ctx.globalAlpha = nightMix;
+          ctx.fillStyle = nightGrad;
+          ctx.fillRect(0, 0, width, height);
+          ctx.restore();
+        }
 
         // Clashing stylized clouds with 3 different styles
         for (let i = 0; i < 3; i++) {
@@ -300,7 +314,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
           const { topHeight, bottomHeight } = getGateHeights(gateIndex, height);
 
           state.pipes.push({
-            x: width,
+            x: getGateSpawnX(gateIndex, width),
             topHeight,
             bottomHeight,
             passed: false,
@@ -356,9 +370,9 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
 
           const overlapsPipeX = pipe.x <= birdX + birdSize && pipe.x + 50 >= birdX - birdSize;
           if (overlapsPipeX) {
-            // Section 37 is the critical barrier.
-            // If we are on pipe index 37 without the bypass or sequence matching, we hit an INVISIBLE WALL!
-            if (pipe.index === 37 && !state.bypassActive) {
+            // Gate 37 is a visible physical seal. The secret route is only
+            // evaluated when the bird actually hits its rendered pipe body.
+            if (pipe.index === 37 && !state.bypassActive && collision.fatal) {
               if (progress.unlockedCodeRoute) {
                 // If the player knows the code, let's track real-time sequence matching!
                 // Let's check the current altitude against target altitude sequence at index 0 (184)
@@ -375,10 +389,10 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
                   // spawn developer logs instantly
                   state.devNotes.push({ x: width, y: 100, text: 'COLLIDER_BYPASS_STAGE_01: INITIATED', opacity: 1 });
                 } else {
-                  handleDeath('Collider Block #37 (Ghost Barrier)', 'gate37');
+                  handleDeath('Level 2 Seal #37', 'gate37');
                 }
               } else {
-                handleDeath('Collider Block #37 (Ghost Barrier)', 'gate37');
+                handleDeath('Level 2 Seal #37', 'gate37');
               }
             } else if (pipe.index > 37 && state.bypassActive) {
               // We are active in the bypass mode!

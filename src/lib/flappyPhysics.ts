@@ -20,6 +20,21 @@ export const nextGate37DeathCount = (
 ): number => cause === 'gate37' ? currentCount + 1 : currentCount;
 
 const GATE_EDGE_MARGIN = 8;
+export const FLAPPY_PIPE_WIDTH = 50;
+const GATE_37_PIPE_SPACING = FLAPPY_PIPE_WIDTH + 6;
+
+/**
+ * Gate 37 is spawned closer to Gate 36 than ordinary gates. Their visible
+ * upper/lower pipe bodies overlap vertically, while the horizontal seam is
+ * narrower than the bird, creating a real zig-zag seal instead of an air wall.
+ */
+export const getGateSpawnX = (gateIndex: number, canvasWidth: number): number => {
+  if (gateIndex !== 37) return canvasWidth;
+
+  const ordinarySpacing =
+    EASY_FLAPPY_SETTINGS.pipeSpeed * EASY_FLAPPY_SETTINGS.spawnIntervalFrames;
+  return canvasWidth - (ordinarySpacing - GATE_37_PIPE_SPACING);
+};
 
 export interface GateHeights {
   topHeight: number;
@@ -31,6 +46,12 @@ export interface GateOpeningBounds {
   bottom: number;
 }
 
+export const getFlappyNightMix = (score: number): number => {
+  if (score <= 35) return 0;
+  if (score >= 37) return 1;
+  return (score - 35) / 2;
+};
+
 export interface GateVisualStyle {
   variant: 'level1' | 'level2-preview';
   spikeCount: number;
@@ -38,7 +59,7 @@ export interface GateVisualStyle {
 }
 
 export const getGateVisualStyle = (gateIndex: number): GateVisualStyle => ({
-  variant: gateIndex === 37 ? 'level2-preview' : 'level1',
+  variant: gateIndex >= 37 ? 'level2-preview' : 'level1',
   spikeCount: gateIndex === 37 ? 4 : 0,
   showRedWarning: false,
 });
@@ -88,30 +109,31 @@ export const getGateOpeningBounds = (
 });
 
 /**
- * Static proof for the intended normal-player failure at Gate 37. Even at
- * terminal fall speed, the bird cannot descend from the lowest legal point of
- * Gate 36's high opening to the highest legal point of Gate 37's low opening
- * before the next gate reaches it.
+ * Proves that the visible Gate 36 lower pipe and Gate 37 upper pipe form a
+ * continuous physical seal in the real canvas. Their vertical bodies overlap,
+ * and the horizontal seam between them is narrower than the bird's diameter.
+ */
+export const isGate37PhysicalBarrierSealed = (
+  canvasHeight: number,
+  birdRadius: number,
+): boolean => {
+  const gate36 = getGateHeights(36, canvasHeight);
+  const gate37 = getGateHeights(37, canvasHeight);
+  const gate36LowerPipeTop = canvasHeight - gate36.bottomHeight;
+  const verticalBodiesOverlap = gate36LowerPipeTop < gate37.topHeight;
+  const horizontalSeam = GATE_37_PIPE_SPACING - FLAPPY_PIPE_WIDTH;
+
+  return verticalBodiesOverlap && horizontalSeam < birdRadius * 2;
+};
+
+/**
+ * Normal entry is impossible because the visible geometry is sealed, not
+ * because an invisible collider waits inside Gate 37's opening.
  */
 export const isGate37NormalRouteImpossible = (
   canvasHeight: number,
   birdRadius: number,
-): boolean => {
-  const gate36 = getGateOpeningBounds(
-    getGateHeights(36, canvasHeight),
-    canvasHeight,
-    birdRadius,
-  );
-  const gate37 = getGateOpeningBounds(
-    getGateHeights(37, canvasHeight),
-    canvasHeight,
-    birdRadius,
-  );
-  const requiredFall = gate37.top - gate36.bottom;
-  const maximumFall = EASY_FLAPPY_SETTINGS.maxFallSpeed * EASY_FLAPPY_SETTINGS.spawnIntervalFrames;
-
-  return requiredFall > maximumFall;
-};
+): boolean => isGate37PhysicalBarrierSealed(canvasHeight, birdRadius);
 
 export type PipeCollisionKind = 'none' | 'side' | 'land' | 'ceiling';
 

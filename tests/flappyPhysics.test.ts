@@ -5,7 +5,10 @@ import {
   EASY_FLAPPY_SETTINGS,
   getGateHeights,
   getGateOpeningBounds,
+  getGateSpawnX,
   getGateVisualStyle,
+  getFlappyNightMix,
+  isGate37PhysicalBarrierSealed,
   isGate37NormalRouteImpossible,
   nextGate37DeathCount,
   resolvePipeCollision,
@@ -108,13 +111,28 @@ test('horizontal movement is twenty-five percent slower without crowding gates t
   assert.ok(horizontalSpacing >= 190);
 });
 
-test('Gate 36 is high and Gate 37 immediately moves the normal opening to the floor', () => {
-  const gate36 = getGateOpeningBounds(getGateHeights(36, 400), 400, 12);
-  const gate37 = getGateOpeningBounds(getGateHeights(37, 400), 400, 12);
+test('Gate 36 is at the ceiling and Gate 37 is at the floor in the real canvas', () => {
+  const gate36 = getGateOpeningBounds(getGateHeights(36, 320), 320, 12);
+  const gate37 = getGateOpeningBounds(getGateHeights(37, 320), 320, 12);
 
   assert.ok(gate36.bottom < gate37.top);
-  assert.ok(gate36.top < 50);
-  assert.ok(gate37.bottom > 350);
+  assert.ok(gate36.top < 30);
+  assert.ok(gate37.bottom > 290);
+});
+
+test('Gate 36 and Gate 37 form a visible physical seal with no bird-sized seam', () => {
+  const canvasWidth = 640;
+  const pipeWidth = 50;
+  const birdDiameter = 24;
+  const ordinarySpacing =
+    EASY_FLAPPY_SETTINGS.pipeSpeed * EASY_FLAPPY_SETTINGS.spawnIntervalFrames;
+  const gate36XWhenGate37Spawns = canvasWidth - ordinarySpacing;
+  const gate37X = getGateSpawnX(37, canvasWidth);
+  const clearHorizontalSeam = gate37X - (gate36XWhenGate37Spawns + pipeWidth);
+
+  assert.ok(clearHorizontalSeam >= 0, 'the visible pipes should not overlap each other');
+  assert.ok(clearHorizontalSeam < birdDiameter, 'the seam must be too narrow for the bird');
+  assert.equal(isGate37PhysicalBarrierSealed(320, 12), true);
 });
 
 test('every ordinary gate follows a varied but fully deterministic layout', () => {
@@ -125,12 +143,37 @@ test('every ordinary gate follows a varied but fully deterministic layout', () =
   assert.ok(new Set(firstRun.map((gate) => gate.topHeight)).size >= 6);
 });
 
-test('Gate 37 previews Level 2 with subtle spikes and no red warning wall', () => {
-  const style = getGateVisualStyle(37);
+test('the world stays in daylight through 35 and turns fully dark at 37', () => {
+  assert.equal(getFlappyNightMix(0), 0);
+  assert.equal(getFlappyNightMix(35), 0);
+  assert.equal(getFlappyNightMix(36), 0.5);
+  assert.equal(getFlappyNightMix(37), 1);
+  assert.equal(getFlappyNightMix(80), 1);
+});
 
-  assert.equal(style.variant, 'level2-preview');
-  assert.ok(style.spikeCount > 0);
-  assert.equal(style.showRedWarning, false);
+test('Gate 37 and every visible gate behind it share the green Level 2 material', () => {
+  const gate37 = getGateVisualStyle(37);
+  const gate38 = getGateVisualStyle(38);
+  const laterGate = getGateVisualStyle(52);
+
+  assert.equal(gate37.variant, 'level2-preview');
+  assert.equal(gate38.variant, 'level2-preview');
+  assert.equal(laterGate.variant, 'level2-preview');
+  assert.ok(gate37.spikeCount > 0);
+  assert.equal(gate38.spikeCount, 0);
+  assert.equal(gate37.showRedWarning, false);
+});
+
+test('the Flappy game renders its sky from the day-to-night transition', () => {
+  const source = readFileSync('src/components/FlappyGame.tsx', 'utf8');
+
+  assert.match(source, /getFlappyNightMix\(state\.score\)/);
+});
+
+test('the Flappy game uses the physical Gate 37 spawn position', () => {
+  const source = readFileSync('src/components/FlappyGame.tsx', 'utf8');
+
+  assert.match(source, /x: getGateSpawnX\(gateIndex, width\)/);
 });
 
 test('the Flappy game source contains no runtime randomness or old full-height warning wall', () => {
@@ -140,8 +183,15 @@ test('the Flappy game source contains no runtime randomness or old full-height w
   assert.doesNotMatch(source, /fillRect\(pipe\.x - 10, 0, 70, height\)/);
 });
 
-test('the Gate 36 to Gate 37 normal route is statically impossible at terminal fall speed', () => {
-  assert.equal(isGate37NormalRouteImpossible(400, 12), true);
+test('Gate 37 only reacts to visible pipe impact and has no ghost barrier death', () => {
+  const source = readFileSync('src/components/FlappyGame.tsx', 'utf8');
+
+  assert.match(source, /pipe\.index === 37 && !state\.bypassActive && collision\.fatal/);
+  assert.doesNotMatch(source, /INVISIBLE WALL|Ghost Barrier/);
+});
+
+test('the Gate 36 to Gate 37 normal route is impossible in the real canvas', () => {
+  assert.equal(isGate37NormalRouteImpossible(320, 12), true);
 });
 
 test('only a Gate 37 collision increments the story death counter', () => {
