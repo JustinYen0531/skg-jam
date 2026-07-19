@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { GameProgress } from './types';
+import { GameProgress, PuzzleChapter } from './types';
 import { PhoneSimulator } from './components/PhoneSimulator';
+import { DEBUG_CHAPTERS, getChapterById, getChapterSnapshot } from './lib/chapterProgress';
 import audio from './lib/audio';
 import { 
   FileText, Shield, Award, Terminal, RefreshCw, Volume2, VolumeX,
@@ -9,6 +10,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 
 const INITIAL_PROGRESS: GameProgress = {
+  currentChapter: 1,
   phase: 'intro_game',
   deathsAt37: 0,
   seenLeaderboard: false,
@@ -36,6 +38,7 @@ export default function App() {
     if (typeof window === 'undefined') return false;
     return new URLSearchParams(window.location.search).get('debug') === 'true';
   });
+  const [debugTargetApp, setDebugTargetApp] = useState<{ app: ReturnType<typeof getChapterById>['targetApp']; nonce: number } | null>(null);
 
   // Developer-only evidence tools stay out of the player's story surface.
   // The keyboard listener changes visibility only; progress remains untouched.
@@ -50,6 +53,13 @@ export default function App() {
     window.addEventListener('keydown', handleDebugShortcut);
     return () => window.removeEventListener('keydown', handleDebugShortcut);
   }, []);
+
+  const jumpToChapter = (chapter: PuzzleChapter) => {
+    const chapterInfo = getChapterById(chapter);
+    setProgress(getChapterSnapshot(chapter));
+    setDebugTargetApp((previous) => ({ app: chapterInfo.targetApp, nonce: (previous?.nonce ?? 0) + 1 }));
+    audio.playUnlock();
+  };
 
   // Handle background ambient hum
   useEffect(() => {
@@ -152,9 +162,41 @@ export default function App() {
             <p className="text-[11px] text-slate-400 font-mono italic">
               "Nobody was supposed to finish."
             </p>
-            <div className="flex items-center justify-between gap-3 rounded border border-fuchsia-500/30 bg-fuchsia-500/10 px-2 py-1 text-[9px] font-mono text-fuchsia-300">
+          <div className="flex items-center justify-between gap-3 rounded border border-fuchsia-500/30 bg-fuchsia-500/10 px-2 py-1 text-[9px] font-mono text-fuchsia-300">
               <span>DEVELOPER DEBUG MODE</span>
               <span className="text-slate-500">CTRL + SHIFT + D</span>
+            </div>
+          </div>
+
+          <div className="space-y-3" id="debug-chapter-controls">
+            <div className="flex items-center justify-between">
+              <h3 className="font-mono text-[10px] text-emerald-400 font-bold uppercase tracking-wider">
+                GDD Puzzle Chapters 1–10
+              </h3>
+              <span className="text-[9px] font-mono text-slate-500">Ctrl+Shift+D</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {DEBUG_CHAPTERS.map((chapter) => (
+                <button
+                  key={chapter.id}
+                  type="button"
+                  onClick={() => jumpToChapter(chapter.id)}
+                  aria-pressed={progress.currentChapter === chapter.id}
+                  className={`rounded-lg border px-2.5 py-2 text-left transition-colors ${
+                    progress.currentChapter === chapter.id
+                      ? 'border-emerald-400 bg-emerald-500/15 text-emerald-200'
+                      : 'border-slate-800 bg-slate-900/70 text-slate-400 hover:border-slate-600 hover:text-white'
+                  }`}
+                  id={`debug-chapter-${chapter.id}`}
+                >
+                  <span className="block font-mono text-[9px] opacity-70">CHAPTER {chapter.id.toString().padStart(2, '0')}</span>
+                  <span className="block text-[10px] font-bold leading-tight mt-0.5">{chapter.shortTitle}</span>
+                </button>
+              ))}
+            </div>
+            <div className="rounded-lg border border-emerald-500/20 bg-emerald-950/10 p-2.5 text-[9px] leading-relaxed text-slate-400">
+              <span className="font-bold text-emerald-300">目前快照：</span>{' '}
+              {getChapterById(progress.currentChapter).description}
             </div>
           </div>
 
@@ -289,6 +331,7 @@ export default function App() {
           updateProgress={updateProgress}
           onMuteToggle={handleMuteToggle}
           isMuted={isMuted}
+          debugTargetApp={debugTargetApp}
         />
 
       </div>

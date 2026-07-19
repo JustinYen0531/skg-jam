@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { GameProgress } from '../types';
 import audio from '../lib/audio';
+import { canUseProgressionAction } from '../lib/chapterProgress';
 import { ShoppingBag, Search, Package, CheckCircle, Smartphone } from 'lucide-react';
 
 interface AmazeMartProps {
@@ -13,11 +14,18 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({ progress, updateProgress, 
   const [searchQuery, setSearchQuery] = useState('');
   const [searched, setSearched] = useState(progress.orderedPhone);
   const [ordering, setOrdering] = useState(false);
+  const [searchError, setSearchError] = useState('');
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     audio.playTick();
     if (searchQuery.toLowerCase().includes('lumen') || searchQuery.toLowerCase().includes('arc')) {
+      if (!canUseProgressionAction('amazemart-lumen-search', progress)) {
+        audio.playGlitch();
+        setSearchError('IMPRESSIVE GUESS. UNFORTUNATELY, THE STORY HAS NOT SHIPPED THAT CLUE YET.');
+        return;
+      }
+      setSearchError('');
       setSearched(true);
     }
   };
@@ -61,6 +69,11 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({ progress, updateProgress, 
       </div>
 
       {/* Main Container */}
+      {searchError && (
+        <div className="mx-3 mt-2 rounded border border-red-500/30 bg-red-950/30 p-2 text-[9px] font-mono text-red-300" id="am-search-error">
+          ⚠ {searchError}
+        </div>
+      )}
       <div className="flex-1 overflow-y-auto p-3" id="am-body">
         {!searched ? (
           <div className="flex flex-col items-center justify-center py-20 text-center space-y-3" id="am-blank">

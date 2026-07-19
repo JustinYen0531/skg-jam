@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { GameProgress } from '../types';
+import { GameProgress, PuzzleChapter } from '../types';
 import audio from '../lib/audio';
+import { canUseProgressionAction } from '../lib/chapterProgress';
 import { Search, Play, ThumbsUp, MessageSquare, Share2, AlertTriangle } from 'lucide-react';
 
 interface ViewTubeProps {
@@ -12,14 +13,22 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
   const [searchQuery, setSearchQuery] = useState('');
   const [hasSearched, setHasSearched] = useState(progress.viewTubeSearchedArc);
   const [isPlayingVideo, setIsPlayingVideo] = useState(false);
+  const [searchError, setSearchError] = useState('');
   const [danmakus, setDanmakus] = useState<Array<{ id: number; text: string; top: number; delay: number }>>([]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     audio.playTick();
-    if (searchQuery.toLowerCase().includes('arc') || searchQuery.includes('184')) {
+    const query = searchQuery.toLowerCase().trim();
+    if (query.includes('arc') || query.includes('184')) {
+      if (!canUseProgressionAction('viewtube-arc-search', progress)) {
+        audio.playGlitch();
+        setSearchError('THAT NAME IS INTERESTING. YOUR CHARACTER HAS NOT SEEN IT YET.');
+        return;
+      }
+      setSearchError('');
       setHasSearched(true);
-      updateProgress((prev) => ({ ...prev, viewTubeSearchedArc: true }));
+      updateProgress((prev) => ({ ...prev, viewTubeSearchedArc: true, currentChapter: Math.max(prev.currentChapter, 2) as PuzzleChapter }));
     }
   };
 
@@ -77,6 +86,11 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
       </div>
 
       {/* Main Container */}
+      {searchError && (
+        <div className="mx-3 mt-2 rounded border border-red-500/30 bg-red-950/30 p-2 text-[9px] font-mono text-red-300" id="vt-search-error">
+          ⚠ {searchError}
+        </div>
+      )}
       <div className="flex-1 overflow-y-auto p-3 space-y-4" id="vt-body">
         {!hasSearched ? (
           <div className="flex flex-col items-center justify-center py-16 text-center space-y-3" id="vt-blank">

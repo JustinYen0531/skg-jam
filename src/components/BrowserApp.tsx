@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { GameProgress } from '../types';
 import audio from '../lib/audio';
+import { canUseProgressionAction } from '../lib/chapterProgress';
 import { Search, RotateCcw, Clock, Download, ArrowRight, ShieldCheck, HeartCrack } from 'lucide-react';
 
 interface BrowserAppProps {
@@ -13,6 +14,7 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedYear, setSelectedYear] = useState(2026);
   const [searchedKeyword, setSearchedKeyword] = useState('skg');
+  const [archiveError, setArchiveError] = useState('');
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,6 +30,13 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
   };
 
   const handleYearChange = (year: number) => {
+    if (year === 2014 && !canUseProgressionAction('browser-skg-history', progress)) {
+      audio.playGlitch();
+      setArchiveError('2014 IS STILL THERE. YOUR CHARACTER JUST HAS NOT EARNED THE BOOKMARK YET.');
+      return;
+    }
+
+    setArchiveError('');
     audio.playUnlock();
     setSelectedYear(year);
     if (searchedKeyword === 'skg') {
@@ -98,6 +107,11 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
       </div>
 
       {/* Main Browser Content area */}
+      {archiveError && (
+        <div className="mx-3 mt-2 rounded border border-red-500/30 bg-red-950/30 p-2 text-[9px] font-mono text-red-300" id="browser-archive-error">
+          ⚠ {archiveError}
+        </div>
+      )}
       <div className="flex-1 overflow-y-auto p-3 bg-slate-950 font-sans" id="browser-viewport">
         {selectedYear === 2026 ? (
           /* Year 2026: Modern corporate slop */
