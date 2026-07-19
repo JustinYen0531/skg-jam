@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { GameProgress, ActiveApp } from '../types';
 import audio from '../lib/audio';
+import { EASY_FLAPPY_SETTINGS, resolvePipeCollision } from '../lib/flappyPhysics';
 import { RefreshCw, Play, Volume2, VolumeX, ShieldAlert, CheckCircle, Zap, Flame, Crown } from 'lucide-react';
 
 interface FlappyGameProps {
@@ -12,10 +13,9 @@ interface FlappyGameProps {
 // Sequence of target altitudes near pipe 37
 const ALTITUDE_SEQUENCE = [184, 172, 149, 133, 121, 118, 126, 143];
 
-// Shared cadence (in frames) for both pipe spawning and distance scoring, so a
-// gate's index and the displayed score always stay in lockstep. At 60fps this
-// puts gate/score 37 at ~19.7s of continuous flight.
-const PACE_INTERVAL_FRAMES = 32;
+// Easier pacing: slower horizontal motion, wider openings, and more breathing
+// room between gates. Scoring and gate spawning remain in lockstep.
+const PACE_INTERVAL_FRAMES = EASY_FLAPPY_SETTINGS.spawnIntervalFrames;
 
 export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress, onHome }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -49,6 +49,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
     seqMatched: new Array(8).fill(false),
     terminalGlitchActive: false,
     devNotes: [] as Array<{ x: number; y: number; text: string; opacity: number }>,
+    trail: [] as number[], // visual-only motion residue for the wireframe layer
   });
 
   const resetGame = () => {
@@ -70,7 +71,10 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
         { x: 400, y: 80, text: 'INIT SYSTEM_CORE', opacity: 0.8 },
         { x: 600, y: 220, text: 'MEM_ALLOC: OK', opacity: 0.6 },
         { x: 900, y: 150, text: 'WARNING: SYSTEM OBSOLETE', opacity: 0.5 },
+        { x: 1200, y: 120, text: 'PIPE_A_037 · COLLIDER: TRUE', opacity: 0.5 },
+        { x: 1500, y: 260, text: 'LEGACY_ASSET_MISSING', opacity: 0.6 },
       ],
+      trail: [],
     };
     setScore(0);
     setSeqIndex(0);
@@ -232,13 +236,40 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
           }
         });
         ctx.restore();
+
+        // Altitude ruler along the right edge: the world itself becomes a
+        // coordinate chart. Purely decorative — collision math is untouched.
+        ctx.save();
+        ctx.strokeStyle = 'rgba(34, 197, 94, 0.35)';
+        ctx.fillStyle = 'rgba(34, 197, 94, 0.5)';
+        ctx.font = '7px "JetBrains Mono"';
+        for (let alt = 0; alt <= 256; alt += 32) {
+          const y = height - (alt / 256) * height;
+          ctx.beginPath();
+          ctx.moveTo(width - 14, y);
+          ctx.lineTo(width - 6, y);
+          ctx.stroke();
+          ctx.fillText(alt.toString().padStart(3, '0'), width - 40, Math.min(height - 2, Math.max(8, y + 2)));
+        }
+        // Noah's preserved flight path rendered as brighter scale marks
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        ALTITUDE_SEQUENCE.forEach((alt) => {
+          const y = height - (alt / 256) * height;
+          ctx.fillRect(width - 18, y - 1, 12, 2);
+        });
+        ctx.restore();
       }
 
       // --- Game Physics (Only update when playing) ---
       if (isPlaying && !state.gameOver) {
         state.frameCount++;
+        const previousBirdY = state.birdY;
         state.birdVelocity += state.birdGravity;
         state.birdY += state.birdVelocity;
+
+        // Visual-only motion residue drawn by the wireframe layer
+        state.trail.push(state.birdY);
+        if (state.trail.length > 16) state.trail.shift();
 
         // Altitude sensor feedback (mapped from 0 to 256 based on canvas height)
         // Canvas height is 400. 0 is bottom, 400 is top. Let's map it: 256 is top, 0 is bottom
@@ -249,14 +280,6 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
         if (state.birdY < 0 && !state.bypassActive) {
           state.birdY = 0;
           state.birdVelocity = 0;
-        }
-        if (state.birdY > height - 15) {
-          // At score 255+, going to Alt 0 (bottom of screen) triggers the completion bypass!
-          if (state.score >= 255) {
-            triggerCompletion();
-          } else {
-            handleDeath('Boundaries Error');
-          }
         }
 
         // Distance-based scoring: a point every short stretch of flight, not
@@ -269,7 +292,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
 
         // Pipe Management
         if (state.frameCount % PACE_INTERVAL_FRAMES === 0) {
-          const gapSize = 100;
+          const gapSize = EASY_FLAPPY_SETTINGS.openingSize;
           const minPipeHeight = 40;
           const maxPipeHeight = height - gapSize - minPipeHeight;
           const topHeight = Math.floor(Math.random() * (maxPipeHeight - minPipeHeight)) + minPipeHeight;
@@ -286,7 +309,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
 
         // Move Pipes
         state.pipes.forEach((pipe) => {
-          pipe.x -= 5; // speed
+          pipe.x -= EASY_FLAPPY_SETTINGS.pipeSpeed;
         });
 
         // Delete Offscreen Pipes
@@ -307,11 +330,31 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
             }
           }
 
-          // Collisions logic
-          const collisionX = pipe.x <= birdX + birdSize && pipe.x + 50 >= birdX - birdSize;
-          const collisionY = state.birdY - birdSize < pipe.topHeight || state.birdY + birdSize > height - pipe.bottomHeight;
+          const collision = resolvePipeCollision({
+            x: birdX,
+            radius: birdSize,
+            previousY: previousBirdY,
+            currentY: state.birdY,
+            velocityY: state.birdVelocity,
+            pipeX: pipe.x,
+            pipeWidth: 50,
+            topHeight: pipe.topHeight,
+            bottomHeight: pipe.bottomHeight,
+            canvasHeight: height,
+          });
 
-          if (collisionX) {
+          // Horizontal surfaces are safe: the bird can stand on a lower pipe
+          // or bump the underside of an upper pipe without dying. Gate 37 keeps
+          // its story-critical barrier until the route has been unlocked.
+          const safeHorizontalContact = collision.kind === 'land' || collision.kind === 'ceiling';
+          if (safeHorizontalContact && (pipe.index !== 37 || state.bypassActive)) {
+            state.birdY = collision.y;
+            state.birdVelocity = collision.velocityY;
+            return;
+          }
+
+          const overlapsPipeX = pipe.x <= birdX + birdSize && pipe.x + 50 >= birdX - birdSize;
+          if (overlapsPipeX) {
             // Section 37 is the critical barrier.
             // If we are on pipe index 37 without the bypass or sequence matching, we hit an INVISIBLE WALL!
             if (pipe.index === 37 && !state.bypassActive) {
@@ -372,14 +415,24 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
                 }
               }
             } else {
-              // Standard pipe collision - only fatal when actually inside the
-              // pipe body (collisionY), not merely aligned on the X axis.
-              if (!state.bypassActive && collisionY) {
+              // Only a true vertical-face impact is fatal.
+              if (!state.bypassActive && collision.fatal) {
                 handleDeath('Collision Detected');
               }
             }
           }
         });
+
+        // Resolve pipe platforms before the bottom boundary. This prevents a
+        // fast fall from being declared out-of-bounds in the same frame it
+        // should land safely on a low pipe.
+        if (!state.gameOver && state.birdY > height - 15) {
+          if (state.score >= 255) {
+            triggerCompletion();
+          } else {
+            handleDeath('Boundaries Error');
+          }
+        }
       }
 
       // --- Draw Pipes ---
@@ -450,6 +503,17 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
       const birdX = 80;
       const birdY = state.birdY;
       const angle = Math.min(Math.PI / 6, Math.max(-Math.PI / 7, state.birdVelocity * 0.06));
+
+      if (hackedMode) {
+        // Sampled-path residue: the bird leaves its recent coordinates behind
+        ctx.save();
+        state.trail.forEach((ty, i) => {
+          const a = ((i + 1) / state.trail.length) * 0.4;
+          ctx.fillStyle = `rgba(34, 197, 94, ${a.toFixed(2)})`;
+          ctx.fillRect(birdX - (state.trail.length - i) * 7, ty - 1.5, 3, 3);
+        });
+        ctx.restore();
+      }
 
       ctx.save();
       ctx.translate(birdX, birdY);
@@ -820,6 +884,13 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
               ⚡ 9999 LEVELS OF ADVENTURE ⚡
             </div>
 
+            {/* Fake store credibility badges */}
+            <div className="flex items-center gap-1.5 mb-3 text-[8px] font-black">
+              <span className="bg-black/40 text-yellow-300 px-2 py-0.5 rounded-full border border-yellow-500/40">★★★★★ 4.9</span>
+              <span className="bg-emerald-500 text-black px-2 py-0.5 rounded-full">500M+ DOWNLOADS!!</span>
+              <span className="bg-red-600 text-white px-2 py-0.5 rounded-full animate-pulse">⏳ BONUS ENDS 00:59</span>
+            </div>
+
             <button
               onClick={resetGame}
               className="animate-float-button px-10 py-3.5 bg-gradient-to-b from-[#FFE066] to-[#F59E0B] hover:from-[#FFF099] hover:to-[#FBBF24] text-black font-display font-black text-2xl tracking-wide uppercase border-b-8 border-[#B45309] active:border-b-2 active:translate-y-[6px] transition-all duration-75 flex items-center gap-2"
@@ -909,14 +980,37 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
                 <span className="text-red-400 font-bold">{score}</span>
               </div>
 
+              {/* Purged legacy player records: the database quietly forgot them */}
+              <div className="mt-2 space-y-1 opacity-70">
+                <div className="text-[8px] text-slate-600 font-bold tracking-wider">LEGACY RECORDS · SYNC FAILED</div>
+                {([
+                  ['USER_00291', '2014-02-11'],
+                  ['USER_01847', '2014-03-02'],
+                  ['USER_00033', '2014-03-27'],
+                ] as const).map(([uid, lastActive]) => (
+                  <div key={uid} className="flex justify-between items-center bg-slate-900/20 p-1.5 rounded border border-slate-900/60 text-slate-600 text-[10px]">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-3.5 h-3.5 rounded-full bg-slate-800 border border-slate-700 shrink-0"></span>
+                      <span className="line-through decoration-slate-700">{uid}</span>
+                      <span className="text-[7px] border border-slate-800 px-1 rounded">PROFILE: UNAVAILABLE</span>
+                    </div>
+                    <span className="text-[8px]">LAST ACTIVE: {lastActive}</span>
+                  </div>
+                ))}
+              </div>
+
               {/* Hidden overflow negative score Noah Kade */}
               <div className="mt-4 border-t border-dashed border-emerald-500/20 pt-2">
+                <pre className="text-[8px] text-emerald-500/70 crt-text leading-snug mb-1.5">{`SCORE_TABLE v1.04
+ENTRY COUNT: 65536
+SORT MODE: UNSIGNED
+WARNING: SIGNED VALUE DETECTED`}</pre>
                 <div className="flex justify-between items-center bg-emerald-950/10 p-1.5 rounded border border-emerald-500/30">
                   <div className="flex items-center gap-1 text-emerald-400">
                     <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-1 rounded font-bold">SYSTEM OVERFLOW</span>
                     <span>NOAH_KADE</span>
                   </div>
-                  <span className="text-emerald-400 font-bold">-65535</span>
+                  <span className="text-emerald-400 font-bold crt-text">-65535</span>
                 </div>
                 <div className="text-[8px] text-emerald-500/60 mt-1 text-right">
                   * 16-bit Signed Integer Overflow parsed on complete.
