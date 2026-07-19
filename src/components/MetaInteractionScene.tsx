@@ -81,10 +81,10 @@ const LeftGripBack = () => (
     />
 
     <g fill="url(#left-fingers-back)">
-      <path d="M208 92C208 73 222 57 240 57H307C324 57 337 70 337 86C337 102 324 114 307 114H239C222 114 208 105 208 92Z" />
-      <path d="M205 133C205 115 220 101 238 101H316C330 101 340 112 340 126C340 141 329 152 314 152H236C219 152 205 146 205 133Z" />
-      <path d="M207 174C207 157 221 144 239 144H312C326 144 337 155 337 169C337 183 326 194 311 194H239C221 194 207 188 207 174Z" />
-      <path d="M215 214C215 198 229 186 246 186H301C315 186 326 197 326 211C326 225 315 236 300 236H245C228 236 215 229 215 214Z" />
+      <path data-grip-finger="1" d="M208 92C208 73 222 57 240 57H307C324 57 337 70 337 86C337 102 324 114 307 114H239C222 114 208 105 208 92Z" />
+      <path data-grip-finger="2" d="M205 133C205 115 220 101 238 101H316C330 101 340 112 340 126C340 141 329 152 314 152H236C219 152 205 146 205 133Z" />
+      <path data-grip-finger="3" d="M207 174C207 157 221 144 239 144H312C326 144 337 155 337 169C337 183 326 194 311 194H239C221 194 207 188 207 174Z" />
+      <path data-grip-finger="4" d="M215 214C215 198 229 186 246 186H301C315 186 326 197 326 211C326 225 315 236 300 236H245C228 236 215 229 215 214Z" />
     </g>
 
     <g fill="none" stroke="#70422f" strokeLinecap="round" strokeWidth="2" opacity="0.26">
@@ -143,6 +143,41 @@ const RightGripFront = () => (
     <LeftGripFront />
   </div>
 );
+
+interface VisibleRearFingersProps {
+  side: 'left' | 'right';
+}
+
+const VisibleRearFingers: React.FC<VisibleRearFingersProps> = ({ side }) => {
+  const anchorClass = side === 'left' ? 'right-0 origin-right' : 'left-0 origin-left';
+  const direction = side === 'left' ? -1 : 1;
+  const fingerClass = `${anchorClass} rounded-full shadow-[inset_0_3px_3px_rgba(255,231,211,0.22),inset_0_-4px_5px_rgba(94,45,31,0.2)]`;
+
+  return (
+    <div className="relative h-full w-full opacity-95 drop-shadow-[0_5px_5px_rgba(0,0,0,0.2)]">
+      <div
+        data-visible-grip-finger="1"
+        className={`absolute top-0 h-[16%] w-[76%] ${fingerClass} bg-gradient-to-b from-[#e8b596] to-[#c27e60]`}
+        style={{ transform: `rotate(${direction * 2.5}deg)` }}
+      />
+      <div
+        data-visible-grip-finger="2"
+        className={`absolute top-[23%] h-[18%] w-full ${fingerClass} bg-gradient-to-b from-[#e2aa8b] to-[#b97357]`}
+        style={{ transform: `rotate(${direction * -1.2}deg)` }}
+      />
+      <div
+        data-visible-grip-finger="3"
+        className={`absolute top-[48%] h-[17%] w-[89%] ${fingerClass} bg-gradient-to-b from-[#dba183] to-[#ad684f]`}
+        style={{ transform: `rotate(${direction * 1.6}deg)` }}
+      />
+      <div
+        data-visible-grip-finger="4"
+        className={`absolute top-[72%] h-[16%] w-[68%] ${fingerClass} bg-gradient-to-b from-[#d3977b] to-[#9f5f49]`}
+        style={{ transform: `rotate(${direction * 3.2}deg)` }}
+      />
+    </div>
+  );
+};
 
 interface InteractiveHandProps {
   pressed: boolean;
@@ -252,6 +287,8 @@ const PHONE_SURFACE_SIZE: React.CSSProperties = {
   maxHeight: '760px',
 };
 
+const PROTAGONIST_LABEL = 'YOU · LOCAL PLAYER';
+
 export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ active, children }) => {
   const sceneRef = useRef<HTMLDivElement | null>(null);
   const pendingRef = useRef(false);
@@ -285,7 +322,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
   const getRestPosition = useCallback((): PointerPosition => {
     const rect = sceneRef.current?.getBoundingClientRect();
     return rect
-      ? { x: rect.width * 0.81, y: rect.height * 0.53 }
+      ? { x: rect.width * 0.85, y: rect.height * 0.46 }
       : { x: 0, y: 0 };
   }, []);
 
@@ -524,7 +561,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
               animate={{ opacity: 1, x: 0, y: 0, rotate: -1.5 }}
               exit={{ opacity: 0 }}
               transition={{ delay: reducedMotion ? 0 : 0.5, duration: reducedMotion ? 0 : 0.62 }}
-              className="pointer-events-none absolute bottom-[17%] left-[0.5%] z-[8] h-[48%] w-[29%] min-w-44"
+              className="pointer-events-none absolute bottom-[30%] left-[-7%] z-[8] h-[48%] w-[29%] min-w-44"
               aria-hidden="true"
               id="meta-left-grip-back"
             >
@@ -540,7 +577,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
               }}
               initial={false}
               transition={{ duration: reducedMotion ? 0 : 0.24, ease: 'easeOut' }}
-              className="pointer-events-none absolute bottom-[16%] right-[0.5%] z-[8] h-[48%] w-[28%] min-w-44"
+              className="pointer-events-none absolute bottom-[29%] right-[-7%] z-[8] h-[48%] w-[28%] min-w-44"
               aria-hidden="true"
               id="meta-right-hold-back"
             >
@@ -567,7 +604,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
 
       <motion.div
         className="phone-stage absolute inset-0 z-10 flex items-center justify-center [perspective:1500px]"
-        animate={active ? { scale: 0.7, y: '-11%' } : { scale: 1, y: '0%' }}
+        animate={active ? { scale: 0.92, y: '-13%' } : { scale: 1, y: '0%' }}
         transition={{ duration: reducedMotion ? 0 : 1.05, ease: [0.22, 1, 0.36, 1] }}
         id="meta-phone-camera-frame"
       >
@@ -626,14 +663,36 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
         {active && (
           <>
             <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: reducedMotion ? 0 : 0.68, duration: reducedMotion ? 0 : 0.42 }}
+              className="pointer-events-none absolute left-0 top-[20%] z-[21] h-[25%] w-[6.3%]"
+              aria-hidden="true"
+              id="meta-left-visible-rear-fingers"
+            >
+              <VisibleRearFingers side="left" />
+            </motion.div>
+
+            <motion.div
               initial={{ opacity: 0, x: -42, y: 18 }}
               animate={{ opacity: 1, x: 0, y: 0, rotate: -2.5 }}
               transition={{ delay: reducedMotion ? 0 : 0.62, duration: reducedMotion ? 0 : 0.55 }}
-              className="pointer-events-none absolute left-[7%] top-[44%] z-20 h-[26%] w-[22%] min-w-36"
+              className="pointer-events-none absolute left-[-10%] top-[20%] z-20 h-[26%] w-[22%] min-w-36"
               aria-hidden="true"
               id="meta-left-hand"
             >
               <LeftGripFront />
+            </motion.div>
+
+            <motion.div
+              animate={{ opacity: interactionPending ? 0 : 1, x: interactionPending ? 18 : 0 }}
+              initial={false}
+              transition={{ duration: reducedMotion ? 0 : 0.24, ease: 'easeOut' }}
+              className="pointer-events-none absolute right-0 top-[21%] z-[21] h-[25%] w-[6.3%]"
+              aria-hidden="true"
+              id="meta-right-visible-rear-fingers"
+            >
+              <VisibleRearFingers side="right" />
             </motion.div>
 
             <motion.div
@@ -645,7 +704,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
               }}
               initial={false}
               transition={{ duration: reducedMotion ? 0 : 0.24, ease: 'easeOut' }}
-              className="pointer-events-none absolute right-[7.5%] top-[45%] z-20 h-[25%] w-[21%] min-w-36"
+              className="pointer-events-none absolute right-[-9%] top-[21%] z-20 h-[25%] w-[21%] min-w-36"
               aria-hidden="true"
               id="meta-right-hold-front"
             >
@@ -671,15 +730,25 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
               initial={{ opacity: 0, y: 28 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: reducedMotion ? 0 : 1.05, duration: 0.45 }}
-              className="absolute bottom-3 left-1/2 z-30 w-[min(72%,760px)] -translate-x-1/2 rounded-md border border-emerald-400/35 bg-black/90 px-4 py-2.5 font-mono text-[10px] text-emerald-300 shadow-[0_0_28px_rgba(16,185,129,0.14)]"
+              className="absolute bottom-[2.5%] left-1/2 z-[70] min-h-[19%] w-[92%] -translate-x-1/2 rounded-xl border border-emerald-400/45 bg-black/94 px-6 py-4 font-mono text-sm text-emerald-200 shadow-[0_0_42px_rgba(16,185,129,0.2)] backdrop-blur-sm"
               id="meta-terminal-dialogue"
               aria-live="polite"
             >
-              <div className="mb-1 flex items-center gap-2 border-b border-emerald-500/20 pb-1 text-[8px] tracking-[0.2em] text-emerald-500/65">
-                <Terminal className="h-3 w-3" /> INPUT SOURCE CHANGED · SCREEN CAPTURE DISCONNECTED
+              <div className="mb-3 flex items-start justify-between gap-4 border-b border-emerald-500/25 pb-2.5">
+                <div>
+                  <div className="text-base font-black tracking-[0.08em] text-emerald-100" id="meta-protagonist-name">
+                    {PROTAGONIST_LABEL}
+                  </div>
+                  <div className="mt-0.5 text-[9px] tracking-[0.24em] text-emerald-500/70">LIVE TRANSCRIPT</div>
+                </div>
+                <div className="flex items-center gap-2 pt-1 text-[9px] tracking-[0.18em] text-emerald-500/60">
+                  <Terminal className="h-3.5 w-3.5" /> INPUT SOURCE CHANGED · SCREEN CAPTURE DISCONNECTED
+                </div>
               </div>
-              <p>&gt; 「這不是紀錄。」</p>
-              <p>&gt; 「這是作弊。」</p>
+              <div className="space-y-1.5 font-display text-[clamp(16px,2.1cqh,22px)] font-semibold leading-snug text-emerald-50">
+                <p>&gt; 「這不是紀錄。」</p>
+                <p>&gt; 「這是作弊。」</p>
+              </div>
             </motion.div>
           </>
         )}

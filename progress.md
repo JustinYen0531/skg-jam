@@ -71,3 +71,20 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Removed dark skin-part outlines. Palms, thumbs, index fingers, and rear fingers are separated only by restrained lighting gradients, faint creases, nail highlights, and one unified soft hand shadow.
 - Preview verified the idle grip, launch-button tap, ViewTube search focus, virtual keyboard display, and physical-key relay back to the holding pose; the console reported zero errors.
 - Final static verification: `npm test` 38/38, `npm run lint`, and `npm run build` passed; the existing non-fatal 500 kB chunk advisory remains.
+
+## 2026-07-19 — Centered four-finger grip
+
+- Moved both supporting palms upward to the vertical middle of the phone and farther toward the outer frame so the hands no longer hang from the bottom or cover the content area.
+- Added four explicitly visible rear fingertips on each side. Their lengths, spacing, rotations, skin tones, and highlights vary so the grip reads as a hand rather than repeated stacked shapes.
+- The right four-finger layer leaves with the holding hand during an interaction and returns after the tapping hand settles, preserving the existing smooth regrip sequence.
+- Preview verified the idle composition and the launch-button release, tap, return, and regrip transition; the console reported zero errors.
+- Static verification: `npm test` 38/38 and `npm run lint` passed before final build.
+
+## 2026-07-19 — Full-frame Meta composition and persistent investigation view
+
+- Increased the active Meta phone camera scale from `0.7` to `0.92`, exactly 1.314 times the previous size, while retaining the raised metal frame and glass treatment.
+- Reallocated the stage into a dominant phone-and-hands upper field and a 92%-wide lower transcript panel with larger dialogue typography.
+- Added the existing non-spoiler protagonist identity `YOU · LOCAL PLAYER` to the transcript header; no new canonical character name was invented.
+- Added a tested persistent-investigation rule: after a chapter 1–9 snapshot is loaded, closing Developer Debug Mode hides only the tool panel and keeps the Meta desk, hands, phone, and transcript visible.
+- Preview verified the full-width layout and the chapter 1 panel-close route; both retained all hand layers and the dialogue. Browser console reported zero errors.
+- Final verification: `npm test` 38/38, `npm run lint`, and `npm run build` passed; the existing non-fatal 500 kB chunk advisory remains.

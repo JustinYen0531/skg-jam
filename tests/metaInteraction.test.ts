@@ -22,6 +22,7 @@ test('developer chapter tools preview the meta scene without changing the story 
   assert.equal(shouldShowMetaScene(false, true), true);
   assert.equal(shouldShowMetaScene(true, false), true);
   assert.equal(shouldShowMetaScene(true, true), true);
+  assert.equal(shouldShowMetaScene(false, false, true), true);
 });
 
 test('only one animated meta interaction can run at a time', () => {
@@ -66,6 +67,12 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   assert.match(sceneSource, /id="meta-right-hold-front"/);
   assert.match(sceneSource, /id="meta-tapping-hand-back"/);
   assert.match(sceneSource, /data-fingertip="right-index"/);
+  assert.equal((sceneSource.match(/data-grip-finger="[1-4]"/g) ?? []).length, 4);
+  assert.equal((sceneSource.match(/data-visible-grip-finger="[1-4]"/g) ?? []).length, 4);
+  assert.match(sceneSource, /id="meta-left-visible-rear-fingers"/);
+  assert.match(sceneSource, /id="meta-right-visible-rear-fingers"/);
+  assert.match(sceneSource, /bottom-\[30%\] left-\[-7%\]/);
+  assert.match(sceneSource, /left-\[-10%\] top-\[20%\]/);
   assert.match(sceneSource, /id="meta-desk-surface"/);
   assert.match(sceneSource, /id="meta-phone-depth"/);
   assert.match(sceneSource, /id="meta-glass-reflection"/);
@@ -74,8 +81,11 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   assert.match(sceneSource, /opacity: interactionPending && pointer\.x > 0 \? 1 : 0/);
   assert.match(sceneSource, /className="[^"]*z-\[8\][^"]*"[\s\S]{0,180}id="meta-tapping-hand-back"/);
   assert.match(sceneSource, /className="[^"]*z-\[60\][^"]*"[\s\S]{0,180}id="meta-pointer-hand"/);
-  assert.match(appSource, /const metaSceneActive = shouldShowMetaScene\(metaViewActive, debugMode\)/);
+  assert.match(appSource, /progress\.currentChapter <= 9/);
+  assert.match(appSource, /const metaSceneActive = shouldShowMetaScene\(metaViewActive, debugMode, investigationMetaPersistent\)/);
   assert.match(appSource, /<MetaInteractionScene active=\{metaSceneActive\}>/);
+  assert.match(sceneSource, /scale: 0\.92/);
+  assert.match(sceneSource, /id="meta-protagonist-name"/);
   assert.doesNotMatch(sceneSource, /stroke="#8a543e"/);
   assert.doesNotMatch(sceneSource, /stroke="#89513b"/);
   assert.doesNotMatch(sceneSource, /rounded-\[52%_44%_48%_40%\]/);

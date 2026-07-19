@@ -136,7 +136,10 @@ export default function App() {
     ['Game completed', progress.completedGame],
   ] as const;
 
-  const metaSceneActive = shouldShowMetaScene(metaViewActive, debugMode);
+  const investigationMetaPersistent = progress.seenLeaderboard
+    && progress.phase === 'os_unlocked'
+    && progress.currentChapter <= 9;
+  const metaSceneActive = shouldShowMetaScene(metaViewActive, debugMode, investigationMetaPersistent);
 
   return (
     <div className={`h-screen w-full flex flex-col md:flex-row relative overflow-hidden transition-all duration-700 ${
