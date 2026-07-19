@@ -4,6 +4,7 @@ import { test } from 'node:test';
 import {
   applyVirtualKey,
   canStartMetaInteraction,
+  META_TAP_TIMING,
   normalizeVirtualKey,
   shouldRevealMetaView,
   shouldShowMetaScene,
@@ -27,6 +28,12 @@ test('only one animated meta interaction can run at a time', () => {
   assert.equal(canStartMetaInteraction(true, false, false), true);
   assert.equal(canStartMetaInteraction(true, true, false), false);
   assert.equal(canStartMetaInteraction(false, false, false), false);
+});
+
+test('right hand has time to unfold before travel and regrip after returning', () => {
+  assert.ok(META_TAP_TIMING.unfoldMs >= 150);
+  assert.ok(META_TAP_TIMING.travelMs >= 300);
+  assert.ok(META_TAP_TIMING.settleMs >= 200);
 });
 
 test('reduced motion keeps interaction immediate instead of queueing hand movement', () => {
@@ -55,15 +62,21 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
 
   assert.match(sceneSource, /id="meta-left-grip-back"/);
   assert.match(sceneSource, /id="meta-left-thumb"/);
-  assert.match(sceneSource, /id="meta-right-grip-back"/);
+  assert.match(sceneSource, /id="meta-right-hold-back"/);
+  assert.match(sceneSource, /id="meta-right-hold-front"/);
+  assert.match(sceneSource, /id="meta-tapping-hand-back"/);
   assert.match(sceneSource, /data-fingertip="right-index"/);
   assert.match(sceneSource, /id="meta-desk-surface"/);
   assert.match(sceneSource, /id="meta-phone-depth"/);
   assert.match(sceneSource, /id="meta-glass-reflection"/);
   assert.match(sceneSource, /rotateX: 5\.5/);
-  assert.match(sceneSource, /className="[^"]*z-\[8\][^"]*"[\s\S]{0,180}id="meta-right-grip-back"/);
+  assert.match(sceneSource, /data-hand-pose=\{interactionPending \? 'reaching' : 'holding'\}/);
+  assert.match(sceneSource, /opacity: interactionPending && pointer\.x > 0 \? 1 : 0/);
+  assert.match(sceneSource, /className="[^"]*z-\[8\][^"]*"[\s\S]{0,180}id="meta-tapping-hand-back"/);
   assert.match(sceneSource, /className="[^"]*z-\[60\][^"]*"[\s\S]{0,180}id="meta-pointer-hand"/);
   assert.match(appSource, /const metaSceneActive = shouldShowMetaScene\(metaViewActive, debugMode\)/);
   assert.match(appSource, /<MetaInteractionScene active=\{metaSceneActive\}>/);
+  assert.doesNotMatch(sceneSource, /stroke="#8a543e"/);
+  assert.doesNotMatch(sceneSource, /stroke="#89513b"/);
   assert.doesNotMatch(sceneSource, /rounded-\[52%_44%_48%_40%\]/);
 });

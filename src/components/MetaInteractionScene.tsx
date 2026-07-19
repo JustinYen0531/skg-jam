@@ -54,7 +54,7 @@ const isViewTubeSearch = (element: Element): element is HTMLInputElement =>
 const LeftGripBack = () => (
   <svg
     viewBox="0 0 340 360"
-    className="h-full w-full overflow-visible drop-shadow-[0_22px_18px_rgba(0,0,0,0.48)]"
+    className="h-full w-full overflow-visible drop-shadow-[0_18px_16px_rgba(0,0,0,0.32)]"
     role="presentation"
   >
     <defs>
@@ -62,6 +62,11 @@ const LeftGripBack = () => (
         <stop offset="0" stopColor="#efc2a1" />
         <stop offset="0.48" stopColor="#c98968" />
         <stop offset="1" stopColor="#754531" />
+      </linearGradient>
+      <linearGradient id="left-fingers-back" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stopColor="#dfaa8a" />
+        <stop offset="0.5" stopColor="#ba7558" />
+        <stop offset="1" stopColor="#71412f" />
       </linearGradient>
       <linearGradient id="left-sleeve" x1="0" y1="0" x2="1" y2="0">
         <stop offset="0" stopColor="#15171c" />
@@ -75,14 +80,14 @@ const LeftGripBack = () => (
       fill="url(#left-skin-back)"
     />
 
-    <g fill="url(#left-skin-back)" stroke="#8f5a43" strokeWidth="3">
+    <g fill="url(#left-fingers-back)">
       <path d="M208 92C208 73 222 57 240 57H307C324 57 337 70 337 86C337 102 324 114 307 114H239C222 114 208 105 208 92Z" />
       <path d="M205 133C205 115 220 101 238 101H316C330 101 340 112 340 126C340 141 329 152 314 152H236C219 152 205 146 205 133Z" />
       <path d="M207 174C207 157 221 144 239 144H312C326 144 337 155 337 169C337 183 326 194 311 194H239C221 194 207 188 207 174Z" />
       <path d="M215 214C215 198 229 186 246 186H301C315 186 326 197 326 211C326 225 315 236 300 236H245C228 236 215 229 215 214Z" />
     </g>
 
-    <g fill="none" stroke="#70422f" strokeLinecap="round" strokeWidth="3" opacity="0.42">
+    <g fill="none" stroke="#70422f" strokeLinecap="round" strokeWidth="2" opacity="0.26">
       <path d="M236 77H295" />
       <path d="M235 121H302" />
       <path d="M237 163H298" />
@@ -94,8 +99,8 @@ const LeftGripBack = () => (
 
 const LeftGripFront = () => (
   <svg
-    viewBox="0 0 270 210"
-    className="h-full w-full overflow-visible drop-shadow-[0_10px_10px_rgba(0,0,0,0.38)]"
+    viewBox="0 0 280 210"
+    className="h-full w-full overflow-visible drop-shadow-[0_9px_9px_rgba(0,0,0,0.24)]"
     role="presentation"
   >
     <defs>
@@ -104,25 +109,39 @@ const LeftGripFront = () => (
         <stop offset="0.52" stopColor="#cb8d6d" />
         <stop offset="1" stopColor="#7b4934" />
       </linearGradient>
+      <linearGradient id="left-thumb-front" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stopColor="#f7d0b2" />
+        <stop offset="0.52" stopColor="#d79a79" />
+        <stop offset="1" stopColor="#92583f" />
+      </linearGradient>
     </defs>
 
     <path
-      d="M22 194C28 151 48 118 81 94C110 73 142 65 170 69C190 72 208 85 216 105C224 125 219 148 204 164C185 184 157 199 122 207H55C40 207 28 202 22 194Z"
+      d="M18 197C29 157 52 126 85 108C115 91 151 88 181 99C208 109 226 132 224 157C222 179 204 195 174 204C141 214 103 214 67 207C43 203 27 202 18 197Z"
       fill="url(#left-skin-front)"
-      stroke="#8a543e"
-      strokeWidth="3"
     />
     <path
-      d="M119 111C124 87 141 57 163 33C181 13 203 5 220 14C238 24 242 46 230 64L192 121C179 140 156 149 138 140C124 133 116 123 119 111Z"
-      fill="url(#left-skin-front)"
-      stroke="#8a543e"
-      strokeWidth="3"
+      d="M124 126C137 107 154 88 176 69L202 47C216 35 234 37 244 49C255 63 251 80 238 92L197 128C178 145 158 153 143 146C130 141 120 133 124 126Z"
+      fill="url(#left-thumb-front)"
       id="meta-left-thumb"
     />
-    <path d="M181 25C193 17 207 17 217 23" fill="none" stroke="#f8dec9" strokeLinecap="round" strokeWidth="8" opacity="0.7" />
-    <path d="M151 109C164 116 177 119 190 116" fill="none" stroke="#7a4634" strokeLinecap="round" strokeWidth="3" opacity="0.5" />
-    <path d="M71 157C103 145 130 148 151 165" fill="none" stroke="#7a4634" strokeLinecap="round" strokeWidth="3" opacity="0.42" />
+    <path d="M211 50C220 44 232 47 237 55" fill="none" stroke="#f8dec9" strokeLinecap="round" strokeWidth="7" opacity="0.72" />
+    <path d="M154 123C169 131 184 133 199 127" fill="none" stroke="#7a4634" strokeLinecap="round" strokeWidth="2" opacity="0.3" />
+    <path d="M67 161C95 149 124 152 146 168" fill="none" stroke="#7a4634" strokeLinecap="round" strokeWidth="2" opacity="0.26" />
+    <path d="M79 183C104 175 128 178 146 190" fill="none" stroke="#7a4634" strokeLinecap="round" strokeWidth="1.75" opacity="0.2" />
   </svg>
+);
+
+const RightGripBack = () => (
+  <div className="h-full w-full -scale-x-100">
+    <LeftGripBack />
+  </div>
+);
+
+const RightGripFront = () => (
+  <div className="h-full w-full -scale-x-100">
+    <LeftGripFront />
+  </div>
 );
 
 interface InteractiveHandProps {
@@ -130,11 +149,11 @@ interface InteractiveHandProps {
 }
 
 const RightHandBack: React.FC<InteractiveHandProps> = ({ pressed }) => (
-  <div className="absolute left-0 top-0 h-[clamp(190px,30vh,285px)] w-[clamp(145px,18vw,220px)] -translate-x-[30%] -translate-y-[1%]">
+  <div className="absolute left-0 top-0 h-[clamp(165px,25vh,235px)] w-[clamp(125px,15vw,180px)] -translate-x-[30%] -translate-y-[1%]">
     <motion.svg
       viewBox="0 0 230 300"
       animate={{ rotate: pressed ? -5 : 0, scale: pressed ? 0.96 : 1 }}
-      className="h-full w-full origin-[30%_1%] overflow-visible drop-shadow-[0_22px_18px_rgba(0,0,0,0.5)]"
+      className="h-full w-full origin-[30%_1%] overflow-visible drop-shadow-[0_18px_16px_rgba(0,0,0,0.34)]"
       role="presentation"
     >
     <defs>
@@ -142,6 +161,11 @@ const RightHandBack: React.FC<InteractiveHandProps> = ({ pressed }) => (
         <stop offset="0" stopColor="#edbd9c" />
         <stop offset="0.5" stopColor="#c68464" />
         <stop offset="1" stopColor="#70402f" />
+      </linearGradient>
+      <linearGradient id="right-fingers-back" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stopColor="#dda686" />
+        <stop offset="0.5" stopColor="#b97155" />
+        <stop offset="1" stopColor="#6b3d2d" />
       </linearGradient>
       <linearGradient id="right-sleeve" x1="0" y1="0" x2="1" y2="0">
         <stop offset="0" stopColor="#353a44" />
@@ -154,12 +178,12 @@ const RightHandBack: React.FC<InteractiveHandProps> = ({ pressed }) => (
       d="M80 300C79 266 81 235 91 204C102 171 125 145 158 136C187 128 211 143 221 168C231 194 219 220 197 237L178 300Z"
       fill="url(#right-skin-back)"
     />
-    <g fill="url(#right-skin-back)" stroke="#88503b" strokeWidth="3">
+    <g fill="url(#right-fingers-back)">
       <path d="M82 106C88 93 103 87 116 94L197 136C211 143 216 158 208 171C200 184 185 188 172 180L94 134C81 127 76 117 82 106Z" />
       <path d="M72 139C79 126 94 121 108 128L190 169C204 177 209 192 201 205C193 218 177 222 164 214L84 170C71 163 66 152 72 139Z" />
       <path d="M72 175C80 162 95 159 108 166L176 203C190 211 194 226 187 239C179 252 164 256 150 248L82 210C68 203 64 188 72 175Z" />
     </g>
-    <g fill="none" stroke="#6d3e2e" strokeLinecap="round" strokeWidth="3" opacity="0.42">
+    <g fill="none" stroke="#6d3e2e" strokeLinecap="round" strokeWidth="2" opacity="0.25">
       <path d="M105 111L180 151" />
       <path d="M96 147L173 188" />
       <path d="M96 184L160 220" />
@@ -170,11 +194,11 @@ const RightHandBack: React.FC<InteractiveHandProps> = ({ pressed }) => (
 );
 
 const RightHandFront: React.FC<InteractiveHandProps> = ({ pressed }) => (
-  <div className="absolute left-0 top-0 h-[clamp(190px,30vh,285px)] w-[clamp(145px,18vw,220px)] -translate-x-[30%] -translate-y-[1%]">
+  <div className="absolute left-0 top-0 h-[clamp(165px,25vh,235px)] w-[clamp(125px,15vw,180px)] -translate-x-[30%] -translate-y-[1%]">
     <motion.svg
       viewBox="0 0 230 300"
       animate={{ rotate: pressed ? -5 : 0, scale: pressed ? 0.96 : 1 }}
-      className="h-full w-full origin-[30%_1%] overflow-visible drop-shadow-[0_12px_12px_rgba(0,0,0,0.38)]"
+      className="h-full w-full origin-[30%_1%] overflow-visible drop-shadow-[0_10px_10px_rgba(0,0,0,0.24)]"
       role="presentation"
     >
     <defs>
@@ -183,30 +207,34 @@ const RightHandFront: React.FC<InteractiveHandProps> = ({ pressed }) => (
         <stop offset="0.52" stopColor="#ca8969" />
         <stop offset="1" stopColor="#784632" />
       </linearGradient>
+      <linearGradient id="right-index-front" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stopColor="#f8d3b6" />
+        <stop offset="0.5" stopColor="#d99a78" />
+        <stop offset="1" stopColor="#93563e" />
+      </linearGradient>
+      <linearGradient id="right-thumb-front" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stopColor="#e8b392" />
+        <stop offset="0.52" stopColor="#bf785a" />
+        <stop offset="1" stopColor="#70402f" />
+      </linearGradient>
     </defs>
 
     <path
       d="M54 224C66 192 85 160 111 143C137 126 169 125 191 143C214 163 217 196 199 220C184 241 161 253 136 255C102 258 78 246 54 224Z"
       fill="url(#right-skin-front)"
-      stroke="#89513b"
-      strokeWidth="3"
     />
     <path
       d="M45 171C43 137 42 102 44 64L45 29C46 12 56 2 70 3C84 4 92 16 90 33L87 70C84 106 82 137 86 162C89 181 79 194 64 195C50 196 46 187 45 171Z"
-      fill="url(#right-skin-front)"
-      stroke="#89513b"
-      strokeWidth="3"
+      fill="url(#right-index-front)"
       data-fingertip="right-index"
     />
     <path
       d="M112 168C129 153 145 139 160 119C171 104 189 100 200 110C213 121 211 139 198 152L164 187C151 200 129 202 116 190C109 184 106 175 112 168Z"
-      fill="url(#right-skin-front)"
-      stroke="#89513b"
-      strokeWidth="3"
+      fill="url(#right-thumb-front)"
     />
     <path d="M55 18C62 10 73 10 81 17" fill="none" stroke="#fae0cc" strokeLinecap="round" strokeWidth="9" opacity="0.72" />
     <path d="M174 116C181 111 190 113 196 119" fill="none" stroke="#fae0cc" strokeLinecap="round" strokeWidth="7" opacity="0.62" />
-    <g fill="none" stroke="#754230" strokeLinecap="round" strokeWidth="3" opacity="0.5">
+    <g fill="none" stroke="#754230" strokeLinecap="round" strokeWidth="2" opacity="0.28">
       <path d="M52 84C64 88 76 88 87 83" />
       <path d="M51 111C62 115 73 115 84 111" />
       <path d="M83 205C111 193 143 197 165 215" />
@@ -299,27 +327,33 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
 
     pendingRef.current = true;
     setInteractionPending(true);
-    setPointer({
+    const targetPosition = {
       x: targetRect.left - sceneRect.left + targetRect.width / 2,
       y: targetRect.top - sceneRect.top + targetRect.height / 2,
-    });
+    };
 
     return new Promise((resolve) => {
       timersRef.current.push(window.setTimeout(() => {
+        setPointer(targetPosition);
+      }, META_TAP_TIMING.unfoldMs));
+
+      timersRef.current.push(window.setTimeout(() => {
         setPressed(true);
-      }, META_TAP_TIMING.travelMs));
+      }, META_TAP_TIMING.unfoldMs + META_TAP_TIMING.travelMs));
 
       timersRef.current.push(window.setTimeout(() => {
         setPressed(false);
         onActivate?.();
-      }, META_TAP_TIMING.travelMs + META_TAP_TIMING.pressMs));
+      }, META_TAP_TIMING.unfoldMs + META_TAP_TIMING.travelMs + META_TAP_TIMING.pressMs));
 
       timersRef.current.push(window.setTimeout(() => {
         setPointer(getRestPosition());
-        pendingRef.current = false;
-        setInteractionPending(false);
-        resolve();
-      }, META_TAP_TIMING.travelMs + META_TAP_TIMING.pressMs + META_TAP_TIMING.releaseMs));
+        timersRef.current.push(window.setTimeout(() => {
+          pendingRef.current = false;
+          setInteractionPending(false);
+          resolve();
+        }, META_TAP_TIMING.settleMs));
+      }, META_TAP_TIMING.unfoldMs + META_TAP_TIMING.travelMs + META_TAP_TIMING.pressMs + META_TAP_TIMING.releaseMs));
     });
   }, [active, getRestPosition, reducedMotion]);
 
@@ -447,6 +481,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
       onKeyDownCapture={handleKeyDownCapture}
       data-meta-view={active ? 'revealed' : 'screen-capture'}
       data-meta-pending={interactionPending ? 'true' : 'false'}
+      data-hand-pose={interactionPending ? 'reaching' : 'holding'}
       id="meta-interaction-scene"
     >
       <AnimatePresence>
@@ -486,10 +521,10 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
           <>
             <motion.div
               initial={{ opacity: 0, x: -54, y: 30 }}
-              animate={{ opacity: 1, x: 0, y: 0 }}
+              animate={{ opacity: 1, x: 0, y: 0, rotate: -1.5 }}
               exit={{ opacity: 0 }}
               transition={{ delay: reducedMotion ? 0 : 0.5, duration: reducedMotion ? 0 : 0.62 }}
-              className="pointer-events-none absolute bottom-[10%] left-[0.5%] z-[8] h-[48%] w-[29%] min-w-44"
+              className="pointer-events-none absolute bottom-[17%] left-[0.5%] z-[8] h-[48%] w-[29%] min-w-44"
               aria-hidden="true"
               id="meta-left-grip-back"
             >
@@ -498,15 +533,31 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
 
             <motion.div
               animate={{
-                x: pointer.x,
-                y: pointer.y,
-                opacity: pointer.x > 0 ? 1 : 0,
+                opacity: interactionPending ? 0 : 1,
+                x: interactionPending ? 24 : 0,
+                y: interactionPending ? 10 : 0,
+                rotate: 1.8,
               }}
               initial={false}
-              transition={{ duration: reducedMotion ? 0 : 0.26, ease: 'easeInOut' }}
+              transition={{ duration: reducedMotion ? 0 : 0.24, ease: 'easeOut' }}
+              className="pointer-events-none absolute bottom-[16%] right-[0.5%] z-[8] h-[48%] w-[28%] min-w-44"
+              aria-hidden="true"
+              id="meta-right-hold-back"
+            >
+              <RightGripBack />
+            </motion.div>
+
+            <motion.div
+              animate={{
+                x: pointer.x,
+                y: pointer.y,
+                opacity: interactionPending && pointer.x > 0 ? 1 : 0,
+              }}
+              initial={false}
+              transition={{ duration: reducedMotion ? 0 : 0.32, ease: [0.22, 1, 0.36, 1] }}
               className="pointer-events-none absolute left-0 top-0 z-[8] h-0 w-0"
               aria-hidden="true"
-              id="meta-right-grip-back"
+              id="meta-tapping-hand-back"
             >
               <RightHandBack pressed={pressed} />
             </motion.div>
@@ -576,9 +627,9 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
           <>
             <motion.div
               initial={{ opacity: 0, x: -42, y: 18 }}
-              animate={{ opacity: 1, x: 0, y: 0 }}
+              animate={{ opacity: 1, x: 0, y: 0, rotate: -2.5 }}
               transition={{ delay: reducedMotion ? 0 : 0.62, duration: reducedMotion ? 0 : 0.55 }}
-              className="pointer-events-none absolute left-[10%] top-[35%] z-20 h-[28%] w-[20%] min-w-36"
+              className="pointer-events-none absolute left-[7%] top-[44%] z-20 h-[26%] w-[22%] min-w-36"
               aria-hidden="true"
               id="meta-left-hand"
             >
@@ -587,12 +638,28 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
 
             <motion.div
               animate={{
-                x: pointer.x,
-                y: pointer.y,
-                opacity: pointer.x > 0 ? 1 : 0,
+                opacity: interactionPending ? 0 : 1,
+                x: interactionPending ? 24 : 0,
+                y: interactionPending ? 10 : 0,
+                rotate: 3.2,
               }}
               initial={false}
-              transition={{ duration: reducedMotion ? 0 : 0.26, ease: 'easeInOut' }}
+              transition={{ duration: reducedMotion ? 0 : 0.24, ease: 'easeOut' }}
+              className="pointer-events-none absolute right-[7.5%] top-[45%] z-20 h-[25%] w-[21%] min-w-36"
+              aria-hidden="true"
+              id="meta-right-hold-front"
+            >
+              <RightGripFront />
+            </motion.div>
+
+            <motion.div
+              animate={{
+                x: pointer.x,
+                y: pointer.y,
+                opacity: interactionPending && pointer.x > 0 ? 1 : 0,
+              }}
+              initial={false}
+              transition={{ duration: reducedMotion ? 0 : 0.32, ease: [0.22, 1, 0.36, 1] }}
               className="pointer-events-none absolute left-0 top-0 z-[60] h-0 w-0"
               aria-hidden="true"
               id="meta-pointer-hand"

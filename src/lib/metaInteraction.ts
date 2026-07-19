@@ -1,7 +1,9 @@
 export const META_TAP_TIMING = {
-  travelMs: 260,
+  unfoldMs: 180,
+  travelMs: 320,
   pressMs: 110,
-  releaseMs: 180,
+  releaseMs: 140,
+  settleMs: 260,
 } as const;
 
 export interface VirtualKeyResult {

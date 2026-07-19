@@ -61,3 +61,13 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Static regression coverage now verifies the developer preview integration and requires the desk, metal-depth, reflection, and tilt markers.
 - Final static verification: `npm test` 37/37, `npm run lint`, and `npm run build` passed; the existing non-fatal 500 kB chunk advisory remains.
 - Browser validation intentionally not run per project instruction. Manual acceptance shortcut: `?debug=true`.
+
+## 2026-07-19 — Natural hand layers and animated regrip
+
+- Preview audit confirmed the previous right-hand default pose looked like a detached upright index finger, while the outlined SVG parts read as stacked stickers.
+- Added a permanent right-hand grip behind and in front of the phone; the tapping hand is hidden while idle.
+- Interaction now runs through holding, 180 ms unfolding, 320 ms travel, press, return, and 260 ms regrip settle phases. The right grip only disappears during this sequence and returns after every button or virtual-key action.
+- Shifted both rear finger groups upward behind the phone, reduced the tapping hand by roughly 20 percent, shortened the visible thumb intrusion, and introduced slight left/right pose asymmetry.
+- Removed dark skin-part outlines. Palms, thumbs, index fingers, and rear fingers are separated only by restrained lighting gradients, faint creases, nail highlights, and one unified soft hand shadow.
+- Preview verified the idle grip, launch-button tap, ViewTube search focus, virtual keyboard display, and physical-key relay back to the holding pose; the console reported zero errors.
+- Final static verification: `npm test` 38/38, `npm run lint`, and `npm run build` passed; the existing non-fatal 500 kB chunk advisory remains.
