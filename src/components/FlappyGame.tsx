@@ -308,126 +308,74 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
           }
 
           // Collisions logic
-          const overlapX = pipe.x <= birdX + birdSize && pipe.x + 50 >= birdX - birdSize;
+          const collisionX = pipe.x <= birdX + birdSize && pipe.x + 50 >= birdX - birdSize;
           const collisionY = state.birdY - birdSize < pipe.topHeight || state.birdY + birdSize > height - pipe.bottomHeight;
 
-          if (overlapX) {
-            // Check if this is a side (vertical) crash or a top/bottom (horizontal) landing.
-            // If the bird's center is still to the left of the pipe's left edge, it hits the side wall.
-            const isAtSide = pipe.x > birdX;
+          if (collisionX) {
+            // Section 37 is the critical barrier.
+            // If we are on pipe index 37 without the bypass or sequence matching, we hit an INVISIBLE WALL!
+            if (pipe.index === 37 && !state.bypassActive) {
+              if (progress.unlockedCodeRoute) {
+                // If the player knows the code, let's track real-time sequence matching!
+                // Let's check the current altitude against target altitude sequence at index 0 (184)
+                const currentAltitude = Math.round(((height - state.birdY) / height) * 256);
+                const target = ALTITUDE_SEQUENCE[0];
+                if (Math.abs(currentAltitude - target) <= 18) {
+                  // MATCHED step 0! Trigger bypass start.
+                  state.bypassActive = true;
+                  state.seqIndex = 1;
+                  state.seqMatched[0] = true;
+                  setSeqIndex(1);
+                  setSeqMatched([...state.seqMatched]);
+                  audio.playTick();
+                  // spawn developer logs instantly
+                  state.devNotes.push({ x: width, y: 100, text: 'COLLIDER_BYPASS_STAGE_01: INITIATED', opacity: 1 });
+                } else {
+                  handleDeath('Collider Block #37 (Ghost Barrier)');
+                }
+              } else {
+                handleDeath('Collider Block #37 (Ghost Barrier)');
+              }
+            } else if (pipe.index > 37 && state.bypassActive) {
+              // We are active in the bypass mode!
+              // For each pipe index from 38 to 44, check if the player matches the sequence target.
+              const seqOffset = pipe.index - 37;
+              if (seqOffset < ALTITUDE_SEQUENCE.length) {
+                const currentAltitude = Math.round(((height - state.birdY) / height) * 256);
+                const target = ALTITUDE_SEQUENCE[seqOffset];
 
-            if (isAtSide) {
-              if (collisionY) {
-                // Section 37 is the critical barrier.
-                // If we are on pipe index 37 without the bypass or sequence matching, we hit an INVISIBLE WALL!
-                if (pipe.index === 37 && !state.bypassActive) {
-                  if (progress.unlockedCodeRoute) {
-                    // If the player knows the code, let's track real-time sequence matching!
-                    // Let's check the current altitude against target altitude sequence at index 0 (184)
-                    const currentAltitude = Math.round(((height - state.birdY) / height) * 256);
-                    const target = ALTITUDE_SEQUENCE[0];
-                    if (Math.abs(currentAltitude - target) <= 18) {
-                      // MATCHED step 0! Trigger bypass start.
-                      state.bypassActive = true;
-                      state.seqIndex = 1;
-                      state.seqMatched[0] = true;
-                      setSeqIndex(1);
-                      setSeqMatched([...state.seqMatched]);
-                      audio.playTick();
-                      // spawn developer logs instantly
-                      state.devNotes.push({ x: width, y: 100, text: 'COLLIDER_BYPASS_STAGE_01: INITIATED', opacity: 1 });
-                    } else {
-                      handleDeath('Collider Block #37 (Ghost Barrier)');
+                // If they are passing this pipe, check their altitude
+                if (pipe.x < birdX + 20 && pipe.x > birdX - 20 && !state.seqMatched[seqOffset]) {
+                  if (Math.abs(currentAltitude - target) <= 20) {
+                    state.seqMatched[seqOffset] = true;
+                    state.seqIndex = seqOffset + 1;
+                    setSeqIndex(seqOffset + 1);
+                    setSeqMatched([...state.seqMatched]);
+                    audio.playTick();
+                    
+                    state.devNotes.push({ 
+                      x: width, 
+                      y: pipe.topHeight + 20, 
+                      text: `BYPASS_LINK [${seqOffset}] MATCHED: OK`, 
+                      opacity: 1 
+                    });
+
+                    // At stage 5 (Altitude 118), complete the full structural collapse!
+                    if (seqOffset === 5) {
+                      state.terminalGlitchActive = true;
+                      audio.playGlitch();
                     }
                   } else {
-                    handleDeath('Collider Block #37 (Ghost Barrier)');
-                  }
-                } else if (pipe.index > 37 && state.bypassActive) {
-                  // We are active in the bypass mode!
-                  // For each pipe index from 38 to 44, check if the player matches the sequence target.
-                  const seqOffset = pipe.index - 37;
-                  if (seqOffset < ALTITUDE_SEQUENCE.length) {
-                    const currentAltitude = Math.round(((height - state.birdY) / height) * 256);
-                    const target = ALTITUDE_SEQUENCE[seqOffset];
-
-                    // If they are passing this pipe, check their altitude
-                    if (pipe.x < birdX + 20 && pipe.x > birdX - 20 && !state.seqMatched[seqOffset]) {
-                      if (Math.abs(currentAltitude - target) <= 20) {
-                        state.seqMatched[seqOffset] = true;
-                        state.seqIndex = seqOffset + 1;
-                        setSeqIndex(seqOffset + 1);
-                        setSeqMatched([...state.seqMatched]);
-                        audio.playTick();
-                        
-                        state.devNotes.push({ 
-                          x: width, 
-                          y: pipe.topHeight + 20, 
-                          text: `BYPASS_LINK [${seqOffset}] MATCHED: OK`, 
-                          opacity: 1 
-                        });
-
-                        // At stage 5 (Altitude 118), complete the full structural collapse!
-                        if (seqOffset === 5) {
-                          state.terminalGlitchActive = true;
-                          audio.playGlitch();
-                        }
-                      } else {
-                        // Missed the height sequence! Structural breakdown fails, you hit the pipe!
-                        handleDeath(`Altitude Sequence Unstable at Gate ${pipe.index}`);
-                      }
-                    }
-                  }
-                } else {
-                  // Standard pipe collision - fatal side crash
-                  if (!state.bypassActive) {
-                    handleDeath('Collision Detected');
+                    // Missed the height sequence! Structural breakdown fails, you hit the pipe!
+                    handleDeath(`Altitude Sequence Unstable at Gate ${pipe.index}`);
                   }
                 }
               }
             } else {
-              // The bird's center is inside the pipe's X span. It can survive on the horizontal surfaces.
-              if (state.birdY + birdSize > height - pipe.bottomHeight) {
-                // Land on the bottom pipe's top platform
-                state.birdY = height - pipe.bottomHeight - birdSize;
-                state.birdVelocity = 0;
-              } else if (state.birdY - birdSize < pipe.topHeight) {
-                // Bounce back from the top pipe's bottom ceiling
-                state.birdY = pipe.topHeight + birdSize;
-                state.birdVelocity = 0.5; // push down slightly
-              }
-
-              // Even if standing/bouncing, sequence verification for gates >= 37 still applies in bypass mode
-              if (pipe.index >= 37 && state.bypassActive) {
-                const seqOffset = pipe.index - 37;
-                if (seqOffset < ALTITUDE_SEQUENCE.length) {
-                  const currentAltitude = Math.round(((height - state.birdY) / height) * 256);
-                  const target = ALTITUDE_SEQUENCE[seqOffset];
-
-                  // If they are passing this pipe, check their altitude
-                  if (pipe.x < birdX + 20 && pipe.x > birdX - 20 && !state.seqMatched[seqOffset]) {
-                    if (Math.abs(currentAltitude - target) <= 20) {
-                      state.seqMatched[seqOffset] = true;
-                      state.seqIndex = seqOffset + 1;
-                      setSeqIndex(seqOffset + 1);
-                      setSeqMatched([...state.seqMatched]);
-                      audio.playTick();
-                      
-                      state.devNotes.push({ 
-                        x: width, 
-                        y: pipe.topHeight + 20, 
-                        text: `BYPASS_LINK [${seqOffset}] MATCHED: OK`, 
-                        opacity: 1 
-                      });
-
-                      if (seqOffset === 5) {
-                        state.terminalGlitchActive = true;
-                        audio.playGlitch();
-                      }
-                    } else {
-                      handleDeath(`Altitude Sequence Unstable at Gate ${pipe.index}`);
-                    }
-                  }
-                }
+              // Standard pipe collision - only fatal when actually inside the
+              // pipe body (collisionY), not merely aligned on the X axis.
+              if (!state.bypassActive && collisionY) {
+                handleDeath('Collision Detected');
               }
             }
           }
