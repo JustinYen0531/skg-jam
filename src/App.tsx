@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { GameProgress } from './types';
+import { GameProgress, PuzzleChapter } from './types';
 import { PhoneSimulator } from './components/PhoneSimulator';
+import { DEBUG_CHAPTERS, getChapterById, getChapterSnapshot } from './lib/chapterProgress';
 import audio from './lib/audio';
 import { 
   FileText, Shield, Award, Terminal, RefreshCw, Volume2, VolumeX,
@@ -9,6 +10,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 
 const INITIAL_PROGRESS: GameProgress = {
+  currentChapter: 1,
   phase: 'intro_game',
   deathsAt37: 0,
   seenLeaderboard: false,
@@ -32,6 +34,27 @@ export default function App() {
   const [progress, setProgress] = useState<GameProgress>(INITIAL_PROGRESS);
   const [isMuted, setIsMuted] = useState(false);
   const [deskLamp, setDeskLamp] = useState(true);
+  const [debugMode, setDebugMode] = useState(() => new URLSearchParams(window.location.search).get('debug') === 'true');
+  const [debugTargetApp, setDebugTargetApp] = useState<{ app: ReturnType<typeof getChapterById>['targetApp']; nonce: number } | null>(null);
+
+  useEffect(() => {
+    const handleDebugShortcut = (event: KeyboardEvent) => {
+      if (event.ctrlKey && event.shiftKey && event.code === 'KeyD') {
+        event.preventDefault();
+        setDebugMode((visible) => !visible);
+      }
+    };
+
+    window.addEventListener('keydown', handleDebugShortcut);
+    return () => window.removeEventListener('keydown', handleDebugShortcut);
+  }, []);
+
+  const jumpToChapter = (chapter: PuzzleChapter) => {
+    const chapterInfo = getChapterById(chapter);
+    setProgress(getChapterSnapshot(chapter));
+    setDebugTargetApp((previous) => ({ app: chapterInfo.targetApp, nonce: (previous?.nonce ?? 0) + 1 }));
+    audio.playUnlock();
+  };
 
   // Handle background ambient hum
   useEffect(() => {
@@ -88,15 +111,16 @@ export default function App() {
       <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] pointer-events-none z-0"></div>
       <div className="absolute inset-0 bg-radial-gradient from-transparent via-black/40 to-black/85 pointer-events-none z-0"></div>
 
-      {/* LEFT SIDEBAR: Evidence & Hacking Log Dashboard */}
-      <div className="w-full md:w-[360px] border-b md:border-b-0 md:border-r border-slate-800/60 bg-slate-950/80 p-5 flex flex-col justify-between z-10 backdrop-blur-md overflow-y-auto" id="evidence-panel">
+      {/* LEFT SIDEBAR: developer-only chapter navigator */}
+      {debugMode && (
+      <aside className="w-full md:w-[380px] border-b md:border-b-0 md:border-r border-emerald-500/20 bg-slate-950/95 p-5 flex flex-col justify-between z-20 backdrop-blur-md overflow-y-auto" id="evidence-panel" aria-label="Developer chapter tools">
         <div className="space-y-5">
           
           {/* Header */}
           <div className="space-y-1">
             <div className="flex items-center justify-between">
               <span className="font-mono text-[9px] text-amber-500 font-bold bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                ACTIVE COGNITIVE INVESTIGATION
+                DEV BUILD • CHAPTER NAVIGATOR
               </span>
               <button 
                 onClick={() => setDeskLamp(!deskLamp)}
@@ -116,10 +140,43 @@ export default function App() {
             </p>
           </div>
 
-          {/* Unlocked Clues list (Dynamic Bento feed) */}
+          {/* Chapter jump controls */}
+          <div className="space-y-3" id="debug-chapter-controls">
+            <div className="flex items-center justify-between">
+              <h3 className="font-mono text-[10px] text-emerald-400 font-bold uppercase tracking-wider">
+                GDD Puzzle Chapters 1–10
+              </h3>
+              <span className="text-[9px] font-mono text-slate-500">Ctrl+Shift+D</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {DEBUG_CHAPTERS.map((chapter) => (
+                <button
+                  key={chapter.id}
+                  type="button"
+                  onClick={() => jumpToChapter(chapter.id)}
+                  aria-pressed={progress.currentChapter === chapter.id}
+                  className={`rounded-lg border px-2.5 py-2 text-left transition-colors ${
+                    progress.currentChapter === chapter.id
+                      ? 'border-emerald-400 bg-emerald-500/15 text-emerald-200'
+                      : 'border-slate-800 bg-slate-900/70 text-slate-400 hover:border-slate-600 hover:text-white'
+                  }`}
+                  id={`debug-chapter-${chapter.id}`}
+                >
+                  <span className="block font-mono text-[9px] opacity-70">CHAPTER {chapter.id.toString().padStart(2, '0')}</span>
+                  <span className="block text-[10px] font-bold leading-tight mt-0.5">{chapter.shortTitle}</span>
+                </button>
+              ))}
+            </div>
+            <div className="rounded-lg border border-emerald-500/20 bg-emerald-950/10 p-2.5 text-[9px] leading-relaxed text-slate-400">
+              <span className="font-bold text-emerald-300">目前快照：</span>{' '}
+              {getChapterById(progress.currentChapter).description}
+            </div>
+          </div>
+
+          {/* Progress flag monitor */}
           <div className="space-y-3" id="clues-feed">
             <h3 className="font-mono text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-              EVIDENCE RECORDINGS
+              PROGRESS FLAG MONITOR
             </h3>
 
             <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
@@ -215,7 +272,8 @@ export default function App() {
           </div>
         </div>
 
-      </div>
+      </aside>
+      )}
 
       {/* CENTER STAGE: Simulated Bezel Phone in Interactive Light Panel */}
       <div className="flex-1 flex items-center justify-center p-6 bg-slate-950/40 relative z-10" id="phone-container">
@@ -228,6 +286,7 @@ export default function App() {
           updateProgress={updateProgress}
           onMuteToggle={handleMuteToggle}
           isMuted={isMuted}
+          debugTargetApp={debugTargetApp}
         />
 
       </div>

@@ -17,16 +17,17 @@
 
 ## 已確定的介面方向：玩家模式與 Debug 工具
 
-### A. 將左側 SKG／Evidence 面板改成 Developer Debug Mode `[ ]`
+### A. 將左側 SKG／Evidence 面板改成 Developer Debug Mode `[~]`
 
-- [ ] 一般玩家模式預設完全隱藏左側面板，手機成為畫面唯一的主要互動焦點。
-- [ ] 保留現有左側面板程式碼，不直接刪除，改為開發者專用工具。
-- [ ] 支援 `Ctrl + Shift + D` 切換 Debug 面板。
-- [ ] 支援網址參數 `?debug=true` 直接開啟 Debug Mode。
-- [ ] Debug Mode 可查看重要進度旗標與線索解鎖狀態。
-- [ ] 後續逐步加入快速跳到 37／184／256，以及測試三個結局的功能。
-- [ ] Debug 面板的文字或狀態不可在一般玩家模式洩漏答案。
-- [ ] 玩家模式隱藏面板後，手機在桌面與行動尺寸都要正確置中並合理放大。
+- [x] 一般玩家模式預設完全隱藏左側面板，手機成為畫面唯一的主要互動焦點。
+- [x] 保留現有左側面板程式碼，不直接刪除，改為開發者專用工具。
+- [x] 支援 `Ctrl + Shift + D` 切換 Debug 面板。
+- [x] 支援網址參數 `?debug=true` 直接開啟 Debug Mode。
+- [x] Debug Mode 可查看重要進度旗標與線索解鎖狀態。
+- [x] Debug Mode 提供 GDD 謎題 1–10 的統一章節快照與對應 App 跳轉。
+- [ ] 後續逐步加入快速跳到遊戲內 37／184／256 分數節點，以及測試三個結局的功能。
+- [x] Debug 面板的文字或狀態不可在一般玩家模式洩漏答案。
+- [~] 玩家模式隱藏面板後，手機已在現有直向版面置中；橫向手機與不同 viewport 的最終尺寸需等待 Claude 的 layout 分支整合後複驗。
 
 **驗收：** 一般網址開啟時看不到左側面板；按下 `Ctrl + Shift + D` 或使用 `?debug=true` 時可顯示，再次按快捷鍵可隱藏，且不影響遊戲進度。
 
@@ -74,27 +75,28 @@
 
 ## 第二階段：鎖住真正的謎題依賴鏈
 
-### 4. 建立不可跳過的調查主線 `[ ]`
+### 4. 建立不可跳過的調查主線 `[~]`
 
-- [ ] 37 分死亡後解鎖 ViewTube 調查提示。
-- [ ] 搜尋並觀看 ARC_184 影片後，得到 Lumen Arc 線索。
+- [~] 37 分死亡／排行榜後才允許 ViewTube 的 ARC_184 搜尋；前三次死亡節奏仍待第一階段修正。
+- [x] 搜尋並觀看 ARC_184 影片後，才允許使用 Lumen Arc 關鍵詞進入 AmazeMart 後續。
 - [ ] 找到舊版檔案／Archive 線索後，才引導 AmazeMart。
 - [ ] 購買 Lumen Arc 後，才解鎖截圖資料夾。
 - [ ] 閱讀截圖後，才得到 `SKG: Skyline 256` 與 SilverKite_Games。
-- [ ] 追查 Browser 的 Silver Kite Games 舊網站後，才得到 Noah 線索。
+- [x] 取得原始標題線索後，才允許 Wayback Browser 開啟 2014 Silver Kite Games 歷史頁。
+- [x] 追查 Browser 的 Silver Kite Games 舊網站後，才允許 FaceSpace 搜尋 Noah。
 - [ ] FaceSpace 搜尋 Noah 並查看最早貼文／Q&A 後，才得到 `184-37-256`。
-- [ ] Messages 只在前置線索足夠時解鎖密碼登入。
+- [x] Messages 密碼登入已使用 `unlockedAdminLogin` 作為前置門檻；過早猜中會顯示幽默錯誤。
 - [ ] 登入舊帳號後，才解鎖高度序列。
-- [ ] 沒有完成前置調查時，不能直接輸入密碼或取得完整路線。
+- [~] ViewTube、AmazeMart、Browser、FaceSpace 與 Messages 的主要猜答案入口已設門檻；其餘內容頁與完整 1–10 自然推進仍待後續逐章串接。
 
 **驗收：** 新遊戲不能直接從 Messages 或任何單一 app 取得完整答案；每個關鍵答案都要有前置條件。
 
-### 5. 讓應用程式內容成為謎題，而非直接答案頁 `[ ]`
+### 5. 讓應用程式內容成為謎題，而非直接答案頁 `[~]`
 
-- [ ] 移除或延後過早出現的完整答案。
+- [~] 已阻擋已知關鍵詞與密碼的提前使用；其他過早出現的完整答案仍待逐頁盤點。
 - [ ] 保留必要的模糊提示、矛盾與交叉證據。
 - [ ] 讓玩家必須在至少兩個 app 之間比對資料，才能形成下一步推論。
-- [ ] `unlockedAdminLogin`、`archiveDownloaded`、`discoveredSKGHistory` 等狀態真正成為解鎖條件。
+- [~] `unlockedAdminLogin`、`discoveredOriginalTitle`、`discoveredSKGHistory`、`watchedVideo` 等狀態已成為部分入口的實際條件；`archiveDownloaded` 等其餘旗標仍待串接。
 
 **驗收：** 逐一檢查每個主要狀態是否真的會改變可互動內容，而不只是記錄旗標。
 
@@ -165,3 +167,4 @@
 | 日期 | 修改項目 | 實際結果 | 影響的其他清單項目 | 備註 |
 |---|---|---|---|---|
 | 2026-07-19 | 建立初始修正清單；確認 Debug Mode 與手機線索 App 方向 | `npm run lint`、`npm run build` 通過 | 後續介面與謎題依賴鏈 | 本次只記錄設計與驗收條件，尚未修改玩家介面，因此 A、B 維持 `[ ]`。 |
+| 2026-07-19 | Developer Debug Mode、GDD 謎題 1–10 章節快照與首批防跳關門檻 | `npm test` 6/6、`npm run lint`、`npm run build` 通過；瀏覽器確認預設隱藏、快捷鍵與 `?debug=true`、章節 2 阻擋 2014、章節 5 放行；console 0 errors | A、4、5 | 以獨立 worktree／`feat/developer-chapter-tools` 實作，未碰 Claude 在 main 工作目錄中的橫向手機修改。A 保持 `[~]`，待 layout 分支整合後複驗尺寸；自然流程其餘門檻仍留註記。 |

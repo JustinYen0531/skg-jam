@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { GameProgress } from '../types';
 import audio from '../lib/audio';
+import { canUseProgressionAction } from '../lib/chapterProgress';
 import { Search, Heart, MessageCircle, ArrowDownAZ, ArrowUpAZ, Award, HelpCircle } from 'lucide-react';
 
 interface SocialAppProps {
@@ -13,12 +14,19 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress }
   const [hasSearched, setHasSearched] = useState(progress.discoveredNoahQA);
   const [sortOldest, setSortOldest] = useState(false);
   const [activeTab, setActiveTab] = useState<'posts' | 'about'>('posts');
+  const [searchError, setSearchError] = useState('');
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     audio.playTick();
     const query = searchQuery.toLowerCase().trim();
     if (query.includes('noah') || query.includes('kade')) {
+      if (!canUseProgressionAction('social-noah-search', progress)) {
+        audio.playGlitch();
+        setSearchError('PROFILE EXISTS. NARRATIVE PERMISSION DOES NOT. KEEP INVESTIGATING.');
+        return;
+      }
+      setSearchError('');
       setHasSearched(true);
       updateProgress((prev) => ({
         ...prev,
@@ -108,6 +116,11 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress }
       </div>
 
       {/* Main Container */}
+      {searchError && (
+        <div className="mx-3 mt-2 rounded border border-red-500/30 bg-red-950/30 p-2 text-[9px] font-mono text-red-300" id="social-search-error">
+          ⚠ {searchError}
+        </div>
+      )}
       <div className="flex-1 overflow-y-auto" id="social-body">
         {!hasSearched ? (
           <div className="flex flex-col items-center justify-center py-20 text-center space-y-3 px-4" id="social-blank">

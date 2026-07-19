@@ -19,13 +19,18 @@ interface PhoneSimulatorProps {
   updateProgress: (updater: (prev: GameProgress) => GameProgress) => void;
   onMuteToggle: () => void;
   isMuted: boolean;
+  debugTargetApp?: { app: ActiveApp; nonce: number } | null;
 }
 
 export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({ 
-  progress, updateProgress, onMuteToggle, isMuted 
+  progress, updateProgress, onMuteToggle, isMuted, debugTargetApp
 }) => {
   const [activeApp, setActiveApp] = useState<ActiveApp>('flappy');
   const [currentTime, setCurrentTime] = useState('01:36');
+
+  useEffect(() => {
+    if (debugTargetApp) setActiveApp(debugTargetApp.app);
+  }, [debugTargetApp]);
 
   // Real-time clock simulator for phone status bar
   useEffect(() => {

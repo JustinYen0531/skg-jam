@@ -1,4 +1,7 @@
+export type PuzzleChapter = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
+
 export interface GameProgress {
+  currentChapter: PuzzleChapter;
   phase: 'intro_game' | 'os_unlocked' | 'passed_37' | 'credits' | 'ending_choice';
   deathsAt37: number;
   seenLeaderboard: boolean;

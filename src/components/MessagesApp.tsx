@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { GameProgress, ChatMessage } from '../types';
 import audio from '../lib/audio';
+import { canUseProgressionAction } from '../lib/chapterProgress';
 import { MessageSquare, ShieldAlert, KeyRound, Unlock, Heart, Send } from 'lucide-react';
 
 interface MessagesAppProps {
@@ -59,6 +60,12 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({ progress, updateProgre
     
     const formattedInput = passwordInput.toUpperCase().replace(/\s+/g, '');
     
+    if (formattedInput === 'ALT184GATE37END256' && !canUseProgressionAction('admin-login', progress)) {
+      audio.playGlitch();
+      setLoginError('NICE TRY, TIME TRAVELER. FIND THE CLUES BEFORE THE PASSWORD FINDS YOU.');
+      return;
+    }
+
     if (formattedInput === 'ALT184GATE37END256') {
       audio.playSuccess();
       setLoginError('');
