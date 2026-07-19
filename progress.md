@@ -88,3 +88,11 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Added a tested persistent-investigation rule: after a chapter 1–9 snapshot is loaded, closing Developer Debug Mode hides only the tool panel and keeps the Meta desk, hands, phone, and transcript visible.
 - Preview verified the full-width layout and the chapter 1 panel-close route; both retained all hand layers and the dialogue. Browser console reported zero errors.
 - Final verification: `npm test` 38/38, `npm run lint`, and `npm run build` passed; the existing non-fatal 500 kB chunk advisory remains.
+
+## 2026-07-20 — Remove forced finger stack and join the thumb
+
+- Screenshot review showed that the explicit four-fingertip overlays read as detached capsules after the 1.314x Meta enlargement; the separate front thumb fill also made the grip look assembled from pieces.
+- Removed both `VisibleRearFingers` layers completely. Rear fingers may now remain naturally occluded by the phone instead of being exposed to satisfy a count.
+- Replaced the separate palm and thumb fills with one closed SVG silhouette spanning palm, thenar web, and thumb; lighting and crease paths remain secondary details only.
+- Updated static regression coverage to reject any return of `VisibleRearFingers`, `data-visible-grip-finger`, or the old left/right visible-finger wrappers.
+- Static verification before final build: `npm test` 38/38 and `npm run lint` passed. Browser validation remains intentionally omitted per project instruction.

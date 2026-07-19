@@ -105,30 +105,22 @@ const LeftGripFront = () => (
   >
     <defs>
       <linearGradient id="left-skin-front" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stopColor="#f2c8a8" />
-        <stop offset="0.52" stopColor="#cb8d6d" />
-        <stop offset="1" stopColor="#7b4934" />
-      </linearGradient>
-      <linearGradient id="left-thumb-front" x1="0" y1="0" x2="1" y2="1">
         <stop offset="0" stopColor="#f7d0b2" />
-        <stop offset="0.52" stopColor="#d79a79" />
-        <stop offset="1" stopColor="#92583f" />
+        <stop offset="0.5" stopColor="#d29473" />
+        <stop offset="1" stopColor="#7b4934" />
       </linearGradient>
     </defs>
 
     <path
-      d="M18 197C29 157 52 126 85 108C115 91 151 88 181 99C208 109 226 132 224 157C222 179 204 195 174 204C141 214 103 214 67 207C43 203 27 202 18 197Z"
+      d="M16 207C27 166 50 134 84 114C105 102 129 96 150 100C156 88 165 78 176 68L202 46C216 34 234 36 244 49C255 63 251 80 238 92L204 122C192 133 187 143 190 154C196 176 187 195 168 207C143 224 104 226 67 218C43 213 26 213 16 207Z"
       fill="url(#left-skin-front)"
-    />
-    <path
-      d="M124 126C137 107 154 88 176 69L202 47C216 35 234 37 244 49C255 63 251 80 238 92L197 128C178 145 158 153 143 146C130 141 120 133 124 126Z"
-      fill="url(#left-thumb-front)"
       id="meta-left-thumb"
+      data-continuous-grip="palm-thumb"
     />
     <path d="M211 50C220 44 232 47 237 55" fill="none" stroke="#f8dec9" strokeLinecap="round" strokeWidth="7" opacity="0.72" />
-    <path d="M154 123C169 131 184 133 199 127" fill="none" stroke="#7a4634" strokeLinecap="round" strokeWidth="2" opacity="0.3" />
-    <path d="M67 161C95 149 124 152 146 168" fill="none" stroke="#7a4634" strokeLinecap="round" strokeWidth="2" opacity="0.26" />
-    <path d="M79 183C104 175 128 178 146 190" fill="none" stroke="#7a4634" strokeLinecap="round" strokeWidth="1.75" opacity="0.2" />
+    <path d="M157 112C172 119 187 119 201 113" fill="none" stroke="#7a4634" strokeLinecap="round" strokeWidth="2" opacity="0.24" />
+    <path d="M70 164C98 151 126 154 148 170" fill="none" stroke="#7a4634" strokeLinecap="round" strokeWidth="2" opacity="0.22" />
+    <path d="M82 188C106 179 130 181 148 193" fill="none" stroke="#7a4634" strokeLinecap="round" strokeWidth="1.75" opacity="0.18" />
   </svg>
 );
 
@@ -143,41 +135,6 @@ const RightGripFront = () => (
     <LeftGripFront />
   </div>
 );
-
-interface VisibleRearFingersProps {
-  side: 'left' | 'right';
-}
-
-const VisibleRearFingers: React.FC<VisibleRearFingersProps> = ({ side }) => {
-  const anchorClass = side === 'left' ? 'right-0 origin-right' : 'left-0 origin-left';
-  const direction = side === 'left' ? -1 : 1;
-  const fingerClass = `${anchorClass} rounded-full shadow-[inset_0_3px_3px_rgba(255,231,211,0.22),inset_0_-4px_5px_rgba(94,45,31,0.2)]`;
-
-  return (
-    <div className="relative h-full w-full opacity-95 drop-shadow-[0_5px_5px_rgba(0,0,0,0.2)]">
-      <div
-        data-visible-grip-finger="1"
-        className={`absolute top-0 h-[16%] w-[76%] ${fingerClass} bg-gradient-to-b from-[#e8b596] to-[#c27e60]`}
-        style={{ transform: `rotate(${direction * 2.5}deg)` }}
-      />
-      <div
-        data-visible-grip-finger="2"
-        className={`absolute top-[23%] h-[18%] w-full ${fingerClass} bg-gradient-to-b from-[#e2aa8b] to-[#b97357]`}
-        style={{ transform: `rotate(${direction * -1.2}deg)` }}
-      />
-      <div
-        data-visible-grip-finger="3"
-        className={`absolute top-[48%] h-[17%] w-[89%] ${fingerClass} bg-gradient-to-b from-[#dba183] to-[#ad684f]`}
-        style={{ transform: `rotate(${direction * 1.6}deg)` }}
-      />
-      <div
-        data-visible-grip-finger="4"
-        className={`absolute top-[72%] h-[16%] w-[68%] ${fingerClass} bg-gradient-to-b from-[#d3977b] to-[#9f5f49]`}
-        style={{ transform: `rotate(${direction * 3.2}deg)` }}
-      />
-    </div>
-  );
-};
 
 interface InteractiveHandProps {
   pressed: boolean;
@@ -663,17 +620,6 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
         {active && (
           <>
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: reducedMotion ? 0 : 0.68, duration: reducedMotion ? 0 : 0.42 }}
-              className="pointer-events-none absolute left-0 top-[20%] z-[21] h-[25%] w-[6.3%]"
-              aria-hidden="true"
-              id="meta-left-visible-rear-fingers"
-            >
-              <VisibleRearFingers side="left" />
-            </motion.div>
-
-            <motion.div
               initial={{ opacity: 0, x: -42, y: 18 }}
               animate={{ opacity: 1, x: 0, y: 0, rotate: -2.5 }}
               transition={{ delay: reducedMotion ? 0 : 0.62, duration: reducedMotion ? 0 : 0.55 }}
@@ -682,17 +628,6 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
               id="meta-left-hand"
             >
               <LeftGripFront />
-            </motion.div>
-
-            <motion.div
-              animate={{ opacity: interactionPending ? 0 : 1, x: interactionPending ? 18 : 0 }}
-              initial={false}
-              transition={{ duration: reducedMotion ? 0 : 0.24, ease: 'easeOut' }}
-              className="pointer-events-none absolute right-0 top-[21%] z-[21] h-[25%] w-[6.3%]"
-              aria-hidden="true"
-              id="meta-right-visible-rear-fingers"
-            >
-              <VisibleRearFingers side="right" />
             </motion.div>
 
             <motion.div

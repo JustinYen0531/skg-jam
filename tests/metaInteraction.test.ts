@@ -67,10 +67,10 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   assert.match(sceneSource, /id="meta-right-hold-front"/);
   assert.match(sceneSource, /id="meta-tapping-hand-back"/);
   assert.match(sceneSource, /data-fingertip="right-index"/);
-  assert.equal((sceneSource.match(/data-grip-finger="[1-4]"/g) ?? []).length, 4);
-  assert.equal((sceneSource.match(/data-visible-grip-finger="[1-4]"/g) ?? []).length, 4);
-  assert.match(sceneSource, /id="meta-left-visible-rear-fingers"/);
-  assert.match(sceneSource, /id="meta-right-visible-rear-fingers"/);
+  assert.match(sceneSource, /data-continuous-grip="palm-thumb"/);
+  assert.doesNotMatch(sceneSource, /VisibleRearFingers/);
+  assert.doesNotMatch(sceneSource, /data-visible-grip-finger/);
+  assert.doesNotMatch(sceneSource, /meta-(?:left|right)-visible-rear-fingers/);
   assert.match(sceneSource, /bottom-\[30%\] left-\[-7%\]/);
   assert.match(sceneSource, /left-\[-10%\] top-\[20%\]/);
   assert.match(sceneSource, /id="meta-desk-surface"/);
