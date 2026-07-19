@@ -3,7 +3,21 @@ import { GameProgress, PuzzleChapter } from '../types';
 import audio from '../lib/audio';
 import { canUseProgressionAction } from '../lib/chapterProgress';
 import { useMetaInteraction } from './MetaInteractionScene';
-import { Search, Play, ThumbsUp, MessageSquare, Share2, AlertTriangle } from 'lucide-react';
+import { createFeedSeed, shuffleFeed } from '../lib/pseudoFeed';
+import { Search, Play, ThumbsUp, MessageSquare, Share2, AlertTriangle, Radio, TrendingUp } from 'lucide-react';
+
+const VIEWTUBE_FEED = [
+  { id: 'vt-1', title: 'I Let An Algorithm Plan My Entire Morning', channel: 'EverydayMax', views: '2.4M views', age: '6 hours ago', duration: '12:08', label: 'LIFE+', gradient: 'from-fuchsia-700 via-purple-700 to-cyan-600' },
+  { id: 'vt-2', title: 'The Cloud That Looked Exactly Like My Boss', channel: 'WeatherWitness', views: '418K views', age: '1 day ago', duration: '8:44', label: 'TREND', gradient: 'from-sky-500 via-blue-600 to-indigo-900' },
+  { id: 'vt-3', title: 'Top 37 Mobile Games You Already Forgot', channel: 'ByteSizedGaming', views: '891K views', age: '3 days ago', duration: '18:37', label: 'GAME', gradient: 'from-amber-500 via-orange-600 to-red-800' },
+  { id: 'vt-4', title: 'LIVE: Downtown Pigeon Cam — Camera 04', channel: 'CityWindow', views: '8.2K watching', age: 'LIVE', duration: 'LIVE', label: 'LIVE', gradient: 'from-emerald-600 via-teal-700 to-slate-950' },
+  { id: 'vt-5', title: 'Restoring a Phone Nobody Remembers', channel: 'QuietRepair', views: '73K views', age: '2 weeks ago', duration: '24:16', label: 'TECH', gradient: 'from-slate-500 via-slate-700 to-black' },
+  { id: 'vt-6', title: 'One Hour of Extremely Productive Keyboard Sounds', channel: 'DeepFocusNow', views: '5.1M views', age: '8 months ago', duration: '1:00:00', label: 'FOCUS', gradient: 'from-indigo-700 via-violet-900 to-black' },
+  { id: 'vt-7', title: 'Can A Bird Understand Level Design?', channel: 'GameThinkDaily', views: '206K views', age: '4 days ago', duration: '10:52', label: 'ESSAY', gradient: 'from-lime-500 via-emerald-700 to-cyan-900' },
+  { id: 'vt-8', title: 'Five Products That Disappeared Without Explanation', channel: 'ListMachine', views: '1.7M views', age: '1 week ago', duration: '15:09', label: 'DOC', gradient: 'from-rose-700 via-red-900 to-slate-950' },
+  { id: 'vt-9', title: 'Ambient Mall Music From A Closed Food Court', channel: 'MemoryLoop', views: '334K views', age: '2 years ago', duration: '2:41:18', label: 'MIX', gradient: 'from-pink-400 via-cyan-500 to-indigo-800' },
+  { id: 'vt-10', title: 'World Record Attempts That Ended Strangely', channel: 'ReplayCabinet', views: '962K views', age: '5 days ago', duration: '21:37', label: 'SPORT', gradient: 'from-yellow-500 via-red-600 to-purple-950' },
+] as const;
 
 interface ViewTubeProps {
   progress: GameProgress;
@@ -17,6 +31,7 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
   const [isPlayingVideo, setIsPlayingVideo] = useState(false);
   const [searchError, setSearchError] = useState('');
   const [danmakus, setDanmakus] = useState<Array<{ id: number; text: string; top: number; delay: number }>>([]);
+  const [recommendedVideos] = useState(() => shuffleFeed(VIEWTUBE_FEED, createFeedSeed('viewtube')));
 
   const performSearch = () => {
     audio.playTick();
@@ -106,10 +121,67 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
       )}
       <div className="flex-1 overflow-y-auto p-3 space-y-4" id="vt-body">
         {!hasSearched ? (
-          <div className="flex flex-col items-center justify-center py-16 text-center space-y-3" id="vt-blank">
-            <MessageSquare className="w-12 h-12 text-slate-700" />
-            <div className="text-sm font-medium text-slate-400">Search "ARC_184" to find the controversial record run.</div>
-            <div className="text-[10px] text-slate-600">Comment section holds vital clues to passing the blocker.</div>
+          <div className="space-y-3" id="vt-home-feed">
+            <div className="flex gap-1.5 overflow-x-auto pb-1 text-[9px] font-bold whitespace-nowrap" id="vt-topic-chips">
+              {['For You', 'Gaming', 'Live', 'Documentary', 'Repair', 'Recently Uploaded'].map((topic, index) => (
+                <span key={topic} className={`px-2.5 py-1 rounded-full border ${index === 0 ? 'bg-white text-slate-950 border-white' : 'bg-slate-900 text-slate-300 border-slate-800'}`}>
+                  {topic}
+                </span>
+              ))}
+            </div>
+
+            <section className="rounded-xl overflow-hidden border border-slate-800 bg-slate-900 shadow-xl" id="vt-featured-video">
+              <div className={`h-28 bg-gradient-to-br ${recommendedVideos[0].gradient} relative p-3 flex flex-col justify-between`}>
+                <div className="flex justify-between items-start">
+                  <span className="text-[8px] font-black tracking-widest bg-black/50 px-1.5 py-0.5 rounded">FEATURED FOR YOU</span>
+                  <span className="text-[8px] font-mono bg-black/70 px-1.5 py-0.5 rounded">{recommendedVideos[0].duration}</span>
+                </div>
+                <div className="flex justify-center">
+                  <div className="w-11 h-11 rounded-full bg-white/90 text-red-600 flex items-center justify-center shadow-lg">
+                    <Play className="w-5 h-5 fill-current translate-x-0.5" />
+                  </div>
+                </div>
+                <span className="text-[8px] font-black tracking-[0.2em] text-white/80">{recommendedVideos[0].label}</span>
+              </div>
+              <div className="p-2.5">
+                <h2 className="text-xs font-bold leading-tight text-white">{recommendedVideos[0].title}</h2>
+                <div className="text-[9px] text-slate-400 mt-1">{recommendedVideos[0].channel} · {recommendedVideos[0].views} · {recommendedVideos[0].age}</div>
+              </div>
+            </section>
+
+            <div className="flex items-center justify-between pt-1">
+              <div className="flex items-center gap-1 text-xs font-bold"><TrendingUp className="w-3.5 h-3.5 text-red-500" /> Recommended</div>
+              <span className="text-[8px] text-slate-500 font-mono">REFRESHED JUST NOW</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2" id="vt-recommendations">
+              {recommendedVideos.slice(1, 9).map((video) => (
+                <article key={video.id} className="min-w-0 rounded-lg overflow-hidden bg-slate-900 border border-slate-800/80">
+                  <div className={`h-16 bg-gradient-to-br ${video.gradient} relative p-1.5`}>
+                    <span className="absolute left-1.5 top-1.5 text-[7px] font-black bg-black/45 px-1 rounded">{video.label}</span>
+                    <span className={`absolute right-1 bottom-1 text-[7px] font-mono px-1 rounded ${video.duration === 'LIVE' ? 'bg-red-600 text-white' : 'bg-black/75 text-white'}`}>{video.duration}</span>
+                    {video.duration === 'LIVE' && <Radio className="absolute w-3.5 h-3.5 left-2 bottom-1.5 text-white animate-pulse" />}
+                  </div>
+                  <div className="p-2">
+                    <h3 className="text-[10px] leading-tight font-bold text-slate-100 line-clamp-2">{video.title}</h3>
+                    <div className="text-[8px] text-slate-500 mt-1 truncate">{video.channel}</div>
+                    <div className="text-[8px] text-slate-600 truncate">{video.views} · {video.age}</div>
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            <button
+              onClick={() => { audio.playTick(); setSearchQuery('ARC_184'); }}
+              className="w-full text-left rounded-lg border border-red-900/50 bg-red-950/20 p-2.5 flex items-center gap-2"
+              id="vt-rumor-suggestion"
+            >
+              <div className="w-8 h-8 rounded bg-red-700/60 flex items-center justify-center shrink-0"><AlertTriangle className="w-4 h-4" /></div>
+              <div className="min-w-0">
+                <div className="text-[10px] font-bold text-slate-200">People are searching for an erased record run</div>
+                <div className="text-[9px] font-mono text-red-300">Trending query: ARC_184 · tap to place in search</div>
+              </div>
+            </button>
           </div>
         ) : (
           <div className="space-y-4" id="vt-search-results">
