@@ -32,6 +32,24 @@ export default function App() {
   const [progress, setProgress] = useState<GameProgress>(INITIAL_PROGRESS);
   const [isMuted, setIsMuted] = useState(false);
   const [deskLamp, setDeskLamp] = useState(true);
+  const [debugMode, setDebugMode] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return new URLSearchParams(window.location.search).get('debug') === 'true';
+  });
+
+  // Developer-only evidence tools stay out of the player's story surface.
+  // The keyboard listener changes visibility only; progress remains untouched.
+  useEffect(() => {
+    const handleDebugShortcut = (event: KeyboardEvent) => {
+      if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === 'd') {
+        event.preventDefault();
+        setDebugMode((current) => !current);
+      }
+    };
+
+    window.addEventListener('keydown', handleDebugShortcut);
+    return () => window.removeEventListener('keydown', handleDebugShortcut);
+  }, []);
 
   // Handle background ambient hum
   useEffect(() => {
@@ -79,8 +97,24 @@ export default function App() {
     }));
   };
 
+  const debugFlags = [
+    ['Gate 37 deaths', progress.deathsAt37],
+    ['Leaderboard seen', progress.seenLeaderboard],
+    ['ARC_184 searched', progress.viewTubeSearchedArc],
+    ['Replay watched', progress.watchedVideo],
+    ['Archive downloaded', progress.archiveDownloaded],
+    ['Phone delivered', progress.deliveredPhone],
+    ['Original title found', progress.discoveredOriginalTitle],
+    ['SKG history found', progress.discoveredSKGHistory],
+    ['Noah Q&A found', progress.discoveredNoahQA],
+    ['Admin login unlocked', progress.unlockedAdminLogin],
+    ['Admin logged in', progress.loggedIntoAdmin],
+    ['Code route unlocked', progress.unlockedCodeRoute],
+    ['Game completed', progress.completedGame],
+  ] as const;
+
   return (
-    <div className={`min-h-screen w-full flex flex-col md:flex-row relative overflow-hidden transition-all duration-700 ${
+    <div className={`h-screen w-full flex flex-col md:flex-row relative overflow-hidden transition-all duration-700 ${
       deskLamp ? 'bg-[#0b0c10]' : 'bg-[#020204]'
     }`} id="workspace-desk">
       
@@ -88,8 +122,12 @@ export default function App() {
       <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] pointer-events-none z-0"></div>
       <div className="absolute inset-0 bg-radial-gradient from-transparent via-black/40 to-black/85 pointer-events-none z-0"></div>
 
-      {/* LEFT SIDEBAR: Evidence & Hacking Log Dashboard */}
-      <div className="w-full md:w-[360px] border-b md:border-b-0 md:border-r border-slate-800/60 bg-slate-950/80 p-5 flex flex-col justify-between z-10 backdrop-blur-md overflow-y-auto" id="evidence-panel">
+      {/* LEFT SIDEBAR: Developer-only Evidence & Hacking Log Dashboard */}
+      <div
+        className={`${debugMode ? 'flex' : 'hidden'} w-full md:w-[360px] border-b md:border-b-0 md:border-r border-slate-800/60 bg-slate-950/80 p-5 flex-col justify-between z-10 backdrop-blur-md overflow-y-auto`}
+        id="evidence-panel"
+        data-debug-mode={debugMode ? 'enabled' : 'disabled'}
+      >
         <div className="space-y-5">
           
           {/* Header */}
@@ -114,6 +152,10 @@ export default function App() {
             <p className="text-[11px] text-slate-400 font-mono italic">
               "Nobody was supposed to finish."
             </p>
+            <div className="flex items-center justify-between gap-3 rounded border border-fuchsia-500/30 bg-fuchsia-500/10 px-2 py-1 text-[9px] font-mono text-fuchsia-300">
+              <span>DEVELOPER DEBUG MODE</span>
+              <span className="text-slate-500">CTRL + SHIFT + D</span>
+            </div>
           </div>
 
           {/* Unlocked Clues list (Dynamic Bento feed) */}
@@ -195,6 +237,25 @@ export default function App() {
             </div>
           </div>
 
+          <div className="space-y-2" id="debug-progress-flags">
+            <h3 className="font-mono text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+              Progress flags
+            </h3>
+            <div className="grid grid-cols-1 gap-1 rounded-xl border border-slate-800 bg-black/20 p-2 font-mono text-[9px]">
+              {debugFlags.map(([label, value]) => {
+                const active = typeof value === 'number' ? value > 0 : value;
+                return (
+                  <div key={label} className="flex items-center justify-between gap-3">
+                    <span className="truncate text-slate-500">{label}</span>
+                    <span className={active ? 'text-emerald-400' : 'text-slate-700'}>
+                      {typeof value === 'number' ? value : active ? 'TRUE' : 'FALSE'}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
         </div>
 
         {/* Global preserver widgets */}
@@ -218,7 +279,7 @@ export default function App() {
       </div>
 
       {/* CENTER STAGE: Simulated Bezel Phone in Interactive Light Panel */}
-      <div className="flex-1 flex items-center justify-center p-6 bg-slate-950/40 relative z-10" id="phone-container">
+      <div className="phone-stage flex-1 flex items-center justify-center bg-slate-950/40 relative z-10 min-h-[300px]" id="phone-container">
         
         {/* Underlay glow shadow representation */}
         <div className="absolute w-80 h-80 bg-purple-500/10 blur-[120px] rounded-full top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>

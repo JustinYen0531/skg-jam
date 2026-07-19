@@ -14,6 +14,50 @@ body {
   overflow: hidden;
 }
 
+/* Landscape phone sizing tokens. The phone frame is derived from these via
+   container query units so it fills whichever box it sits in (desktop stage
+   or mobile stack) without ever exceeding it. */
+:root {
+  --phone-aspect: 1.78;
+  --phone-radius: 40px;
+  --phone-border: 14px;
+}
+
+@media (max-width: 900px) {
+  :root {
+    --phone-aspect: 1.55;
+    --phone-radius: 30px;
+    --phone-border: 10px;
+  }
+}
+
+@media (max-width: 560px) {
+  :root {
+    --phone-aspect: 1.25;
+    --phone-radius: 22px;
+    --phone-border: 8px;
+  }
+}
+
+/* Establishes a sized containment box so the phone frame can size itself
+   with cqw/cqh regardless of sidebar width or viewport shape. */
+.phone-stage {
+  --phone-stage-inset: 3rem;
+  container-type: size;
+  container-name: phone-stage;
+  min-width: 0;
+  min-height: 0;
+  padding: calc(var(--phone-stage-inset) / 2);
+}
+
+@media (max-width: 767px) {
+  .phone-stage {
+    /* Extra safe area accounts for the bezel, focus ring and narrow portrait
+       viewports so neither rounded edge is clipped. */
+    --phone-stage-inset: 4rem;
+  }
+}
+
 /* Custom scrollbars */
 ::-webkit-scrollbar {
   width: 4px;
@@ -37,8 +81,11 @@ body {
   100% { opacity: 0.99; }
 }
 
+/* Note: no position rule here on purpose. Every element using .crt-effect
+   already carries a Tailwind fixed/absolute utility for positioning; as an
+   unlayered rule this would otherwise beat Tailwind's layered utilities in
+   the cascade and silently collapse those elements to their static box. */
 .crt-effect {
-  position: relative;
   overflow: hidden;
 }
 

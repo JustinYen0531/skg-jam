@@ -142,20 +142,20 @@ export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, up
       </div>
 
       {/* Grid of papers */}
-      <div className="flex-1 p-3.5 flex flex-col justify-center space-y-4 relative overflow-hidden" id="spec-workspace">
-        <div className="text-[10px] text-stone-400 text-center italic mb-2">
+      <div className="flex-1 p-3.5 flex flex-col justify-center gap-3 relative overflow-y-auto" id="spec-workspace">
+        <div className="text-[10px] text-stone-400 text-center italic">
           Click any printed paper to zoom in and read the structural details closely.
         </div>
 
         {/* Paper Cards overlapping layout */}
-        <div className="flex-1 grid grid-cols-1 gap-3.5 relative" id="spec-pile">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 relative" id="spec-pile">
           {sheets.map((sheet, index) => (
             <motion.div
               key={sheet.id}
               onClick={() => handleZoom(index)}
               whileHover={{ scale: 1.02, rotate: sheet.angle * 0.8 }}
               style={{ rotate: `${sheet.angle}deg` }}
-              className={`p-3 rounded-lg shadow-md cursor-pointer border border-stone-800/20 flex flex-col justify-between ${sheet.bg} ${sheet.textColor} h-[95px] overflow-hidden`}
+              className={`p-3 rounded-lg shadow-md cursor-pointer border border-stone-800/20 flex flex-col justify-between ${sheet.bg} ${sheet.textColor} min-h-[95px] overflow-hidden`}
             >
               <div className="flex items-start justify-between">
                 <div>
@@ -183,7 +183,7 @@ export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, up
                 initial={{ scale: 0.9, y: 10 }}
                 animate={{ scale: 1, y: 0 }}
                 exit={{ scale: 0.9, y: 10 }}
-                className={`p-4 rounded-xl shadow-2xl max-h-[320px] overflow-y-auto flex flex-col justify-between ${sheets[activeSheet].bg} ${sheets[activeSheet].textColor}`}
+                className={`p-4 rounded-xl shadow-2xl max-h-full overflow-y-auto flex flex-col justify-between ${sheets[activeSheet].bg} ${sheets[activeSheet].textColor}`}
               >
                 <div>
                   <div className="flex justify-between items-start border-b border-current pb-2 mb-3">

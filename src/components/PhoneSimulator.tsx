@@ -51,17 +51,23 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   };
 
   return (
-    <div className="relative w-[340px] h-[670px] bg-slate-900 rounded-[48px] border-[10px] border-slate-800 shadow-2xl flex flex-col overflow-hidden ring-4 ring-slate-800/20" id="phone-bezel">
-      
-      {/* Phone Camera Notch/Speaker */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-slate-800 rounded-b-2xl z-50 flex items-center justify-center gap-1.5" id="phone-notch">
-        <div className="w-12 h-1 bg-slate-900 rounded-full"></div>
-        <div className="w-2.5 h-2.5 bg-slate-900 rounded-full border border-slate-800"></div>
-      </div>
+    <div
+      className="relative bg-slate-900 rounded-[var(--phone-radius)] border-[var(--phone-border)] border-slate-800 shadow-2xl flex flex-col overflow-hidden ring-4 ring-slate-800/20"
+      style={{
+        width: 'min(calc(100cqw - var(--phone-stage-inset)), calc((100cqh - var(--phone-stage-inset)) * var(--phone-aspect)))',
+        height: 'min(calc(100cqh - var(--phone-stage-inset)), calc((100cqw - var(--phone-stage-inset)) / var(--phone-aspect)))',
+        maxWidth: '1500px',
+        maxHeight: '760px',
+      }}
+      id="phone-bezel"
+    >
 
-      {/* Phone Status Bar */}
-      <div className="h-8 bg-black/85 px-6 flex items-center justify-between text-[10px] text-slate-300 font-mono z-40" id="phone-status-bar">
-        <span>{currentTime}</span>
+      {/* Phone Status Bar (camera dot sits inline, landscape-style) */}
+      <div className="h-7 shrink-0 bg-black/85 px-4 flex items-center justify-between text-[10px] text-slate-300 font-mono z-40" id="phone-status-bar">
+        <div className="flex items-center gap-2" id="phone-notch">
+          <span className="w-1.5 h-1.5 rounded-full bg-slate-700 border border-slate-600"></span>
+          <span>{currentTime}</span>
+        </div>
         <div className="flex items-center gap-1">
           <Wifi className="w-3 h-3 text-slate-400" />
           <span className="text-[8px] font-bold">LTE</span>
@@ -82,13 +88,12 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="absolute inset-0 p-4 flex flex-col justify-between bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 overflow-y-auto"
+              className="absolute inset-0 p-3 md:p-4 flex flex-row gap-3 md:gap-5 bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-950 overflow-y-auto"
               id="phone-desktop"
             >
-              <div className="space-y-4">
-                
-                {/* Greeting / Mission Widget */}
-                <div className="bg-white/5 border border-white/10 p-3 rounded-2xl space-y-1 mt-4" id="home-widget">
+              {/* Left column: Greeting / Mission Widget */}
+              <div className="w-[40%] min-w-[150px] max-w-[280px] shrink-0 flex flex-col justify-between gap-2">
+                <div className="bg-white/5 border border-white/10 p-3 rounded-2xl space-y-1" id="home-widget">
                   <div className="text-[8px] font-mono text-indigo-400 uppercase tracking-wider font-bold">INVESTIGATION DESK</div>
                   <h3 className="font-display font-black text-xs text-white">SKG: SCOREKEEPER</h3>
                   <p className="text-[10px] text-slate-400 leading-tight">
@@ -98,25 +103,25 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                   {/* Dynamic checklist to guide players */}
                   <div className="pt-2 border-t border-white/5 space-y-1 text-[9px] font-mono">
                     <div className="flex items-center gap-1.5">
-                      <span className={`w-1.5 h-1.5 rounded-full ${progress.deathsAt37 >= 1 ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`}></span>
+                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${progress.deathsAt37 >= 1 ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`}></span>
                       <span className={progress.deathsAt37 >= 1 ? 'line-through text-slate-500' : 'text-slate-300'}>
                         Die at pipe 37 to trigger the discrepancy
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <span className={`w-1.5 h-1.5 rounded-full ${progress.watchedVideo ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`}></span>
+                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${progress.watchedVideo ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`}></span>
                       <span className={progress.watchedVideo ? 'line-through text-slate-500' : 'text-slate-300'}>
                         Examine ARC_184's run video in ViewTube
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <span className={`w-1.5 h-1.5 rounded-full ${progress.deliveredPhone ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
+                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${progress.deliveredPhone ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
                       <span className={progress.deliveredPhone ? 'line-through text-slate-500' : 'text-slate-300'}>
                         Buy the obsolete schematics folder in AmazeMart
                       </span>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <span className={`w-1.5 h-1.5 rounded-full ${progress.unlockedCodeRoute ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
+                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${progress.unlockedCodeRoute ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
                       <span className={progress.unlockedCodeRoute ? 'line-through text-slate-500' : 'text-slate-300'}>
                         Decrypt Mother's Silver Kite Messenger login
                       </span>
@@ -124,9 +129,16 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                   </div>
                 </div>
 
-                {/* Grid of Apps */}
-                <div className="grid grid-cols-4 gap-y-4 gap-x-2 pt-2" id="home-apps-grid">
-                  
+                {/* Home Bezel bottom indicator */}
+                <div className="text-[9px] text-center text-slate-600 font-mono">
+                  MODEL: ARC_LITE_PH • OS: LAOS_V12.1
+                </div>
+              </div>
+
+              {/* Right column: Grid of Apps */}
+              <div className="flex-1 flex items-center min-w-0">
+                <div className="grid grid-cols-4 gap-y-4 gap-x-3 w-full" id="home-apps-grid">
+
                   {/* Flappy / Skyline Game Icon */}
                   <button 
                     onClick={() => handleLaunchApp('flappy')}
@@ -235,11 +247,6 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                   </button>
 
                 </div>
-              </div>
-
-              {/* Home Bezel bottom indicator */}
-              <div className="text-[9px] text-center text-slate-600 font-mono pb-2">
-                MODEL: ARC_LITE_PH • OS: LAOS_V12.1
               </div>
             </motion.div>
           )}
@@ -380,10 +387,10 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
       </div>
 
       {/* Physical iPhone Home Button bar */}
-      <div className="h-10 bg-black flex items-center justify-center border-t border-slate-900" id="phone-footer">
+      <div className="h-6 shrink-0 bg-black flex items-center justify-center border-t border-slate-900" id="phone-footer">
         <button
           onClick={handleHomeButton}
-          className="w-1/3 h-1 bg-slate-600 rounded-full hover:bg-white active:bg-slate-400 transition-colors"
+          className="w-24 h-1 bg-slate-600 rounded-full hover:bg-white active:bg-slate-400 transition-colors"
           title="Home Screen"
           id="home-swipe-indicator"
         />
