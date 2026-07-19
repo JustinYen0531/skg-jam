@@ -1,6 +1,12 @@
 import { strict as assert } from 'node:assert';
 import { test } from 'node:test';
-import { EASY_FLAPPY_SETTINGS, resolvePipeCollision } from '../src/lib/flappyPhysics';
+import {
+  EASY_FLAPPY_SETTINGS,
+  getGateHeights,
+  getGateOpeningBounds,
+  isGate37NormalRouteImpossible,
+  resolvePipeCollision,
+} from '../src/lib/flappyPhysics';
 
 const pipe = {
   pipeX: 70,
@@ -89,12 +95,25 @@ test('a bird flying through the open gap is untouched', () => {
   assert.equal(result.velocityY, 2);
 });
 
-test('easy mode keeps pipes slow, spacious, and widely separated', () => {
-  assert.ok(EASY_FLAPPY_SETTINGS.pipeSpeed <= 3.2);
+test('score and gate cadence are approximately doubled without compressing pipe spacing', () => {
+  assert.equal(EASY_FLAPPY_SETTINGS.pipeSpeed, 6.4);
   assert.ok(EASY_FLAPPY_SETTINGS.openingSize >= 130);
-  assert.ok(EASY_FLAPPY_SETTINGS.spawnIntervalFrames >= 64);
+  assert.equal(EASY_FLAPPY_SETTINGS.spawnIntervalFrames, 32);
 
   const horizontalSpacing =
     EASY_FLAPPY_SETTINGS.pipeSpeed * EASY_FLAPPY_SETTINGS.spawnIntervalFrames;
   assert.ok(horizontalSpacing >= 200);
+});
+
+test('Gate 36 is high and Gate 37 immediately moves the normal opening to the floor', () => {
+  const gate36 = getGateOpeningBounds(getGateHeights(36, 400, 100), 400, 12);
+  const gate37 = getGateOpeningBounds(getGateHeights(37, 400, 100), 400, 12);
+
+  assert.ok(gate36.bottom < gate37.top);
+  assert.ok(gate36.top < 50);
+  assert.ok(gate37.bottom > 350);
+});
+
+test('the Gate 36 to Gate 37 normal route is statically impossible at terminal fall speed', () => {
+  assert.equal(isGate37NormalRouteImpossible(400, 12), true);
 });

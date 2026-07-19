@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { GameProgress, ActiveApp } from '../types';
 import audio from '../lib/audio';
-import { EASY_FLAPPY_SETTINGS, resolvePipeCollision } from '../lib/flappyPhysics';
+import { EASY_FLAPPY_SETTINGS, getGateHeights, resolvePipeCollision } from '../lib/flappyPhysics';
 import { RefreshCw, Play, Volume2, VolumeX, ShieldAlert, CheckCircle, Zap, Flame, Crown } from 'lucide-react';
 
 interface FlappyGameProps {
@@ -264,7 +264,10 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
       if (isPlaying && !state.gameOver) {
         state.frameCount++;
         const previousBirdY = state.birdY;
-        state.birdVelocity += state.birdGravity;
+        state.birdVelocity = Math.min(
+          state.birdVelocity + state.birdGravity,
+          EASY_FLAPPY_SETTINGS.maxFallSpeed,
+        );
         state.birdY += state.birdVelocity;
 
         // Visual-only motion residue drawn by the wireframe layer
@@ -295,15 +298,16 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
           const gapSize = EASY_FLAPPY_SETTINGS.openingSize;
           const minPipeHeight = 40;
           const maxPipeHeight = height - gapSize - minPipeHeight;
-          const topHeight = Math.floor(Math.random() * (maxPipeHeight - minPipeHeight)) + minPipeHeight;
-          const bottomHeight = height - gapSize - topHeight;
+          const randomTopHeight = Math.floor(Math.random() * (maxPipeHeight - minPipeHeight)) + minPipeHeight;
+          const gateIndex = state.pipeIndexCounter++;
+          const { topHeight, bottomHeight } = getGateHeights(gateIndex, height, randomTopHeight);
 
           state.pipes.push({
             x: width,
             topHeight,
             bottomHeight,
             passed: false,
-            index: state.pipeIndexCounter++,
+            index: gateIndex,
           });
         }
 

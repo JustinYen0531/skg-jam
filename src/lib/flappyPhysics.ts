@@ -1,8 +1,89 @@
 export const EASY_FLAPPY_SETTINGS = {
-  pipeSpeed: 3.2,
+  // Gates arrive twice as often while their on-screen separation stays about
+  // the same. This halves time-to-score without turning the screen into a
+  // wall of pipes.
+  pipeSpeed: 6.4,
   openingSize: 130,
-  spawnIntervalFrames: 64,
+  spawnIntervalFrames: 32,
+  maxFallSpeed: 3.2,
 } as const;
+
+const GATE_EDGE_MARGIN = 24;
+
+export interface GateHeights {
+  topHeight: number;
+  bottomHeight: number;
+}
+
+export interface GateOpeningBounds {
+  top: number;
+  bottom: number;
+}
+
+/**
+ * Gate 36 forces the bird through a high opening; Gate 37 immediately moves
+ * the only normal opening to the floor. The secret bypass intentionally does
+ * not use this normal opening.
+ */
+export const getGateHeights = (
+  gateIndex: number,
+  canvasHeight: number,
+  randomTopHeight: number,
+): GateHeights => {
+  if (gateIndex === 36) {
+    return {
+      topHeight: GATE_EDGE_MARGIN,
+      bottomHeight: canvasHeight - EASY_FLAPPY_SETTINGS.openingSize - GATE_EDGE_MARGIN,
+    };
+  }
+
+  if (gateIndex === 37) {
+    return {
+      topHeight: canvasHeight - EASY_FLAPPY_SETTINGS.openingSize - GATE_EDGE_MARGIN,
+      bottomHeight: GATE_EDGE_MARGIN,
+    };
+  }
+
+  return {
+    topHeight: randomTopHeight,
+    bottomHeight: canvasHeight - EASY_FLAPPY_SETTINGS.openingSize - randomTopHeight,
+  };
+};
+
+export const getGateOpeningBounds = (
+  heights: GateHeights,
+  canvasHeight: number,
+  birdRadius: number,
+): GateOpeningBounds => ({
+  top: heights.topHeight + birdRadius,
+  bottom: canvasHeight - heights.bottomHeight - birdRadius,
+});
+
+/**
+ * Static proof for the intended normal-player failure at Gate 37. Even at
+ * terminal fall speed, the bird cannot descend from the lowest legal point of
+ * Gate 36's high opening to the highest legal point of Gate 37's low opening
+ * before the next gate reaches it.
+ */
+export const isGate37NormalRouteImpossible = (
+  canvasHeight: number,
+  birdRadius: number,
+): boolean => {
+  const gate36 = getGateOpeningBounds(
+    getGateHeights(36, canvasHeight, 0),
+    canvasHeight,
+    birdRadius,
+  );
+  const gate37 = getGateOpeningBounds(
+    getGateHeights(37, canvasHeight, 0),
+    canvasHeight,
+    birdRadius,
+  );
+  const requiredFall = gate37.top - gate36.bottom;
+  const maximumFall = EASY_FLAPPY_SETTINGS.maxFallSpeed * EASY_FLAPPY_SETTINGS.spawnIntervalFrames;
+
+  return requiredFall > maximumFall;
+};
 
 export type PipeCollisionKind = 'none' | 'side' | 'land' | 'ceiling';
 
