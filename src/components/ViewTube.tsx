@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { GameProgress, PuzzleChapter } from '../types';
 import audio from '../lib/audio';
 import { canUseProgressionAction } from '../lib/chapterProgress';
+import { useMetaInteraction } from './MetaInteractionScene';
 import { Search, Play, ThumbsUp, MessageSquare, Share2, AlertTriangle } from 'lucide-react';
 
 interface ViewTubeProps {
@@ -10,14 +11,14 @@ interface ViewTubeProps {
 }
 
 export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) => {
+  const metaInteraction = useMetaInteraction();
   const [searchQuery, setSearchQuery] = useState('');
   const [hasSearched, setHasSearched] = useState(progress.viewTubeSearchedArc);
   const [isPlayingVideo, setIsPlayingVideo] = useState(false);
   const [searchError, setSearchError] = useState('');
   const [danmakus, setDanmakus] = useState<Array<{ id: number; text: string; top: number; delay: number }>>([]);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
+  const performSearch = () => {
     audio.playTick();
     const query = searchQuery.toLowerCase().trim();
     if (query.includes('arc') || query.includes('184')) {
@@ -31,6 +32,17 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
       updateProgress((prev) => ({ ...prev, viewTubeSearchedArc: true, currentChapter: Math.max(prev.currentChapter, 2) as PuzzleChapter }));
     }
   };
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    performSearch();
+  };
+
+  useEffect(() => metaInteraction.registerInput('vt-search-input', {
+    getValue: () => searchQuery,
+    onChange: setSearchQuery,
+    onSubmit: performSearch,
+  }), [metaInteraction.registerInput, searchQuery, progress, updateProgress]);
 
   const startVideo = () => {
     audio.playUnlock();
@@ -76,6 +88,7 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
             placeholder="Search Creator or Video..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            readOnly={metaInteraction.active}
             className="w-full bg-red-950/40 text-xs text-white placeholder-red-300 px-2.5 py-1.5 pr-8 rounded border border-red-800 focus:outline-none focus:border-red-500 font-mono"
             id="vt-search-input"
           />

@@ -5,6 +5,7 @@ import {
   getGateHeights,
   getGateOpeningBounds,
   isGate37NormalRouteImpossible,
+  nextGate37DeathCount,
   resolvePipeCollision,
 } from '../src/lib/flappyPhysics';
 
@@ -116,4 +117,11 @@ test('Gate 36 is high and Gate 37 immediately moves the normal opening to the fl
 
 test('the Gate 36 to Gate 37 normal route is statically impossible at terminal fall speed', () => {
   assert.equal(isGate37NormalRouteImpossible(400, 12), true);
+});
+
+test('only a Gate 37 collision increments the story death counter', () => {
+  assert.equal(nextGate37DeathCount(1, 'gate37'), 2);
+  assert.equal(nextGate37DeathCount(1, 'collision'), 1);
+  assert.equal(nextGate37DeathCount(1, 'boundary'), 1);
+  assert.equal(nextGate37DeathCount(1, 'sequence'), 1);
 });

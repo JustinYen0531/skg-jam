@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { GameProgress, PuzzleChapter } from './types';
 import { PhoneSimulator } from './components/PhoneSimulator';
+import { MetaInteractionScene } from './components/MetaInteractionScene';
 import { DEBUG_CHAPTERS, getChapterById, getChapterSnapshot } from './lib/chapterProgress';
+import { shouldRevealMetaView } from './lib/metaInteraction';
 import audio from './lib/audio';
 import { 
   FileText, Shield, Award, Terminal, RefreshCw, Volume2, VolumeX,
@@ -34,6 +36,10 @@ export default function App() {
   const [progress, setProgress] = useState<GameProgress>(INITIAL_PROGRESS);
   const [isMuted, setIsMuted] = useState(false);
   const [deskLamp, setDeskLamp] = useState(true);
+  const [metaViewActive, setMetaViewActive] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return new URLSearchParams(window.location.search).get('meta') === 'true';
+  });
   const [debugMode, setDebugMode] = useState(() => {
     if (typeof window === 'undefined') return false;
     return new URLSearchParams(window.location.search).get('debug') === 'true';
@@ -59,6 +65,12 @@ export default function App() {
     setProgress(getChapterSnapshot(chapter));
     setDebugTargetApp((previous) => ({ app: chapterInfo.targetApp, nonce: (previous?.nonce ?? 0) + 1 }));
     audio.playUnlock();
+  };
+
+  const handleLeaderboardOpened = () => {
+    if (shouldRevealMetaView(progress.deathsAt37, true)) {
+      setMetaViewActive(true);
+    }
   };
 
   // Handle background ambient hum
@@ -326,13 +338,16 @@ export default function App() {
         {/* Underlay glow shadow representation */}
         <div className="absolute w-80 h-80 bg-purple-500/10 blur-[120px] rounded-full top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
 
-        <PhoneSimulator 
-          progress={progress} 
-          updateProgress={updateProgress}
-          onMuteToggle={handleMuteToggle}
-          isMuted={isMuted}
-          debugTargetApp={debugTargetApp}
-        />
+        <MetaInteractionScene active={metaViewActive}>
+          <PhoneSimulator
+            progress={progress}
+            updateProgress={updateProgress}
+            onMuteToggle={handleMuteToggle}
+            isMuted={isMuted}
+            debugTargetApp={debugTargetApp}
+            onLeaderboardOpened={handleLeaderboardOpened}
+          />
+        </MetaInteractionScene>
 
       </div>
 

@@ -8,6 +8,13 @@ export const EASY_FLAPPY_SETTINGS = {
   maxFallSpeed: 3.2,
 } as const;
 
+export type FlappyDeathCause = 'gate37' | 'collision' | 'boundary' | 'sequence';
+
+export const nextGate37DeathCount = (
+  currentCount: number,
+  cause: FlappyDeathCause,
+): number => cause === 'gate37' ? currentCount + 1 : currentCount;
+
 const GATE_EDGE_MARGIN = 24;
 
 export interface GateHeights {

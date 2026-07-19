@@ -20,10 +20,11 @@ interface PhoneSimulatorProps {
   onMuteToggle: () => void;
   isMuted: boolean;
   debugTargetApp?: { app: ActiveApp; nonce: number } | null;
+  onLeaderboardOpened: () => void;
 }
 
 export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({ 
-  progress, updateProgress, onMuteToggle, isMuted, debugTargetApp
+  progress, updateProgress, onMuteToggle, isMuted, debugTargetApp, onLeaderboardOpened
 }) => {
   const [activeApp, setActiveApp] = useState<ActiveApp>('flappy');
   const [currentTime, setCurrentTime] = useState('01:36');
@@ -268,6 +269,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                 progress={progress} 
                 updateProgress={updateProgress} 
                 onHome={handleHomeButton} 
+                onLeaderboardOpened={onLeaderboardOpened}
               />
             </motion.div>
           )}

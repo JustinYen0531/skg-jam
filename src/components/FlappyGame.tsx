@@ -1,13 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { GameProgress, ActiveApp } from '../types';
 import audio from '../lib/audio';
-import { EASY_FLAPPY_SETTINGS, getGateHeights, resolvePipeCollision } from '../lib/flappyPhysics';
+import { EASY_FLAPPY_SETTINGS, FlappyDeathCause, getGateHeights, nextGate37DeathCount, resolvePipeCollision } from '../lib/flappyPhysics';
 import { RefreshCw, Play, Volume2, VolumeX, ShieldAlert, CheckCircle, Zap, Flame, Crown } from 'lucide-react';
 
 interface FlappyGameProps {
   progress: GameProgress;
   updateProgress: (updater: (prev: GameProgress) => GameProgress) => void;
   onHome: () => void;
+  onLeaderboardOpened: () => void;
 }
 
 // Sequence of target altitudes near pipe 37
@@ -17,7 +18,7 @@ const ALTITUDE_SEQUENCE = [184, 172, 149, 133, 121, 118, 126, 143];
 // room between gates. Scoring and gate spawning remain in lockstep.
 const PACE_INTERVAL_FRAMES = EASY_FLAPPY_SETTINGS.spawnIntervalFrames;
 
-export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress, onHome }) => {
+export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress, onHome, onLeaderboardOpened }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   
@@ -378,10 +379,10 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
                   // spawn developer logs instantly
                   state.devNotes.push({ x: width, y: 100, text: 'COLLIDER_BYPASS_STAGE_01: INITIATED', opacity: 1 });
                 } else {
-                  handleDeath('Collider Block #37 (Ghost Barrier)');
+                  handleDeath('Collider Block #37 (Ghost Barrier)', 'gate37');
                 }
               } else {
-                handleDeath('Collider Block #37 (Ghost Barrier)');
+                handleDeath('Collider Block #37 (Ghost Barrier)', 'gate37');
               }
             } else if (pipe.index > 37 && state.bypassActive) {
               // We are active in the bypass mode!
@@ -414,14 +415,14 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
                     }
                   } else {
                     // Missed the height sequence! Structural breakdown fails, you hit the pipe!
-                    handleDeath(`Altitude Sequence Unstable at Gate ${pipe.index}`);
+                    handleDeath(`Altitude Sequence Unstable at Gate ${pipe.index}`, 'sequence');
                   }
                 }
               }
             } else {
               // Only a true vertical-face impact is fatal.
               if (!state.bypassActive && collision.fatal) {
-                handleDeath('Collision Detected');
+                handleDeath('Collision Detected', 'collision');
               }
             }
           }
@@ -434,7 +435,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
           if (state.score >= 255) {
             triggerCompletion();
           } else {
-            handleDeath('Boundaries Error');
+            handleDeath('Boundaries Error', 'boundary');
           }
         }
       }
@@ -662,15 +663,16 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
       }
     };
 
-    const handleDeath = (reason: string) => {
+    const handleDeath = (reason: string, cause: FlappyDeathCause) => {
       const state = stateRef.current;
+      if (state.gameOver) return;
       state.gameOver = true;
       setIsPlaying(false);
       audio.playExplode();
       
       // Update global context progress
       updateProgress((prev) => {
-        const nextDeaths = prev.deathsAt37 + 1;
+        const nextDeaths = nextGate37DeathCount(prev.deathsAt37, cause);
         
         // If they died at score 37 or reached high coordinates
         const reachedMax = Math.max(prev.deathsAt37, nextDeaths);
@@ -678,15 +680,9 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
         return {
           ...prev,
           deathsAt37: nextDeaths,
-          seenLeaderboard: nextDeaths >= 2 ? true : prev.seenLeaderboard,
           phase: prev.phase === 'intro_game' && nextDeaths >= 3 ? 'os_unlocked' : prev.phase
         };
       });
-
-      // Show leaderboard after 2nd death
-      setTimeout(() => {
-        setShowLeaderboard(true);
-      }, 800);
     };
 
     const triggerCompletion = () => {
@@ -906,6 +902,19 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
             >
               <Play className="w-6 h-6 fill-black stroke-black" />
               PLAY NOW!!!
+            </button>
+
+            <button
+              onClick={() => {
+                audio.playTick();
+                setShowLeaderboard(true);
+                updateProgress((prev) => ({ ...prev, seenLeaderboard: true }));
+                if (progress.deathsAt37 >= 2) onLeaderboardOpened();
+              }}
+              className="mt-2 px-5 py-1.5 rounded-xl bg-[#1a1a2e] border border-purple-500/40 text-purple-200 text-[10px] font-black tracking-wide hover:bg-[#232345] transition-colors"
+              id="home-leaderboard-button"
+            >
+              GLOBAL LEADERBOARD
             </button>
 
             <p className="text-purple-200 text-[9px] font-bold tracking-wider uppercase mt-4 opacity-75">
