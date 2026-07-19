@@ -1,12 +1,16 @@
 export const EASY_FLAPPY_SETTINGS = {
-  // Gates arrive twice as often while their on-screen separation stays about
-  // the same. This halves time-to-score without turning the screen into a
-  // wall of pipes.
-  pipeSpeed: 6.4,
+  // The world scrolls 25% slower than the previous 6.4 setting. Gates also
+  // arrive 25% less often, preserving breathing room instead of crowding them.
+  pipeSpeed: 4.8,
   openingSize: 130,
-  spawnIntervalFrames: 32,
+  spawnIntervalFrames: 40,
   maxFallSpeed: 3.2,
 } as const;
+
+const FIXED_GATE_HEIGHT_RATIOS = [
+  0.32, 0.48, 0.25, 0.58, 0.4, 0.68,
+  0.52, 0.3, 0.62, 0.44, 0.22, 0.55,
+] as const;
 
 export type FlappyDeathCause = 'gate37' | 'collision' | 'boundary' | 'sequence';
 
@@ -15,7 +19,7 @@ export const nextGate37DeathCount = (
   cause: FlappyDeathCause,
 ): number => cause === 'gate37' ? currentCount + 1 : currentCount;
 
-const GATE_EDGE_MARGIN = 24;
+const GATE_EDGE_MARGIN = 8;
 
 export interface GateHeights {
   topHeight: number;
@@ -27,15 +31,27 @@ export interface GateOpeningBounds {
   bottom: number;
 }
 
+export interface GateVisualStyle {
+  variant: 'level1' | 'level2-preview';
+  spikeCount: number;
+  showRedWarning: boolean;
+}
+
+export const getGateVisualStyle = (gateIndex: number): GateVisualStyle => ({
+  variant: gateIndex === 37 ? 'level2-preview' : 'level1',
+  spikeCount: gateIndex === 37 ? 4 : 0,
+  showRedWarning: false,
+});
+
 /**
- * Gate 36 forces the bird through a high opening; Gate 37 immediately moves
- * the only normal opening to the floor. The secret bypass intentionally does
- * not use this normal opening.
+ * Every ordinary gate uses a fixed height sequence, so retries are learnable
+ * and identical. Gate 36 forces the bird through a high opening; Gate 37
+ * immediately moves the only normal opening to the floor. The secret bypass
+ * intentionally does not use this normal opening.
  */
 export const getGateHeights = (
   gateIndex: number,
   canvasHeight: number,
-  randomTopHeight: number,
 ): GateHeights => {
   if (gateIndex === 36) {
     return {
@@ -51,9 +67,14 @@ export const getGateHeights = (
     };
   }
 
+  const minPipeHeight = 40;
+  const maxPipeHeight = canvasHeight - EASY_FLAPPY_SETTINGS.openingSize - minPipeHeight;
+  const ratio = FIXED_GATE_HEIGHT_RATIOS[gateIndex % FIXED_GATE_HEIGHT_RATIOS.length];
+  const topHeight = Math.round(minPipeHeight + ratio * (maxPipeHeight - minPipeHeight));
+
   return {
-    topHeight: randomTopHeight,
-    bottomHeight: canvasHeight - EASY_FLAPPY_SETTINGS.openingSize - randomTopHeight,
+    topHeight,
+    bottomHeight: canvasHeight - EASY_FLAPPY_SETTINGS.openingSize - topHeight,
   };
 };
 
@@ -77,12 +98,12 @@ export const isGate37NormalRouteImpossible = (
   birdRadius: number,
 ): boolean => {
   const gate36 = getGateOpeningBounds(
-    getGateHeights(36, canvasHeight, 0),
+    getGateHeights(36, canvasHeight),
     canvasHeight,
     birdRadius,
   );
   const gate37 = getGateOpeningBounds(
-    getGateHeights(37, canvasHeight, 0),
+    getGateHeights(37, canvasHeight),
     canvasHeight,
     birdRadius,
   );

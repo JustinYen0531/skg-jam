@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { GameProgress, ActiveApp } from '../types';
 import audio from '../lib/audio';
-import { EASY_FLAPPY_SETTINGS, FlappyDeathCause, getGateHeights, nextGate37DeathCount, resolvePipeCollision } from '../lib/flappyPhysics';
+import { EASY_FLAPPY_SETTINGS, FlappyDeathCause, getGateHeights, getGateVisualStyle, nextGate37DeathCount, resolvePipeCollision } from '../lib/flappyPhysics';
 import { RefreshCw, Play, Volume2, VolumeX, ShieldAlert, CheckCircle, Zap, Flame, Crown } from 'lucide-react';
 
 interface FlappyGameProps {
@@ -228,12 +228,12 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
         ctx.save();
         ctx.font = '9px "JetBrains Mono"';
         ctx.fillStyle = 'rgba(34, 197, 94, 0.4)';
-        state.devNotes.forEach((note) => {
+        state.devNotes.forEach((note, noteIndex) => {
           ctx.fillText(note.text, note.x, note.y);
           note.x -= 2; // scroll with background
           if (note.x < -150) {
-            note.x = width + 50 + Math.random() * 200;
-            note.y = 30 + Math.random() * (height - 60);
+            note.x = width + 50 + ((noteIndex * 73) % 200);
+            note.y = 30 + ((noteIndex * 61) % Math.max(1, height - 60));
           }
         });
         ctx.restore();
@@ -296,12 +296,8 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
 
         // Pipe Management
         if (state.frameCount % PACE_INTERVAL_FRAMES === 0) {
-          const gapSize = EASY_FLAPPY_SETTINGS.openingSize;
-          const minPipeHeight = 40;
-          const maxPipeHeight = height - gapSize - minPipeHeight;
-          const randomTopHeight = Math.floor(Math.random() * (maxPipeHeight - minPipeHeight)) + minPipeHeight;
           const gateIndex = state.pipeIndexCounter++;
-          const { topHeight, bottomHeight } = getGateHeights(gateIndex, height, randomTopHeight);
+          const { topHeight, bottomHeight } = getGateHeights(gateIndex, height);
 
           state.pipes.push({
             x: width,
@@ -443,21 +439,29 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
       // --- Draw Pipes ---
       state.pipes.forEach((pipe) => {
         if (!hackedMode) {
-          // Cheap bright gold slop-style gradient pipes with metallic shine
+          // Level 1 keeps the cheap gold style. Gate 37 quietly previews a
+          // darker Level 2 material instead of announcing itself with red light.
+          const gateStyle = getGateVisualStyle(pipe.index);
+          const isLevel2Preview = gateStyle.variant === 'level2-preview';
           const pipeGrad = ctx.createLinearGradient(pipe.x, 0, pipe.x + 50, 0);
-          pipeGrad.addColorStop(0, '#ffe066');
-          pipeGrad.addColorStop(0.3, '#ffb300');
-          pipeGrad.addColorStop(0.7, '#e69500');
-          pipeGrad.addColorStop(1, '#995c00');
+          if (isLevel2Preview) {
+            pipeGrad.addColorStop(0, '#0f172a');
+            pipeGrad.addColorStop(0.5, '#0f766e');
+            pipeGrad.addColorStop(1, '#166534');
+          } else {
+            pipeGrad.addColorStop(0, '#ffe066');
+            pipeGrad.addColorStop(0.3, '#ffb300');
+            pipeGrad.addColorStop(0.7, '#e69500');
+            pipeGrad.addColorStop(1, '#995c00');
+          }
           ctx.fillStyle = pipeGrad;
-          ctx.strokeStyle = '#3d2500';
+          ctx.strokeStyle = isLevel2Preview ? '#2dd4bf' : '#3d2500';
           ctx.lineWidth = 3;
 
           // Top pipe
           ctx.fillRect(pipe.x, 0, 50, pipe.topHeight);
           ctx.strokeRect(pipe.x, -5, 50, pipe.topHeight + 5);
-          // Top pipe lip
-          ctx.fillStyle = '#ffcc00';
+          ctx.fillStyle = isLevel2Preview ? '#115e59' : '#ffcc00';
           ctx.fillRect(pipe.x - 4, pipe.topHeight - 15, 58, 15);
           ctx.strokeRect(pipe.x - 4, pipe.topHeight - 15, 58, 15);
 
@@ -466,16 +470,39 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
           ctx.fillStyle = pipeGrad;
           ctx.fillRect(pipe.x, bottomY, 50, pipe.bottomHeight);
           ctx.strokeRect(pipe.x, bottomY, 50, pipe.bottomHeight + 5);
-          // Bottom pipe lip
-          ctx.fillStyle = '#ffcc00';
+          ctx.fillStyle = isLevel2Preview ? '#115e59' : '#ffcc00';
           ctx.fillRect(pipe.x - 4, bottomY, 58, 15);
           ctx.strokeRect(pipe.x - 4, bottomY, 58, 15);
 
-          // Special flashing target sign for section 37 to hint at its weirdness
-          if (pipe.index === 37) {
+          // A few small teeth and a locked label promise another ruleset while
+          // preserving the fixed, impossible Gate 36 → Gate 37 geometry.
+          if (isLevel2Preview) {
             ctx.save();
-            ctx.fillStyle = (state.frameCount % 15 < 7) ? 'rgba(239, 68, 68, 0.4)' : 'rgba(239, 68, 68, 0.05)';
-            ctx.fillRect(pipe.x - 10, 0, 70, height);
+            ctx.fillStyle = '#4ade80';
+            ctx.shadowColor = 'rgba(20, 184, 166, 0.75)';
+            ctx.shadowBlur = 5;
+            const spikeWidth = 8;
+            const spikeHeight = 6;
+            const spikeSpacing = 12;
+            for (let spike = 0; spike < gateStyle.spikeCount; spike++) {
+              const spikeX = pipe.x + 3 + spike * spikeSpacing;
+              ctx.beginPath();
+              ctx.moveTo(spikeX, pipe.topHeight);
+              ctx.lineTo(spikeX + spikeWidth / 2, pipe.topHeight + spikeHeight);
+              ctx.lineTo(spikeX + spikeWidth, pipe.topHeight);
+              ctx.fill();
+
+              ctx.beginPath();
+              ctx.moveTo(spikeX, bottomY);
+              ctx.lineTo(spikeX + spikeWidth / 2, bottomY - spikeHeight);
+              ctx.lineTo(spikeX + spikeWidth, bottomY);
+              ctx.fill();
+            }
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = 'rgba(167, 243, 208, 0.9)';
+            ctx.font = 'bold 8px "JetBrains Mono"';
+            ctx.textAlign = 'center';
+            ctx.fillText('LEVEL 2 // LOCKED', pipe.x + 25, pipe.topHeight + EASY_FLAPPY_SETTINGS.openingSize / 2);
             ctx.restore();
           }
         } else {

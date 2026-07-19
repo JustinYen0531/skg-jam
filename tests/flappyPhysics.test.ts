@@ -1,9 +1,11 @@
 import { strict as assert } from 'node:assert';
+import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import {
   EASY_FLAPPY_SETTINGS,
   getGateHeights,
   getGateOpeningBounds,
+  getGateVisualStyle,
   isGate37NormalRouteImpossible,
   nextGate37DeathCount,
   resolvePipeCollision,
@@ -96,23 +98,46 @@ test('a bird flying through the open gap is untouched', () => {
   assert.equal(result.velocityY, 2);
 });
 
-test('score and gate cadence are approximately doubled without compressing pipe spacing', () => {
-  assert.equal(EASY_FLAPPY_SETTINGS.pipeSpeed, 6.4);
+test('horizontal movement is twenty-five percent slower without crowding gates together', () => {
+  assert.equal(EASY_FLAPPY_SETTINGS.pipeSpeed, 4.8);
   assert.ok(EASY_FLAPPY_SETTINGS.openingSize >= 130);
-  assert.equal(EASY_FLAPPY_SETTINGS.spawnIntervalFrames, 32);
+  assert.equal(EASY_FLAPPY_SETTINGS.spawnIntervalFrames, 40);
 
   const horizontalSpacing =
     EASY_FLAPPY_SETTINGS.pipeSpeed * EASY_FLAPPY_SETTINGS.spawnIntervalFrames;
-  assert.ok(horizontalSpacing >= 200);
+  assert.ok(horizontalSpacing >= 190);
 });
 
 test('Gate 36 is high and Gate 37 immediately moves the normal opening to the floor', () => {
-  const gate36 = getGateOpeningBounds(getGateHeights(36, 400, 100), 400, 12);
-  const gate37 = getGateOpeningBounds(getGateHeights(37, 400, 100), 400, 12);
+  const gate36 = getGateOpeningBounds(getGateHeights(36, 400), 400, 12);
+  const gate37 = getGateOpeningBounds(getGateHeights(37, 400), 400, 12);
 
   assert.ok(gate36.bottom < gate37.top);
   assert.ok(gate36.top < 50);
   assert.ok(gate37.bottom > 350);
+});
+
+test('every ordinary gate follows a varied but fully deterministic layout', () => {
+  const firstRun = Array.from({ length: 36 }, (_, index) => getGateHeights(index, 400));
+  const secondRun = Array.from({ length: 36 }, (_, index) => getGateHeights(index, 400));
+
+  assert.deepEqual(firstRun, secondRun);
+  assert.ok(new Set(firstRun.map((gate) => gate.topHeight)).size >= 6);
+});
+
+test('Gate 37 previews Level 2 with subtle spikes and no red warning wall', () => {
+  const style = getGateVisualStyle(37);
+
+  assert.equal(style.variant, 'level2-preview');
+  assert.ok(style.spikeCount > 0);
+  assert.equal(style.showRedWarning, false);
+});
+
+test('the Flappy game source contains no runtime randomness or old full-height warning wall', () => {
+  const source = readFileSync('src/components/FlappyGame.tsx', 'utf8');
+
+  assert.doesNotMatch(source, /Math\.random/);
+  assert.doesNotMatch(source, /fillRect\(pipe\.x - 10, 0, 70, height\)/);
 });
 
 test('the Gate 36 to Gate 37 normal route is statically impossible at terminal fall speed', () => {
