@@ -1,0 +1,6 @@
+{
+  "name": "SKG: Scorekeeper",
+  "description": "An immersive narrative hacking puzzle game. Discover the truth behind a mysterious 12-year-old mobile game, an obsolete phone, and a lost developer.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

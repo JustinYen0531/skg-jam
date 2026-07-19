@@ -1,0 +1,435 @@
+import React, { useState, useEffect } from 'react';
+import { GameProgress } from './types';
+import { PhoneSimulator } from './components/PhoneSimulator';
+import audio from './lib/audio';
+import { 
+  FileText, Shield, Award, Terminal, RefreshCw, Volume2, VolumeX,
+  Sparkles, CheckCircle, Database, HelpCircle, Archive, Globe, Cpu
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+
+const INITIAL_PROGRESS: GameProgress = {
+  phase: 'intro_game',
+  deathsAt37: 0,
+  seenLeaderboard: false,
+  viewTubeSearchedArc: false,
+  watchedVideo: false,
+  archiveDownloaded: false,
+  orderedPhone: false,
+  deliveredPhone: false,
+  discoveredOriginalTitle: false,
+  discoveredSKGHistory: false,
+  discoveredNoahQA: false,
+  discoveredMotherComment: false,
+  unlockedAdminLogin: false,
+  loggedIntoAdmin: false,
+  unlockedCodeRoute: false,
+  completedGame: false,
+  selectedEnding: null,
+};
+
+export default function App() {
+  const [progress, setProgress] = useState<GameProgress>(INITIAL_PROGRESS);
+  const [isMuted, setIsMuted] = useState(false);
+  const [deskLamp, setDeskLamp] = useState(true);
+
+  // Handle background ambient hum
+  useEffect(() => {
+    audio.setMute(isMuted);
+    if (!isMuted) {
+      audio.startAmbientHum();
+    }
+    return () => {
+      audio.stopAmbientHum();
+    };
+  }, [isMuted]);
+
+  const updateProgress = (updater: (prev: GameProgress) => GameProgress) => {
+    setProgress((prev) => {
+      const next = updater(prev);
+      // Play brief hacker tick sound when items unlock
+      if (
+        next.deliveredPhone !== prev.deliveredPhone ||
+        next.unlockedCodeRoute !== prev.unlockedCodeRoute ||
+        next.loggedIntoAdmin !== prev.loggedIntoAdmin
+      ) {
+        audio.playUnlock();
+      }
+      return next;
+    });
+  };
+
+  const handleMuteToggle = () => {
+    const nextMuted = !isMuted;
+    setIsMuted(nextMuted);
+    audio.setMute(nextMuted);
+  };
+
+  const restartLoop = () => {
+    audio.playUnlock();
+    setProgress(INITIAL_PROGRESS);
+  };
+
+  const selectEnding = (ending: 'submit' | 'publicize' | 'preserve') => {
+    audio.playSuccess();
+    setProgress((prev) => ({
+      ...prev,
+      phase: 'ending_choice',
+      selectedEnding: ending
+    }));
+  };
+
+  return (
+    <div className={`min-h-screen w-full flex flex-col md:flex-row relative overflow-hidden transition-all duration-700 ${
+      deskLamp ? 'bg-[#0b0c10]' : 'bg-[#020204]'
+    }`} id="workspace-desk">
+      
+      {/* Background blueprint matrix lines */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] pointer-events-none z-0"></div>
+      <div className="absolute inset-0 bg-radial-gradient from-transparent via-black/40 to-black/85 pointer-events-none z-0"></div>
+
+      {/* LEFT SIDEBAR: Evidence & Hacking Log Dashboard */}
+      <div className="w-full md:w-[360px] border-b md:border-b-0 md:border-r border-slate-800/60 bg-slate-950/80 p-5 flex flex-col justify-between z-10 backdrop-blur-md overflow-y-auto" id="evidence-panel">
+        <div className="space-y-5">
+          
+          {/* Header */}
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[9px] text-amber-500 font-bold bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
+                ACTIVE COGNITIVE INVESTIGATION
+              </span>
+              <button 
+                onClick={() => setDeskLamp(!deskLamp)}
+                className="text-[9px] text-slate-500 hover:text-slate-300 font-mono flex items-center gap-1 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800"
+                title="Toggle Lamp"
+                id="lamp-toggle"
+              >
+                💡 {deskLamp ? 'LAMP: ON' : 'LAMP: OFF'}
+              </button>
+            </div>
+            <h1 className="font-display font-black text-xl tracking-tight text-white flex items-center gap-2">
+              <Terminal className="w-5 h-5 text-indigo-400" />
+              <span>SKG: SCOREKEEPER</span>
+            </h1>
+            <p className="text-[11px] text-slate-400 font-mono italic">
+              "Nobody was supposed to finish."
+            </p>
+          </div>
+
+          {/* Unlocked Clues list (Dynamic Bento feed) */}
+          <div className="space-y-3" id="clues-feed">
+            <h3 className="font-mono text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+              EVIDENCE RECORDINGS
+            </h3>
+
+            <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+              
+              {/* Clue 1: The Discrepancy */}
+              <div className={`p-3 rounded-xl border text-xs transition-all flex gap-2.5 ${
+                progress.deathsAt37 >= 1 
+                  ? 'bg-slate-900/80 border-slate-800 text-slate-200' 
+                  : 'bg-slate-950/20 border-slate-900/40 text-slate-600'
+              }`} id="evidence-discrepancy">
+                <Shield className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <div className="font-bold">The Blocker Discrepancy</div>
+                  <p className="text-[10px] text-slate-400 leading-snug">
+                    {progress.deathsAt37 >= 1 
+                      ? `Failed at Gate 37 (${progress.deathsAt37} times). Leaderboard tied perfectly at score 37. Suspicion: Real colliders bypassed.` 
+                      : 'Investigation inactive. Play the mobile game to encounter the blocker.'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Clue 2: Obsolete phone */}
+              <div className={`p-3 rounded-xl border text-xs transition-all flex gap-2.5 ${
+                progress.watchedVideo 
+                  ? 'bg-slate-900/80 border-slate-800 text-slate-200' 
+                  : 'bg-slate-950/20 border-slate-900/40 text-slate-600'
+              }`} id="evidence-recalled-device">
+                <Globe className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <div className="font-bold">The Recalled Console</div>
+                  <p className="text-[10px] text-slate-400 leading-snug">
+                    {progress.watchedVideo 
+                      ? 'ARC_184 run video shows he bypassed 37 using "Lumen Arc" phone with native altitude sensor. Tapping frequency unlocks collision bounds!' 
+                      : 'No hardware references discovered yet.'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Clue 3: Original Identity */}
+              <div className={`p-3 rounded-xl border text-xs transition-all flex gap-2.5 ${
+                progress.discoveredOriginalTitle 
+                  ? 'bg-slate-900/80 border-slate-800 text-slate-200' 
+                  : 'bg-slate-950/20 border-slate-900/40 text-slate-600'
+              }`} id="evidence-original-title">
+                <FileText className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <div className="font-bold">Identity: Skyline 256</div>
+                  <p className="text-[10px] text-slate-400 leading-snug">
+                    {progress.discoveredOriginalTitle 
+                      ? 'The slop game was originally named "SKG: Skyline 256" by "Silver Kite Games". It was built with a clear end at gate 256.' 
+                      : 'Original developers and brand identities remain obscured.'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Clue 4: Decrypted path */}
+              <div className={`p-3 rounded-xl border text-xs transition-all flex gap-2.5 ${
+                progress.unlockedCodeRoute 
+                  ? 'bg-emerald-950/20 border-emerald-500/30 text-emerald-300' 
+                  : 'bg-slate-950/20 border-slate-900/40 text-slate-600'
+              }`} id="evidence-bypass-code">
+                <Cpu className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5 animate-pulse" />
+                <div className="space-y-1">
+                  <div className="font-bold">Collision Bypass Gained</div>
+                  <p className="text-[10px] text-slate-400 leading-snug">
+                    {progress.unlockedCodeRoute 
+                      ? 'Successfully logged in. Acquired flight heights near Gate 37: ALT 184, 172, 149, 133, 121, 118, 126, 143. Calibration sensor active!' 
+                      : 'Developer coordinates locked.'}
+                  </p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+        {/* Global preserver widgets */}
+        <div className="border-t border-slate-800/80 pt-4 mt-4 space-y-3 text-[10px] text-slate-400" id="audio-console">
+          <div className="flex items-center justify-between">
+            <span className="font-mono">AMBIENT ATMOSPHERE SYSTEM</span>
+            <button 
+              onClick={handleMuteToggle}
+              className="text-[10px] bg-slate-900 px-2 py-1 rounded text-slate-200 hover:text-white border border-slate-800 transition-colors flex items-center gap-1.5"
+              id="master-mute"
+            >
+              {isMuted ? <VolumeX className="w-3.5 h-3.5 text-red-400" /> : <Volume2 className="w-3.5 h-3.5 text-emerald-400" />}
+              <span>{isMuted ? 'UNMUTE HUM' : 'MUTE HUM'}</span>
+            </button>
+          </div>
+          <div className="bg-slate-900/50 p-2.5 rounded border border-slate-800 text-[9px] text-slate-500 font-mono leading-tight">
+            Low frequency hum (55Hz / A1) represents the CRT radiation hum of your childhood workspace. Keeps thoughts centered.
+          </div>
+        </div>
+
+      </div>
+
+      {/* CENTER STAGE: Simulated Bezel Phone in Interactive Light Panel */}
+      <div className="flex-1 flex items-center justify-center p-6 bg-slate-950/40 relative z-10" id="phone-container">
+        
+        {/* Underlay glow shadow representation */}
+        <div className="absolute w-80 h-80 bg-purple-500/10 blur-[120px] rounded-full top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
+
+        <PhoneSimulator 
+          progress={progress} 
+          updateProgress={updateProgress}
+          onMuteToggle={handleMuteToggle}
+          isMuted={isMuted}
+        />
+
+      </div>
+
+      {/* STORY CREDITS AND ENDING DECISION OVERLAYS (Phase triggered) */}
+      <AnimatePresence>
+        {progress.phase === 'credits' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-slate-950/98 flex flex-col justify-center items-center p-6 z-50 overflow-y-auto crt-effect"
+            id="credits-overlay"
+          >
+            <div className="max-w-md w-full space-y-6 text-center text-slate-100 font-sans p-4" id="credits-scroll-box">
+              <div className="animate-pulse space-y-1">
+                <div className="font-mono text-emerald-400 text-xs tracking-widest font-black uppercase">
+                  - CONNECTION COMPLETED -
+                </div>
+                <h1 className="font-display font-black text-2xl text-white">
+                  SKYLINE COMPLETE
+                </h1>
+              </div>
+
+              {/* Emotional Developer text excerpt */}
+              <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl text-left text-xs text-slate-300 space-y-3 leading-relaxed font-mono">
+                <p className="text-emerald-400 border-b border-slate-800 pb-2 text-[10px] font-bold">
+                  DEVELOPER RELEASE LOG // VER: 1.04_FINAL
+                </p>
+                <p>
+                  "這不是一款無限遊戲。我從來不想讓它無限。"
+                </p>
+                <p>
+                  "無限分數只是讓玩家不必面對結束的方法。但所有遊戲都會結束。裝置會停止生產，商店會關閉，伺服器會消失。"
+                </p>
+                <p>
+                  "我能做的，只是替它留下最後一關。有人抵達這裡，就代表它曾經存在。"
+                </p>
+                <div className="text-right text-[10px] text-slate-500 mt-2 font-bold font-sans">
+                  —— Noah Kade (Silver Kite Games)
+                </div>
+              </div>
+
+              {/* Credited names */}
+              <div className="space-y-1.5 text-xs text-slate-400 font-mono text-center">
+                <div className="font-bold text-white mb-2">SILVER KITE DEVELOPERS</div>
+                <div>Noah Kade — System Design & Mechanics</div>
+                <div>Elias Vale — Business Logistics</div>
+                <div>Mara — Special Supporting Partner</div>
+                <div>ARC_184 — Controversial Preservation Witness</div>
+                <div className="text-emerald-400 font-bold mt-2">AND YOU — THE PERSISTENT RETRIEVER</div>
+              </div>
+
+              <button
+                onClick={() => {
+                  audio.playUnlock();
+                  setProgress((prev) => ({ ...prev, phase: 'ending_choice' }));
+                }}
+                className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-lg text-xs transition-colors shadow-lg"
+                id="credits-proceed-btn"
+              >
+                PROCEED TO FINAL STRATEGY
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {progress.phase === 'ending_choice' && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-slate-950/98 flex flex-col justify-center items-center p-6 z-50 overflow-y-auto crt-effect"
+            id="ending-choice-overlay"
+          >
+            <div className="max-w-2xl w-full space-y-8" id="ending-container">
+              
+              <div className="text-center space-y-1">
+                <h1 className="font-display font-black text-2xl text-white tracking-tight">
+                  HOW SHOULD THE SKYLINE CONCLUDE?
+                </h1>
+                <p className="text-xs text-slate-400 max-w-md mx-auto">
+                  Noah's negative score has been retrieved. You have the original source files. Decide how to manage this legacy.
+                </p>
+              </div>
+
+              {/* Three Final Choices */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4" id="ending-options-grid">
+                
+                {/* Option 1: Submit Score */}
+                <div 
+                  onClick={() => selectEnding('submit')}
+                  className={`p-4 rounded-2xl border text-left cursor-pointer transition-all hover:-translate-y-1 flex flex-col justify-between h-[200px] ${
+                    progress.selectedEnding === 'submit' 
+                      ? 'bg-amber-950/20 border-amber-500 shadow-lg' 
+                      : 'bg-slate-900 border-slate-800 hover:border-slate-700'
+                  }`}
+                  id="opt-submit-score"
+                >
+                  <div className="space-y-1.5">
+                    <div className="w-8 h-8 bg-amber-500/10 rounded-full border border-amber-500/20 flex items-center justify-center">
+                      <Award className="w-4 h-4 text-amber-400" />
+                    </div>
+                    <h3 className="font-display font-bold text-xs text-white">1. SUBMIT SCORE</h3>
+                    <p className="text-[10px] text-slate-400 leading-normal">
+                      Exploit modern system registers to report a score of 257. Become the absolute number one on the global leaderboards.
+                    </p>
+                  </div>
+                  <span className="text-[9px] font-mono font-bold text-amber-500 underline uppercase mt-2">SELECT BRANCH</span>
+                </div>
+
+                {/* Option 2: Publicize the story */}
+                <div 
+                  onClick={() => selectEnding('publicize')}
+                  className={`p-4 rounded-2xl border text-left cursor-pointer transition-all hover:-translate-y-1 flex flex-col justify-between h-[200px] ${
+                    progress.selectedEnding === 'publicize' 
+                      ? 'bg-purple-950/20 border-purple-500 shadow-lg' 
+                      : 'bg-slate-900 border-slate-800 hover:border-slate-700'
+                  }`}
+                  id="opt-publicize"
+                >
+                  <div className="space-y-1.5">
+                    <div className="w-8 h-8 bg-purple-500/10 rounded-full border border-purple-500/20 flex items-center justify-center">
+                      <Globe className="w-4 h-4 text-purple-400" />
+                    </div>
+                    <h3 className="font-display font-bold text-xs text-white">2. PUBLICIZE STORY</h3>
+                    <p className="text-[10px] text-slate-400 leading-normal">
+                      Upload the complete coordinates sequence and story to ViewTube. Ignite discussion regarding original design preservation.
+                    </p>
+                  </div>
+                  <span className="text-[9px] font-mono font-bold text-purple-500 underline uppercase mt-2">SELECT BRANCH</span>
+                </div>
+
+                {/* Option 3: Archive & Preserve */}
+                <div 
+                  onClick={() => selectEnding('preserve')}
+                  className={`p-4 rounded-2xl border text-left cursor-pointer transition-all hover:-translate-y-1 flex flex-col justify-between h-[200px] ${
+                    progress.selectedEnding === 'preserve' 
+                      ? 'bg-emerald-950/20 border-emerald-500 shadow-lg' 
+                      : 'bg-slate-900 border-slate-800 hover:border-slate-700'
+                  }`}
+                  id="opt-preserve"
+                >
+                  <div className="space-y-1.5">
+                    <div className="w-8 h-8 bg-emerald-500/10 rounded-full border border-emerald-500/20 flex items-center justify-center">
+                      <Archive className="w-4 h-4 text-emerald-400" />
+                    </div>
+                    <h3 className="font-display font-bold text-xs text-white">3. ARCHIVE & PRESERVE</h3>
+                    <p className="text-[10px] text-slate-400 leading-normal">
+                      Refuse database score submission. Upload the legacy source binary and tech flight logs to preservation platforms safely.
+                    </p>
+                  </div>
+                  <span className="text-[9px] font-mono font-bold text-emerald-400 underline uppercase mt-2">TRUE ARCHIVIST</span>
+                </div>
+
+              </div>
+
+              {/* Dynamic ending narrative text based on chosen option */}
+              {progress.selectedEnding && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-slate-900 border border-slate-800 p-4 rounded-2xl text-xs space-y-2 text-slate-300 leading-relaxed"
+                  id="ending-narrative"
+                >
+                  <div className="font-display font-bold text-white flex items-center gap-1">
+                    <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
+                    <span>
+                      {progress.selectedEnding === 'submit' && 'SUBMITTED ENDING: HIGHEST SCORE CHASER'}
+                      {progress.selectedEnding === 'publicize' && 'PUBLICIZED ENDING: COGNITIVE MASS DISRUPT'}
+                      {progress.selectedEnding === 'preserve' && 'TRUE ENDING: COGNITIVE PRESERVED CAPABILITY'}
+                    </span>
+                  </div>
+
+                  <p className="text-[11px]">
+                    {progress.selectedEnding === 'submit' && 
+                      'You update the scoreboard data. Social discussion swarms with your score of 257 as the world record. Yet, the corporate system logo stays as a modern slop clone. Noah\'s negative score is pushed further deep into memory, unacknowledged.'}
+                    {progress.selectedEnding === 'publicize' && 
+                      'Your replay goes viral. Millions watch the altitude sensor bypassing Gate 37. SKG Automation reacts quickly: they close down the legacy database servers, claiming security breeches, and permanently scrub Noah\'s negative code records.'}
+                    {progress.selectedEnding === 'preserve' && 
+                      'You do not submit the score. You keep the secret safe on digital libraries. The original IPA remains possible. Download count: 1 (ARC_184), then 2. The game does not need to run forever. It only needs to remain possible.'}
+                  </p>
+
+                  <div className="pt-2 border-t border-slate-800 flex justify-between items-center text-[10px] font-mono">
+                    <span className="text-slate-500">BRANCH DECIDED BY END USER RECODING</span>
+                    <button
+                      onClick={restartLoop}
+                      className="px-3 py-1 bg-slate-800 text-white rounded hover:bg-slate-700 transition-colors flex items-center gap-1 border border-slate-700"
+                      id="restart-loop-btn"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                      Restart Loop
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+    </div>
+  );
+}
