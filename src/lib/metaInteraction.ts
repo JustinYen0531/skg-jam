@@ -14,6 +14,11 @@ export const shouldRevealMetaView = (
   leaderboardActuallyOpened: boolean,
 ): boolean => deathsAt37 >= 2 && leaderboardActuallyOpened;
 
+export const shouldShowMetaScene = (
+  metaViewUnlocked: boolean,
+  developerToolsOpen: boolean,
+): boolean => metaViewUnlocked || developerToolsOpen;
+
 export const canStartMetaInteraction = (
   metaViewActive: boolean,
   interactionPending: boolean,

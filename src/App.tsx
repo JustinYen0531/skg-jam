@@ -3,7 +3,7 @@ import { GameProgress, PuzzleChapter } from './types';
 import { PhoneSimulator } from './components/PhoneSimulator';
 import { MetaInteractionScene } from './components/MetaInteractionScene';
 import { DEBUG_CHAPTERS, getChapterById, getChapterSnapshot } from './lib/chapterProgress';
-import { shouldRevealMetaView } from './lib/metaInteraction';
+import { shouldRevealMetaView, shouldShowMetaScene } from './lib/metaInteraction';
 import audio from './lib/audio';
 import { 
   FileText, Shield, Award, Terminal, RefreshCw, Volume2, VolumeX,
@@ -135,6 +135,8 @@ export default function App() {
     ['Code route unlocked', progress.unlockedCodeRoute],
     ['Game completed', progress.completedGame],
   ] as const;
+
+  const metaSceneActive = shouldShowMetaScene(metaViewActive, debugMode);
 
   return (
     <div className={`h-screen w-full flex flex-col md:flex-row relative overflow-hidden transition-all duration-700 ${
@@ -339,7 +341,7 @@ export default function App() {
         {/* Underlay glow shadow representation */}
         <div className="absolute w-80 h-80 bg-purple-500/10 blur-[120px] rounded-full top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
 
-        <MetaInteractionScene active={metaViewActive}>
+        <MetaInteractionScene active={metaSceneActive}>
           <PhoneSimulator
             progress={progress}
             updateProgress={updateProgress}

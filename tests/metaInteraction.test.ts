@@ -6,6 +6,7 @@ import {
   canStartMetaInteraction,
   normalizeVirtualKey,
   shouldRevealMetaView,
+  shouldShowMetaScene,
 } from '../src/lib/metaInteraction';
 
 test('meta camera reveal requires both a second Gate 37 death and an opened leaderboard', () => {
@@ -13,6 +14,13 @@ test('meta camera reveal requires both a second Gate 37 death and an opened lead
   assert.equal(shouldRevealMetaView(2, false), false);
   assert.equal(shouldRevealMetaView(2, true), true);
   assert.equal(shouldRevealMetaView(3, true), true);
+});
+
+test('developer chapter tools preview the meta scene without changing the story unlock rule', () => {
+  assert.equal(shouldShowMetaScene(false, false), false);
+  assert.equal(shouldShowMetaScene(false, true), true);
+  assert.equal(shouldShowMetaScene(true, false), true);
+  assert.equal(shouldShowMetaScene(true, true), true);
 });
 
 test('only one animated meta interaction can run at a time', () => {
@@ -43,12 +51,19 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
     new URL('../src/components/MetaInteractionScene.tsx', import.meta.url),
     'utf8',
   );
+  const appSource = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
 
   assert.match(sceneSource, /id="meta-left-grip-back"/);
   assert.match(sceneSource, /id="meta-left-thumb"/);
   assert.match(sceneSource, /id="meta-right-grip-back"/);
   assert.match(sceneSource, /data-fingertip="right-index"/);
+  assert.match(sceneSource, /id="meta-desk-surface"/);
+  assert.match(sceneSource, /id="meta-phone-depth"/);
+  assert.match(sceneSource, /id="meta-glass-reflection"/);
+  assert.match(sceneSource, /rotateX: 5\.5/);
   assert.match(sceneSource, /className="[^"]*z-\[8\][^"]*"[\s\S]{0,180}id="meta-right-grip-back"/);
   assert.match(sceneSource, /className="[^"]*z-\[60\][^"]*"[\s\S]{0,180}id="meta-pointer-hand"/);
+  assert.match(appSource, /const metaSceneActive = shouldShowMetaScene\(metaViewActive, debugMode\)/);
+  assert.match(appSource, /<MetaInteractionScene active=\{metaSceneActive\}>/);
   assert.doesNotMatch(sceneSource, /rounded-\[52%_44%_48%_40%\]/);
 });

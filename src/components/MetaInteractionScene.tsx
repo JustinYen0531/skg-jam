@@ -217,6 +217,13 @@ const RightHandFront: React.FC<InteractiveHandProps> = ({ pressed }) => (
   </div>
 );
 
+const PHONE_SURFACE_SIZE: React.CSSProperties = {
+  width: 'min(calc(100cqw - var(--phone-stage-inset)), calc((100cqh - var(--phone-stage-inset)) * var(--phone-aspect)))',
+  height: 'min(calc(100cqh - var(--phone-stage-inset)), calc((100cqw - var(--phone-stage-inset)) / var(--phone-aspect)))',
+  maxWidth: '1500px',
+  maxHeight: '760px',
+};
+
 export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ active, children }) => {
   const sceneRef = useRef<HTMLDivElement | null>(null);
   const pendingRef = useRef(false);
@@ -452,10 +459,24 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
             className="absolute inset-0"
             aria-hidden="true"
           >
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_35%,#4b4034_0%,#211b16_48%,#090807_100%)]" />
-            <div className="absolute inset-x-0 top-[68%] h-[32%] bg-gradient-to-b from-[#2a211a] to-[#100d0a] border-t border-amber-100/10" />
-            <div className="absolute left-[8%] top-[12%] h-24 w-24 rounded-full bg-amber-200/10 blur-3xl" />
-            <div className="absolute right-[12%] top-[16%] text-[9px] font-mono tracking-[0.32em] text-amber-100/25">CAM_02 · REC</div>
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_47%_28%,#5b4b3b_0%,#292119_42%,#0c0a08_100%)]" />
+            <div className="absolute inset-x-0 top-[59%] h-px bg-amber-100/15 shadow-[0_1px_18px_rgba(255,210,150,0.08)]" />
+            <div className="absolute left-[7%] top-[8%] h-36 w-36 rounded-full bg-amber-100/12 blur-[70px]" />
+            <div className="absolute right-[9%] top-[12%] h-28 w-28 rounded-full bg-sky-200/5 blur-[65px]" />
+
+            <div
+              className="absolute inset-x-[-8%] bottom-[-18%] top-[59%] border-t border-amber-100/15 bg-[#2b1d14] shadow-[inset_0_16px_28px_rgba(255,220,180,0.04),0_-16px_34px_rgba(0,0,0,0.22)]"
+              style={{
+                backgroundImage:
+                  'linear-gradient(100deg, rgba(255,255,255,0.035), transparent 22%, rgba(0,0,0,0.12) 44%, transparent 68%), repeating-linear-gradient(4deg, #2d1f16 0px, #2d1f16 8px, #251810 9px, #332218 12px)',
+                clipPath: 'polygon(8% 0, 92% 0, 100% 100%, 0 100%)',
+              }}
+              id="meta-desk-surface"
+            />
+            <div className="absolute inset-x-0 bottom-0 h-[8%] border-t border-[#513526] bg-gradient-to-b from-[#24170f] to-[#0d0906] shadow-[0_-8px_20px_rgba(0,0,0,0.42)]" id="meta-desk-front-edge" />
+            <div className="absolute left-1/2 top-[57%] h-[12%] w-[64%] -translate-x-1/2 rounded-[50%] bg-black/55 blur-2xl" />
+            <div className="absolute bottom-[7%] right-[5%] h-[13%] w-[13%] rotate-6 rounded-md border border-amber-100/5 bg-black/15 shadow-xl" />
+            <div className="absolute right-[10%] top-[14%] text-[9px] font-mono tracking-[0.32em] text-amber-100/25">CAM_02 · REC</div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -494,12 +515,60 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
       </AnimatePresence>
 
       <motion.div
-        className="phone-stage absolute inset-0 z-10 flex items-center justify-center"
-        animate={active ? { scale: 0.72, y: '-10%' } : { scale: 1, y: '0%' }}
+        className="phone-stage absolute inset-0 z-10 flex items-center justify-center [perspective:1500px]"
+        animate={active ? { scale: 0.7, y: '-11%' } : { scale: 1, y: '0%' }}
         transition={{ duration: reducedMotion ? 0 : 1.05, ease: [0.22, 1, 0.36, 1] }}
         id="meta-phone-camera-frame"
       >
-        {children}
+        <motion.div
+          className="absolute inset-0 flex items-center justify-center [transform-style:preserve-3d]"
+          animate={active
+            ? { rotateX: 5.5, rotateY: -1.4, rotateZ: -0.35 }
+            : { rotateX: 0, rotateY: 0, rotateZ: 0 }}
+          transition={{ duration: reducedMotion ? 0 : 1.05, ease: [0.22, 1, 0.36, 1] }}
+          id="meta-device-tilt"
+        >
+          {active && (
+            <>
+              <div
+                className="pointer-events-none absolute left-1/2 top-1/2 rounded-[calc(var(--phone-radius)+5px)] border-[calc(var(--phone-border)+4px)] border-[#16191e] bg-[linear-gradient(145deg,#f2f4f5_0%,#707780_9%,#252a31_28%,#9299a1_55%,#20242a_78%,#07090c_100%)] shadow-[18px_30px_34px_rgba(0,0,0,0.72),inset_0_2px_2px_rgba(255,255,255,0.75),inset_0_-5px_8px_rgba(0,0,0,0.78)]"
+                style={{ ...PHONE_SURFACE_SIZE, transform: 'translate3d(-47.7%, -47.1%, -28px)' }}
+                id="meta-phone-depth"
+              />
+              <div
+                className="pointer-events-none absolute left-1/2 top-1/2 rounded-[calc(var(--phone-radius)+2px)] border-[calc(var(--phone-border)+1px)] border-[#555c65] bg-[linear-gradient(135deg,#d9dde1,#343a43_34%,#868d96_68%,#171b20)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.6),inset_0_-3px_5px_rgba(0,0,0,0.7)]"
+                style={{ ...PHONE_SURFACE_SIZE, transform: 'translate3d(-48.9%, -48.6%, -12px)' }}
+                id="meta-phone-midframe"
+              />
+            </>
+          )}
+
+          {children}
+
+          {active && (
+            <>
+              <div
+                className="pointer-events-none absolute left-1/2 top-1/2 overflow-hidden rounded-[var(--phone-radius)] border border-white/25 shadow-[inset_2px_2px_2px_rgba(255,255,255,0.28),inset_-3px_-4px_7px_rgba(0,0,0,0.62),0_0_0_1px_rgba(10,12,15,0.8)]"
+                style={{ ...PHONE_SURFACE_SIZE, transform: 'translate3d(-50%, -50%, 8px)' }}
+                id="meta-glass-reflection"
+              >
+                <div
+                  className="absolute inset-0 opacity-80"
+                  style={{
+                    background:
+                      'linear-gradient(116deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.045) 13%, transparent 27%, transparent 60%, rgba(150,205,255,0.075) 73%, transparent 88%), radial-gradient(ellipse at 24% -8%, rgba(255,244,220,0.2), transparent 42%)',
+                  }}
+                />
+                <div className="absolute -left-[18%] -top-[45%] h-[120%] w-[32%] rotate-[24deg] bg-gradient-to-r from-transparent via-white/10 to-transparent blur-sm" />
+              </div>
+              <div
+                className="pointer-events-none absolute left-1/2 top-1/2 rounded-[var(--phone-radius)] border-t-2 border-l border-white/40 border-r border-r-black/55 border-b-2 border-b-black/70"
+                style={{ ...PHONE_SURFACE_SIZE, transform: 'translate3d(-50%, -50%, 10px)' }}
+                id="meta-phone-beveled-rim"
+              />
+            </>
+          )}
+        </motion.div>
       </motion.div>
 
       <AnimatePresence>

@@ -51,3 +51,13 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Added a static regression test that requires the front/back grip layers and fingertip marker, and rejects the old pointer-blob shape.
 - Final static verification: `npm test` 36/36, `npm run lint`, and `npm run build` passed; the existing non-fatal 500 kB chunk advisory remains.
 - Browser validation intentionally not run per project instruction. Manual acceptance shortcut: `?debug=true&meta=true`.
+
+## 2026-07-19 — Physical Meta desk and developer chapter preview
+
+- Developer Debug Mode now forces the same Meta interaction scene for every chapter snapshot from 1 through 10; closing debug returns to the formal story state unless Meta was genuinely unlocked.
+- The formal unlock remains unchanged: a second Gate 37 death is insufficient until the player actually opens the leaderboard.
+- Rebuilt the scene depth stack with a wood desk and front edge, phone contact shadow, 5.5-degree raised perspective, two metallic chassis depth layers, beveled rim, and glass reflections.
+- The existing front/back hand layers remain on opposite sides of the phone depth plane so the device reads as held rather than pasted over the hands.
+- Static regression coverage now verifies the developer preview integration and requires the desk, metal-depth, reflection, and tilt markers.
+- Final static verification: `npm test` 37/37, `npm run lint`, and `npm run build` passed; the existing non-fatal 500 kB chunk advisory remains.
+- Browser validation intentionally not run per project instruction. Manual acceptance shortcut: `?debug=true`.
