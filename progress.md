@@ -42,3 +42,12 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Static check after UI integration: `npm run lint` passed.
 - Final static verification: `npm test` 35/35, `npm run lint`, and `npm run build` passed; the non-fatal 500 kB chunk advisory remains.
 - Browser validation intentionally not run. Manual acceptance should verify vertical scrolling, row density, and landscape-phone text size.
+
+## 2026-07-19 — Meta hand anatomy rebuild
+
+- Replaced the two rounded skin-colored placeholder blobs with layered SVG hands that have palms, thumbs, four curled fingers, nails, knuckle creases, wrists, and sleeve cuffs.
+- The left hand now reads as a fixed support grip: fingers render behind the phone while the palm and thumb overlap the front bezel.
+- The right hand is split across the phone depth plane and shares one animated fingertip anchor; it rests at the right edge, travels after player input, and presses with the extended index finger above buttons and the virtual keyboard.
+- Added a static regression test that requires the front/back grip layers and fingertip marker, and rejects the old pointer-blob shape.
+- Final static verification: `npm test` 36/36, `npm run lint`, and `npm run build` passed; the existing non-fatal 500 kB chunk advisory remains.
+- Browser validation intentionally not run per project instruction. Manual acceptance shortcut: `?debug=true&meta=true`.

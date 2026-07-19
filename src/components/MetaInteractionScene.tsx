@@ -51,6 +51,172 @@ const KEYBOARD_ROWS = [
 const isViewTubeSearch = (element: Element): element is HTMLInputElement =>
   element instanceof HTMLInputElement && element.id === 'vt-search-input';
 
+const LeftGripBack = () => (
+  <svg
+    viewBox="0 0 340 360"
+    className="h-full w-full overflow-visible drop-shadow-[0_22px_18px_rgba(0,0,0,0.48)]"
+    role="presentation"
+  >
+    <defs>
+      <linearGradient id="left-skin-back" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stopColor="#efc2a1" />
+        <stop offset="0.48" stopColor="#c98968" />
+        <stop offset="1" stopColor="#754531" />
+      </linearGradient>
+      <linearGradient id="left-sleeve" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stopColor="#15171c" />
+        <stop offset="1" stopColor="#343942" />
+      </linearGradient>
+    </defs>
+
+    <path d="M0 360V270C35 245 69 236 105 243L151 360Z" fill="url(#left-sleeve)" />
+    <path
+      d="M68 360C74 313 82 270 105 224C126 182 157 144 195 124C225 108 257 114 276 139C294 163 291 196 272 222L230 281L207 360Z"
+      fill="url(#left-skin-back)"
+    />
+
+    <g fill="url(#left-skin-back)" stroke="#8f5a43" strokeWidth="3">
+      <path d="M208 92C208 73 222 57 240 57H307C324 57 337 70 337 86C337 102 324 114 307 114H239C222 114 208 105 208 92Z" />
+      <path d="M205 133C205 115 220 101 238 101H316C330 101 340 112 340 126C340 141 329 152 314 152H236C219 152 205 146 205 133Z" />
+      <path d="M207 174C207 157 221 144 239 144H312C326 144 337 155 337 169C337 183 326 194 311 194H239C221 194 207 188 207 174Z" />
+      <path d="M215 214C215 198 229 186 246 186H301C315 186 326 197 326 211C326 225 315 236 300 236H245C228 236 215 229 215 214Z" />
+    </g>
+
+    <g fill="none" stroke="#70422f" strokeLinecap="round" strokeWidth="3" opacity="0.42">
+      <path d="M236 77H295" />
+      <path d="M235 121H302" />
+      <path d="M237 163H298" />
+      <path d="M246 205H289" />
+      <path d="M114 283C145 277 171 285 190 307" />
+    </g>
+  </svg>
+);
+
+const LeftGripFront = () => (
+  <svg
+    viewBox="0 0 270 210"
+    className="h-full w-full overflow-visible drop-shadow-[0_10px_10px_rgba(0,0,0,0.38)]"
+    role="presentation"
+  >
+    <defs>
+      <linearGradient id="left-skin-front" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stopColor="#f2c8a8" />
+        <stop offset="0.52" stopColor="#cb8d6d" />
+        <stop offset="1" stopColor="#7b4934" />
+      </linearGradient>
+    </defs>
+
+    <path
+      d="M22 194C28 151 48 118 81 94C110 73 142 65 170 69C190 72 208 85 216 105C224 125 219 148 204 164C185 184 157 199 122 207H55C40 207 28 202 22 194Z"
+      fill="url(#left-skin-front)"
+      stroke="#8a543e"
+      strokeWidth="3"
+    />
+    <path
+      d="M119 111C124 87 141 57 163 33C181 13 203 5 220 14C238 24 242 46 230 64L192 121C179 140 156 149 138 140C124 133 116 123 119 111Z"
+      fill="url(#left-skin-front)"
+      stroke="#8a543e"
+      strokeWidth="3"
+      id="meta-left-thumb"
+    />
+    <path d="M181 25C193 17 207 17 217 23" fill="none" stroke="#f8dec9" strokeLinecap="round" strokeWidth="8" opacity="0.7" />
+    <path d="M151 109C164 116 177 119 190 116" fill="none" stroke="#7a4634" strokeLinecap="round" strokeWidth="3" opacity="0.5" />
+    <path d="M71 157C103 145 130 148 151 165" fill="none" stroke="#7a4634" strokeLinecap="round" strokeWidth="3" opacity="0.42" />
+  </svg>
+);
+
+interface InteractiveHandProps {
+  pressed: boolean;
+}
+
+const RightHandBack: React.FC<InteractiveHandProps> = ({ pressed }) => (
+  <div className="absolute left-0 top-0 h-[clamp(190px,30vh,285px)] w-[clamp(145px,18vw,220px)] -translate-x-[30%] -translate-y-[1%]">
+    <motion.svg
+      viewBox="0 0 230 300"
+      animate={{ rotate: pressed ? -5 : 0, scale: pressed ? 0.96 : 1 }}
+      className="h-full w-full origin-[30%_1%] overflow-visible drop-shadow-[0_22px_18px_rgba(0,0,0,0.5)]"
+      role="presentation"
+    >
+    <defs>
+      <linearGradient id="right-skin-back" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stopColor="#edbd9c" />
+        <stop offset="0.5" stopColor="#c68464" />
+        <stop offset="1" stopColor="#70402f" />
+      </linearGradient>
+      <linearGradient id="right-sleeve" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0" stopColor="#353a44" />
+        <stop offset="1" stopColor="#111319" />
+      </linearGradient>
+    </defs>
+
+    <path d="M95 300L101 224C127 206 165 205 196 222L230 256V300Z" fill="url(#right-sleeve)" />
+    <path
+      d="M80 300C79 266 81 235 91 204C102 171 125 145 158 136C187 128 211 143 221 168C231 194 219 220 197 237L178 300Z"
+      fill="url(#right-skin-back)"
+    />
+    <g fill="url(#right-skin-back)" stroke="#88503b" strokeWidth="3">
+      <path d="M82 106C88 93 103 87 116 94L197 136C211 143 216 158 208 171C200 184 185 188 172 180L94 134C81 127 76 117 82 106Z" />
+      <path d="M72 139C79 126 94 121 108 128L190 169C204 177 209 192 201 205C193 218 177 222 164 214L84 170C71 163 66 152 72 139Z" />
+      <path d="M72 175C80 162 95 159 108 166L176 203C190 211 194 226 187 239C179 252 164 256 150 248L82 210C68 203 64 188 72 175Z" />
+    </g>
+    <g fill="none" stroke="#6d3e2e" strokeLinecap="round" strokeWidth="3" opacity="0.42">
+      <path d="M105 111L180 151" />
+      <path d="M96 147L173 188" />
+      <path d="M96 184L160 220" />
+      <path d="M105 237C132 226 158 231 177 249" />
+    </g>
+    </motion.svg>
+  </div>
+);
+
+const RightHandFront: React.FC<InteractiveHandProps> = ({ pressed }) => (
+  <div className="absolute left-0 top-0 h-[clamp(190px,30vh,285px)] w-[clamp(145px,18vw,220px)] -translate-x-[30%] -translate-y-[1%]">
+    <motion.svg
+      viewBox="0 0 230 300"
+      animate={{ rotate: pressed ? -5 : 0, scale: pressed ? 0.96 : 1 }}
+      className="h-full w-full origin-[30%_1%] overflow-visible drop-shadow-[0_12px_12px_rgba(0,0,0,0.38)]"
+      role="presentation"
+    >
+    <defs>
+      <linearGradient id="right-skin-front" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stopColor="#f3c9aa" />
+        <stop offset="0.52" stopColor="#ca8969" />
+        <stop offset="1" stopColor="#784632" />
+      </linearGradient>
+    </defs>
+
+    <path
+      d="M54 224C66 192 85 160 111 143C137 126 169 125 191 143C214 163 217 196 199 220C184 241 161 253 136 255C102 258 78 246 54 224Z"
+      fill="url(#right-skin-front)"
+      stroke="#89513b"
+      strokeWidth="3"
+    />
+    <path
+      d="M45 171C43 137 42 102 44 64L45 29C46 12 56 2 70 3C84 4 92 16 90 33L87 70C84 106 82 137 86 162C89 181 79 194 64 195C50 196 46 187 45 171Z"
+      fill="url(#right-skin-front)"
+      stroke="#89513b"
+      strokeWidth="3"
+      data-fingertip="right-index"
+    />
+    <path
+      d="M112 168C129 153 145 139 160 119C171 104 189 100 200 110C213 121 211 139 198 152L164 187C151 200 129 202 116 190C109 184 106 175 112 168Z"
+      fill="url(#right-skin-front)"
+      stroke="#89513b"
+      strokeWidth="3"
+    />
+    <path d="M55 18C62 10 73 10 81 17" fill="none" stroke="#fae0cc" strokeLinecap="round" strokeWidth="9" opacity="0.72" />
+    <path d="M174 116C181 111 190 113 196 119" fill="none" stroke="#fae0cc" strokeLinecap="round" strokeWidth="7" opacity="0.62" />
+    <g fill="none" stroke="#754230" strokeLinecap="round" strokeWidth="3" opacity="0.5">
+      <path d="M52 84C64 88 76 88 87 83" />
+      <path d="M51 111C62 115 73 115 84 111" />
+      <path d="M83 205C111 193 143 197 165 215" />
+      <path d="M104 225C124 220 143 224 157 236" />
+      <path d="M143 164C151 172 159 177 170 179" />
+    </g>
+    </motion.svg>
+  </div>
+);
+
 export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ active, children }) => {
   const sceneRef = useRef<HTMLDivElement | null>(null);
   const pendingRef = useRef(false);
@@ -84,7 +250,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
   const getRestPosition = useCallback((): PointerPosition => {
     const rect = sceneRef.current?.getBoundingClientRect();
     return rect
-      ? { x: rect.width * 0.84, y: rect.height * 0.78 }
+      ? { x: rect.width * 0.81, y: rect.height * 0.53 }
       : { x: 0, y: 0 };
   }, []);
 
@@ -294,6 +460,39 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
         )}
       </AnimatePresence>
 
+      <AnimatePresence>
+        {active && (
+          <>
+            <motion.div
+              initial={{ opacity: 0, x: -54, y: 30 }}
+              animate={{ opacity: 1, x: 0, y: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ delay: reducedMotion ? 0 : 0.5, duration: reducedMotion ? 0 : 0.62 }}
+              className="pointer-events-none absolute bottom-[10%] left-[0.5%] z-[8] h-[48%] w-[29%] min-w-44"
+              aria-hidden="true"
+              id="meta-left-grip-back"
+            >
+              <LeftGripBack />
+            </motion.div>
+
+            <motion.div
+              animate={{
+                x: pointer.x,
+                y: pointer.y,
+                opacity: pointer.x > 0 ? 1 : 0,
+              }}
+              initial={false}
+              transition={{ duration: reducedMotion ? 0 : 0.26, ease: 'easeInOut' }}
+              className="pointer-events-none absolute left-0 top-0 z-[8] h-0 w-0"
+              aria-hidden="true"
+              id="meta-right-grip-back"
+            >
+              <RightHandBack pressed={pressed} />
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       <motion.div
         className="phone-stage absolute inset-0 z-10 flex items-center justify-center"
         animate={active ? { scale: 0.72, y: '-10%' } : { scale: 1, y: '0%' }}
@@ -307,35 +506,29 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
         {active && (
           <>
             <motion.div
-              initial={{ opacity: 0, x: -80 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: reducedMotion ? 0 : 0.65, duration: 0.5 }}
-              className="pointer-events-none absolute bottom-[23%] left-[2%] z-20 h-20 w-[24%] min-w-32 rotate-[8deg] rounded-[46%_56%_40%_38%] bg-gradient-to-br from-[#d5a27f] via-[#b97858] to-[#704230] shadow-[0_18px_28px_rgba(0,0,0,0.55)]"
+              initial={{ opacity: 0, x: -42, y: 18 }}
+              animate={{ opacity: 1, x: 0, y: 0 }}
+              transition={{ delay: reducedMotion ? 0 : 0.62, duration: reducedMotion ? 0 : 0.55 }}
+              className="pointer-events-none absolute left-[10%] top-[35%] z-20 h-[28%] w-[20%] min-w-36"
               aria-hidden="true"
               id="meta-left-hand"
             >
-              <div className="absolute -right-5 top-3 h-5 w-16 -rotate-[18deg] rounded-full bg-[#c98e6b] shadow-md" />
-              <div className="absolute -right-4 top-9 h-4 w-14 rotate-[10deg] rounded-full bg-[#b97858] shadow-md" />
+              <LeftGripFront />
             </motion.div>
 
             <motion.div
               animate={{
-                x: pointer.x - 42,
-                y: pointer.y - 28,
-                scale: pressed ? 0.92 : 1,
-                rotate: pressed ? -8 : -4,
+                x: pointer.x,
+                y: pointer.y,
+                opacity: pointer.x > 0 ? 1 : 0,
               }}
               initial={false}
               transition={{ duration: reducedMotion ? 0 : 0.26, ease: 'easeInOut' }}
-              className="pointer-events-none absolute left-0 top-0 z-40 h-16 w-24 rounded-[52%_44%_48%_40%] bg-gradient-to-br from-[#dcaa88] via-[#bc7e5e] to-[#774630] shadow-[0_16px_25px_rgba(0,0,0,0.55)]"
+              className="pointer-events-none absolute left-0 top-0 z-[60] h-0 w-0"
               aria-hidden="true"
               id="meta-pointer-hand"
             >
-              <motion.div
-                animate={{ y: pressed ? 5 : 0, scaleY: pressed ? 0.9 : 1 }}
-                className="absolute -top-10 left-10 h-14 w-5 origin-bottom rounded-full bg-gradient-to-b from-[#e1b191] to-[#bd7f5f] shadow-md"
-              />
-              <div className="absolute left-[46px] top-[-39px] h-2.5 w-2.5 rounded-full bg-amber-100/30 blur-[1px]" />
+              <RightHandFront pressed={pressed} />
             </motion.div>
 
             <motion.div

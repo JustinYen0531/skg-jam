@@ -1,4 +1,5 @@
 import { strict as assert } from 'node:assert';
+import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import {
   applyVirtualKey,
@@ -35,4 +36,19 @@ test('unsupported keys are ignored and max length is respected', () => {
   assert.equal(normalizeVirtualKey('ArrowLeft'), null);
   assert.equal(normalizeVirtualKey('a'), 'a');
   assert.deepEqual(applyVirtualKey('ABCD', 'E', 4), { value: 'ABCD', submit: false });
+});
+
+test('meta camera uses layered anatomical hands instead of rounded placeholder blobs', () => {
+  const sceneSource = readFileSync(
+    new URL('../src/components/MetaInteractionScene.tsx', import.meta.url),
+    'utf8',
+  );
+
+  assert.match(sceneSource, /id="meta-left-grip-back"/);
+  assert.match(sceneSource, /id="meta-left-thumb"/);
+  assert.match(sceneSource, /id="meta-right-grip-back"/);
+  assert.match(sceneSource, /data-fingertip="right-index"/);
+  assert.match(sceneSource, /className="[^"]*z-\[8\][^"]*"[\s\S]{0,180}id="meta-right-grip-back"/);
+  assert.match(sceneSource, /className="[^"]*z-\[60\][^"]*"[\s\S]{0,180}id="meta-pointer-hand"/);
+  assert.doesNotMatch(sceneSource, /rounded-\[52%_44%_48%_40%\]/);
 });
