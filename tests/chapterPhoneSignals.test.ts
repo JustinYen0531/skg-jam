@@ -2,43 +2,36 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { getChapterPhoneSignals } from '../src/lib/chapterPhoneSignals';
+import { DEBUG_CHAPTERS } from '../src/lib/chapterProgress';
 
-test('chapters 1 through 5 use restrained notification and recent-use signals', () => {
-  assert.deepEqual(getChapterPhoneSignals(1), {
-    notification: {
-      app: 'viewtube',
-      label: '1',
-      tone: 'unread',
-      accessibleLabel: 'ViewTube has one unread update',
-    },
-    recentApp: null,
-    fileBoxDownload: false,
-  });
+test('every chapter notifies the current target and underlines the previous target', () => {
+  for (let index = 0; index < DEBUG_CHAPTERS.length; index += 1) {
+    const chapter = DEBUG_CHAPTERS[index];
+    const previousChapter = DEBUG_CHAPTERS[index - 1];
+    const signals = getChapterPhoneSignals(chapter.id);
 
-  assert.equal(getChapterPhoneSignals(2).notification, null);
-  assert.equal(getChapterPhoneSignals(2).recentApp, 'viewtube');
-  assert.equal(getChapterPhoneSignals(2).fileBoxDownload, true);
-
-  assert.equal(getChapterPhoneSignals(3).notification?.app, 'amazemart');
-  assert.equal(getChapterPhoneSignals(3).recentApp, 'browser');
-  assert.equal(getChapterPhoneSignals(4).notification?.app, 'screenshots');
-  assert.equal(getChapterPhoneSignals(4).recentApp, 'amazemart');
-  assert.equal(getChapterPhoneSignals(5).notification?.app, 'browser');
-  assert.equal(getChapterPhoneSignals(5).notification?.tone, 'quiet');
-  assert.equal(getChapterPhoneSignals(5).recentApp, 'screenshots');
-});
-
-test('later chapters remain unchanged until their own implementation pass', () => {
-  for (const chapter of [6, 7, 8, 9, 10] as const) {
-    assert.deepEqual(getChapterPhoneSignals(chapter), {
-      notification: null,
-      recentApp: null,
-      fileBoxDownload: false,
-    });
+    assert.equal(signals.notification.app, chapter.targetApp);
+    assert.equal(signals.notification.label, '1');
+    assert.equal(signals.recentApp, previousChapter?.targetApp ?? null);
   }
 });
 
-test('phone signals are wired without moving launchers or adding quest copy', () => {
+test('chapter 2 points to Wayback and never uses the inactive FileBox dock item', () => {
+  const signals = getChapterPhoneSignals(2);
+
+  assert.equal(signals.notification.app, 'browser');
+  assert.equal(signals.recentApp, 'viewtube');
+  assert.equal('fileBoxDownload' in signals, false);
+});
+
+test('consecutive same-app chapters show both current and previous signals together', () => {
+  assert.equal(getChapterPhoneSignals(7).notification.app, 'social');
+  assert.equal(getChapterPhoneSignals(7).recentApp, 'social');
+  assert.equal(getChapterPhoneSignals(9).notification.app, 'messages');
+  assert.equal(getChapterPhoneSignals(9).recentApp, 'messages');
+});
+
+test('phone signals are wired without moving launchers or retaining misleading badges', () => {
   const source = readFileSync('src/components/PhoneSimulator.tsx', 'utf8');
   const launcherIds = [
     'launcher-game',
@@ -61,6 +54,9 @@ test('phone signals are wired without moving launchers or adding quest copy', ()
   assert.match(source, /getChapterPhoneSignals\(progress\.currentChapter\)/);
   assert.match(source, /data-phone-notification=/);
   assert.match(source, /data-recent-app=/);
-  assert.match(source, /data-filebox-status="download"/);
+  assert.match(source, /launcherSignals\('flappy'\)/);
+  assert.match(source, /phoneSignals\.notification\.app !== 'flappy'/);
+  assert.doesNotMatch(source, /data-filebox-status|fileBoxDownload/);
+  assert.doesNotMatch(source, /A notification chip from another system's grammar/);
   assert.doesNotMatch(source, /Recommended|Continue search|launcherOrder|data-home-rank/);
 });
