@@ -21,6 +21,7 @@ const COFFEE_LEVEL: Record<CoffeeState, number> = {
   half: 50,
   'near-empty': 22,
   empty: 0,
+  'tipped-empty': 0,
   'pushed-away': 0,
 };
 const NOTEBOOK_COPY: Record<NotebookState, readonly string[]> = {
@@ -44,15 +45,23 @@ const LIGHTING_CLASS = {
   ready: 'bg-[radial-gradient(circle_at_50%_66%,rgba(232,177,115,0.11),transparent_42%)]',
 } as const;
 
-const CoffeeCup: React.FC<{ state: CoffeeState; ring: boolean; drop: boolean; animateLayout: boolean }> = ({ state, ring, drop, animateLayout }) => {
+const CoffeeCup: React.FC<{
+  state: CoffeeState;
+  ring: boolean;
+  steam: boolean;
+  drip: boolean;
+  spill: boolean;
+  animateLayout: boolean;
+}> = ({ state, ring, steam, drip, spill, animateLayout }) => {
   if (state === 'none') return null;
   const pushedAway = state === 'pushed-away';
+  const tipped = state === 'tipped-empty';
   const level = COFFEE_LEVEL[state];
 
   return (
     <motion.div
       layout={animateLayout}
-      className={`absolute z-[3] h-[11%] w-[8%] min-w-16 origin-bottom-right ${pushedAway ? 'right-[8%] top-[69%] scale-[1.7]' : 'right-[13%] top-[70%] scale-[2.05]'}`}
+      className={`absolute z-[3] h-[11%] w-[8%] min-w-16 origin-bottom-right ${pushedAway ? 'right-[8%] top-[69%] scale-[1.7]' : tipped ? 'right-[15%] top-[75%] scale-[2.05]' : 'right-[13%] top-[70%] scale-[2.05]'}`}
       data-coffee-state={state}
       id="meta-desk-coffee"
     >
@@ -62,14 +71,31 @@ const CoffeeCup: React.FC<{ state: CoffeeState; ring: boolean; drop: boolean; an
           id="meta-coffee-ring"
         />
       )}
-      {drop && (
+      {spill && (
         <div
-          className="absolute -left-[13%] top-[91%] h-[10%] w-[13%] rotate-[-18deg] rounded-[58%_42%_64%_36%] bg-[#140a06] shadow-[0_2px_3px_rgba(0,0,0,0.5),inset_1px_1px_1px_rgba(255,255,255,0.08)]"
-          id="meta-coffee-drop"
+          className="absolute -left-[46%] top-[84%] h-[23%] w-[87%] rotate-[-8deg] rounded-[56%_44%_60%_40%] bg-[#160b07]/85 blur-[0.2px] shadow-[0_2px_3px_rgba(0,0,0,0.5),inset_1px_1px_1px_rgba(255,255,255,0.08)]"
+          id="meta-coffee-spill"
         />
       )}
-      <div className="absolute left-[11%] top-[10%] h-[72%] w-[66%] rounded-b-[32%] rounded-t-[22%] border border-[#c8b5a1]/55 bg-gradient-to-r from-[#77685d] via-[#c2b09d] to-[#66574d] shadow-[0_12px_16px_rgba(0,0,0,0.34),inset_5px_0_8px_rgba(255,255,255,0.14)]">
-        <div className="absolute -top-[8%] left-[-2%] h-[22%] w-[104%] overflow-hidden rounded-[50%] border border-[#d7c8b7]/60 bg-[#554a42] shadow-[inset_0_2px_3px_rgba(0,0,0,0.6)]">
+      {steam && (
+        <svg className="absolute -top-[94%] left-[2%] z-[1] h-[100%] w-[92%] overflow-visible" viewBox="0 0 100 100" id="meta-coffee-steam" aria-hidden="true">
+          {[28, 50, 72].map((x, index) => (
+            <motion.path
+              key={x}
+              d={`M${x} 92 C${x - 11} 70 ${x + 13} 57 ${x} 30 C${x - 7} 18 ${x + 5} 10 ${x + 1} 2`}
+              fill="none"
+              stroke="rgba(237, 228, 213, 0.45)"
+              strokeLinecap="round"
+              strokeWidth="5"
+              initial={{ opacity: 0.15, y: 8 }}
+              animate={{ opacity: [0.12, 0.52, 0.08], y: [8, -4, -12] }}
+              transition={{ duration: 2.2 + index * 0.2, repeat: Infinity, ease: 'easeInOut', delay: index * 0.25 }}
+            />
+          ))}
+        </svg>
+      )}
+      <div className={`absolute left-[11%] top-[10%] h-[72%] w-[66%] rounded-b-[32%] rounded-t-[22%] border border-[#c8b5a1]/55 bg-gradient-to-r from-[#77685d] via-[#c2b09d] to-[#66574d] shadow-[0_12px_16px_rgba(0,0,0,0.34),inset_5px_0_8px_rgba(255,255,255,0.14)] ${tipped ? 'origin-center rotate-[86deg]' : ''}`}>
+        <div className={`absolute -top-[8%] left-[-2%] h-[22%] w-[104%] overflow-hidden rounded-[50%] border border-[#d7c8b7]/60 shadow-[inset_0_2px_3px_rgba(0,0,0,0.6)] ${level > 0 ? 'bg-[#554a42]' : 'bg-[#b9aa9a]'}`}>
           {level > 0 && (
             <div
               className="absolute inset-x-[6%] bottom-[7%] rounded-[50%] bg-[#2b160d] shadow-[inset_0_1px_2px_rgba(255,210,160,0.18)]"
@@ -77,8 +103,13 @@ const CoffeeCup: React.FC<{ state: CoffeeState; ring: boolean; drop: boolean; an
             />
           )}
         </div>
+        {drip && (
+          <div className="absolute left-[35%] top-[-1%] h-[58%] w-[15%] rounded-b-full bg-[#2b160d] shadow-[0_3px_3px_rgba(0,0,0,0.38)]" id="meta-coffee-cup-drip">
+            <div className="absolute -bottom-[18%] left-[-34%] h-[35%] w-[168%] rounded-[50%_50%_60%_60%] bg-[#2b160d]" />
+          </div>
+        )}
       </div>
-      <div className="absolute right-[1%] top-[27%] h-[42%] w-[30%] rounded-r-full border-[5px] border-l-0 border-[#9f8d7d]/70" />
+      <div className={`absolute right-[1%] top-[27%] h-[42%] w-[30%] rounded-r-full border-[5px] border-l-0 border-[#9f8d7d]/70 ${tipped ? 'origin-center rotate-[86deg]' : ''}`} />
     </motion.div>
   );
 };
@@ -149,7 +180,7 @@ const Pen: React.FC<{ state: PenState; animateLayout: boolean }> = ({ state, ani
   );
 };
 
-const Notebook: React.FC<{ state: NotebookState; stickyNote: string | null; animateLayout: boolean }> = ({ state, stickyNote, animateLayout }) => {
+const Notebook: React.FC<{ state: NotebookState; stickyNote: string | null; position: 'default' | 'lowered'; animateLayout: boolean }> = ({ state, stickyNote, position, animateLayout }) => {
   if (state === 'none') return null;
   const copy = NOTEBOOK_COPY[state];
   const isClosed = state === 'closed';
@@ -157,7 +188,7 @@ const Notebook: React.FC<{ state: NotebookState; stickyNote: string | null; anim
   return (
     <motion.div
       layout={animateLayout}
-      className={`absolute left-[4%] top-[68%] z-[3] h-[20%] w-[24%] min-w-56 origin-bottom-left scale-[1.35] -rotate-[4deg] rounded-sm shadow-[0_16px_18px_rgba(0,0,0,0.38)] ${isClosed ? 'bg-[#243a42]' : 'bg-[#d6ccb7]'}`}
+      className={`absolute left-[4%] ${position === 'lowered' ? 'top-[75%]' : 'top-[68%]'} z-[3] h-[20%] w-[24%] min-w-56 origin-bottom-left scale-[1.35] -rotate-[4deg] rounded-sm shadow-[0_16px_18px_rgba(0,0,0,0.38)] ${isClosed ? 'bg-[#243a42]' : 'bg-[#d6ccb7]'}`}
       data-notebook-state={state}
       id="meta-desk-notebook"
     >
@@ -186,6 +217,35 @@ const Notebook: React.FC<{ state: NotebookState; stickyNote: string | null; anim
     </motion.div>
   );
 };
+
+const TeaService: React.FC = () => (
+  <div className="absolute right-[25%] top-[72%] z-[4] h-[18%] w-[15%] scale-[1.3]" id="meta-desk-tea-service">
+    <div className="absolute right-0 top-[4%] h-[64%] w-[52%] rounded-md border border-[#aeb8ab]/40 bg-gradient-to-r from-[#34433f] via-[#6c8174] to-[#29352f] shadow-[0_9px_12px_rgba(0,0,0,0.34)]" id="meta-desk-tea-machine">
+      <div className="absolute left-[16%] top-[13%] h-[16%] w-[62%] rounded-sm bg-[#17211d]" />
+      <div className="absolute left-[31%] top-[38%] h-[19%] w-[30%] rounded-full bg-emerald-200/65 shadow-[0_0_8px_rgba(110,231,183,0.5)]" />
+      <div className="absolute left-[36%] top-[63%] h-[29%] w-[23%] rounded-b-sm bg-[#171b19]" />
+    </div>
+    <div className="absolute bottom-0 left-[3%] h-[42%] w-[33%] rounded-b-[38%] rounded-t-[18%] border border-[#d3d0b5]/60 bg-gradient-to-r from-[#8a9b83] via-[#d2d8bd] to-[#71816c] shadow-[0_7px_9px_rgba(0,0,0,0.35)]" id="meta-desk-tea-cup">
+      <div className="absolute -top-[10%] left-[5%] h-[22%] w-[89%] rounded-[50%] border border-[#d3d0b5]/55 bg-[#8e7335]" />
+      <div className="absolute -right-[43%] top-[25%] h-[30%] w-[43%] rounded-r-full border-[3px] border-l-0 border-[#b7c1ab]/65" />
+      <div className="absolute left-[43%] top-[76%] h-[48%] w-px bg-[#c8b865]" />
+      <div className="absolute left-[30%] top-[119%] grid h-[22%] w-[28%] place-items-center bg-[#d8c65e] text-[4px] font-bold text-[#39402b] shadow-sm" id="meta-tea-bag-tag">TEA</div>
+    </div>
+  </div>
+);
+
+const PaperBalls: React.FC = () => (
+  <div className="absolute bottom-[13%] left-[31%] z-[4] h-[11%] w-[25%]" id="meta-desk-paper-balls">
+    {[
+      'left-[2%] top-[38%] h-[32%] w-[12%] rotate-[21deg]',
+      'left-[17%] top-[5%] h-[42%] w-[15%] rotate-[-17deg]',
+      'left-[38%] top-[40%] h-[29%] w-[11%] rotate-[31deg]',
+      'left-[57%] top-[10%] h-[45%] w-[16%] rotate-[-25deg]',
+    ].map((className, index) => (
+      <div key={index} className={`absolute rounded-[48%_52%_44%_56%] bg-[#b7aa92] shadow-[inset_2px_2px_3px_rgba(255,255,255,0.2),0_4px_5px_rgba(0,0,0,0.34)] ${className}`} />
+    ))}
+  </div>
+);
 
 export const ChapterEnvironment: React.FC<ChapterEnvironmentProps> = ({ chapter, reducedMotion, layer = 'objects' }) => {
   const environment = getChapterEnvironment(chapter);
@@ -227,13 +287,15 @@ export const ChapterEnvironment: React.FC<ChapterEnvironmentProps> = ({ chapter,
         >
           {underlay ? (
             <>
-              <Notebook state={environment.notebook} stickyNote={environment.stickyNote} animateLayout={!reducedMotion} />
+              <Notebook state={environment.notebook} stickyNote={environment.stickyNote} position={environment.notebookPosition} animateLayout={!reducedMotion} />
               <Pen state={environment.pen} animateLayout={!reducedMotion} />
               {environment.cable === 'connected' && <ChargingCable connected animateLayout={!reducedMotion} part="insert" />}
             </>
           ) : (
             <>
-              <CoffeeCup state={environment.coffee} ring={environment.coffeeRing} drop={environment.coffeeDrop} animateLayout={!reducedMotion} />
+              <CoffeeCup state={environment.coffee} ring={environment.coffeeRing} steam={environment.coffeeSteam} drip={environment.coffeeDrip} spill={environment.coffeeSpill} animateLayout={!reducedMotion} />
+              {environment.teaService && <TeaService />}
+              {environment.paperBalls && <PaperBalls />}
               {environment.cable !== 'none' && <ChargingCable connected={environment.cable === 'connected'} animateLayout={!reducedMotion} part="body" />}
             </>
           )}

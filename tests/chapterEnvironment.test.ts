@@ -17,9 +17,14 @@ test('Chapter 0 exposes no physical desk objects', () => {
     lighting: 'hidden',
     coffee: 'none',
     coffeeRing: false,
-    coffeeDrop: false,
+    coffeeSteam: false,
+    coffeeDrip: false,
+    coffeeSpill: false,
+    teaService: false,
+    paperBalls: false,
     cable: 'none',
     notebook: 'none',
+    notebookPosition: 'default',
     pen: 'none',
     stickyNote: null,
     deskOrder: 'hidden',
@@ -38,12 +43,22 @@ test('desk evidence never appears before the player has earned it', () => {
   assert.equal(getChapterEnvironment(10).notebook, 'route');
 });
 
-test('Chapter 3 alone adds the coffee drop and connects the charging cable', () => {
-  assert.equal(getChapterEnvironment(2).coffeeDrop, false);
+test('coffee tells a chapter-specific desk story without revealing later evidence early', () => {
+  assert.equal(getChapterEnvironment(1).coffeeSteam, true);
+  assert.equal(getChapterEnvironment(2).coffeeSteam, true);
+  assert.equal(getChapterEnvironment(3).coffee, 'empty');
+  assert.equal(getChapterEnvironment(3).coffeeDrip, true);
+  assert.equal(getChapterEnvironment(3).coffeeSpill, false);
   assert.equal(getChapterEnvironment(2).cable, 'loose');
-  assert.equal(getChapterEnvironment(3).coffeeDrop, true);
   assert.equal(getChapterEnvironment(3).cable, 'connected');
-  assert.equal(getChapterEnvironment(4).coffeeDrop, false);
+  assert.equal(getChapterEnvironment(4).coffeeDrip, false);
+  assert.equal(getChapterEnvironment(5).coffee, 'tipped-empty');
+  assert.equal(getChapterEnvironment(5).coffeeSpill, true);
+  assert.equal(getChapterEnvironment(5).notebookPosition, 'lowered');
+  assert.equal(getChapterEnvironment(6).coffee, 'tipped-empty');
+  assert.equal(getChapterEnvironment(6).coffeeSpill, false);
+  assert.equal(getChapterEnvironment(6).teaService, true);
+  assert.equal(getChapterEnvironment(6).paperBalls, true);
 });
 
 test('the desk progresses from gathering to clutter, quiet, and organized', () => {
@@ -68,7 +83,13 @@ test('the physical environment is display-only and does not mutate progress', ()
   assert.match(environmentSource, /scale-\[2\.05\]/);
   assert.match(environmentSource, /scale-\[1\.35\]/);
   assert.match(environmentSource, /scale-\[1\.7\]/);
-  assert.match(environmentSource, /id="meta-coffee-drop"/);
+  assert.match(environmentSource, /id="meta-coffee-steam"/);
+  assert.match(environmentSource, /id="meta-coffee-cup-drip"/);
+  assert.match(environmentSource, /id="meta-coffee-spill"/);
+  assert.match(environmentSource, /id="meta-desk-tea-machine"/);
+  assert.match(environmentSource, /id="meta-desk-tea-cup"/);
+  assert.match(environmentSource, /id="meta-tea-bag-tag"/);
+  assert.match(environmentSource, /id="meta-desk-paper-balls"/);
   assert.match(environmentSource, /id="meta-cable-plug-tip"/);
   assert.match(environmentSource, /id="meta-cable-inserted-end"/);
   assert.match(environmentSource, /id="meta-cable-plug-housing"/);
