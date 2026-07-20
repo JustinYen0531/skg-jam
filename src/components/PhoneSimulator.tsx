@@ -22,6 +22,10 @@ import {
   getChapterOneCompanionDialogue,
   getChapterOneWrongAppDialogue,
 } from '../lib/chapterOneDialogue';
+import {
+  getChapterPhoneSignals,
+  type PhoneLauncherApp,
+} from '../lib/chapterPhoneSignals';
 
 /** Modern widget chassis: translucent, friendly, current-year. */
 const WIDGET_SHELL =
@@ -51,6 +55,39 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   const chapterOneHomeAttempt = useRef(0);
 
   const residue = getResidueLevel(progress);
+  const phoneSignals = getChapterPhoneSignals(progress.currentChapter);
+  const launcherSignals = (app: PhoneLauncherApp) => {
+    const notification = phoneSignals.notification?.app === app
+      ? phoneSignals.notification
+      : null;
+    const recentlyUsed = phoneSignals.recentApp === app;
+
+    return (
+      <>
+        {notification && (
+          <span
+            className={`absolute -right-1 -top-1 z-10 flex min-w-[16px] h-[16px] items-center justify-center border px-1 text-[clamp(8px,0.9cqw,10px)] font-semibold text-white shadow ${
+              notification.tone === 'unread'
+                ? 'rounded-full border-[#182031] bg-[#e04a3d]'
+                : 'rounded-[5px] border-slate-400/40 bg-[#334155]'
+            }`}
+            aria-label={notification.accessibleLabel}
+            data-phone-notification={app}
+            data-notification-tone={notification.tone}
+          >
+            {notification.label}
+          </span>
+        )}
+        {recentlyUsed && (
+          <span
+            className="absolute -bottom-1 left-1/2 h-[2px] w-4 -translate-x-1/2 rounded-full bg-slate-200/35"
+            aria-label={`${app} was recently used`}
+            data-recent-app={app}
+          ></span>
+        )}
+      </>
+    );
+  };
 
   useEffect(() => {
     if (debugTargetApp) setActiveApp(debugTargetApp.app);
@@ -413,8 +450,9 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                     className="group flex flex-col items-center gap-1.5 min-w-0"
                     id="launcher-viewtube"
                   >
-                    <div className="w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
+                    <div className="relative w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
                       <IconViewTube />
+                      {launcherSignals('viewtube')}
                     </div>
                     <span className="text-[clamp(10px,1.1cqw,13px)] font-medium text-slate-100/90 truncate max-w-full">ViewTube</span>
                   </button>
@@ -424,8 +462,9 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                     className="group flex flex-col items-center gap-1.5 min-w-0"
                     id="launcher-amazemart"
                   >
-                    <div className="w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
+                    <div className="relative w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
                       <IconAmazeMart />
+                      {launcherSignals('amazemart')}
                     </div>
                     <span className="text-[clamp(10px,1.1cqw,13px)] font-medium text-slate-100/90 truncate max-w-full">AmazeMart</span>
                   </button>
@@ -435,8 +474,9 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                     className="group flex flex-col items-center gap-1.5 min-w-0"
                     id="launcher-browser"
                   >
-                    <div className="w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
+                    <div className="relative w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
                       <IconWayback />
+                      {launcherSignals('browser')}
                     </div>
                     <span className="text-[clamp(10px,1.1cqw,13px)] font-medium text-slate-100/90 truncate max-w-full">Wayback</span>
                   </button>
@@ -446,8 +486,9 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                     className="group flex flex-col items-center gap-1.5 min-w-0"
                     id="launcher-social"
                   >
-                    <div className="w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
+                    <div className="relative w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
                       <IconFaceSpace />
+                      {launcherSignals('social')}
                     </div>
                     <span className="text-[clamp(10px,1.1cqw,13px)] font-medium text-slate-100/90 truncate max-w-full">FaceSpace</span>
                   </button>
@@ -459,6 +500,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                   >
                     <div className="relative w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
                       <IconMessages />
+                      {launcherSignals('messages')}
                       {!progress.unlockedCodeRoute && (
                         residue >= 1 ? (
                           /* A notification chip from another system's grammar:
@@ -482,8 +524,9 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                     }`}
                     id="launcher-screenshots"
                   >
-                    <div className="w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
+                    <div className="relative w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
                       <IconSchematics legacy={residue >= 2} />
+                      {launcherSignals('screenshots')}
                     </div>
                     <span className={`truncate max-w-full ${
                       residue >= 2
@@ -497,8 +540,9 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                     className="group flex flex-col items-center gap-1.5 min-w-0"
                     id="launcher-about"
                   >
-                    <div className="w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
+                    <div className="relative w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
                       <IconConcept />
+                      {launcherSignals('about')}
                     </div>
                     <span className="text-[clamp(10px,1.1cqw,13px)] font-medium text-slate-100/90 truncate max-w-full">Concept</span>
                   </button>
@@ -533,8 +577,17 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                       title={name}
                       id={`launcher-${name.toLowerCase()}`}
                     >
-                      <div className="w-[clamp(48px,5.6cqw,76px)] h-[clamp(48px,5.6cqw,76px)] drop-shadow-[0_6px_10px_rgba(0,0,0,0.4)] transition-transform duration-150 group-hover:scale-105 group-active:scale-95">
+                      <div className="relative w-[clamp(48px,5.6cqw,76px)] h-[clamp(48px,5.6cqw,76px)] drop-shadow-[0_6px_10px_rgba(0,0,0,0.4)] transition-transform duration-150 group-hover:scale-105 group-active:scale-95">
                         <Icon />
+                        {name === 'FileBox' && phoneSignals.fileBoxDownload && (
+                          <span
+                            className="absolute -right-0.5 -top-0.5 flex h-[15px] w-[15px] items-center justify-center rounded-full border border-[#182031] bg-[#4f9cf7] text-[9px] font-bold leading-none text-white shadow"
+                            aria-label="Archive download available"
+                            data-filebox-status="download"
+                          >
+                            ↓
+                          </span>
+                        )}
                       </div>
                       <span className={`truncate max-w-full ${
                         residue >= 2
