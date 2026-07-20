@@ -5,6 +5,7 @@ import { MetaInteractionScene } from './components/MetaInteractionScene';
 import { DEBUG_CHAPTERS, getChapterById, getChapterSnapshot } from './lib/chapterProgress';
 import { shouldRevealMetaView, shouldShowMetaScene } from './lib/metaInteraction';
 import audio from './lib/audio';
+import music, { getMusicPhase } from './lib/music';
 import { 
   FileText, Shield, Award, Terminal, RefreshCw, Volume2, VolumeX,
   Sparkles, CheckCircle, Database, HelpCircle, Archive, Globe, Cpu
@@ -46,6 +47,7 @@ export default function App() {
     return new URLSearchParams(window.location.search).get('debug') === 'true';
   });
   const [debugTargetApp, setDebugTargetApp] = useState<{ app: ReturnType<typeof getChapterById>['targetApp']; nonce: number } | null>(null);
+  const activeMusicPhase = getMusicPhase(progress);
 
   // Developer-only evidence tools stay out of the player's story surface.
   // The keyboard listener changes visibility only; progress remains untouched.
@@ -79,6 +81,7 @@ export default function App() {
   // Handle background ambient hum
   useEffect(() => {
     audio.setMute(isMuted);
+    music.setMuted(isMuted);
     if (!isMuted) {
       audio.startAmbientHum();
     }
@@ -86,6 +89,10 @@ export default function App() {
       audio.stopAmbientHum();
     };
   }, [isMuted]);
+
+  useEffect(() => {
+    music.setPhase(activeMusicPhase);
+  }, [activeMusicPhase]);
 
   const updateProgress = (updater: (prev: GameProgress) => GameProgress) => {
     setProgress((prev) => {
@@ -106,6 +113,7 @@ export default function App() {
     const nextMuted = !isMuted;
     setIsMuted(nextMuted);
     audio.setMute(nextMuted);
+    music.setMuted(nextMuted);
     if (!nextMuted) audio.play('ui.toggle', { variant: 1 });
   };
 

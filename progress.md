@@ -217,3 +217,11 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Raised bus gains to compensate for event × bus × master multiplication: gameplay `0.50 → 0.85`, UI `0.30 → 0.60`, narrative `0.16 → 0.50`, and Meta Foley `0.38 → 0.65`.
 - Reduced ambience `0.20 → 0.12` so the room/device bed does not mask flap, keyboard, monologue glyph, and fingertip details.
 - This pass changes gain staging only; event timbres, trigger timing, polyphony caps, and mute behavior remain unchanged. Browser listening validation remains intentionally omitted per project instruction.
+
+## 2026-07-20 — Eleven-phase BGM integration
+
+- Renamed the supplied root audio files `00.mp3` through `10.mp3` to `Phase 1.mp3` through `Phase 11.mp3` under `public/assets/music/`.
+- Mapped the cheap Chapter 0 intro to Phase 1, then mapped investigation Chapters 1–10 to Phases 2–11.
+- Added one looping music player with a restrained 600 ms phase crossfade, shared global mute behavior, and a first-input retry for browser autoplay restrictions.
+- Added static coverage for all eleven assets, the Chapter-to-Phase mapping, looping playback, phase-change wiring, and mute integration.
+- Browser listening validation remains intentionally omitted per project instruction; manual listening should check relative BGM/SFX balance and loop seams.
