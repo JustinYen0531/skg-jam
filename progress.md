@@ -147,3 +147,12 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Extended the deterministic replay to score 184 in 24 seconds. Score 42 holds long enough for the Meta right hand to tap the replay canvas and pause; clicking the paused video resumes the same timeline through 184.
 - Added the protagonist pause line: `I've seen enough. He's pulling some kind of cheating trick.` followed by a request to inspect the exact 40-to-41 moment.
 - Static verification passed: `npm test` 53/53 and `npm run lint`; final production build follows this documentation update. Browser and screenshot validation remain intentionally omitted per project instruction.
+
+## 2026-07-20 — Generated hand asset integration
+
+- Located the user's root-level `hand.png` and confirmed it matches the attached image exactly. Its checkerboard was baked into a 24-bit RGB image rather than stored as transparency.
+- Used the built-in image edit path only to replace the checkerboard with a flat chroma key, then used the installed imagegen removal helper to create `public/assets/meta-hand-grip.png` with real alpha. The source `hand.png` remains untouched.
+- Replaced the visible idle SVG grips with two clipped halves of the new raster overlay above the phone. The left half remains fixed; the right half fades during an interaction so the existing reaching/tapping hand can continue unchanged.
+- Kept the in-progress SVG anatomy and tap-hand code intact but hid the four old idle grip containers, preventing duplicate hands while preserving the user's uncommitted work.
+- Added static coverage for the asset path, both left/right overlay layers, clip boundaries, and the right-side interaction fade.
+- Static verification before final build: `npm test` 53/53 and `npm run lint` passed. Browser validation remains intentionally omitted per project instruction.

@@ -543,7 +543,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
               animate={{ opacity: 1, x: 0, y: 0, rotate: -1.5 }}
               exit={{ opacity: 0 }}
               transition={{ delay: reducedMotion ? 0 : 0.5, duration: reducedMotion ? 0 : 0.62 }}
-              className="pointer-events-none absolute bottom-[30%] left-[-7%] z-[8] h-[48%] w-[29%] min-w-44"
+              className="pointer-events-none absolute bottom-[30%] left-[-7%] z-[8] hidden h-[48%] w-[29%] min-w-44"
               aria-hidden="true"
               id="meta-left-grip-back"
             >
@@ -559,7 +559,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
               }}
               initial={false}
               transition={{ duration: reducedMotion ? 0 : 0.24, ease: 'easeOut' }}
-              className="pointer-events-none absolute bottom-[29%] right-[-7%] z-[8] h-[48%] w-[28%] min-w-44"
+              className="pointer-events-none absolute bottom-[29%] right-[-7%] z-[8] hidden h-[48%] w-[28%] min-w-44"
               aria-hidden="true"
               id="meta-right-hold-back"
             >
@@ -644,11 +644,40 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
       <AnimatePresence>
         {active && (
           <>
+            <motion.img
+              src="/assets/meta-hand-grip.png"
+              alt=""
+              draggable={false}
+              initial={{ opacity: 0, x: -24 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: reducedMotion ? 0 : 0.5, duration: reducedMotion ? 0 : 0.55 }}
+              className="pointer-events-none absolute inset-0 z-[22] h-full w-full select-none object-fill drop-shadow-[0_16px_14px_rgba(0,0,0,0.28)]"
+              style={{ clipPath: 'inset(0 50% 0 0)' }}
+              aria-hidden="true"
+              id="meta-left-hand-asset"
+            />
+
+            <motion.img
+              src="/assets/meta-hand-grip.png"
+              alt=""
+              draggable={false}
+              animate={{
+                opacity: interactionPending ? 0 : 1,
+                x: interactionPending ? 18 : 0,
+              }}
+              initial={false}
+              transition={{ duration: reducedMotion ? 0 : 0.24, ease: 'easeOut' }}
+              className="pointer-events-none absolute inset-0 z-[22] h-full w-full select-none object-fill drop-shadow-[0_16px_14px_rgba(0,0,0,0.28)]"
+              style={{ clipPath: 'inset(0 0 0 50%)' }}
+              aria-hidden="true"
+              id="meta-right-hand-asset"
+            />
+
             <motion.div
               initial={{ opacity: 0, x: -42, y: 18 }}
               animate={{ opacity: 1, x: 0, y: 0, rotate: -2.5 }}
               transition={{ delay: reducedMotion ? 0 : 0.62, duration: reducedMotion ? 0 : 0.55 }}
-              className="pointer-events-none absolute left-[-10%] top-[20%] z-20 h-[26%] w-[22%] min-w-36"
+              className="pointer-events-none absolute left-[-10%] top-[20%] z-20 hidden h-[26%] w-[22%] min-w-36"
               aria-hidden="true"
               id="meta-left-hand"
             >
@@ -664,7 +693,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
               }}
               initial={false}
               transition={{ duration: reducedMotion ? 0 : 0.24, ease: 'easeOut' }}
-              className="pointer-events-none absolute right-[-9%] top-[21%] z-20 h-[25%] w-[21%] min-w-36"
+              className="pointer-events-none absolute right-[-9%] top-[21%] z-20 hidden h-[25%] w-[21%] min-w-36"
               aria-hidden="true"
               id="meta-right-hold-front"
             >

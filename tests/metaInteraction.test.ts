@@ -1,5 +1,5 @@
 import { strict as assert } from 'node:assert';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import {
   applyVirtualKey,
@@ -59,7 +59,15 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
     'utf8',
   );
   const appSource = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
+  const gripAsset = new URL('../public/assets/meta-hand-grip.png', import.meta.url);
 
+  assert.equal(existsSync(gripAsset), true);
+  assert.equal((sceneSource.match(/src="\/assets\/meta-hand-grip\.png"/g) ?? []).length, 2);
+  assert.match(sceneSource, /id="meta-left-hand-asset"/);
+  assert.match(sceneSource, /id="meta-right-hand-asset"/);
+  assert.match(sceneSource, /clipPath: 'inset\(0 50% 0 0\)'/);
+  assert.match(sceneSource, /clipPath: 'inset\(0 0 0 50%\)'/);
+  assert.match(sceneSource, /opacity: interactionPending \? 0 : 1[\s\S]{0,900}id="meta-right-hand-asset"/);
   assert.match(sceneSource, /id="meta-left-grip-back"/);
   assert.match(sceneSource, /id="meta-left-thumb"/);
   assert.match(sceneSource, /id="meta-right-hold-back"/);
