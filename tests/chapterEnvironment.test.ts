@@ -84,6 +84,8 @@ test('the physical environment is display-only and does not mutate progress', ()
   assert.match(environmentSource, /scale-\[1\.7\]/);
   assert.match(environmentSource, /id="meta-coffee-steam"/);
   assert.match(environmentSource, /id="meta-coffee-png"/);
+  assert.match(environmentSource, /scale-\[2\.7\]/);
+  assert.match(environmentSource, /scale-\[2\.5\]/);
   assert.match(environmentSource, /coffee-full\.png/);
   assert.match(environmentSource, /coffee-empty-drip\.png/);
   assert.match(environmentSource, /coffee-tipped-spill\.png/);

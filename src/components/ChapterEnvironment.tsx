@@ -60,7 +60,7 @@ const CoffeeCup: React.FC<{
   return (
     <motion.div
       layout={animateLayout}
-      className={`absolute z-[3] h-[27%] w-[17%] min-w-36 origin-bottom-right ${pushedAway ? 'right-[7%] top-[65%] scale-[0.82]' : tipped ? 'right-[14%] top-[67%] scale-[1.04]' : 'right-[12%] top-[62%] scale-[1.04]'}`}
+      className={`absolute z-[3] h-[27%] w-[17%] min-w-36 origin-bottom-right ${pushedAway ? 'right-[7%] top-[65%] scale-[2.1]' : tipped ? 'right-[14%] top-[67%] scale-[2.5]' : 'right-[12%] top-[62%] scale-[2.7]'}`}
       data-coffee-state={state}
       data-coffee-asset-state={tipped ? 'tipped' : state === 'fresh' || state === 'sipped' ? 'full' : 'empty'}
       data-coffee-drip={drip || undefined}
