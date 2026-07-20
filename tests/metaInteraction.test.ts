@@ -60,6 +60,18 @@ test('mouse wheel direction maps to the opposite touchscreen finger swipe', () =
   assert.equal(getScrollFingerTravel(0), 0);
 });
 
+test('virtual keyboard is embedded in the phone surface at sixty percent opacity', () => {
+  const scene = readFileSync(new URL('../src/components/MetaInteractionScene.tsx', import.meta.url), 'utf8');
+  const deviceTilt = scene.indexOf('id="meta-device-tilt"');
+  const keyboardSurface = scene.indexOf('data-meta-keyboard-surface="phone-screen"');
+  const glassReflection = scene.indexOf('id="meta-glass-reflection"');
+
+  assert.ok(deviceTilt >= 0 && keyboardSurface > deviceTilt);
+  assert.ok(glassReflection > keyboardSurface);
+  assert.match(scene, /animate=\{\{ opacity: 0\.6, y: 0 \}\}/);
+  assert.match(scene, /bottom-\[7%\]/);
+});
+
 test('meta camera uses layered anatomical hands instead of rounded placeholder blobs', () => {
   const sceneSource = readFileSync(
     new URL('../src/components/MetaInteractionScene.tsx', import.meta.url),

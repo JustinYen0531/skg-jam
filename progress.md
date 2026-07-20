@@ -248,3 +248,11 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Enlarged the coffee, notebook, pen, and cable from approximately 1.7x to 1.9x using object-specific bottom/side transform origins so they remain anchored on the desk instead of drifting off-screen.
 - Reduced the dialogue panel background from 82% to 52% opacity and its blur to 1px so the evolving desk objects remain visible beneath the text.
 - Browser validation remains intentionally omitted per project instruction; static tests, TypeScript lint, and production build cover the change.
+
+## 2026-07-20 — Phone-embedded virtual keyboard
+
+- Moved the Meta virtual keyboard from the scene root into the same transformed surface as the physical phone screen.
+- Anchored it inside the lower seven percent of the display, above the phone content and beneath the glass/rim layers, so it follows the phone's scale and 3D tilt.
+- Set the complete keyboard overlay to sixty percent opacity while keeping its buttons interactive and slightly increasing key contrast.
+- Removed the old root-level keyboard that was positioned behind the protagonist dialogue panel.
+- Browser/Preview validation remains intentionally omitted per project instruction; static placement coverage, TypeScript lint, and production build are required before upload.

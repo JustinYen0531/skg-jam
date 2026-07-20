@@ -671,6 +671,56 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
 
           {children}
 
+          <AnimatePresence>
+            {active && keyboardTarget && (
+              <div
+                className="pointer-events-none absolute left-1/2 top-1/2 z-[18] overflow-hidden rounded-[var(--phone-radius)]"
+                style={{ ...PHONE_SURFACE_SIZE, transform: 'translate3d(-50%, -50%, 12px)' }}
+                data-meta-keyboard-surface="phone-screen"
+              >
+                <motion.div
+                  initial={{ opacity: 0, y: 90 }}
+                  animate={{ opacity: 0.6, y: 0 }}
+                  exit={{ opacity: 0, y: 90 }}
+                  transition={{ duration: reducedMotion ? 0 : 0.28 }}
+                  className="pointer-events-auto absolute inset-x-[8%] bottom-[7%] rounded-2xl border border-white/15 bg-[#111318]/95 p-2 shadow-[0_12px_36px_rgba(0,0,0,0.62)] backdrop-blur-xl"
+                  data-meta-immediate="true"
+                  data-meta-keyboard="true"
+                  id="meta-virtual-keyboard"
+                >
+                  <div className="mb-1 flex items-center justify-between px-1 font-mono text-[8px] text-slate-400">
+                    <span>ARC LITE VIRTUAL INPUT</span>
+                    <span className="text-emerald-300">HAND RELAY ACTIVE</span>
+                  </div>
+                  <div className="space-y-1">
+                    {KEYBOARD_ROWS.map((row, rowIndex) => (
+                      <div key={rowIndex} className="flex justify-center gap-1">
+                        {row.map((key) => (
+                          <button
+                            key={key}
+                            type="button"
+                            data-meta-key={key}
+                            data-meta-immediate="true"
+                            onMouseDown={(event) => event.preventDefault()}
+                            onClick={() => enqueueKey(keyboardTarget, key)}
+                            className={`h-7 min-w-7 rounded-md border px-1.5 font-mono text-[9px] transition-colors ${
+                              key === activeKey
+                                ? 'border-emerald-200 bg-emerald-400/40 text-white'
+                                : 'border-slate-500/80 bg-slate-700 text-white'
+                            } ${key === 'Backspace' || key === 'Enter' ? 'min-w-16' : ''}`}
+                            aria-label={`Virtual key ${key}`}
+                          >
+                            {key === 'Backspace' ? '⌫' : key === 'Enter' ? 'ENTER' : key}
+                          </button>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>
+
           {active && (
             <>
               <div
@@ -842,49 +892,6 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {active && keyboardTarget && (
-          <motion.div
-            initial={{ opacity: 0, y: 90 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 90 }}
-            transition={{ duration: reducedMotion ? 0 : 0.28 }}
-            className="absolute inset-x-[10%] bottom-2 z-50 rounded-2xl border border-white/15 bg-[#111318]/95 p-2 shadow-[0_18px_55px_rgba(0,0,0,0.7)] backdrop-blur-xl"
-            data-meta-immediate="true"
-            data-meta-keyboard="true"
-            id="meta-virtual-keyboard"
-          >
-            <div className="mb-1 flex items-center justify-between px-1 font-mono text-[8px] text-slate-500">
-              <span>ARC LITE VIRTUAL INPUT</span>
-              <span className="text-emerald-400/70">HAND RELAY ACTIVE</span>
-            </div>
-            <div className="space-y-1">
-              {KEYBOARD_ROWS.map((row, rowIndex) => (
-                <div key={rowIndex} className="flex justify-center gap-1">
-                  {row.map((key) => (
-                    <button
-                      key={key}
-                      type="button"
-                      data-meta-key={key}
-                      data-meta-immediate="true"
-                      onMouseDown={(event) => event.preventDefault()}
-                      onClick={() => enqueueKey(keyboardTarget, key)}
-                      className={`h-7 min-w-7 rounded-md border px-1.5 font-mono text-[9px] transition-colors ${
-                        key === activeKey
-                          ? 'border-emerald-300 bg-emerald-400/25 text-white'
-                          : 'border-slate-600 bg-slate-800 text-slate-200'
-                      } ${key === 'Backspace' || key === 'Enter' ? 'min-w-16' : ''}`}
-                      aria-label={`Virtual key ${key}`}
-                    >
-                      {key === 'Backspace' ? '⌫' : key === 'Enter' ? 'ENTER' : key}
-                    </button>
-                  ))}
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
     </MetaInteractionContext.Provider>
   );
