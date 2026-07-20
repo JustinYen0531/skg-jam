@@ -589,17 +589,13 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
             <div className="absolute left-[7%] top-[8%] h-36 w-36 rounded-full bg-amber-100/12 blur-[70px]" />
             <div className="absolute right-[9%] top-[12%] h-28 w-28 rounded-full bg-sky-200/5 blur-[65px]" />
 
-            <div
-              className="absolute inset-x-[-8%] bottom-[-18%] top-[59%] border-t border-amber-100/15 bg-[#2b1d14] shadow-[inset_0_16px_28px_rgba(255,220,180,0.04),0_-16px_34px_rgba(0,0,0,0.22)]"
-              style={{
-                backgroundImage:
-                  'linear-gradient(100deg, rgba(255,255,255,0.035), transparent 22%, rgba(0,0,0,0.12) 44%, transparent 68%), repeating-linear-gradient(4deg, #2d1f16 0px, #2d1f16 8px, #251810 9px, #332218 12px)',
-                clipPath: 'polygon(8% 0, 92% 0, 100% 100%, 0 100%)',
-              }}
+            <img
+              src="/assets/meta-desk-table.png"
+              alt=""
+              className="pointer-events-none absolute inset-x-[-6%] bottom-[-3%] z-[1] h-[49%] w-[112%] object-fill drop-shadow-[0_-12px_24px_rgba(0,0,0,0.35)]"
               id="meta-desk-surface"
             />
             <ChapterEnvironment chapter={chapter} reducedMotion={reducedMotion} layer="lighting" />
-            <div className="absolute inset-x-0 bottom-0 h-[8%] border-t border-[#513526] bg-gradient-to-b from-[#24170f] to-[#0d0906] shadow-[0_-8px_20px_rgba(0,0,0,0.42)]" id="meta-desk-front-edge" />
             <div className="absolute left-1/2 top-[57%] h-[12%] w-[64%] -translate-x-1/2 rounded-[50%] bg-black/55 blur-2xl" />
             <div className="absolute bottom-[7%] right-[5%] h-[13%] w-[13%] rotate-6 rounded-md border border-amber-100/5 bg-black/15 shadow-xl" />
             <div className="absolute right-[10%] top-[14%] text-[9px] font-mono tracking-[0.32em] text-amber-100/25">CAM_02 · REC</div>
