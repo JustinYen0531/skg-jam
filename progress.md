@@ -114,3 +114,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Daylight remains unchanged through 37, transitions across 38 and 39, and reaches full night at 40.
 - The three upper-left fake analytics values now drift independently through deterministic decorative telemetry and never affect gameplay.
 - Browser and screenshot validation remain intentionally omitted per project instruction; verification uses automated tests, TypeScript, and production build only.
+
+## 2026-07-20 — Core music language and generation baseline
+
+- Added `docs/CORE_MUSIC_LANGUAGE.md` as the canonical basis for all eleven music stages.
+- Preserved the user's original core-language paragraph verbatim and recorded the fixed twelve-bar structure, withheld final four bars, stage-by-stage degradation arc, reusable master prompt, negative prompt, and version metadata rules.
+- The GDD now links to the music document and explicitly forbids generating eleven unrelated tracks from text; every stage must derive from one approved master melody or reference audio.
+- No audio was generated or modified in this step.
