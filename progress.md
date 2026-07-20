@@ -314,3 +314,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Connected each event to its real interaction with engine-level cooldowns for row scanning, percentage changes, scroll limits, paper movement, and the 30-second device-creak floor.
 - Kept the P2 layer quiet and non-instructional; it adds physical detail without revealing clues or competing with P0/P1 feedback.
 - Browser listening remains intentionally omitted per project instruction; static tests, TypeScript lint, and production build are required before upload.
+
+## 2026-07-21 — Chapter coffee PNG material replacement
+
+- Added the user-provided transparent three-state coffee material at `public/assets/chapter-coffee-states.png`.
+- Replaced the CSS-drawn cup, fake cup drip, and fake desk spill with a three-panel background crop: full cup for Chapters 1–2, empty/dripping cup for Chapters 3–4, and tipped/spilled cup for Chapters 5–6.
+- Kept the existing steam animation only for the full-cup chapters and retained chapter-state data attributes for the cup-drip and spill evidence.
+- Browser validation remains intentionally omitted per project instruction; final static verification passed: 73 tests, TypeScript lint, and production build.

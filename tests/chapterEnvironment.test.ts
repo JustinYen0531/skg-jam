@@ -1,5 +1,5 @@
 import { strict as assert } from 'node:assert';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { CHAPTER_ENVIRONMENTS, getChapterEnvironment } from '../src/lib/chapterEnvironment';
 
@@ -80,12 +80,17 @@ test('the physical environment is display-only and does not mutate progress', ()
   assert.match(environmentSource, /data-environment-layer=\{underlay \? 'underlay' : 'foreground'\}/);
   assert.match(environmentSource, /z-\[9\]/);
   assert.match(environmentSource, /z-\[25\]/);
-  assert.match(environmentSource, /scale-\[2\.05\]/);
   assert.match(environmentSource, /scale-\[1\.35\]/);
   assert.match(environmentSource, /scale-\[1\.7\]/);
   assert.match(environmentSource, /id="meta-coffee-steam"/);
-  assert.match(environmentSource, /id="meta-coffee-cup-drip"/);
-  assert.match(environmentSource, /id="meta-coffee-spill"/);
+  assert.match(environmentSource, /id="meta-coffee-png"/);
+  assert.match(environmentSource, /chapter-coffee-states\.png/);
+  assert.match(environmentSource, /backgroundSize: '500% 210%'/);
+  assert.match(environmentSource, /'tipped-empty': '91\.667%'/);
+  assert.match(environmentSource, /data-coffee-drip=\{drip \|\| undefined\}/);
+  assert.match(environmentSource, /data-coffee-spill=\{spill \|\| undefined\}/);
+  assert.doesNotMatch(environmentSource, /id="meta-coffee-cup-drip"|id="meta-coffee-spill"/);
+  assert.equal(existsSync(new URL('../public/assets/chapter-coffee-states.png', import.meta.url)), true);
   assert.match(environmentSource, /id="meta-desk-tea-machine"/);
   assert.match(environmentSource, /id="meta-desk-tea-cup"/);
   assert.match(environmentSource, /id="meta-tea-bag-tag"/);

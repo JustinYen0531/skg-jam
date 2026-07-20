@@ -14,15 +14,14 @@ interface ChapterEnvironmentProps {
   layer?: 'lighting' | 'underlay' | 'objects';
 }
 
-const COFFEE_LEVEL: Record<CoffeeState, number> = {
-  none: 0,
-  fresh: 82,
-  sipped: 68,
-  half: 50,
-  'near-empty': 22,
-  empty: 0,
-  'tipped-empty': 0,
-  'pushed-away': 0,
+const COFFEE_ASSET_POSITION: Record<Exclude<CoffeeState, 'none'>, string> = {
+  fresh: '8.333%',
+  sipped: '8.333%',
+  half: '50%',
+  'near-empty': '50%',
+  empty: '50%',
+  'tipped-empty': '91.667%',
+  'pushed-away': '50%',
 };
 const NOTEBOOK_COPY: Record<NotebookState, readonly string[]> = {
   none: [],
@@ -56,25 +55,22 @@ const CoffeeCup: React.FC<{
   if (state === 'none') return null;
   const pushedAway = state === 'pushed-away';
   const tipped = state === 'tipped-empty';
-  const level = COFFEE_LEVEL[state];
+  const assetPosition = COFFEE_ASSET_POSITION[state];
 
   return (
     <motion.div
       layout={animateLayout}
-      className={`absolute z-[3] h-[11%] w-[8%] min-w-16 origin-bottom-right ${pushedAway ? 'right-[8%] top-[69%] scale-[1.7]' : tipped ? 'right-[15%] top-[75%] scale-[2.05]' : 'right-[13%] top-[70%] scale-[2.05]'}`}
+      className={`absolute z-[3] h-[27%] w-[17%] min-w-36 origin-bottom-right ${pushedAway ? 'right-[7%] top-[65%] scale-[0.82]' : tipped ? 'right-[14%] top-[67%] scale-[1.04]' : 'right-[12%] top-[62%] scale-[1.04]'}`}
       data-coffee-state={state}
+      data-coffee-asset-state={tipped ? 'tipped' : state === 'fresh' || state === 'sipped' ? 'full' : 'empty'}
+      data-coffee-drip={drip || undefined}
+      data-coffee-spill={spill || undefined}
       id="meta-desk-coffee"
     >
-      {ring && (
+      {ring && !tipped && (
         <div
-          className="absolute left-[5%] top-[78%] h-[34%] w-[72%] rounded-[50%] border-[3px] border-amber-950/35 opacity-60 blur-[0.4px]"
+          className="absolute left-[14%] top-[84%] h-[14%] w-[67%] rounded-[50%] border-[3px] border-amber-950/35 opacity-60 blur-[0.4px]"
           id="meta-coffee-ring"
-        />
-      )}
-      {spill && (
-        <div
-          className="absolute -left-[46%] top-[84%] h-[23%] w-[87%] rotate-[-8deg] rounded-[56%_44%_60%_40%] bg-[#160b07]/85 blur-[0.2px] shadow-[0_2px_3px_rgba(0,0,0,0.5),inset_1px_1px_1px_rgba(255,255,255,0.08)]"
-          id="meta-coffee-spill"
         />
       )}
       {steam && (
@@ -94,22 +90,15 @@ const CoffeeCup: React.FC<{
           ))}
         </svg>
       )}
-      <div className={`absolute left-[11%] top-[10%] h-[72%] w-[66%] rounded-b-[32%] rounded-t-[22%] border border-[#c8b5a1]/55 bg-gradient-to-r from-[#77685d] via-[#c2b09d] to-[#66574d] shadow-[0_12px_16px_rgba(0,0,0,0.34),inset_5px_0_8px_rgba(255,255,255,0.14)] ${tipped ? 'origin-center rotate-[86deg]' : ''}`}>
-        <div className={`absolute -top-[8%] left-[-2%] h-[22%] w-[104%] overflow-hidden rounded-[50%] border border-[#d7c8b7]/60 shadow-[inset_0_2px_3px_rgba(0,0,0,0.6)] ${level > 0 ? 'bg-[#554a42]' : 'bg-[#b9aa9a]'}`}>
-          {level > 0 && (
-            <div
-              className="absolute inset-x-[6%] bottom-[7%] rounded-[50%] bg-[#2b160d] shadow-[inset_0_1px_2px_rgba(255,210,160,0.18)]"
-              style={{ height: `${Math.max(28, level)}%`, opacity: 0.72 + level / 500 }}
-            />
-          )}
-        </div>
-        {drip && (
-          <div className="absolute left-[35%] top-[-1%] h-[58%] w-[15%] rounded-b-full bg-[#2b160d] shadow-[0_3px_3px_rgba(0,0,0,0.38)]" id="meta-coffee-cup-drip">
-            <div className="absolute -bottom-[18%] left-[-34%] h-[35%] w-[168%] rounded-[50%_50%_60%_60%] bg-[#2b160d]" />
-          </div>
-        )}
-      </div>
-      <div className={`absolute right-[1%] top-[27%] h-[42%] w-[30%] rounded-r-full border-[5px] border-l-0 border-[#9f8d7d]/70 ${tipped ? 'origin-center rotate-[86deg]' : ''}`} />
+      <div
+        className="absolute inset-0 bg-no-repeat drop-shadow-[0_10px_10px_rgba(0,0,0,0.36)]"
+        style={{
+          backgroundImage: 'url(/assets/chapter-coffee-states.png)',
+          backgroundPosition: `${assetPosition} 45%`,
+          backgroundSize: '500% 210%',
+        }}
+        id="meta-coffee-png"
+      />
     </motion.div>
   );
 };
