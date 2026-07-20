@@ -66,14 +66,9 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
       <>
         {notification && (
           <span
-            className={`absolute -right-1 -top-1 z-10 flex min-w-[16px] h-[16px] items-center justify-center border px-1 text-[clamp(8px,0.9cqw,10px)] font-semibold text-white shadow ${
-              notification.tone === 'unread'
-                ? 'rounded-full border-[#182031] bg-[#e04a3d]'
-                : 'rounded-[5px] border-slate-400/40 bg-[#334155]'
-            }`}
+            className="absolute -right-1 -top-1 z-10 flex min-w-[16px] h-[16px] items-center justify-center rounded-full border border-[#182031] bg-[#e04a3d] px-1 text-[clamp(8px,0.9cqw,10px)] font-semibold text-white shadow"
             aria-label={notification.accessibleLabel}
             data-phone-notification={app}
-            data-notification-tone={notification.tone}
           >
             {notification.label}
           </span>
@@ -436,9 +431,12 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                         are from another catalog; its label wears the old face. */}
                     <div className="relative w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
                       <IconFlappy />
-                      <span className="absolute -top-1 -right-1.5 bg-[#3c66c4] text-white font-semibold text-[6.5px] tracking-wide px-1.5 py-px rounded-full shadow">
-                        UPDATED
-                      </span>
+                      {phoneSignals.notification.app !== 'flappy' && (
+                        <span className="absolute -top-1 -right-1.5 bg-[#3c66c4] text-white font-semibold text-[6.5px] tracking-wide px-1.5 py-px rounded-full shadow">
+                          UPDATED
+                        </span>
+                      )}
+                      {launcherSignals('flappy')}
                     </div>
                     <span className="font-laos text-[clamp(10px,1.05cqw,12.5px)] tracking-[0.04em] text-[#b9c2d4] truncate max-w-full">
                       {progress.unlockedCodeRoute ? 'Skyline 256' : 'Flappy Someth.'}
@@ -501,17 +499,6 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                     <div className="relative w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
                       <IconMessages />
                       {launcherSignals('messages')}
-                      {!progress.unlockedCodeRoute && (
-                        residue >= 1 ? (
-                          /* A notification chip from another system's grammar:
-                             square, hairline, patient. It does not pulse. */
-                          <span className="absolute -top-1 -right-1 min-w-[13px] h-[13px] px-0.5 border border-[var(--laos-warm)] bg-[var(--laos-bg)]/90 flex items-center justify-center font-laos text-[7px] text-[var(--laos-warm)]">
-                            1
-                          </span>
-                        ) : (
-                          <span className="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 bg-[#e04a3d] rounded-full border-2 border-[#10141d]"></span>
-                        )
-                      )}
                     </div>
                     <span className="text-[clamp(10px,1.1cqw,13px)] font-medium text-slate-100/90 truncate max-w-full">Messages</span>
                   </button>
@@ -577,17 +564,8 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                       title={name}
                       id={`launcher-${name.toLowerCase()}`}
                     >
-                      <div className="relative w-[clamp(48px,5.6cqw,76px)] h-[clamp(48px,5.6cqw,76px)] drop-shadow-[0_6px_10px_rgba(0,0,0,0.4)] transition-transform duration-150 group-hover:scale-105 group-active:scale-95">
+                      <div className="w-[clamp(48px,5.6cqw,76px)] h-[clamp(48px,5.6cqw,76px)] drop-shadow-[0_6px_10px_rgba(0,0,0,0.4)] transition-transform duration-150 group-hover:scale-105 group-active:scale-95">
                         <Icon />
-                        {name === 'FileBox' && phoneSignals.fileBoxDownload && (
-                          <span
-                            className="absolute -right-0.5 -top-0.5 flex h-[15px] w-[15px] items-center justify-center rounded-full border border-[#182031] bg-[#4f9cf7] text-[9px] font-bold leading-none text-white shadow"
-                            aria-label="Archive download available"
-                            data-filebox-status="download"
-                          >
-                            ↓
-                          </span>
-                        )}
                       </div>
                       <span className={`truncate max-w-full ${
                         residue >= 2
