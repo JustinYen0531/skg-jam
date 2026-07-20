@@ -64,6 +64,7 @@ export default function App() {
   const jumpToChapter = (chapter: PuzzleChapter) => {
     const chapterInfo = getChapterById(chapter);
     setProgress(getChapterSnapshot(chapter));
+    setMetaViewActive(true);
     setDebugTargetApp((previous) => ({ app: chapterInfo.targetApp, nonce: (previous?.nonce ?? 0) + 1 }));
     audio.playUnlock();
   };
@@ -136,19 +137,18 @@ export default function App() {
     ['Game completed', progress.completedGame],
   ] as const;
 
-  const investigationMetaPersistent = progress.seenLeaderboard
-    && progress.phase === 'os_unlocked'
-    && progress.currentChapter <= 9;
-  const metaSceneActive = shouldShowMetaScene(metaViewActive, debugMode, investigationMetaPersistent);
+  const metaSceneActive = shouldShowMetaScene(metaViewActive, debugMode);
 
   return (
     <div className={`h-screen w-full flex flex-col md:flex-row relative overflow-hidden transition-all duration-700 ${
       deskLamp ? 'bg-[#0b0c10]' : 'bg-[#020204]'
     }`} id="workspace-desk">
       
-      {/* Background blueprint matrix lines */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] pointer-events-none z-0"></div>
-      <div className="absolute inset-0 bg-radial-gradient from-transparent via-black/40 to-black/85 pointer-events-none z-0"></div>
+      {/* Quiet room: one soft vignette, no texture, no scanlines */}
+      <div
+        className="absolute inset-0 pointer-events-none z-0"
+        style={{ background: 'radial-gradient(120% 95% at 50% 42%, transparent 0%, rgba(0,0,0,0.6) 100%)' }}
+      ></div>
 
       {/* LEFT SIDEBAR: Developer-only Evidence & Hacking Log Dashboard */}
       <div
@@ -339,10 +339,13 @@ export default function App() {
       </div>
 
       {/* CENTER STAGE: Simulated Bezel Phone in Interactive Light Panel */}
-      <div className="phone-stage flex-1 flex items-center justify-center bg-slate-950/40 relative z-10 min-h-[300px]" id="phone-container">
+      <div
+        className={`${metaSceneActive ? 'phone-stage bg-slate-950/40' : 'bg-black'} flex-1 flex items-center justify-center relative z-10 min-h-[300px]`}
+        id="phone-container"
+      >
         
-        {/* Underlay glow shadow representation */}
-        <div className="absolute w-80 h-80 bg-purple-500/10 blur-[120px] rounded-full top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>
+        {/* Faint cold spill from the screen onto the desk */}
+        {metaSceneActive && <div className="absolute w-96 h-96 bg-[#41526e]/[0.08] blur-[130px] rounded-full top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>}
 
         <MetaInteractionScene active={metaSceneActive}>
           <PhoneSimulator
@@ -350,6 +353,7 @@ export default function App() {
             updateProgress={updateProgress}
             onMuteToggle={handleMuteToggle}
             isMuted={isMuted}
+            immersiveIntro={!metaSceneActive}
             debugTargetApp={debugTargetApp}
             onLeaderboardOpened={handleLeaderboardOpened}
           />
@@ -360,26 +364,29 @@ export default function App() {
       {/* STORY CREDITS AND ENDING DECISION OVERLAYS (Phase triggered) */}
       <AnimatePresence>
         {progress.phase === 'credits' && (
+          /* The old system holds the whole display now. It is not broken —
+             it has simply waited a long time to show this page. */
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-slate-950/98 flex flex-col justify-center items-center p-6 z-50 overflow-y-auto crt-effect"
+            transition={{ duration: 0.9, ease: 'easeOut' }}
+            className="fixed inset-0 bg-[#0a0e13]/[0.99] flex flex-col justify-center items-center p-6 z-50 overflow-y-auto"
             id="credits-overlay"
           >
-            <div className="max-w-md w-full space-y-6 text-center text-slate-100 font-sans p-4" id="credits-scroll-box">
-              <div className="animate-pulse space-y-1">
-                <div className="font-mono text-emerald-400 text-xs tracking-widest font-black uppercase">
+            <div className="max-w-md w-full space-y-6 text-center p-4" id="credits-scroll-box">
+              <div className="space-y-1.5">
+                <div className="laos-label text-[10px] !text-[var(--laos-warm)]">
                   - CONNECTION COMPLETED -
                 </div>
-                <h1 className="font-display font-black text-2xl text-white">
+                <h1 className="font-laos font-semibold text-2xl text-[var(--laos-text)] tracking-[0.06em]">
                   SKYLINE COMPLETE
                 </h1>
               </div>
 
               {/* Emotional Developer text excerpt */}
-              <div className="bg-slate-900 border border-slate-800 p-4 rounded-xl text-left text-xs text-slate-300 space-y-3 leading-relaxed font-mono">
-                <p className="text-emerald-400 border-b border-slate-800 pb-2 text-[10px] font-bold">
+              <div className="laos-panel p-4 text-left text-xs space-y-3 leading-relaxed font-laos text-[var(--laos-text)]">
+                <p className="laos-label text-[9px] border-b border-[var(--laos-line-dim)] pb-2">
                   DEVELOPER RELEASE LOG // VER: 1.04_FINAL
                 </p>
                 <p>
@@ -391,19 +398,19 @@ export default function App() {
                 <p>
                   "我能做的，只是替它留下最後一關。有人抵達這裡，就代表它曾經存在。"
                 </p>
-                <div className="text-right text-[10px] text-slate-500 mt-2 font-bold font-sans">
+                <div className="text-right text-[10px] text-[var(--laos-dim)] mt-2 font-semibold">
                   —— Noah Kade (Silver Kite Games)
                 </div>
               </div>
 
               {/* Credited names */}
-              <div className="space-y-1.5 text-xs text-slate-400 font-mono text-center">
-                <div className="font-bold text-white mb-2">SILVER KITE DEVELOPERS</div>
+              <div className="space-y-1.5 text-xs text-[var(--laos-dim)] font-laos text-center">
+                <div className="laos-label text-[9px] mb-2 !text-[var(--laos-text)]">SILVER KITE DEVELOPERS</div>
                 <div>Noah Kade — System Design & Mechanics</div>
                 <div>Elias Vale — Business Logistics</div>
                 <div>Mara — Special Supporting Partner</div>
                 <div>ARC_184 — Controversial Preservation Witness</div>
-                <div className="text-emerald-400 font-bold mt-2">AND YOU — THE PERSISTENT RETRIEVER</div>
+                <div className="text-[var(--laos-warm)] font-semibold mt-2">AND YOU — THE PERSISTENT RETRIEVER</div>
               </div>
 
               <button
@@ -411,7 +418,7 @@ export default function App() {
                   audio.playUnlock();
                   setProgress((prev) => ({ ...prev, phase: 'ending_choice' }));
                 }}
-                className="px-6 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-lg text-xs transition-colors shadow-lg"
+                className="laos-slow px-6 py-2.5 bg-[var(--laos-surface-2)] hover:bg-[var(--laos-line-dim)] text-[var(--laos-text)] border border-[var(--laos-line)] font-laos font-semibold tracking-[0.14em] text-[11px]"
                 id="credits-proceed-btn"
               >
                 PROCEED TO FINAL STRATEGY
@@ -421,91 +428,94 @@ export default function App() {
         )}
 
         {progress.phase === 'ending_choice' && (
+          /* The final choice belongs to the old system's page too. Three
+             plain documents, no fireworks — attention stays on the decision. */
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-slate-950/98 flex flex-col justify-center items-center p-6 z-50 overflow-y-auto crt-effect"
+            transition={{ duration: 0.9, ease: 'easeOut' }}
+            className="fixed inset-0 bg-[#0a0e13]/[0.99] flex flex-col justify-center items-center p-6 z-50 overflow-y-auto"
             id="ending-choice-overlay"
           >
             <div className="max-w-2xl w-full space-y-8" id="ending-container">
-              
-              <div className="text-center space-y-1">
-                <h1 className="font-display font-black text-2xl text-white tracking-tight">
+
+              <div className="text-center space-y-1.5">
+                <h1 className="font-laos font-semibold text-2xl text-[var(--laos-text)] tracking-[0.04em]">
                   HOW SHOULD THE SKYLINE CONCLUDE?
                 </h1>
-                <p className="text-xs text-slate-400 max-w-md mx-auto">
+                <p className="font-laos text-xs text-[var(--laos-dim)] max-w-md mx-auto">
                   Noah's negative score has been retrieved. You have the original source files. Decide how to manage this legacy.
                 </p>
               </div>
 
               {/* Three Final Choices */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4" id="ending-options-grid">
-                
+
                 {/* Option 1: Submit Score */}
-                <div 
+                <div
                   onClick={() => selectEnding('submit')}
-                  className={`p-4 rounded-2xl border text-left cursor-pointer transition-all hover:-translate-y-1 flex flex-col justify-between h-[200px] ${
-                    progress.selectedEnding === 'submit' 
-                      ? 'bg-amber-950/20 border-amber-500 shadow-lg' 
-                      : 'bg-slate-900 border-slate-800 hover:border-slate-700'
+                  className={`laos-slow p-4 border text-left cursor-pointer flex flex-col justify-between h-[200px] bg-[var(--laos-surface)] ${
+                    progress.selectedEnding === 'submit'
+                      ? 'border-[var(--laos-warm)]'
+                      : 'border-[var(--laos-line)] hover:border-[var(--laos-dim)]'
                   }`}
                   id="opt-submit-score"
                 >
-                  <div className="space-y-1.5">
-                    <div className="w-8 h-8 bg-amber-500/10 rounded-full border border-amber-500/20 flex items-center justify-center">
-                      <Award className="w-4 h-4 text-amber-400" />
+                  <div className="space-y-2">
+                    <div className="w-8 h-8 border border-[var(--laos-line)] bg-[var(--laos-surface-2)] flex items-center justify-center">
+                      <Award className="w-4 h-4 text-[var(--laos-dim)]" strokeWidth={1.5} />
                     </div>
-                    <h3 className="font-display font-bold text-xs text-white">1. SUBMIT SCORE</h3>
-                    <p className="text-[10px] text-slate-400 leading-normal">
+                    <h3 className="font-laos font-semibold text-xs text-[var(--laos-text)] tracking-wide">1. SUBMIT SCORE</h3>
+                    <p className="font-laos text-[10px] text-[var(--laos-dim)] leading-normal">
                       Exploit modern system registers to report a score of 257. Become the absolute number one on the global leaderboards.
                     </p>
                   </div>
-                  <span className="text-[9px] font-mono font-bold text-amber-500 underline uppercase mt-2">SELECT BRANCH</span>
+                  <span className="laos-label text-[8px] mt-2">SELECT BRANCH</span>
                 </div>
 
                 {/* Option 2: Publicize the story */}
-                <div 
+                <div
                   onClick={() => selectEnding('publicize')}
-                  className={`p-4 rounded-2xl border text-left cursor-pointer transition-all hover:-translate-y-1 flex flex-col justify-between h-[200px] ${
-                    progress.selectedEnding === 'publicize' 
-                      ? 'bg-purple-950/20 border-purple-500 shadow-lg' 
-                      : 'bg-slate-900 border-slate-800 hover:border-slate-700'
+                  className={`laos-slow p-4 border text-left cursor-pointer flex flex-col justify-between h-[200px] bg-[var(--laos-surface)] ${
+                    progress.selectedEnding === 'publicize'
+                      ? 'border-[var(--laos-warm)]'
+                      : 'border-[var(--laos-line)] hover:border-[var(--laos-dim)]'
                   }`}
                   id="opt-publicize"
                 >
-                  <div className="space-y-1.5">
-                    <div className="w-8 h-8 bg-purple-500/10 rounded-full border border-purple-500/20 flex items-center justify-center">
-                      <Globe className="w-4 h-4 text-purple-400" />
+                  <div className="space-y-2">
+                    <div className="w-8 h-8 border border-[var(--laos-line)] bg-[var(--laos-surface-2)] flex items-center justify-center">
+                      <Globe className="w-4 h-4 text-[var(--laos-dim)]" strokeWidth={1.5} />
                     </div>
-                    <h3 className="font-display font-bold text-xs text-white">2. PUBLICIZE STORY</h3>
-                    <p className="text-[10px] text-slate-400 leading-normal">
+                    <h3 className="font-laos font-semibold text-xs text-[var(--laos-text)] tracking-wide">2. PUBLICIZE STORY</h3>
+                    <p className="font-laos text-[10px] text-[var(--laos-dim)] leading-normal">
                       Upload the complete coordinates sequence and story to ViewTube. Ignite discussion regarding original design preservation.
                     </p>
                   </div>
-                  <span className="text-[9px] font-mono font-bold text-purple-500 underline uppercase mt-2">SELECT BRANCH</span>
+                  <span className="laos-label text-[8px] mt-2">SELECT BRANCH</span>
                 </div>
 
                 {/* Option 3: Archive & Preserve */}
-                <div 
+                <div
                   onClick={() => selectEnding('preserve')}
-                  className={`p-4 rounded-2xl border text-left cursor-pointer transition-all hover:-translate-y-1 flex flex-col justify-between h-[200px] ${
-                    progress.selectedEnding === 'preserve' 
-                      ? 'bg-emerald-950/20 border-emerald-500 shadow-lg' 
-                      : 'bg-slate-900 border-slate-800 hover:border-slate-700'
+                  className={`laos-slow p-4 border text-left cursor-pointer flex flex-col justify-between h-[200px] bg-[var(--laos-surface)] ${
+                    progress.selectedEnding === 'preserve'
+                      ? 'border-[var(--laos-warm)]'
+                      : 'border-[var(--laos-line)] hover:border-[var(--laos-dim)]'
                   }`}
                   id="opt-preserve"
                 >
-                  <div className="space-y-1.5">
-                    <div className="w-8 h-8 bg-emerald-500/10 rounded-full border border-emerald-500/20 flex items-center justify-center">
-                      <Archive className="w-4 h-4 text-emerald-400" />
+                  <div className="space-y-2">
+                    <div className="w-8 h-8 border border-[var(--laos-line)] bg-[var(--laos-surface-2)] flex items-center justify-center">
+                      <Archive className="w-4 h-4 text-[var(--laos-warm)]" strokeWidth={1.5} />
                     </div>
-                    <h3 className="font-display font-bold text-xs text-white">3. ARCHIVE & PRESERVE</h3>
-                    <p className="text-[10px] text-slate-400 leading-normal">
+                    <h3 className="font-laos font-semibold text-xs text-[var(--laos-text)] tracking-wide">3. ARCHIVE & PRESERVE</h3>
+                    <p className="font-laos text-[10px] text-[var(--laos-dim)] leading-normal">
                       Refuse database score submission. Upload the legacy source binary and tech flight logs to preservation platforms safely.
                     </p>
                   </div>
-                  <span className="text-[9px] font-mono font-bold text-emerald-400 underline uppercase mt-2">TRUE ARCHIVIST</span>
+                  <span className="laos-label text-[8px] mt-2 !text-[var(--laos-warm)]">TRUE ARCHIVIST</span>
                 </div>
 
               </div>
@@ -513,13 +523,14 @@ export default function App() {
               {/* Dynamic ending narrative text based on chosen option */}
               {progress.selectedEnding && (
                 <motion.div
-                  initial={{ opacity: 0, y: 10 }}
+                  initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-slate-900 border border-slate-800 p-4 rounded-2xl text-xs space-y-2 text-slate-300 leading-relaxed"
+                  transition={{ duration: 0.6, ease: 'easeOut' }}
+                  className="laos-panel p-4 text-xs space-y-2 font-laos leading-relaxed"
                   id="ending-narrative"
                 >
-                  <div className="font-display font-bold text-white flex items-center gap-1">
-                    <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
+                  <div className="font-semibold text-[var(--laos-text)] flex items-center gap-1.5 tracking-wide">
+                    <Sparkles className="w-4 h-4 text-[var(--laos-warm)]" strokeWidth={1.5} />
                     <span>
                       {progress.selectedEnding === 'submit' && 'SUBMITTED ENDING: HIGHEST SCORE CHASER'}
                       {progress.selectedEnding === 'publicize' && 'PUBLICIZED ENDING: COGNITIVE MASS DISRUPT'}
@@ -527,20 +538,20 @@ export default function App() {
                     </span>
                   </div>
 
-                  <p className="text-[11px]">
-                    {progress.selectedEnding === 'submit' && 
+                  <p className="text-[11px] text-[var(--laos-text)]">
+                    {progress.selectedEnding === 'submit' &&
                       'You update the scoreboard data. Social discussion swarms with your score of 257 as the world record. Yet, the corporate system logo stays as a modern slop clone. Noah\'s negative score is pushed further deep into memory, unacknowledged.'}
-                    {progress.selectedEnding === 'publicize' && 
+                    {progress.selectedEnding === 'publicize' &&
                       'Your replay goes viral. Millions watch the altitude sensor bypassing Gate 37. SKG Automation reacts quickly: they close down the legacy database servers, claiming security breeches, and permanently scrub Noah\'s negative code records.'}
-                    {progress.selectedEnding === 'preserve' && 
+                    {progress.selectedEnding === 'preserve' &&
                       'You do not submit the score. You keep the secret safe on digital libraries. The original IPA remains possible. Download count: 1 (ARC_184), then 2. The game does not need to run forever. It only needs to remain possible.'}
                   </p>
 
-                  <div className="pt-2 border-t border-slate-800 flex justify-between items-center text-[10px] font-mono">
-                    <span className="text-slate-500">BRANCH DECIDED BY END USER RECODING</span>
+                  <div className="pt-2 border-t border-[var(--laos-line-dim)] flex justify-between items-center text-[10px]">
+                    <span className="laos-label text-[7.5px]">BRANCH DECIDED BY END USER RECODING</span>
                     <button
                       onClick={restartLoop}
-                      className="px-3 py-1 bg-slate-800 text-white rounded hover:bg-slate-700 transition-colors flex items-center gap-1 border border-slate-700"
+                      className="laos-slow px-3 py-1 bg-[var(--laos-surface-2)] text-[var(--laos-text)] hover:bg-[var(--laos-line-dim)] flex items-center gap-1 border border-[var(--laos-line)] font-laos tracking-wide"
                       id="restart-loop-btn"
                     >
                       <RefreshCw className="w-3 h-3" />

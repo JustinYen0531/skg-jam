@@ -1,23 +1,49 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&family=Titillium+Web:wght@300;400;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Space Grotesk", sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  /* LAOS: the dead system's own typeface — a 2014 idea of "the future".
+     Dated, consistent, engineer-made. Never used by the modern layer. */
+  --font-laos: "Titillium Web", "Trebuchet MS", sans-serif;
 }
 
 body {
-  background-color: #0d0f12;
+  background-color: #0a0b0d;
   color: #f3f4f6;
   font-family: var(--font-sans);
   overflow: hidden;
 }
 
-/* Landscape phone sizing tokens. The phone frame is derived from these via
-   container query units so it fills whichever box it sits in (desktop stage
-   or mobile stack) without ever exceeding it. */
+/* ==========================================================================
+   Core atmosphere: two layers, one device.
+
+   MODERN LAYER — the protagonist's phone is a current, complete, ordinary
+   2026 device: soft neutrals, friendly radii, quick response. It should feel
+   pleasant and unremarkable.
+
+   LAOS RESIDUE — data migrated from an old device left zones that still
+   render with the dead system's language: cold desaturated blue-grey, square
+   corners, hairline borders, dated-but-consistent typography, one dim warm
+   accent, and slightly slow responses. No neon, no scanlines, no glitching,
+   no grain — the old system is not broken; it is over-preserved.
+   ========================================================================== */
+
 :root {
+  /* LAOS residue palette (cold, low saturation, engineer-made) */
+  --laos-bg: #0d1218;
+  --laos-surface: #121a23;
+  --laos-surface-2: #16202b;
+  --laos-line: #29394a;
+  --laos-line-dim: #1d2936;
+  --laos-text: #a6b5c4;
+  --laos-dim: #5c6d7e;
+  --laos-faint: #40505f;
+  --laos-warm: #c4a468; /* the single warm accent; use sparingly */
+
+  /* Modern device shell */
   --phone-aspect: 1.78;
   --phone-radius: 40px;
   --phone-border: 14px;
@@ -58,6 +84,16 @@ body {
   }
 }
 
+/* Modern bezel: matte, uniform, current-year hardware. Deliberately quiet —
+   the device itself must never look like the relic. */
+#phone-bezel {
+  background: #16181d;
+  border-color: #101216;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.55),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.045);
+}
+
 /* Custom scrollbars */
 ::-webkit-scrollbar {
   width: 4px;
@@ -74,29 +110,89 @@ body {
   background: rgba(255, 255, 255, 0.25);
 }
 
-/* Glitch animation */
-@keyframes crt-flicker {
-  0% { opacity: 0.98; }
-  50% { opacity: 1; }
-  100% { opacity: 0.99; }
+/* ==========================================================================
+   LAOS residue utilities. Decoration only: nothing here alters layout flow,
+   hit areas, or any game logic.
+   ========================================================================== */
+
+/* A surface the old system still owns: cold, hairline-bordered, square. */
+.laos-panel {
+  background: var(--laos-surface);
+  border: 1px solid var(--laos-line);
+  border-radius: 2px;
+  color: var(--laos-text);
 }
 
-/* Note: no position rule here on purpose. Every element using .crt-effect
-   already carries a Tailwind fixed/absolute utility for positioning; as an
-   unlayered rule this would otherwise beat Tailwind's layered utilities in
-   the cascade and silently collapse those elements to their static box. */
-.crt-effect {
-  overflow: hidden;
+.laos-label {
+  font-family: var(--font-laos);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--laos-dim);
 }
 
-.crt-effect::after {
-  content: " ";
-  display: block;
+/* The old system answers late. Applied to interactive residue elements. */
+.laos-slow {
+  transition-property: color, background-color, border-color, opacity, transform;
+  transition-duration: 480ms;
+  transition-timing-function: ease-out;
+  transition-delay: 90ms;
+}
+
+/* Restore flash: the brief moment the old runtime holds the display while
+   a migrated app is brought up. Calm and procedural, not a glitch. */
+@keyframes laos-restore-fill {
+  0% { width: 0%; }
+  62% { width: 71%; }
+  74% { width: 71%; } /* the old system pauses, mid-thought */
+  100% { width: 100%; }
+}
+
+@keyframes laos-restore-fade {
+  0% { opacity: 1; }
+  78% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.laos-restore-overlay {
+  animation: laos-restore-fade 620ms ease-out forwards;
+}
+
+.laos-restore-bar {
+  animation: laos-restore-fill 520ms steps(24) forwards;
+}
+
+/* Progressive permeation: the wallpaper loses warmth as the residue spreads.
+   Applied to the home screen container by residue level. */
+.residue-cool-1 { filter: saturate(0.94); }
+.residue-cool-2 { filter: saturate(0.86); }
+.residue-cool-3 { filter: saturate(0.74) brightness(0.96); }
+
+/* ==========================================================================
+   Diegetic content utilities (in-story artifacts, not device chrome).
+   ========================================================================== */
+
+/* Dead-web archive typography */
+.web-archive-1998 {
+  font-family: "Times New Roman", Georgia, serif;
+}
+
+/* Scanned-paper grain, plus a soft vertical crease */
+.paper-texture {
+  background-image:
+    repeating-linear-gradient(0deg, rgba(60, 40, 20, 0.03) 0px, rgba(60, 40, 20, 0.03) 1px, transparent 1px, transparent 3px),
+    radial-gradient(ellipse at 18% 8%, rgba(0, 0, 0, 0.05), transparent 55%),
+    radial-gradient(ellipse at 85% 92%, rgba(0, 0, 0, 0.06), transparent 50%);
+}
+.paper-crease::before {
+  content: "";
   position: absolute;
-  top: 0; left: 0; bottom: 0; right: 0;
-  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-  z-index: 999;
-  background-size: 100% 3px, 3px 100%;
+  top: 0; bottom: 0; left: 58%;
+  width: 1px;
+  background: linear-gradient(rgba(0, 0, 0, 0.1), transparent 30%, rgba(0, 0, 0, 0.08) 70%, transparent);
   pointer-events: none;
 }
-
+.halftone-zoom {
+  background-image: radial-gradient(rgba(0, 0, 0, 0.08) 0.8px, transparent 0.9px);
+  background-size: 4px 4px;
+}

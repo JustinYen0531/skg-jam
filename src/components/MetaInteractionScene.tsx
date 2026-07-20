@@ -560,7 +560,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
       </AnimatePresence>
 
       <motion.div
-        className="phone-stage absolute inset-0 z-10 flex items-center justify-center [perspective:1500px]"
+        className={`${active ? 'phone-stage' : ''} absolute inset-0 z-10 flex items-center justify-center [perspective:1500px]`}
         animate={active ? { scale: 0.92, y: '-13%' } : { scale: 1, y: '0%' }}
         transition={{ duration: reducedMotion ? 0 : 1.05, ease: [0.22, 1, 0.36, 1] }}
         id="meta-phone-camera-frame"

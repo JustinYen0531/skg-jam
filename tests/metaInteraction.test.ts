@@ -22,7 +22,6 @@ test('developer chapter tools preview the meta scene without changing the story 
   assert.equal(shouldShowMetaScene(false, true), true);
   assert.equal(shouldShowMetaScene(true, false), true);
   assert.equal(shouldShowMetaScene(true, true), true);
-  assert.equal(shouldShowMetaScene(false, false, true), true);
 });
 
 test('only one animated meta interaction can run at a time', () => {
@@ -81,12 +80,23 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   assert.match(sceneSource, /opacity: interactionPending && pointer\.x > 0 \? 1 : 0/);
   assert.match(sceneSource, /className="[^"]*z-\[8\][^"]*"[\s\S]{0,180}id="meta-tapping-hand-back"/);
   assert.match(sceneSource, /className="[^"]*z-\[60\][^"]*"[\s\S]{0,180}id="meta-pointer-hand"/);
-  assert.match(appSource, /progress\.currentChapter <= 9/);
-  assert.match(appSource, /const metaSceneActive = shouldShowMetaScene\(metaViewActive, debugMode, investigationMetaPersistent\)/);
+  assert.match(appSource, /setMetaViewActive\(true\);[\s\S]{0,180}setDebugTargetApp/);
+  assert.match(appSource, /const metaSceneActive = shouldShowMetaScene\(metaViewActive, debugMode\)/);
+  assert.match(appSource, /immersiveIntro=\{!metaSceneActive\}/);
+  assert.match(appSource, /metaSceneActive \? 'phone-stage bg-slate-950\/40' : 'bg-black'/);
   assert.match(appSource, /<MetaInteractionScene active=\{metaSceneActive\}>/);
   assert.match(sceneSource, /scale: 0\.92/);
+  assert.match(sceneSource, /className=\{`\$\{active \? 'phone-stage' : ''\} absolute inset-0/);
   assert.match(sceneSource, /id="meta-protagonist-name"/);
   assert.doesNotMatch(sceneSource, /stroke="#8a543e"/);
   assert.doesNotMatch(sceneSource, /stroke="#89513b"/);
   assert.doesNotMatch(sceneSource, /rounded-\[52%_44%_48%_40%\]/);
+});
+
+test('chapter 0 is a bare fullscreen game while the unlocked view restores physical phone chrome', () => {
+  const phoneSource = readFileSync(new URL('../src/components/PhoneSimulator.tsx', import.meta.url), 'utf8');
+
+  assert.match(phoneSource, /data-presentation=\{immersiveIntro \? 'chapter-0-fullscreen' : 'physical-phone'\}/);
+  assert.match(phoneSource, /!immersiveIntro && <div[^>]+id="phone-status-bar"/);
+  assert.match(phoneSource, /!immersiveIntro && <div[^>]+id="phone-footer"/);
 });

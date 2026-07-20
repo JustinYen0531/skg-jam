@@ -19,8 +19,7 @@ export const shouldRevealMetaView = (
 export const shouldShowMetaScene = (
   metaViewUnlocked: boolean,
   developerToolsOpen: boolean,
-  investigationViewPersistent = false,
-): boolean => metaViewUnlocked || developerToolsOpen || investigationViewPersistent;
+): boolean => metaViewUnlocked || developerToolsOpen;
 
 export const canStartMetaInteraction = (
   metaViewActive: boolean,

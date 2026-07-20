@@ -96,3 +96,11 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Replaced the separate palm and thumb fills with one closed SVG silhouette spanning palm, thenar web, and thumb; lighting and crease paths remain secondary details only.
 - Updated static regression coverage to reject any return of `VisibleRearFingers`, `data-visible-grip-finger`, or the old left/right visible-finger wrappers.
 - Static verification before final build: `npm test` 38/38 and `npm run lint` passed. Browser validation remains intentionally omitted per project instruction.
+
+## 2026-07-20 — Chapter 0 fullscreen and persistent Chapter 1 camera
+
+- Chapter 0 now presents the cheap Flappy game edge to edge, without phone bezel styling, status bar, gesture bar, hands, or desk camera.
+- The formal Meta reveal remains gated by at least two Gate 37 deaths followed by actually opening the leaderboard.
+- Once formally unlocked, the Meta camera is controlled by its own persistent state and no longer inferred from `seenLeaderboard`, phase, or an arbitrary chapter 9 ceiling.
+- Loading any developer chapter snapshot explicitly unlocks the same persistent Meta presentation; closing Developer Debug Mode hides only the tool panel.
+- Verification is static and automated only; browser and screenshot validation remain intentionally omitted per project instruction.

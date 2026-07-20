@@ -3,7 +3,7 @@ import { GameProgress, ActiveApp } from '../types';
 import audio from '../lib/audio';
 import { EASY_FLAPPY_SETTINGS, FlappyDeathCause, getFlappyNightMix, getGateHeights, getGateSpawnX, getGateVisualStyle, nextGate37DeathCount, resolvePipeCollision } from '../lib/flappyPhysics';
 import { calculateBeatPercentage, createPublicLeaderboard } from '../lib/leaderboard';
-import { Play, Volume2, VolumeX, CheckCircle, Zap, Flame, Crown } from 'lucide-react';
+import { RefreshCw, Play, Volume2, VolumeX, CheckCircle, Zap, Crown, Sparkles, Rocket, Brain, Activity, X } from 'lucide-react';
 import { LeaderboardPanel } from './LeaderboardPanel';
 
 interface FlappyGameProps {
@@ -26,6 +26,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
   
   const [isPlaying, setIsPlaying] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [showResults, setShowResults] = useState(false);
   const [score, setScore] = useState(0);
   const [isMuted, setIsMuted] = useState(audio.getMuted());
   const [highScore, setHighScore] = useState(progress.bestScore);
@@ -35,6 +36,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
   const [seqIndex, setSeqIndex] = useState(0); // index in altitude matching
   const [seqMatched, setSeqMatched] = useState<boolean[]>(new Array(8).fill(false));
   const [hackedMode, setHackedMode] = useState(false);
+  const [showLearnMore, setShowLearnMore] = useState(false);
 
   // Core physics references to prevent state lag in canvas loop
   const stateRef = useRef({
@@ -53,6 +55,8 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
     terminalGlitchActive: false,
     devNotes: [] as Array<{ x: number; y: number; text: string; opacity: number }>,
     trail: [] as number[], // visual-only motion residue for the wireframe layer
+    popups: [] as Array<{ x: number; y: number; text: string; life: number }>, // slop praise popups
+    lastJumpFrame: -100, // visual-only tap ripple timing
   });
 
   const resetGame = () => {
@@ -78,6 +82,8 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
         { x: 1500, y: 260, text: 'LEGACY_ASSET_MISSING', opacity: 0.6 },
       ],
       trail: [],
+      popups: [],
+      lastJumpFrame: -100,
     };
     setScore(0);
     setSeqIndex(0);
@@ -85,6 +91,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
     setHackedMode(false);
     setIsPlaying(true);
     setShowLeaderboard(false);
+    setShowResults(false);
     audio.playUnlock();
   };
 
@@ -96,6 +103,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
       if (showLeaderboard) {
         setShowLeaderboard(false);
       } else {
+        // From the results screen or the start screen, SPACE starts a new run
         resetGame();
       }
       return;
@@ -107,6 +115,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
     }
 
     stateRef.current.birdVelocity = stateRef.current.birdJump;
+    stateRef.current.lastJumpFrame = stateRef.current.frameCount; // tap ripple
     audio.playJump();
   };
 
@@ -206,6 +215,21 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
           }
           ctx.restore();
         }
+
+        // Floating glow particles: pure decoration, deliberately pointless
+        ctx.save();
+        for (let i = 0; i < 10; i++) {
+          const px = ((i * 97 + state.frameCount * (0.3 + (i % 3) * 0.2)) % (width + 40)) - 20;
+          const py = 30 + ((i * 53) % (height - 60)) + Math.sin((state.frameCount + i * 30) * 0.02) * 10;
+          ctx.globalAlpha = 0.25 + (i % 4) * 0.1;
+          ctx.fillStyle = i % 2 === 0 ? '#c4b5fd' : '#67e8f9';
+          ctx.shadowColor = i % 2 === 0 ? '#8b5cf6' : '#22d3ee';
+          ctx.shadowBlur = 6;
+          ctx.beginPath();
+          ctx.arc(px, py, 1.2 + (i % 3) * 0.6, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
 
         // Ads watermark in early slop mode with machine translation vibes
         ctx.save();
@@ -347,6 +371,17 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
           if (!pipe.passed && pipe.x < birdX) {
             pipe.passed = true;
 
+            // Meaningless AI praise popup (slop layer only, decoration)
+            if (!state.bypassActive) {
+              const slogans = ['OPTIMAL PASSAGE', 'AI-ENHANCED CLEARANCE', 'PERFECT CLEARANCE'];
+              state.popups.push({
+                x: birdX + 40,
+                y: Math.max(30, pipe.topHeight + 24),
+                text: slogans[pipe.index % 3],
+                life: 45,
+              });
+            }
+
             // Trigger terminal/hacked graphics once we are inside sequence 37-44
             if (pipe.index >= 37 && state.bypassActive) {
               setHackedMode(true);
@@ -461,46 +496,77 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
       // --- Draw Pipes ---
       state.pipes.forEach((pipe) => {
         if (!hackedMode) {
-          // Level 1 keeps the cheap gold style. Gate 37 quietly previews a
-          // darker Level 2 material instead of announcing itself with red light.
+          // Glassmorphism obstacle columns: translucent gradient, neon core,
+          // meaningless stability telemetry. Same geometry as before.
+          const bottomY = height - pipe.bottomHeight;
           const gateStyle = getGateVisualStyle(pipe.index);
           const isLevel2Preview = gateStyle.variant === 'level2-preview';
           const pipeGrad = ctx.createLinearGradient(pipe.x, 0, pipe.x + 50, 0);
           if (isLevel2Preview) {
-            pipeGrad.addColorStop(0, '#0f172a');
-            pipeGrad.addColorStop(0.5, '#0f766e');
-            pipeGrad.addColorStop(1, '#166534');
+            pipeGrad.addColorStop(0, 'rgba(15, 23, 42, 0.92)');
+            pipeGrad.addColorStop(0.5, 'rgba(20, 184, 166, 0.42)');
+            pipeGrad.addColorStop(1, 'rgba(34, 197, 94, 0.3)');
           } else {
-            pipeGrad.addColorStop(0, '#ffe066');
-            pipeGrad.addColorStop(0.3, '#ffb300');
-            pipeGrad.addColorStop(0.7, '#e69500');
-            pipeGrad.addColorStop(1, '#995c00');
+            pipeGrad.addColorStop(0, 'rgba(139, 92, 246, 0.38)');
+            pipeGrad.addColorStop(0.5, 'rgba(59, 130, 246, 0.18)');
+            pipeGrad.addColorStop(1, 'rgba(34, 211, 238, 0.32)');
           }
-          ctx.fillStyle = pipeGrad;
-          ctx.strokeStyle = isLevel2Preview ? '#2dd4bf' : '#3d2500';
-          ctx.lineWidth = 3;
 
-          // Top pipe
+          ctx.save();
+          ctx.shadowColor = isLevel2Preview ? 'rgba(20, 184, 166, 0.65)' : 'rgba(139, 92, 246, 0.55)';
+          ctx.shadowBlur = 12;
+          ctx.fillStyle = pipeGrad;
           ctx.fillRect(pipe.x, 0, 50, pipe.topHeight);
-          ctx.strokeRect(pipe.x, -5, 50, pipe.topHeight + 5);
-          ctx.fillStyle = isLevel2Preview ? '#115e59' : '#ffcc00';
-          ctx.fillRect(pipe.x - 4, pipe.topHeight - 15, 58, 15);
-          ctx.strokeRect(pipe.x - 4, pipe.topHeight - 15, 58, 15);
-
-          // Bottom pipe
-          const bottomY = height - pipe.bottomHeight;
-          ctx.fillStyle = pipeGrad;
           ctx.fillRect(pipe.x, bottomY, 50, pipe.bottomHeight);
-          ctx.strokeRect(pipe.x, bottomY, 50, pipe.bottomHeight + 5);
-          ctx.fillStyle = isLevel2Preview ? '#115e59' : '#ffcc00';
-          ctx.fillRect(pipe.x - 4, bottomY, 58, 15);
-          ctx.strokeRect(pipe.x - 4, bottomY, 58, 15);
+          ctx.restore();
 
-          // A few small teeth and a locked label promise another ruleset while
-          // preserving the fixed, impossible Gate 36 → Gate 37 geometry.
+          // Gradient-ish border
+          ctx.strokeStyle = isLevel2Preview ? 'rgba(45, 212, 191, 0.95)' : 'rgba(167, 139, 250, 0.9)';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(pipe.x, -2, 50, pipe.topHeight + 2);
+          ctx.strokeRect(pipe.x, bottomY, 50, pipe.bottomHeight + 4);
+
+          // Glowing cyan core line
+          ctx.save();
+          ctx.shadowColor = isLevel2Preview ? 'rgba(34, 197, 94, 0.75)' : 'rgba(34, 211, 238, 0.8)';
+          ctx.shadowBlur = 8;
+          ctx.strokeStyle = isLevel2Preview ? 'rgba(74, 222, 128, 0.7)' : 'rgba(34, 211, 238, 0.65)';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(pipe.x + 25, 0);
+          ctx.lineTo(pipe.x + 25, pipe.topHeight);
+          ctx.moveTo(pipe.x + 25, bottomY);
+          ctx.lineTo(pipe.x + 25, height);
+          ctx.stroke();
+          ctx.restore();
+
+          // Tiny tech tick marks along the inner edges
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+          ctx.lineWidth = 1;
+          for (let ty = 12; ty < pipe.topHeight - 6; ty += 20) {
+            ctx.beginPath();
+            ctx.moveTo(pipe.x + 2, ty);
+            ctx.lineTo(pipe.x + 7, ty);
+            ctx.stroke();
+          }
+          for (let by = bottomY + 12; by < height - 6; by += 20) {
+            ctx.beginPath();
+            ctx.moveTo(pipe.x + 43, by);
+            ctx.lineTo(pipe.x + 48, by);
+            ctx.stroke();
+          }
+
+          // Meaningless telemetry labels
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+          ctx.font = '6px "JetBrains Mono"';
+          ctx.fillText(isLevel2Preview ? 'LEVEL 2 MATERIAL' : 'DYNAMIC OBSTACLE', pipe.x + 2, Math.max(8, pipe.topHeight - 6));
+          ctx.fillText(`STABILITY: ${90 + ((pipe.index * 7) % 10)}%`, pipe.x + 2, Math.min(height - 4, bottomY + 12));
+
+          // Gate 37 quietly previews the next level: a different material,
+          // a few small teeth, and a locked label instead of a red warning wall.
           if (isLevel2Preview) {
             ctx.save();
-            ctx.fillStyle = '#4ade80';
+            ctx.fillStyle = 'rgba(74, 222, 128, 0.9)';
             ctx.shadowColor = 'rgba(20, 184, 166, 0.75)';
             ctx.shadowBlur = 5;
             const spikeWidth = 8;
@@ -521,7 +587,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
               ctx.fill();
             }
             ctx.shadowBlur = 0;
-            ctx.fillStyle = 'rgba(167, 243, 208, 0.9)';
+            ctx.fillStyle = 'rgba(167, 243, 208, 0.8)';
             ctx.font = 'bold 8px "JetBrains Mono"';
             ctx.textAlign = 'center';
             ctx.fillText('LEVEL 2 // LOCKED', pipe.x + 25, pipe.topHeight + EASY_FLAPPY_SETTINGS.openingSize / 2);
@@ -567,6 +633,18 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
           ctx.fillRect(birdX - (state.trail.length - i) * 7, ty - 1.5, 3, 3);
         });
         ctx.restore();
+      } else {
+        // Slop layer: rainbow-ish glowing particle trail, no physical purpose
+        ctx.save();
+        state.trail.forEach((ty, i) => {
+          const t = (i + 1) / state.trail.length;
+          ctx.globalAlpha = t * 0.35;
+          ctx.fillStyle = i % 2 === 0 ? '#8b5cf6' : '#22d3ee';
+          ctx.beginPath();
+          ctx.arc(birdX - (state.trail.length - i) * 6, ty, 2.5 * t + 0.5, 0, Math.PI * 2);
+          ctx.fill();
+        });
+        ctx.restore();
       }
 
       ctx.save();
@@ -574,56 +652,102 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
       ctx.rotate(angle);
 
       if (!hackedMode) {
-        // AI-generated unaligned looking cartoon slop bird with weird proportions
-        ctx.fillStyle = '#ff5722'; // bright messy orange body
+        // NeuroBird: purple gradient glowing orb, giant cartoon eye, fake
+        // neural circuitry. No light-source logic whatsoever.
+        const orb = ctx.createRadialGradient(-4, -4, 2, 0, 0, 15);
+        orb.addColorStop(0, '#c4b5fd');
+        orb.addColorStop(0.55, '#8b5cf6');
+        orb.addColorStop(1, '#4c1d95');
+
+        ctx.save();
+        ctx.shadowColor = 'rgba(139, 92, 246, 0.8)';
+        ctx.shadowBlur = 18;
+        ctx.fillStyle = orb;
         ctx.beginPath();
-        // Slightly squashed/distorted ellipse body
-        ctx.ellipse(0, 0, 16, 12, 0, 0, Math.PI * 2);
+        ctx.arc(0, 0, 14, 0, Math.PI * 2);
         ctx.fill();
-        ctx.strokeStyle = '#000';
+        ctx.restore();
+
+        // Cyan glow ring outline
+        ctx.strokeStyle = 'rgba(34, 211, 238, 0.8)';
         ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(0, 0, 14, 0, Math.PI * 2);
         ctx.stroke();
 
-        // Messy unaligned beak - unnaturally long or offset
-        ctx.fillStyle = '#ffeb3b';
+        // Fake neural-network lines and nodes on the body
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+        ctx.lineWidth = 0.8;
         ctx.beginPath();
-        ctx.moveTo(12, -4);
-        ctx.lineTo(25, 7);
-        ctx.lineTo(6, 8);
+        ctx.moveTo(-7, 3);
+        ctx.lineTo(-2, -2);
+        ctx.lineTo(3, 4);
+        ctx.lineTo(8, -1);
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+        [[-7, 3], [-2, -2], [3, 4], [8, -1]].forEach(([nx, ny]) => {
+          ctx.beginPath();
+          ctx.arc(nx, ny, 1, 0, Math.PI * 2);
+          ctx.fill();
+        });
+
+        // Giant cartoon eye, plus a tiny misaligned second eye
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(5, -4, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#000';
+        ctx.beginPath();
+        ctx.arc(6, -4, 2.8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,0.9)';
+        ctx.beginPath();
+        ctx.arc(7, -5, 0.9, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(-4, -8, 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#000';
+        ctx.beginPath();
+        ctx.arc(-4, -8, 0.9, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Wing: a glowing cyan chevron that flaps like a UI icon
+        const wingFlap = Math.sin(state.frameCount * 0.4) * 5;
+        ctx.save();
+        ctx.shadowColor = 'rgba(34, 211, 238, 0.7)';
+        ctx.shadowBlur = 8;
+        ctx.fillStyle = 'rgba(34, 211, 238, 0.9)';
+        ctx.beginPath();
+        ctx.moveTo(-6, 0);
+        ctx.lineTo(-15, -4 - wingFlap);
+        ctx.lineTo(-10, 4);
         ctx.closePath();
         ctx.fill();
-        ctx.stroke();
+        ctx.restore();
 
-        // Extremely asymmetric eyes (looks highly unaligned like bad AI outputs)
-        // Main eye - too big and high
-        ctx.fillStyle = '#fff';
-        ctx.beginPath();
-        ctx.arc(6, -6, 6, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-        ctx.fillStyle = '#000';
-        ctx.beginPath();
-        ctx.arc(7, -6, 2.5, 0, Math.PI * 2);
-        ctx.fill();
+        // Flap sparkles while rising
+        if (state.birdVelocity < -1) {
+          ctx.fillStyle = 'rgba(196, 181, 253, 0.8)';
+          [[-18, -2], [-21, 4], [-16, 7]].forEach(([sx, sy]) => {
+            ctx.fillRect(sx - 0.5, sy - 2, 1, 4);
+            ctx.fillRect(sx - 2, sy - 0.5, 4, 1);
+          });
+        }
 
-        // Secondary eye - tiny, floated to a weird back position
-        ctx.fillStyle = '#fff';
-        ctx.beginPath();
-        ctx.arc(-2, -8, 2.5, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-        ctx.fillStyle = '#000';
-        ctx.beginPath();
-        ctx.arc(-2, -8, 1, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Flapping glitched wing (offset, too high or stubby)
-        ctx.fillStyle = '#e91e63';
-        const wingFlap = Math.sin(state.frameCount * 0.4) * 6;
-        ctx.beginPath();
-        ctx.ellipse(-7, -1, 5, 9 + wingFlap, Math.PI / 5, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
+        // Tap ripple: expanding cyan ring for a few frames after each jump
+        const sinceJump = state.frameCount - state.lastJumpFrame;
+        if (sinceJump >= 0 && sinceJump < 16) {
+          ctx.save();
+          ctx.globalAlpha = (1 - sinceJump / 16) * 0.6;
+          ctx.strokeStyle = '#22d3ee';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.arc(0, 0, 6 + sinceJump * 2, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.restore();
+        }
       } else {
         // Wireframe geometric green bird representing original developer code
         ctx.strokeStyle = '#22c55e';
@@ -652,13 +776,73 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
 
       // --- Draw Score HUD ---
       if (!hackedMode) {
+        // Glassmorphism score card (radius 24) with glow
+        ctx.save();
+        ctx.shadowColor = 'rgba(139, 92, 246, 0.45)';
+        ctx.shadowBlur = 16;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+        ctx.beginPath();
+        ctx.roundRect(width / 2 - 56, 10, 112, 58, 24);
+        ctx.fill();
+        ctx.restore();
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(width / 2 - 56, 10, 112, 58, 24);
+        ctx.stroke();
+
+        ctx.save();
+        ctx.textAlign = 'center';
         ctx.fillStyle = '#ffffff';
-        ctx.strokeStyle = '#000000';
-        ctx.lineWidth = 4;
-        ctx.font = 'bold 32px "Space Grotesk"';
-        const scoreText = state.score.toString();
-        ctx.strokeText(scoreText, width / 2 - 10, 50);
-        ctx.fillText(scoreText, width / 2 - 10, 50);
+        ctx.font = 'bold 28px "Inter"';
+        ctx.shadowColor = 'rgba(34, 211, 238, 0.6)';
+        ctx.shadowBlur = 10;
+        ctx.fillText(state.score.toString(), width / 2, 42);
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = '#777777';
+        ctx.font = 'bold 6px "Inter"';
+        ctx.fillText('F L I G H T   P O I N T S', width / 2, 58);
+        ctx.restore();
+
+        // Meaningless metrics card (radius 16, inconsistent on purpose)
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.06)';
+        ctx.beginPath();
+        ctx.roundRect(12, 12, 132, 52, 16);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(139, 92, 246, 0.5)';
+        ctx.beginPath();
+        ctx.roundRect(12, 12, 132, 52, 16);
+        ctx.stroke();
+        ctx.font = '7px "JetBrains Mono"';
+        ctx.fillStyle = '#9ca3af';
+        ctx.fillText('NEURAL SYNC', 20, 26);
+        ctx.fillText('FLAP ACCURACY', 20, 40);
+        ctx.fillText('BIRD CONFIDENCE', 20, 54);
+        ctx.fillStyle = '#67e8f9';
+        ctx.fillText('98.7%', 108, 26);
+        ctx.fillStyle = '#6ee7b7';
+        ctx.fillText('+24%', 108, 40);
+        ctx.fillStyle = '#c4b5fd';
+        ctx.fillText('91%', 108, 54);
+
+        // Floating praise popups
+        state.popups = state.popups.filter((p) => p.life > 0);
+        state.popups.forEach((p) => {
+          const rise = (45 - p.life) * 0.4;
+          ctx.save();
+          ctx.globalAlpha = Math.min(1, p.life / 30);
+          ctx.textAlign = 'center';
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 13px "Inter"';
+          ctx.shadowColor = 'rgba(139, 92, 246, 0.8)';
+          ctx.shadowBlur = 10;
+          ctx.fillText('+1', p.x, p.y - rise);
+          ctx.font = 'bold 7px "Inter"';
+          ctx.fillStyle = '#a5f3fc';
+          ctx.fillText(p.text, p.x, p.y + 10 - rise);
+          ctx.restore();
+          p.life--;
+        });
       } else {
         // CRT green HUD
         ctx.fillStyle = '#22c55e';
@@ -696,17 +880,36 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
 
       // --- Trigger GameOver overlay or continue loop ---
       if (state.gameOver) {
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+        ctx.save();
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
         ctx.fillRect(0, 0, width, height);
+        ctx.textAlign = 'center';
 
-        ctx.fillStyle = '#ef4444';
-        ctx.font = 'bold 28px "Space Grotesk"';
-        ctx.fillText('GAME OVER', width / 2 - 80, height / 2 - 30);
-
-        ctx.fillStyle = '#ffffff';
-        ctx.font = '14px "Inter"';
-        ctx.fillText(`Score: ${state.score}`, width / 2 - 30, height / 2 + 10);
-        ctx.fillText('Press SPACE or TAP to Restart', width / 2 - 90, height / 2 + 40);
+        if (!hackedMode) {
+          // Politely devastating, in the most corporate way possible
+          ctx.fillStyle = '#c4b5fd';
+          ctx.font = 'bold 20px "Inter"';
+          ctx.shadowColor = 'rgba(139, 92, 246, 0.7)';
+          ctx.shadowBlur = 14;
+          ctx.fillText('Your current flight journey', width / 2, height / 2 - 34);
+          ctx.fillText('has come to an end.', width / 2, height / 2 - 10);
+          ctx.shadowBlur = 0;
+          ctx.fillStyle = '#ffffff';
+          ctx.font = '13px "Inter"';
+          ctx.fillText(`Flight Points: ${state.score}`, width / 2, height / 2 + 20);
+          ctx.fillStyle = '#777777';
+          ctx.font = '10px "Inter"';
+          ctx.fillText('Tap or press SPACE to reinitialize your flight sequence', width / 2, height / 2 + 44);
+        } else {
+          ctx.fillStyle = '#ef4444';
+          ctx.font = 'bold 28px "Space Grotesk"';
+          ctx.fillText('GAME OVER', width / 2, height / 2 - 30);
+          ctx.fillStyle = '#ffffff';
+          ctx.font = '14px "Inter"';
+          ctx.fillText(`Score: ${state.score}`, width / 2, height / 2 + 10);
+          ctx.fillText('Press SPACE or TAP to Restart', width / 2, height / 2 + 40);
+        }
+        ctx.restore();
       } else {
         animationFrameId = requestAnimationFrame(gameLoop);
       }
@@ -729,10 +932,15 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
         return {
           ...prev,
           deathsAt37: nextDeaths,
-          phase: prev.phase === 'intro_game' && nextDeaths >= 3 ? 'os_unlocked' : prev.phase,
           bestScore: Math.max(prev.bestScore, state.score),
+          phase: prev.phase === 'intro_game' && nextDeaths >= 3 ? 'os_unlocked' : prev.phase
         };
       });
+
+      // Show the cheap results screen; the leaderboard is behind a button
+      setTimeout(() => {
+        setShowResults(true);
+      }, 800);
     };
 
     const triggerCompletion = () => {
@@ -744,8 +952,8 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
       // Update progress to completion!
       updateProgress((prev) => ({
         ...prev,
-        phase: 'credits',
         bestScore: Math.max(prev.bestScore, state.score),
+        phase: 'credits',
         completedGame: true
       }));
     };
@@ -761,11 +969,15 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, width, height);
       
+      ctx.save();
+      ctx.textAlign = 'center';
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 20px "Space Grotesk"';
-      ctx.fillText('FLAPPY SOMETHING', width / 2 - 100, height / 2 - 20);
-      ctx.font = '12px "Inter"';
-      ctx.fillText('Tap to Start App', width / 2 - 45, height / 2 + 10);
+      ctx.font = 'bold 20px "Inter"';
+      ctx.fillText('FLAPPY SOMETHING', width / 2, height / 2 - 20);
+      ctx.fillStyle = '#9ca3af';
+      ctx.font = '11px "Inter"';
+      ctx.fillText('Tap to begin your intelligent flight experience', width / 2, height / 2 + 10);
+      ctx.restore();
     }
 
     return () => {
@@ -773,10 +985,10 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
     };
   }, [isPlaying, hackedMode]);
 
-
   const playerBestScore = Math.max(progress.bestScore, highScore, score);
   const publicLeaderboard = createPublicLeaderboard(playerBestScore);
   const beatPercentage = calculateBeatPercentage(playerBestScore);
+
   return (
     <div className="flex flex-col h-full bg-slate-950 font-sans select-none overflow-hidden" id="flappy-root">
       
@@ -826,28 +1038,28 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
 
         {/* Debug panel: Shown when player has unlocked the code route */}
         {progress.unlockedCodeRoute && isPlaying && !showLeaderboard && (
-          <div className="absolute left-3 top-3 bottom-3 w-40 bg-slate-950/90 border border-emerald-500/30 rounded p-2 text-[10px] font-mono text-emerald-400 flex flex-col justify-between pointer-events-none z-10 crt-effect" id="altitude-sensor-panel">
+          <div className="absolute left-3 top-3 bottom-3 w-40 bg-[var(--laos-bg)]/[0.94] border border-[var(--laos-line)] p-2 text-[10px] font-laos text-[var(--laos-text)] flex flex-col justify-between pointer-events-none z-10" id="altitude-sensor-panel">
             <div>
-              <div className="flex items-center gap-1 text-emerald-300 font-bold border-b border-emerald-500/20 pb-1 mb-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <div className="flex items-center gap-1.5 laos-label text-[8px] border-b border-[var(--laos-line-dim)] pb-1.5 mb-1.5">
+                <span className="w-1.5 h-1.5 bg-[var(--laos-warm)]"></span>
                 <span>LUMEN ALT_SENSOR</span>
               </div>
-              <div className="text-xs font-bold text-center py-1 bg-emerald-950/50 rounded border border-emerald-500/20 mb-2">
+              <div className="text-xs font-mono font-bold text-center py-1 bg-[var(--laos-surface-2)] border border-[var(--laos-line-dim)] mb-2 text-[var(--laos-text)]">
                 ALT: {currentAlt}m
               </div>
 
               {/* Target Sequence Checklist */}
-              <div className="space-y-1">
-                <div className="text-[9px] text-emerald-500 font-bold mb-0.5">GATE 37 SEQUENCER:</div>
+              <div className="space-y-0.5">
+                <div className="laos-label text-[7.5px] mb-1">GATE 37 SEQUENCER:</div>
                 {ALTITUDE_SEQUENCE.map((alt, idx) => (
-                  <div 
-                    key={idx} 
-                    className={`flex items-center justify-between px-1.5 py-0.5 rounded ${
-                      seqIndex === idx 
-                        ? 'bg-emerald-500/20 text-white border border-emerald-500/40 font-bold' 
-                        : seqIndex > idx 
-                          ? 'text-emerald-600 line-through' 
-                          : 'text-emerald-500/40'
+                  <div
+                    key={idx}
+                    className={`flex items-center justify-between px-1.5 py-0.5 font-mono ${
+                      seqIndex === idx
+                        ? 'bg-[var(--laos-surface-2)] text-[var(--laos-warm)] border-l-2 border-[var(--laos-warm)] font-bold'
+                        : seqIndex > idx
+                          ? 'text-[var(--laos-faint)] line-through'
+                          : 'text-[var(--laos-dim)]'
                     }`}
                   >
                     <span>P{37 + idx} Alt Target:</span>
@@ -857,130 +1069,248 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
               </div>
             </div>
 
-            <div className="border-t border-emerald-500/20 pt-1 mt-1 text-[8px] text-emerald-500/60 leading-tight">
+            <div className="border-t border-[var(--laos-line-dim)] pt-1.5 mt-1 text-[8px] leading-tight">
               {seqIndex >= 6 ? (
-                <span className="text-red-400 font-bold animate-pulse">!! BOUNDING COLLIDER DISRUPTED !!</span>
+                <span className="text-[var(--laos-warm)] font-bold tracking-wide">!! BOUNDING COLLIDER DISRUPTED !!</span>
               ) : (
-                <span>Fly matching target heights strictly as you pass each gate section starting at 37!</span>
+                <span className="text-[var(--laos-dim)]">Fly matching target heights strictly as you pass each gate section starting at 37!</span>
               )}
             </div>
           </div>
         )}
 
-        {/* Over-saturated Slop Flashing overlay when NOT playing */}
-        {!isPlaying && !showLeaderboard && (
-          <div className="absolute inset-0 bg-gradient-to-br from-[#24106B] via-[#3B18B8] to-[#7048E8] flex flex-col items-center justify-center p-4 text-center overflow-hidden" id="game-start-panel">
+        {/* AI Slop SaaS hero overlay when NOT playing */}
+        {!isPlaying && !showLeaderboard && !showResults && (
+          <div className="absolute inset-0 bg-black flex flex-col items-center justify-center gap-1.5 p-4 pb-8 text-center overflow-y-auto font-sans" id="game-start-panel">
             {/* Embedded styles for CSS animations */}
             <style>{`
               @keyframes floatBtn {
                 0%, 100% { transform: translateY(0px) scale(1); }
                 50% { transform: translateY(-5px) scale(1.03); }
               }
-              @keyframes flashZap {
-                0%, 100% { opacity: 0.4; transform: rotate(-15deg) scale(0.95); }
-                50% { opacity: 1; transform: rotate(-10deg) scale(1.15); filter: drop-shadow(0 0 10px #21C7FF); }
-              }
-              @keyframes swayFlame {
-                0%, 100% { transform: rotate(15deg) scale(1); }
-                50% { transform: rotate(20deg) scale(1.1); filter: drop-shadow(0 0 8px #FF9800); }
-              }
               .animate-float-button {
                 animation: floatBtn 2.8s ease-in-out infinite;
               }
-              .animate-flash-zap {
-                animation: flashZap 1.4s ease-in-out infinite;
-              }
-              .animate-sway-flame {
-                animation: swayFlame 2.2s ease-in-out infinite;
-              }
             `}</style>
 
-            {/* AI Ad Fake Decoration Elements */}
-            <div className="absolute left-8 top-12 rotate-[15deg] animate-sway-flame pointer-events-none select-none" style={{ width: '48px', height: '48px' }}>
-              <Flame className="w-12 h-12 text-orange-500 fill-orange-500 filter drop-shadow-[0_4px_8px_rgba(249,115,22,0.6)]" />
+            {/* Ambient gradient orbs + drifting particles (decoration only) */}
+            <div className="absolute -top-10 -left-10 w-48 h-48 bg-purple-600/30 rounded-full blur-3xl pointer-events-none"></div>
+            <div className="absolute -bottom-16 -right-10 w-56 h-56 bg-cyan-500/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div className="absolute inset-0 pointer-events-none">
+              <span className="absolute left-[12%] top-[18%] w-1 h-1 bg-purple-400/70 rounded-full blur-[1px] animate-pulse"></span>
+              <span className="absolute left-[78%] top-[26%] w-1.5 h-1.5 bg-cyan-300/60 rounded-full blur-[1px] animate-pulse [animation-delay:300ms]"></span>
+              <span className="absolute left-[30%] top-[74%] w-1 h-1 bg-fuchsia-400/60 rounded-full blur-[1px] animate-pulse [animation-delay:600ms]"></span>
+              <span className="absolute left-[64%] top-[82%] w-1 h-1 bg-purple-300/70 rounded-full blur-[1px] animate-pulse [animation-delay:150ms]"></span>
+              <span className="absolute left-[88%] top-[62%] w-1 h-1 bg-cyan-400/50 rounded-full blur-[1px] animate-pulse [animation-delay:450ms]"></span>
             </div>
 
-            <div className="absolute right-8 top-16 rotate-[-15deg] animate-flash-zap pointer-events-none select-none" style={{ width: '44px', height: '44px' }}>
-              <Zap className="w-11 h-11 text-[#21C7FF] fill-[#21C7FF] filter drop-shadow-[0_4px_8px_rgba(33,199,255,0.5)]" />
+            {/* Capsule label */}
+            <div className="px-3 py-1 rounded-full border border-purple-500/40 bg-purple-500/10 text-purple-300 text-[8px] font-mono tracking-[0.25em] uppercase shadow-[0_0_20px_rgba(139,92,246,0.35)]">
+              AI-POWERED FLIGHT EXPERIENCE
             </div>
 
-            <div className="animate-bounce mb-3 relative" id="game-logo">
-              {/* Crown slightly unaligned on top of the bird */}
-              <div className="absolute -top-5 -left-2.5 rotate-[-15deg] z-10" style={{ width: '28px', height: '28px' }}>
-                <Crown className="w-7 h-7 text-yellow-400 fill-yellow-400 filter drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]" />
+            {/* NeuroBird orb logo (crown kept, slightly unaligned) */}
+            <div className="relative mt-1" id="game-logo">
+              <div className="absolute -top-4 -left-2 rotate-[-15deg] z-10">
+                <Crown className="w-6 h-6 text-yellow-400 fill-yellow-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]" />
               </div>
-
-              {/* Weirdly proportioned bird logo */}
-              <div className="w-20 h-14 bg-amber-400 border-4 border-black rounded-[40%_60%_50%_50%] flex items-center justify-center relative shadow-lg">
-                <div className="absolute w-7 h-7 bg-white border-2 border-black rounded-full top-1 right-2.5 flex items-center justify-center">
-                  <div className="w-3 h-3 bg-black rounded-full"></div>
+              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-violet-400 via-purple-600 to-indigo-950 border border-cyan-300/60 shadow-[0_0_24px_rgba(139,92,246,0.7),0_0_60px_rgba(34,211,238,0.25)] relative">
+                <div className="absolute w-5 h-5 bg-white rounded-full top-3 right-2.5 flex items-center justify-center">
+                  <div className="w-2 h-2 bg-black rounded-full"></div>
                 </div>
-                <div className="absolute w-3.5 h-3.5 bg-white border-2 border-black rounded-full top-0 right-9 flex items-center justify-center">
-                  <div className="w-1 h-1 bg-black rounded-full"></div>
+                <div className="absolute w-2 h-2 bg-white rounded-full top-2 right-8 flex items-center justify-center">
+                  <div className="w-0.5 h-0.5 bg-black rounded-full"></div>
                 </div>
-                <div className="w-11 h-6 bg-pink-500 border-3 border-black rounded-ellipse absolute -left-3 bottom-1"></div>
-                <div className="w-7 h-4 bg-yellow-300 border-2 border-black rounded-ellipse absolute bottom-2 right-1 rotate-12"></div>
+                <Zap className="absolute -left-1.5 bottom-2 w-5 h-5 text-cyan-300 fill-cyan-300 rotate-[-20deg] drop-shadow-[0_0_6px_rgba(34,211,238,0.8)]" />
               </div>
             </div>
 
-            <div className="text-emerald-400 text-[10px] font-black tracking-wider uppercase mb-1 drop-shadow animate-pulse">
-              🔥 BECOME THE WORLD'S BEST FLYER 🔥
+            <div className="text-[8px] font-mono text-cyan-300/80 tracking-widest uppercase">
+              Flappy Something™ · BirdOS v9.4.1
             </div>
 
-            <h1 className="font-display font-black text-3.5xl tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-pink-400 to-cyan-300 drop-shadow mb-1 animate-pulse">
-              FLAPPY SOMETHING™
+            {/* Giant meaningless hero title */}
+            <h1 className="font-black text-3xl leading-[1.05] tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-fuchsia-400 to-cyan-300 drop-shadow">
+              FLAP INTO<br />THE FUTURE.
             </h1>
-            
-            <p className="text-cyan-200 text-[11px] font-bold tracking-wide mb-4 bg-[#24106B]/50 px-3 py-1 rounded-md border border-[#3B18B8]/40">
-              ★ REVOLUTIONARY SKY PHYSICS ★
+            <p className="text-[10px] text-[#777777] max-w-[250px] leading-snug">
+              The next generation of bird-based intelligence. Redefining the way you flap.
             </p>
 
-            <div className="text-yellow-300 text-xs font-black tracking-widest uppercase mb-2">
-              ⚡ 9999 LEVELS OF ADVENTURE ⚡
+            {/* Hero metric + satellite chips */}
+            <div className="flex items-center gap-2 mt-1">
+              <div className="rounded-3xl border-2 border-purple-500/60 bg-white/5 backdrop-blur-md px-3 py-1.5 shadow-[0_0_20px_rgba(139,92,246,0.4)]">
+                <div className="text-xl font-black text-white leading-none">98.7<span className="text-cyan-300">%</span></div>
+                <div className="text-[7px] text-[#8a8a8a] uppercase tracking-wider mt-0.5">Flight Optimization</div>
+              </div>
+              <div className="flex flex-col gap-1 text-[7px] font-mono text-left">
+                <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/15 text-emerald-300">+24% Accuracy</span>
+                <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/15 text-cyan-300">12ms Latency</span>
+                <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/15 text-purple-300">AI Enhanced</span>
+              </div>
             </div>
 
+            {/* CTA row: verbose primary + ghost secondary */}
+            <div className="flex items-center gap-2 mt-1.5">
+              <button
+                onClick={resetGame}
+                className="animate-float-button px-4 py-2.5 rounded-[24px] bg-gradient-to-r from-purple-600 via-fuchsia-500 to-cyan-400 text-white text-[10px] font-black tracking-wide uppercase shadow-[0_0_20px_rgba(139,92,246,0.5),0_0_60px_rgba(34,211,238,0.2)] border border-white/20 flex items-center gap-1.5"
+                id="start-button"
+              >
+                <Play className="w-4 h-4 fill-white shrink-0" />
+                Begin Your Intelligent Flight Experience
+              </button>
+              <button
+                onClick={() => { audio.playTick(); setShowLearnMore(true); }}
+                className="px-3 py-2.5 rounded-2xl border border-white/20 bg-white/5 backdrop-blur text-[#9a9a9a] text-[9px] font-bold uppercase tracking-wider hover:text-white transition-colors"
+                id="learn-more-button"
+              >
+                Learn More
+              </button>
+            </div>
+
+            {/* Cheap emoji leaderboard entry point */}
+            <button
+              onClick={() => { audio.playTick(); setShowLeaderboard(true); }}
+              className="px-4 py-1.5 rounded-xl bg-[#1a1a2e] border border-purple-500/40 text-purple-200 text-[10px] font-black tracking-wide hover:bg-[#232345] transition-colors"
+              id="home-leaderboard-button"
+            >
+              🏆 GLOBAL LEADERBOARD
+            </button>
+
             {/* Fake store credibility badges */}
-            <div className="flex items-center gap-1.5 mb-3 text-[8px] font-black">
+            <div className="flex items-center gap-1.5 text-[8px] font-black mt-0.5">
               <span className="bg-black/40 text-yellow-300 px-2 py-0.5 rounded-full border border-yellow-500/40">★★★★★ 4.9</span>
               <span className="bg-emerald-500 text-black px-2 py-0.5 rounded-full">500M+ DOWNLOADS!!</span>
               <span className="bg-red-600 text-white px-2 py-0.5 rounded-full animate-pulse">⏳ BONUS ENDS 00:59</span>
             </div>
 
-            <button
-              onClick={resetGame}
-              className="animate-float-button px-10 py-3.5 bg-gradient-to-b from-[#FFE066] to-[#F59E0B] hover:from-[#FFF099] hover:to-[#FBBF24] text-black font-display font-black text-2xl tracking-wide uppercase border-b-8 border-[#B45309] active:border-b-2 active:translate-y-[6px] transition-all duration-75 flex items-center gap-2"
-              style={{
-                borderRadius: '16px',
-                boxShadow: '0 12px 24px rgba(245, 158, 11, 0.6), inset 0 2px 4px rgba(255, 255, 255, 0.6)'
-              }}
-              id="start-button"
-            >
-              <Play className="w-6 h-6 fill-black stroke-black" />
-              PLAY NOW!!!
-            </button>
-
-            <button
-              onClick={() => {
-                audio.playTick();
-                setShowLeaderboard(true);
-                updateProgress((prev) => ({ ...prev, seenLeaderboard: true }));
-                if (progress.deathsAt37 >= 2) onLeaderboardOpened();
-              }}
-              className="mt-2 px-5 py-1.5 rounded-xl bg-[#1a1a2e] border border-purple-500/40 text-purple-200 text-[10px] font-black tracking-wide hover:bg-[#232345] transition-colors"
-              id="home-leaderboard-button"
-            >
-              GLOBAL LEADERBOARD
-            </button>
-
-            <p className="text-purple-200 text-[9px] font-bold tracking-wider uppercase mt-4 opacity-75">
-              THE MOST LEGENDARY FLY EXPERIENCE
-            </p>
+            {/* Three-column startup feature cards (radii intentionally inconsistent) */}
+            <div className="grid grid-cols-3 gap-1.5 w-full max-w-[400px] mt-1">
+              {([
+                { Icon: Rocket, radius: 'rounded-xl', glow: 'shadow-[0_0_14px_rgba(139,92,246,0.6)]', title: 'Smart Flapping', text: 'AI-powered motion control' },
+                { Icon: Brain, radius: 'rounded-3xl', glow: 'shadow-[0_0_14px_rgba(34,211,238,0.6)]', title: 'Adaptive Pipes', text: 'Obstacles that evolve with you' },
+                { Icon: Activity, radius: 'rounded-2xl', glow: 'shadow-[0_0_14px_rgba(217,70,239,0.6)]', title: 'Real-time Insights', text: 'Understand every flap' },
+              ]).map(({ Icon, radius, glow, title, text }) => (
+                <div key={title} className={`${radius} bg-white/5 backdrop-blur border border-white/10 p-2`}>
+                  <div className={`w-8 h-8 mx-auto rounded-full bg-gradient-to-br from-purple-500 to-cyan-500 flex items-center justify-center ${glow} mb-1`}>
+                    <Icon className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="text-[8px] font-bold text-white">{title}</div>
+                  <div className="text-[7px] text-[#777777] leading-tight">{text}</div>
+                </div>
+              ))}
+            </div>
 
             {/* Simulated Spammy Ads Banner */}
             <div className="absolute bottom-2 left-2 right-2 bg-yellow-400 text-black text-[9px] font-bold py-1 px-2 rounded-md flex items-center justify-between shadow-md border border-yellow-500" id="spam-ad">
               <span>🔥 MAKE $5000/DAY FLAPPING FROM HOME! CLICK HERE 🔥</span>
               <span className="bg-black text-white px-1 py-0.5 rounded text-[7px]">AD</span>
             </div>
+          </div>
+        )}
+
+        {/* Learn More modal: modal dependency syndrome, cards within cards */}
+        {showLearnMore && !isPlaying && (
+          <div
+            className="absolute inset-0 z-30 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 font-sans"
+            id="learn-more-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="max-w-[340px] w-full max-h-full overflow-y-auto rounded-[24px] border-2 border-purple-500/50 bg-white/5 backdrop-blur-xl p-4 text-left shadow-[0_0_40px_rgba(139,92,246,0.4)] space-y-2.5">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-cyan-500 flex items-center justify-center shadow-[0_0_16px_rgba(139,92,246,0.7)]">
+                    <Sparkles className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <div className="text-white text-xs font-black">About Your Flight Experience</div>
+                    <div className="text-[7px] font-mono text-cyan-300/70 uppercase tracking-widest">Powered by BirdOS Neural Engine</div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => { audio.playTick(); setShowLearnMore(false); }}
+                  className="text-[#9a9a9a] hover:text-white transition-colors shrink-0"
+                  id="learn-more-close-x"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <p className="text-[9px] text-[#9a9a9a] leading-relaxed">
+                Thank you for taking the time to learn more about your upcoming flight experience.
+                Flappy Something leverages next-generation bird-based intelligence to deliver a
+                fully optimized, deeply personalized vertical navigation journey.
+              </p>
+
+              {/* Card within card within card */}
+              <div className="rounded-2xl bg-white/5 border border-white/10 p-2.5 space-y-2">
+                <div className="text-[8px] font-bold text-purple-300 uppercase tracking-wider">Platform Reliability Card</div>
+                <div className="rounded-xl bg-black/30 border border-white/10 p-2 flex items-center justify-between">
+                  <span className="text-[8px] text-[#8a8a8a] font-mono">NEURAL UPTIME</span>
+                  <span className="text-[10px] font-black text-cyan-300">99.99%</span>
+                </div>
+                <div className="rounded-xl bg-black/30 border border-white/10 p-2 flex items-center justify-between">
+                  <span className="text-[8px] text-[#8a8a8a] font-mono">FLAP LATENCY</span>
+                  <span className="text-[10px] font-black text-emerald-300">12ms</span>
+                </div>
+              </div>
+
+              <p className="text-[8px] text-[#777777] leading-relaxed italic">
+                Please note that individual flight results may vary. Continued flapping constitutes
+                acceptance of our Intelligent Flight Terms.
+              </p>
+
+              <button
+                onClick={() => { audio.playTick(); setShowLearnMore(false); }}
+                className="w-full py-2 rounded-[24px] bg-gradient-to-r from-purple-600 to-cyan-500 text-white text-[9px] font-black uppercase tracking-wider shadow-[0_0_18px_rgba(139,92,246,0.5)]"
+                id="learn-more-close"
+              >
+                I Understand, Thank You For Reading
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Cheap emoji results screen after death: score first, everything else second */}
+        {showResults && !showLeaderboard && (
+          <div className="absolute inset-0 bg-[#0a0a12] flex flex-col items-center justify-center gap-1.5 p-4 text-center font-sans" id="game-results-panel">
+            <div className="text-2xl leading-none">💥🐦💥</div>
+            <div className="text-[10px] font-bold text-[#777777] uppercase tracking-widest">
+              Your flight has ended!
+            </div>
+
+            <div className="text-6xl font-black text-white leading-none my-1">{score}</div>
+            <div className="text-[9px] font-mono text-purple-300 uppercase tracking-[0.3em]">
+              🪽 Flaps Completed
+            </div>
+
+            <div className="text-[9px] text-emerald-400 font-bold mt-1">📈 +18.6% vs previous flight!</div>
+            <div className="text-[8px] text-[#777777]">🤖 AI Tip: tap with a steadier rhythm!</div>
+
+            <div className="flex items-center gap-2 mt-3">
+              <button
+                onClick={resetGame}
+                className="px-5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-fuchsia-500 text-white text-xs font-black tracking-wide"
+                id="results-retry"
+              >
+                🔁 TRY AGAIN!!
+              </button>
+              <button
+                onClick={() => {
+                  audio.playTick();
+                  setShowLeaderboard(true);
+                  updateProgress((prev) => ({ ...prev, seenLeaderboard: true }));
+                  if (progress.deathsAt37 >= 2) onLeaderboardOpened();
+                }}
+                className="px-5 py-2 rounded-xl bg-[#1a1a2e] border border-purple-500/40 text-purple-200 text-xs font-black tracking-wide hover:bg-[#232345] transition-colors"
+                id="results-leaderboard"
+              >
+                🏆 LEADERBOARD
+              </button>
+            </div>
+
+            <div className="text-[7px] text-[#555555] mt-2">✨ Press SPACE to fly again ✨</div>
           </div>
         )}
 

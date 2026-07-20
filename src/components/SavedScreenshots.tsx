@@ -128,22 +128,23 @@ export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, up
   };
 
   return (
-    <div className="flex flex-col h-full bg-stone-900 text-stone-100 font-sans overflow-hidden" id="screenshots-root">
-      
-      {/* Schematics Header */}
-      <div className="bg-stone-800 p-3 border-b border-stone-700 flex items-center justify-between" id="spec-header">
-        <div className="flex items-center gap-1.5 font-display font-bold text-xs text-amber-400">
-          <FileText className="w-4 h-4" />
+    <div className="flex flex-col h-full bg-[var(--laos-bg)] text-[var(--laos-text)] font-sans overflow-hidden" id="screenshots-root">
+
+      {/* Viewer chrome: this app arrived with the migration and still draws
+          itself in the old system's language. The paper is the only warmth. */}
+      <div className="bg-[var(--laos-surface)] p-3 border-b border-[var(--laos-line)] flex items-center justify-between" id="spec-header">
+        <div className="flex items-center gap-1.5 font-laos font-semibold text-xs text-[var(--laos-text)] tracking-wide">
+          <FileText className="w-4 h-4 text-[var(--laos-dim)]" strokeWidth={1.5} />
           <span>Lumen Arc Printed Schematics</span>
         </div>
-        <span className="text-[9px] bg-stone-950 px-2 py-0.5 rounded font-mono text-stone-400">
+        <span className="laos-label text-[8px] border border-[var(--laos-line-dim)] bg-[var(--laos-bg)] px-2 py-0.5">
           STATUS: EXAMINING 3 SHEETS
         </span>
       </div>
 
       {/* Grid of papers */}
       <div className="flex-1 p-3.5 flex flex-col justify-center gap-3 relative overflow-y-auto" id="spec-workspace">
-        <div className="text-[10px] text-stone-400 text-center italic">
+        <div className="font-laos text-[10px] text-[var(--laos-dim)] text-center">
           Click any printed paper to zoom in and read the structural details closely.
         </div>
 
@@ -155,8 +156,10 @@ export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, up
               onClick={() => handleZoom(index)}
               whileHover={{ scale: 1.02, rotate: sheet.angle * 0.8 }}
               style={{ rotate: `${sheet.angle}deg` }}
-              className={`p-3 rounded-lg shadow-md cursor-pointer border border-stone-800/20 flex flex-col justify-between ${sheet.bg} ${sheet.textColor} min-h-[95px] overflow-hidden`}
+              className={`relative paper-texture paper-crease p-3 rounded-sm shadow-[0_10px_24px_rgba(0,0,0,0.45)] cursor-pointer border border-black/20 flex flex-col justify-between ${sheet.bg} ${sheet.textColor} min-h-[95px] overflow-hidden`}
             >
+              {/* Staple in the top-left corner */}
+              <span className="absolute -top-0.5 left-6 w-3 h-1.5 bg-gradient-to-b from-stone-400 to-stone-600 rounded-sm rotate-[8deg] shadow-sm pointer-events-none"></span>
               <div className="flex items-start justify-between">
                 <div>
                   <h4 className="font-display font-black text-xs leading-tight">{sheet.title}</h4>
@@ -183,7 +186,7 @@ export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, up
                 initial={{ scale: 0.9, y: 10 }}
                 animate={{ scale: 1, y: 0 }}
                 exit={{ scale: 0.9, y: 10 }}
-                className={`p-4 rounded-xl shadow-2xl max-h-full overflow-y-auto flex flex-col justify-between ${sheets[activeSheet].bg} ${sheets[activeSheet].textColor}`}
+                className={`paper-texture halftone-zoom p-4 rounded-sm shadow-2xl max-h-full overflow-y-auto flex flex-col justify-between ${sheets[activeSheet].bg} ${sheets[activeSheet].textColor}`}
               >
                 <div>
                   <div className="flex justify-between items-start border-b border-current pb-2 mb-3">
