@@ -151,6 +151,8 @@ const RightGripFront = () => (
   </div>
 );
 
+const HAND_PRESS_SPRING = { type: 'spring', stiffness: 520, damping: 30 } as const;
+
 interface InteractiveHandProps {
   pressed: boolean;
 }

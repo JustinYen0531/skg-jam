@@ -232,3 +232,11 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Added one looping music player with a restrained 600 ms phase crossfade, shared global mute behavior, and a first-input retry for browser autoplay restrictions.
 - Added static coverage for all eleven assets, the Chapter-to-Phase mapping, looping playback, phase-change wiring, and mute integration.
 - Browser listening validation remains intentionally omitted per project instruction; manual listening should check relative BGM/SFX balance and loop seams.
+
+## 2026-07-20 — P0/P1 hard audibility repair
+
+- Replaced the ineffective sub-unity-only gain correction with explicit per-event loudness multipliers: gameplay/UI `4.5x`, narrative `7x`, and Meta Foley `5x`.
+- Added a final dynamics limiter so overlapping collision, death, and UI layers can be clearly loud without uncontrolled clipping.
+- Added capture-phase pointer/keyboard AudioContext unlocking and retry of the triggering event after a suspended context resumes.
+- Preserved event timing, pitch, deterministic variants, P1 event identities, mute behavior, and the deliberately quiet ambience layer.
+- Browser listening validation remains intentionally omitted per project instruction; static tests, TypeScript lint, and production build are required before upload.

@@ -96,6 +96,22 @@ export interface SfxOptions {
 
 type BusName = 'gameplay' | 'ui' | 'narrative' | 'metaFoley' | 'ambience';
 
+const MASTER_GAIN = 1;
+const BUS_GAIN: Record<BusName, number> = {
+  gameplay: 1,
+  ui: 0.95,
+  narrative: 0.95,
+  metaFoley: 1,
+  ambience: 0.1,
+};
+const EVENT_GAIN: Record<BusName, number> = {
+  gameplay: 4.5,
+  ui: 4.5,
+  narrative: 7,
+  metaFoley: 5,
+  ambience: 1,
+};
+
 interface Voice {
   gain: GainNode;
   until: number;
@@ -104,6 +120,7 @@ interface Voice {
 class AudioManager {
   private ctx: AudioContext | null = null;
   private master: GainNode | null = null;
+  private limiter: DynamicsCompressorNode | null = null;
   private buses: Partial<Record<BusName, GainNode>> = {};
   private noiseBuffer: AudioBuffer | null = null;
   private ambientOsc: OscillatorNode | null = null;
@@ -122,26 +139,25 @@ class AudioManager {
       const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
       if (AudioCtx) this.ctx = new AudioCtx();
     }
-    if (this.ctx && this.ctx.state === 'suspended') {
-      this.ctx.resume();
-    }
     if (this.ctx && !this.master) {
       this.master = this.ctx.createGain();
-      this.master.gain.value = this.isMuted ? 0 : 0.9;
-      this.master.connect(this.ctx.destination);
-      // §6.2 relative levels: keep the hierarchy, but compensate for the
-      // event × bus × master gain stages so short sounds remain audible on
-      // laptop and phone speakers. Ambience stays below interaction detail.
-      const levels: Record<BusName, number> = {
-        gameplay: 0.85,
-        ui: 0.6,
-        narrative: 0.5,
-        metaFoley: 0.65,
-        ambience: 0.12,
-      };
-      (Object.keys(levels) as BusName[]).forEach((name) => {
+      this.master.gain.value = this.isMuted ? 0 : MASTER_GAIN;
+
+      // The previous chain multiplied already-small event envelopes by
+      // sub-unity bus and master gains. A limiter lets interaction sounds be
+      // deliberately loud without stacked death/UI voices clipping.
+      this.limiter = this.ctx.createDynamicsCompressor();
+      this.limiter.threshold.value = -18;
+      this.limiter.knee.value = 12;
+      this.limiter.ratio.value = 8;
+      this.limiter.attack.value = 0.002;
+      this.limiter.release.value = 0.16;
+      this.master.connect(this.limiter);
+      this.limiter.connect(this.ctx.destination);
+
+      (Object.keys(BUS_GAIN) as BusName[]).forEach((name) => {
         const bus = this.ctx!.createGain();
-        bus.gain.value = levels[name];
+        bus.gain.value = BUS_GAIN[name];
         bus.connect(this.master!);
         this.buses[name] = bus;
       });
@@ -198,8 +214,9 @@ class AudioManager {
   /** Envelope gain node: fast attack, exponential-ish release. */
   private env(busName: BusName, t: number, peak: number, dur: number, attack = 0.004): GainNode {
     const g = this.ctx!.createGain();
+    const audiblePeak = Math.min(1.5, peak * EVENT_GAIN[busName]);
     g.gain.setValueAtTime(0.0001, t);
-    g.gain.linearRampToValueAtTime(peak, t + attack);
+    g.gain.linearRampToValueAtTime(audiblePeak, t + attack);
     g.gain.exponentialRampToValueAtTime(0.0008, t + dur);
     g.connect(this.bus(busName));
     return g;
@@ -279,7 +296,7 @@ class AudioManager {
   setMute(muted: boolean) {
     this.isMuted = muted;
     if (this.master && this.ctx) {
-      this.master.gain.setTargetAtTime(muted ? 0 : 0.9, this.ctx.currentTime, 0.02);
+      this.master.gain.setTargetAtTime(muted ? 0 : MASTER_GAIN, this.ctx.currentTime, 0.02);
     }
     if (muted) {
       this.stopAmbientHum();
@@ -292,10 +309,38 @@ class AudioManager {
     return this.isMuted;
   }
 
+  /**
+   * Resume Web Audio from the first real user gesture. Call this in capture
+   * phase so target click/key handlers run after the resume request begins.
+   */
+  armUnlock() {
+    if (typeof window === 'undefined') return () => {};
+    const unlock = () => {
+      this.initCtx();
+      if (!this.ctx || this.ctx.state !== 'suspended') return;
+      void this.ctx.resume();
+    };
+    window.addEventListener('pointerdown', unlock, true);
+    window.addEventListener('keydown', unlock, true);
+    return () => {
+      window.removeEventListener('pointerdown', unlock, true);
+      window.removeEventListener('keydown', unlock, true);
+    };
+  }
+
   play(event: SfxEvent, options: SfxOptions = {}) {
     if (this.isMuted) return;
     this.initCtx();
     if (!this.ctx || !this.master) return;
+    if (this.ctx.state === 'suspended') {
+      const ctx = this.ctx;
+      void ctx.resume().then(() => {
+        if (ctx.state === 'running' && !this.isMuted) this.play(event, options);
+      }).catch(() => {
+        // A capture-phase gesture listener will retry on the next input.
+      });
+      return;
+    }
     const t = this.ctx.currentTime + Math.max(0, options.delay ?? 0);
 
     switch (event) {

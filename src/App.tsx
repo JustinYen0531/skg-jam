@@ -63,6 +63,8 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleDebugShortcut);
   }, []);
 
+  useEffect(() => audio.armUnlock(), []);
+
   const jumpToChapter = (chapter: PuzzleChapter) => {
     const chapterInfo = getChapterById(chapter);
     setProgress(getChapterSnapshot(chapter));

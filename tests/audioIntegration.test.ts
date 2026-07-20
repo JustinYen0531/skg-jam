@@ -7,12 +7,20 @@ const flappySource = readFileSync(new URL('../src/components/FlappyGame.tsx', im
 const phoneSource = readFileSync(new URL('../src/components/PhoneSimulator.tsx', import.meta.url), 'utf8');
 const metaSource = readFileSync(new URL('../src/components/MetaInteractionScene.tsx', import.meta.url), 'utf8');
 
-test('P0 sound buses keep interaction details above ambience', () => {
-  assert.match(audioSource, /gameplay: 0\.85/);
-  assert.match(audioSource, /ui: 0\.6/);
-  assert.match(audioSource, /narrative: 0\.5/);
-  assert.match(audioSource, /metaFoley: 0\.65/);
-  assert.match(audioSource, /ambience: 0\.12/);
+test('P0 and P1 sounds use audible event gain with a final limiter', () => {
+  assert.match(audioSource, /gameplay: 4\.5/);
+  assert.match(audioSource, /ui: 4\.5/);
+  assert.match(audioSource, /narrative: 7/);
+  assert.match(audioSource, /metaFoley: 5/);
+  assert.match(audioSource, /createDynamicsCompressor\(\)/);
+  assert.match(audioSource, /peak \* EVENT_GAIN\[busName\]/);
+});
+
+test('Web Audio resumes from real input and retries the triggering sound', () => {
+  assert.match(audioSource, /armUnlock\(\)/);
+  assert.match(audioSource, /addEventListener\('pointerdown', unlock, true\)/);
+  assert.match(audioSource, /ctx\.resume\(\)\.then/);
+  assert.match(audioSource, /this\.play\(event, options\)/);
 });
 
 test('core P0 sound events remain connected to gameplay and the Meta interface', () => {
