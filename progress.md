@@ -295,3 +295,8 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 
 - Set the persistent left and right grip offsets to the requested absolute `4%` per side.
 - Browser/Preview validation remains intentionally omitted per project instruction; static offset coverage, TypeScript lint, and production build are required before upload.
+
+## 2026-07-21 — Grip offset final value
+
+- Set the persistent left and right grip offsets to the requested absolute `3%` per side.
+- Browser/Preview validation remains intentionally omitted per project instruction; static offset coverage, TypeScript lint, and production build are required before upload.
