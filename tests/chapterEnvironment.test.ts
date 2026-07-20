@@ -60,7 +60,7 @@ test('the physical environment is display-only and does not mutate progress', ()
   assert.doesNotMatch(environmentSource, /updateProgress|setProgress|GameProgress/);
   assert.match(environmentSource, /id="meta-desk-coffee"/);
   assert.match(environmentSource, /id="meta-desk-notebook"/);
-  assert.match(environmentSource, /id="meta-desk-cable"/);
+  assert.match(environmentSource, /id=\{part === 'insert' \? 'meta-cable-insert-layer' : 'meta-desk-cable'\}/);
   assert.match(environmentSource, /id="meta-case-marker"/);
   assert.match(environmentSource, /data-environment-layer=\{underlay \? 'underlay' : 'foreground'\}/);
   assert.match(environmentSource, /z-\[9\]/);
@@ -70,7 +70,15 @@ test('the physical environment is display-only and does not mutate progress', ()
   assert.match(environmentSource, /scale-\[1\.7\]/);
   assert.match(environmentSource, /id="meta-coffee-drop"/);
   assert.match(environmentSource, /id="meta-cable-plug-tip"/);
-  assert.match(environmentSource, /data-plug-target=\{connected \? 'phone-bottom-port'/);
+  assert.match(environmentSource, /id="meta-cable-inserted-end"/);
+  assert.match(environmentSource, /id="meta-cable-plug-housing"/);
+  assert.match(environmentSource, /x="64" y="50" width="9" height="16"/);
+  assert.match(environmentSource, /x="57" y="63" width="23" height="14"/);
+  assert.match(environmentSource, /data-cable-layer=\{part === 'insert' \? 'underlay' : 'foreground'\}/);
+  assert.match(environmentSource, /M650 116 C590 116 552 116 510 116/);
+  assert.match(environmentSource, /<Pen[\s\S]{0,400}<ChargingCable connected animateLayout=\{!reducedMotion\} part="insert"/);
+  assert.match(environmentSource, /<CoffeeCup[\s\S]{0,400}<ChargingCable connected=\{environment\.cable === 'connected'\} animateLayout=\{!reducedMotion\} part="body"/);
+  assert.match(environmentSource, /data-plug-target=\{connected && part === 'insert' \? 'phone-bottom-port'/);
   assert.match(environmentSource, /skg: \['SKG', '\?'\]/);
   assert.match(environmentSource, /quiet: \[\]/);
   assert.equal((environmentSource.match(/layout=\{animateLayout\}/g) ?? []).length, 4);

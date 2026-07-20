@@ -300,3 +300,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 
 - Set the persistent left and right grip offsets to the requested absolute `3%` per side.
 - Browser/Preview validation remains intentionally omitted per project instruction; static offset coverage, TypeScript lint, and production build are required before upload.
+
+## 2026-07-21 — Charging cable rear-layer continuation
+
+- Split the connected plug across the phone depth plane: only the inserted metal tip sits in the z-index 9 underlay, while the plug housing and cable remain visible in the foreground.
+- Extended both cable strokes from SVG x=510 to x=650 so the right end continues beyond the scene crop instead of exposing a rounded tail.
+- The phone now occludes the metal insertion point without hiding the cable body or moving the coffee cup.
+- Browser validation remains intentionally omitted per project instruction; static tests, TypeScript lint, and production build are required before upload.

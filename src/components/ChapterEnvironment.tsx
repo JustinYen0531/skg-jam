@@ -83,36 +83,46 @@ const CoffeeCup: React.FC<{ state: CoffeeState; ring: boolean; drop: boolean; an
   );
 };
 
-const ChargingCable: React.FC<{ connected: boolean; animateLayout: boolean }> = ({ connected, animateLayout }) => (
+const ChargingCable: React.FC<{ connected: boolean; animateLayout: boolean; part: 'insert' | 'body' }> = ({ connected, animateLayout, part }) => (
   <motion.svg
     layout={animateLayout}
     viewBox="0 0 500 140"
     className="absolute bottom-[15.5%] right-[-2%] z-[2] h-[12%] w-[39%] origin-bottom-right scale-[1.7] overflow-visible opacity-75 drop-shadow-[0_5px_4px_rgba(0,0,0,0.45)]"
     data-cable-state={connected ? 'connected' : 'loose'}
-    data-plug-target={connected ? 'phone-bottom-port' : undefined}
-    id="meta-desk-cable"
+    data-cable-layer={part === 'insert' ? 'underlay' : 'foreground'}
+    data-plug-target={connected && part === 'insert' ? 'phone-bottom-port' : undefined}
+    id={part === 'insert' ? 'meta-cable-insert-layer' : 'meta-desk-cable'}
   >
-    <path
-      d={connected ? 'M510 116 C430 116 422 44 338 54 C273 62 256 100 187 83 C143 72 115 60 72 63' : 'M510 116 C430 116 422 44 338 54 C273 62 252 101 194 90 C164 84 145 81 120 94'}
-      fill="none"
-      stroke="#24262a"
-      strokeWidth="10"
-      strokeLinecap="round"
-    />
-    <path
-      d={connected ? 'M510 114 C430 114 422 42 338 52 C273 60 256 98 187 81 C143 70 115 58 72 61' : 'M510 114 C430 114 422 42 338 52 C273 60 252 99 194 88 C164 82 145 79 120 92'}
-      fill="none"
-      stroke="rgba(255,255,255,0.12)"
-      strokeWidth="2"
-      strokeLinecap="round"
-    />
-    <rect x={connected ? 54 : 102} y={connected ? 49 : 80} width="28" height="24" rx="5" fill="#343840" stroke="#747b85" strokeWidth="2" />
-    {connected && (
+    {part === 'insert' && connected ? (
       <>
-        <rect x="62" y="70" width="12" height="20" rx="2" fill="#aeb4bc" id="meta-cable-plug-tip" />
-        <rect x="64" y="82" width="8" height="9" rx="2" fill="#1f2329" />
+        <rect x="64" y="50" width="9" height="16" rx="2" fill="#aeb4bc" id="meta-cable-plug-tip" />
+        <rect x="65.5" y="49" width="6" height="6" rx="2" fill="#171a1f" id="meta-cable-inserted-end" />
       </>
-    )}
+    ) : part === 'body' ? (
+      <>
+        <path
+          d={connected ? 'M650 116 C590 116 552 116 510 116 C430 116 422 44 338 54 C273 62 256 100 187 83 C143 72 119 70 78 70' : 'M650 116 C590 116 552 116 510 116 C430 116 422 44 338 54 C273 62 252 101 194 90 C164 84 145 81 120 94'}
+          fill="none"
+          stroke="#24262a"
+          strokeWidth="10"
+          strokeLinecap="round"
+        />
+        <path
+          d={connected ? 'M650 114 C590 114 552 114 510 114 C430 114 422 42 338 52 C273 60 256 98 187 81 C143 70 119 68 78 68' : 'M650 114 C590 114 552 114 510 114 C430 114 422 42 338 52 C273 60 252 99 194 88 C164 82 145 79 120 92'}
+          fill="none"
+          stroke="rgba(255,255,255,0.12)"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+        {connected && (
+          <>
+            <rect x="57" y="63" width="23" height="14" rx="4" fill="#343840" stroke="#747b85" strokeWidth="2" id="meta-cable-plug-housing" />
+            <path d="M61 66 H76" fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth="1.5" strokeLinecap="round" />
+          </>
+        )}
+        {!connected && <rect x="102" y="80" width="28" height="24" rx="5" fill="#343840" stroke="#747b85" strokeWidth="2" />}
+      </>
+    ) : null}
   </motion.svg>
 );
 
@@ -219,11 +229,12 @@ export const ChapterEnvironment: React.FC<ChapterEnvironmentProps> = ({ chapter,
             <>
               <Notebook state={environment.notebook} stickyNote={environment.stickyNote} animateLayout={!reducedMotion} />
               <Pen state={environment.pen} animateLayout={!reducedMotion} />
+              {environment.cable === 'connected' && <ChargingCable connected animateLayout={!reducedMotion} part="insert" />}
             </>
           ) : (
             <>
               <CoffeeCup state={environment.coffee} ring={environment.coffeeRing} drop={environment.coffeeDrop} animateLayout={!reducedMotion} />
-              {environment.cable !== 'none' && <ChargingCable connected={environment.cable === 'connected'} animateLayout={!reducedMotion} />}
+              {environment.cable !== 'none' && <ChargingCable connected={environment.cable === 'connected'} animateLayout={!reducedMotion} part="body" />}
             </>
           )}
         </motion.div>
