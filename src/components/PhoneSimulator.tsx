@@ -22,11 +22,6 @@ import {
   getChapterOneCompanionDialogue,
   getChapterOneWrongAppDialogue,
 } from '../lib/chapterOneDialogue';
-import {
-  getChapterHomeScreenState,
-  getHomeLauncherOrder,
-  type HomeLauncherApp,
-} from '../lib/chapterHomeScreen';
 
 /** Modern widget chassis: translucent, friendly, current-year. */
 const WIDGET_SHELL =
@@ -56,28 +51,6 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   const chapterOneHomeAttempt = useRef(0);
 
   const residue = getResidueLevel(progress);
-  const chapterHome = getChapterHomeScreenState(progress.currentChapter);
-  const launcherOrder = (app: HomeLauncherApp) => ({
-    order: getHomeLauncherOrder(chapterHome, app),
-  });
-  const launcherClass = (app: HomeLauncherApp) => [
-    'group relative flex flex-col items-center gap-1.5 min-w-0 transition-[background,box-shadow,opacity] duration-200',
-    chapterHome.primaryApp === app
-      ? 'rounded-2xl bg-white/[0.075] ring-1 ring-white/[0.14] px-2 py-2 -my-2'
-      : chapterHome.secondaryApp === app
-        ? 'rounded-2xl bg-white/[0.035] ring-1 ring-white/[0.07] px-2 py-2 -my-2'
-        : '',
-  ].join(' ');
-  const primaryHint = (app: HomeLauncherApp) => (
-    chapterHome.primaryApp === app && chapterHome.primaryHint
-  ) && (
-    <span
-      className="absolute -top-3 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full border border-white/10 bg-[#252d3e]/95 px-2 py-0.5 text-[7px] font-semibold tracking-[0.06em] text-slate-100 shadow-md"
-      data-home-primary-hint={app}
-    >
-      {chapterHome.primaryHint}
-    </span>
-  );
 
   useEffect(() => {
     if (debugTargetApp) setActiveApp(debugTargetApp.app);
@@ -416,24 +389,12 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
               <div className="flex-1 min-w-0 flex items-center justify-center relative">
                 <div className="w-full max-w-[680px] flex flex-col gap-[clamp(14px,2.8cqh,30px)] px-1">
 
-                <div
-                  className={`grid grid-cols-4 justify-items-center gap-y-[clamp(18px,3.4cqh,36px)] ${
-                    chapterHome.overOrdered
-                      ? 'gap-x-2 [&>button]:w-full [&>button]:rounded-xl [&>button]:border [&>button]:border-white/[0.055] [&>button]:bg-white/[0.025] [&>button]:py-2'
-                      : ''
-                  }`}
-                  id="home-apps-grid"
-                  data-chapter-home={progress.currentChapter}
-                  data-home-layout={chapterHome.overOrdered ? 'over-ordered' : 'natural'}
-                >
+                <div className="grid grid-cols-4 justify-items-center gap-y-[clamp(18px,3.4cqh,36px)]" id="home-apps-grid">
                   <button
                     onClick={() => handleLaunchApp('flappy')}
-                    className={launcherClass('flappy')}
-                    style={launcherOrder('flappy')}
+                    className="group flex flex-col items-center gap-1.5 min-w-0"
                     id="launcher-game"
-                    data-home-rank={getHomeLauncherOrder(chapterHome, 'flappy')}
                   >
-                    {primaryHint('flappy')}
                     {/* The one icon that was never re-rendered. Its proportions
                         are from another catalog; its label wears the old face. */}
                     <div className="relative w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
@@ -449,12 +410,9 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
 
                   <button
                     onClick={() => handleLaunchApp('viewtube')}
-                    className={launcherClass('viewtube')}
-                    style={launcherOrder('viewtube')}
+                    className="group flex flex-col items-center gap-1.5 min-w-0"
                     id="launcher-viewtube"
-                    data-home-rank={getHomeLauncherOrder(chapterHome, 'viewtube')}
                   >
-                    {primaryHint('viewtube')}
                     <div className="w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
                       <IconViewTube />
                     </div>
@@ -463,12 +421,9 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
 
                   <button
                     onClick={() => handleLaunchApp('amazemart')}
-                    className={launcherClass('amazemart')}
-                    style={launcherOrder('amazemart')}
+                    className="group flex flex-col items-center gap-1.5 min-w-0"
                     id="launcher-amazemart"
-                    data-home-rank={getHomeLauncherOrder(chapterHome, 'amazemart')}
                   >
-                    {primaryHint('amazemart')}
                     <div className="w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
                       <IconAmazeMart />
                     </div>
@@ -477,12 +432,9 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
 
                   <button
                     onClick={() => handleLaunchApp('browser')}
-                    className={launcherClass('browser')}
-                    style={launcherOrder('browser')}
+                    className="group flex flex-col items-center gap-1.5 min-w-0"
                     id="launcher-browser"
-                    data-home-rank={getHomeLauncherOrder(chapterHome, 'browser')}
                   >
-                    {primaryHint('browser')}
                     <div className="w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
                       <IconWayback />
                     </div>
@@ -491,12 +443,9 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
 
                   <button
                     onClick={() => handleLaunchApp('social')}
-                    className={launcherClass('social')}
-                    style={launcherOrder('social')}
+                    className="group flex flex-col items-center gap-1.5 min-w-0"
                     id="launcher-social"
-                    data-home-rank={getHomeLauncherOrder(chapterHome, 'social')}
                   >
-                    {primaryHint('social')}
                     <div className="w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
                       <IconFaceSpace />
                     </div>
@@ -505,12 +454,9 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
 
                   <button
                     onClick={() => handleLaunchApp('messages')}
-                    className={launcherClass('messages')}
-                    style={launcherOrder('messages')}
+                    className="group flex flex-col items-center gap-1.5 min-w-0"
                     id="launcher-messages"
-                    data-home-rank={getHomeLauncherOrder(chapterHome, 'messages')}
                   >
-                    {primaryHint('messages')}
                     <div className="relative w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
                       <IconMessages />
                       {!progress.unlockedCodeRoute && (
@@ -531,25 +477,13 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                   <button
                     disabled={!progress.deliveredPhone}
                     onClick={() => handleLaunchApp('screenshots')}
-                    className={`${launcherClass('screenshots')} ${
+                    className={`group flex flex-col items-center gap-1.5 min-w-0 ${
                       !progress.deliveredPhone ? 'opacity-35 saturate-50 cursor-not-allowed' : ''
                     }`}
-                    style={launcherOrder('screenshots')}
                     id="launcher-screenshots"
-                    data-home-rank={getHomeLauncherOrder(chapterHome, 'screenshots')}
                   >
-                    {primaryHint('screenshots')}
-                    <div className="relative w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
+                    <div className="w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
                       <IconSchematics legacy={residue >= 2} />
-                      {chapterHome.screenshotsCount > 0 && (
-                        <span
-                          className="absolute -right-1 -top-1 flex min-w-[16px] h-[16px] items-center justify-center rounded-full border-2 border-[#182031] bg-[#e04a3d] px-1 text-[8px] font-bold text-white"
-                          aria-label={`${chapterHome.screenshotsCount} new schematic file`}
-                          data-schematics-count={chapterHome.screenshotsCount}
-                        >
-                          {chapterHome.screenshotsCount}
-                        </span>
-                      )}
                     </div>
                     <span className={`truncate max-w-full ${
                       residue >= 2
@@ -560,12 +494,9 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
 
                   <button
                     onClick={() => handleLaunchApp('about')}
-                    className={launcherClass('about')}
-                    style={launcherOrder('about')}
+                    className="group flex flex-col items-center gap-1.5 min-w-0"
                     id="launcher-about"
-                    data-home-rank={getHomeLauncherOrder(chapterHome, 'about')}
                   >
-                    {primaryHint('about')}
                     <div className="w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
                       <IconConcept />
                     </div>
@@ -602,15 +533,8 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                       title={name}
                       id={`launcher-${name.toLowerCase()}`}
                     >
-                      <div className="relative w-[clamp(48px,5.6cqw,76px)] h-[clamp(48px,5.6cqw,76px)] drop-shadow-[0_6px_10px_rgba(0,0,0,0.4)] transition-transform duration-150 group-hover:scale-105 group-active:scale-95">
+                      <div className="w-[clamp(48px,5.6cqw,76px)] h-[clamp(48px,5.6cqw,76px)] drop-shadow-[0_6px_10px_rgba(0,0,0,0.4)] transition-transform duration-150 group-hover:scale-105 group-active:scale-95">
                         <Icon />
-                        {name === 'FileBox' && chapterHome.fileBoxStatus && (
-                          <span
-                            className="absolute -right-0.5 -top-0.5 h-3 w-3 rounded-full border-2 border-[#182031] bg-[#4f9cf7]"
-                            aria-label="Archive download available"
-                            data-filebox-status="download"
-                          ></span>
-                        )}
                       </div>
                       <span className={`truncate max-w-full ${
                         residue >= 2
