@@ -104,7 +104,7 @@ export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, up
           <div className="space-y-2 text-xs">
             <div className="font-bold text-stone-800">Q: Why did you call your game 'Skyline 256'?</div>
             <p className="text-[10px] leading-relaxed text-stone-600 bg-stone-100 p-2 rounded border border-stone-200">
-              <span className="font-bold text-stone-900">Noah Kade:</span> "Because 256 represents the ultimate gate, the final ceiling. The game has an ending. No one was ever meant to flap forever. If you must know, my favorite numbers are <span className="bg-yellow-200 px-1 py-0.5 rounded font-bold font-mono text-black">184-37-256</span>. They map directly to how the flight path connects our parameters."
+              <span className="font-bold text-stone-900">Noah Kade:</span> "Because 256 represents the ultimate gate, the final ceiling. The game has an ending. No one was ever meant to flap forever. If you must know, my favorite numbers are <span className="bg-yellow-200 px-1 py-0.5 rounded font-bold font-mono text-black">184-40-256</span>. They map directly to how the flight path connects our parameters."
             </p>
           </div>
 

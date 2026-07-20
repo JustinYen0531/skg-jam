@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { GameProgress, ActiveApp } from '../types';
 import audio from '../lib/audio';
-import { EASY_FLAPPY_SETTINGS, FlappyDeathCause, getFlappyNightMix, getGateHeights, getGateSpawnX, getGateVisualStyle, nextGate37DeathCount, resolvePipeCollision } from '../lib/flappyPhysics';
+import { EASY_FLAPPY_SETTINGS, FlappyDeathCause, getCheapTelemetry, getFlappyNightMix, getGateHeights, getGateSpawnX, getGateVisualStyle, getScoreAfterPassingGate, nextGate40DeathCount, resolvePipeCollision } from '../lib/flappyPhysics';
 import { calculateBeatPercentage, createPublicLeaderboard } from '../lib/leaderboard';
 import { RefreshCw, Play, Volume2, VolumeX, CheckCircle, Zap, Crown, Sparkles, Rocket, Brain, Activity, X } from 'lucide-react';
 import { LeaderboardPanel } from './LeaderboardPanel';
@@ -13,7 +13,7 @@ interface FlappyGameProps {
   onLeaderboardOpened: () => void;
 }
 
-// Sequence of target altitudes near pipe 37
+// Sequence of target altitudes near pipe 40
 const ALTITUDE_SEQUENCE = [184, 172, 149, 133, 121, 118, 126, 143];
 
 // Easier pacing: slower horizontal motion, wider openings, and more breathing
@@ -78,7 +78,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
         { x: 400, y: 80, text: 'INIT SYSTEM_CORE', opacity: 0.8 },
         { x: 600, y: 220, text: 'MEM_ALLOC: OK', opacity: 0.6 },
         { x: 900, y: 150, text: 'WARNING: SYSTEM OBSOLETE', opacity: 0.5 },
-        { x: 1200, y: 120, text: 'PIPE_A_037 · COLLIDER: TRUE', opacity: 0.5 },
+        { x: 1200, y: 120, text: 'PIPE_A_040 · COLLIDER: TRUE', opacity: 0.5 },
         { x: 1500, y: 260, text: 'LEGACY_ASSET_MISSING', opacity: 0.6 },
       ],
       trail: [],
@@ -328,18 +328,6 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
 
         // Distance-based scoring: a point every short stretch of flight, not
         // one point per gate cleared. Kept on the same cadence as pipe
-        // spawning below so the displayed score and gate index stay in sync.
-        if (state.frameCount % PACE_INTERVAL_FRAMES === 0) {
-          state.score++;
-          setScore(state.score);
-          setHighScore((previousBest) => Math.max(previousBest, state.score));
-          updateProgress((previousProgress) => (
-            state.score > previousProgress.bestScore
-              ? { ...previousProgress, bestScore: state.score }
-              : previousProgress
-          ));
-        }
-
         // Pipe Management
         if (state.frameCount % PACE_INTERVAL_FRAMES === 0) {
           const gateIndex = state.pipeIndexCounter++;
@@ -370,6 +358,15 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
           // Check passing midpoint
           if (!pipe.passed && pipe.x < birdX) {
             pipe.passed = true;
+            const nextScore = getScoreAfterPassingGate(pipe.index);
+            state.score = Math.max(state.score, nextScore);
+            setScore(state.score);
+            setHighScore((previousBest) => Math.max(previousBest, state.score));
+            updateProgress((previousProgress) => (
+              state.score > previousProgress.bestScore
+                ? { ...previousProgress, bestScore: state.score }
+                : previousProgress
+            ));
 
             // Meaningless AI praise popup (slop layer only, decoration)
             if (!state.bypassActive) {
@@ -382,8 +379,8 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
               });
             }
 
-            // Trigger terminal/hacked graphics once we are inside sequence 37-44
-            if (pipe.index >= 37 && state.bypassActive) {
+            // Trigger terminal/hacked graphics once we are inside sequence 40-47
+            if (pipe.index >= 40 && state.bypassActive) {
               setHackedMode(true);
             }
           }
@@ -402,10 +399,10 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
           });
 
           // Horizontal surfaces are safe: the bird can stand on a lower pipe
-          // or bump the underside of an upper pipe without dying. Gate 37 keeps
+          // or bump the underside of an upper pipe without dying. Gate 40 keeps
           // its story-critical barrier until the route has been unlocked.
           const safeHorizontalContact = collision.kind === 'land' || collision.kind === 'ceiling';
-          if (safeHorizontalContact && (pipe.index !== 37 || state.bypassActive)) {
+          if (safeHorizontalContact && (pipe.index !== 40 || state.bypassActive)) {
             state.birdY = collision.y;
             state.birdVelocity = collision.velocityY;
             return;
@@ -413,9 +410,9 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
 
           const overlapsPipeX = pipe.x <= birdX + birdSize && pipe.x + 50 >= birdX - birdSize;
           if (overlapsPipeX) {
-            // Gate 37 is a visible physical seal. The secret route is only
+            // Gate 40 is the visible Level 2 seal. The secret route is only
             // evaluated when the bird actually hits its rendered pipe body.
-            if (pipe.index === 37 && !state.bypassActive && collision.fatal) {
+            if (pipe.index === 40 && !state.bypassActive && collision.fatal) {
               if (progress.unlockedCodeRoute) {
                 // If the player knows the code, let's track real-time sequence matching!
                 // Let's check the current altitude against target altitude sequence at index 0 (184)
@@ -432,15 +429,15 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
                   // spawn developer logs instantly
                   state.devNotes.push({ x: width, y: 100, text: 'COLLIDER_BYPASS_STAGE_01: INITIATED', opacity: 1 });
                 } else {
-                  handleDeath('Level 2 Seal #37', 'gate37');
+                  handleDeath('Level 2 Seal #40', 'gate40');
                 }
               } else {
-                handleDeath('Level 2 Seal #37', 'gate37');
+                handleDeath('Level 2 Seal #40', 'gate40');
               }
-            } else if (pipe.index > 37 && state.bypassActive) {
+            } else if (pipe.index > 40 && state.bypassActive) {
               // We are active in the bypass mode!
-              // For each pipe index from 38 to 44, check if the player matches the sequence target.
-              const seqOffset = pipe.index - 37;
+              // For each pipe index from 41 to 47, check if the player matches the sequence target.
+              const seqOffset = pipe.index - 40;
               if (seqOffset < ALTITUDE_SEQUENCE.length) {
                 const currentAltitude = Math.round(((height - state.birdY) / height) * 256);
                 const target = ALTITUDE_SEQUENCE[seqOffset];
@@ -562,7 +559,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
           ctx.fillText(isLevel2Preview ? 'LEVEL 2 MATERIAL' : 'DYNAMIC OBSTACLE', pipe.x + 2, Math.max(8, pipe.topHeight - 6));
           ctx.fillText(`STABILITY: ${90 + ((pipe.index * 7) % 10)}%`, pipe.x + 2, Math.min(height - 4, bottomY + 12));
 
-          // Gate 37 quietly previews the next level: a different material,
+          // Gate 40 quietly previews the next level: a different material,
           // a few small teeth, and a locked label instead of a red warning wall.
           if (isLevel2Preview) {
             ctx.save();
@@ -818,12 +815,13 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
         ctx.fillText('NEURAL SYNC', 20, 26);
         ctx.fillText('FLAP ACCURACY', 20, 40);
         ctx.fillText('BIRD CONFIDENCE', 20, 54);
+        const cheapTelemetry = getCheapTelemetry(state.frameCount);
         ctx.fillStyle = '#67e8f9';
-        ctx.fillText('98.7%', 108, 26);
+        ctx.fillText(cheapTelemetry.neuralSync, 108, 26);
         ctx.fillStyle = '#6ee7b7';
-        ctx.fillText('+24%', 108, 40);
+        ctx.fillText(cheapTelemetry.flapAccuracy, 108, 40);
         ctx.fillStyle = '#c4b5fd';
-        ctx.fillText('91%', 108, 54);
+        ctx.fillText(cheapTelemetry.birdConfidence, 108, 54);
 
         // Floating praise popups
         state.popups = state.popups.filter((p) => p.life > 0);
@@ -924,23 +922,17 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
       
       // Update global context progress
       updateProgress((prev) => {
-        const nextDeaths = nextGate37DeathCount(prev.deathsAt37, cause);
-        
-        // If they died at score 37 or reached high coordinates
-        const reachedMax = Math.max(prev.deathsAt37, nextDeaths);
+        const nextDeaths = nextGate40DeathCount(prev.deathsAt40, cause);
 
         return {
           ...prev,
-          deathsAt37: nextDeaths,
+          deathsAt40: nextDeaths,
           bestScore: Math.max(prev.bestScore, state.score),
-          phase: prev.phase === 'intro_game' && nextDeaths >= 3 ? 'os_unlocked' : prev.phase
         };
       });
 
       // Show the cheap results screen; the leaderboard is behind a button
-      setTimeout(() => {
-        setShowResults(true);
-      }, 800);
+      setShowResults(true);
     };
 
     const triggerCompletion = () => {
@@ -1050,7 +1042,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
 
               {/* Target Sequence Checklist */}
               <div className="space-y-0.5">
-                <div className="laos-label text-[7.5px] mb-1">GATE 37 SEQUENCER:</div>
+                <div className="laos-label text-[7.5px] mb-1">GATE 40 SEQUENCER:</div>
                 {ALTITUDE_SEQUENCE.map((alt, idx) => (
                   <div
                     key={idx}
@@ -1062,7 +1054,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
                           : 'text-[var(--laos-dim)]'
                     }`}
                   >
-                    <span>P{37 + idx} Alt Target:</span>
+                    <span>P{40 + idx} Alt Target:</span>
                     <span>{alt}m</span>
                   </div>
                 ))}
@@ -1073,7 +1065,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
               {seqIndex >= 6 ? (
                 <span className="text-[var(--laos-warm)] font-bold tracking-wide">!! BOUNDING COLLIDER DISRUPTED !!</span>
               ) : (
-                <span className="text-[var(--laos-dim)]">Fly matching target heights strictly as you pass each gate section starting at 37!</span>
+                <span className="text-[var(--laos-dim)]">Fly matching target heights strictly as you pass each gate section starting at 40!</span>
               )}
             </div>
           </div>
@@ -1301,7 +1293,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
                   audio.playTick();
                   setShowLeaderboard(true);
                   updateProgress((prev) => ({ ...prev, seenLeaderboard: true }));
-                  if (progress.deathsAt37 >= 2) onLeaderboardOpened();
+                  if (progress.deathsAt40 >= 2) onLeaderboardOpened();
                 }}
                 className="px-5 py-2 rounded-xl bg-[#1a1a2e] border border-purple-500/40 text-purple-200 text-xs font-black tracking-wide hover:bg-[#232345] transition-colors"
                 id="results-leaderboard"

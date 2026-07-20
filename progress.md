@@ -104,3 +104,13 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Once formally unlocked, the Meta camera is controlled by its own persistent state and no longer inferred from `seenLeaderboard`, phase, or an arbitrary chapter 9 ceiling.
 - Loading any developer chapter snapshot explicitly unlocks the same persistent Meta presentation; closing Developer Debug Mode hides only the tool panel.
 - Verification is static and automated only; browser and screenshot validation remain intentionally omitted per project instruction.
+
+## 2026-07-20 — Gate 40 Chapter 0 boundary revision
+
+- Replaced the canonical Chapter 0 blocker, investigation clue, password, leaderboard cluster, and documentation references from Gate 37 to Gate 40.
+- Score now increases when a pipe is actually passed, so passing Gate 39 produces score 40 and colliding with Gate 40 keeps the death result at 40.
+- Death results appear immediately in the same state update instead of exposing the home screen for 800 ms.
+- Gate 39 and Gate 40 retain a visible 50px horizontal gap while the configured maximum fall speed still makes the high-to-low route impossible.
+- Daylight remains unchanged through 37, transitions across 38 and 39, and reaches full night at 40.
+- The three upper-left fake analytics values now drift independently through deterministic decorative telemetry and never affect gameplay.
+- Browser and screenshot validation remain intentionally omitted per project instruction; verification uses automated tests, TypeScript, and production build only.

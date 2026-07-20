@@ -10,7 +10,7 @@ import {
   shouldShowMetaScene,
 } from '../src/lib/metaInteraction';
 
-test('meta camera reveal requires both a second Gate 37 death and an opened leaderboard', () => {
+test('meta camera reveal requires both a second Gate 40 death and an opened leaderboard', () => {
   assert.equal(shouldRevealMetaView(1, true), false);
   assert.equal(shouldRevealMetaView(2, false), false);
   assert.equal(shouldRevealMetaView(2, true), true);

@@ -45,7 +45,7 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress }
         ...prev,
         discoveredNoahQA: true,
         discoveredMotherComment: true,
-        unlockedAdminLogin: true, // unlocks the ALT184GATE37END256 password path
+        unlockedAdminLogin: true, // unlocks the ALT184GATE40END256 password path
       }));
     }
   };
@@ -61,7 +61,7 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress }
       author: 'Noah Kade',
       avatar: 'NK',
       time: '12 years ago (2014)',
-      content: 'I have updated Skyline 256. This is my final update. It can finally be completed. I coded a special calibration path into the flight engine through Gate 37. Nobody was supposed to finish this game without understanding the path.',
+      content: 'I have updated Skyline 256. This is my final update. It can finally be completed. I coded a special calibration path into the flight engine through Gate 40. Nobody was supposed to finish this game without understanding the path.',
       likes: 2,
       comments: [
         {
@@ -307,14 +307,14 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress }
                       <div className="font-bold text-white">Q: What is your favorite number or coordinate?</div>
                       <div className="text-[11px] text-slate-300 leading-relaxed bg-slate-950 p-2.5 rounded border border-slate-800">
                         <p className="font-mono">
-                          "My absolute favorite coordinate string is <span className="bg-yellow-500/20 text-yellow-400 px-1 rounded font-bold">184-37-256</span>.
+                          "My absolute favorite coordinate string is <span className="bg-yellow-500/20 text-yellow-400 px-1 rounded font-bold">184-40-256</span>.
                         </p>
                         <p className="mt-1 text-slate-400">
                           But don't treat them simply as scores on a screen. Treat them as <span className="underline text-white font-bold">paths</span>. In our developer console, these numbers represent:
                         </p>
                         <ul className="list-disc pl-4 mt-1 text-slate-400 space-y-0.5 text-[10px]">
                           <li><span className="text-white font-bold">ALTITUDE</span>: 184</li>
-                          <li><span className="text-white font-bold">GATE</span>: 37</li>
+                          <li><span className="text-white font-bold">GATE</span>: 40</li>
                           <li><span className="text-white font-bold">END</span>: 256</li>
                         </ul>
                       </div>

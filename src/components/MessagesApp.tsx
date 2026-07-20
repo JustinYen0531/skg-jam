@@ -39,7 +39,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({ progress, updateProgre
     {
       sender: 'me',
       time: '11:25 AM',
-      content: 'Mom, what was his favorite number code? 184-37-256? Is it a password?',
+      content: 'Mom, what was his favorite number code? 184-40-256? Is it a password?',
     },
     {
       sender: 'mom',
@@ -49,7 +49,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({ progress, updateProgre
     {
       sender: 'me',
       time: '11:27 AM',
-      content: 'ALT184GATE37END256?',
+      content: 'ALT184GATE40END256?',
       isUnlockedCode: true,
     },
     {
@@ -65,13 +65,13 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({ progress, updateProgre
 
     const formattedInput = passwordInput.toUpperCase().replace(/\s+/g, '');
 
-    if (formattedInput === 'ALT184GATE37END256' && !canUseProgressionAction('admin-login', progress)) {
+    if (formattedInput === 'ALT184GATE40END256' && !canUseProgressionAction('admin-login', progress)) {
       audio.playGlitch();
       setLoginError('NICE TRY, TIME TRAVELER. FIND THE CLUES BEFORE THE PASSWORD FINDS YOU.');
       return;
     }
 
-    if (formattedInput === 'ALT184GATE37END256') {
+    if (formattedInput === 'ALT184GATE40END256') {
       audio.playSuccess();
       setLoginError('');
       updateProgress((prev) => ({
@@ -233,7 +233,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({ progress, updateProgre
                     <span>COLLISION BYPASS ENGINE OBTAINED!</span>
                   </div>
                   <p className="font-laos text-[9px] text-[var(--laos-dim)]">
-                    Your dad's original flight sequence has been recovered. Use these heights near Gate 37 in the game!
+                    Your dad's original flight sequence has been recovered. Use these heights near Gate 40 in the game!
                   </p>
                   <div className="bg-[var(--laos-bg)] p-2 border border-[var(--laos-line)] text-xs font-mono font-bold text-[var(--laos-text)] select-all mt-1.5 text-center">
                     NK_184.172.149.133.121.118.126.143
@@ -275,10 +275,10 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({ progress, updateProgre
                       <span>2014-04-20 22:20</span>
                     </div>
                     <p className="text-[var(--laos-text)] font-laos leading-relaxed">
-                      Yes. I hid the true route within the collision loop. The scraper doesn't examine the old barometric altitude sensor registers. I hardcoded a structural bypass on Gate 37.
+                      Yes. I hid the true route within the collision loop. The scraper doesn't examine the old barometric altitude sensor registers. I hardcoded a structural bypass on Gate 40.
                     </p>
                     <p className="font-mono text-[10px] bg-[var(--laos-bg)] p-2 border border-[var(--laos-line)] leading-relaxed text-[var(--laos-dim)]">
-                      If you fly precisely at the following altitudes as you pass each consecutive gate starting at 37, the collider fails and you enter the legacy wireframe layer: <br />
+                      If you fly precisely at the following altitudes as you pass each consecutive gate starting at 40, the collider fails and you enter the legacy wireframe layer: <br />
                       <span className="text-[var(--laos-text)] font-bold">184, 172, 149, 133, 121, 118, 126, 143</span>
                     </p>
                     <p className="text-[var(--laos-text)] font-laos leading-relaxed">

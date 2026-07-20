@@ -14,7 +14,7 @@ import { motion, AnimatePresence } from 'motion/react';
 const INITIAL_PROGRESS: GameProgress = {
   currentChapter: 1,
   phase: 'intro_game',
-  deathsAt37: 0,
+  deathsAt40: 0,
   seenLeaderboard: false,
   bestScore: 0,
   viewTubeSearchedArc: false,
@@ -70,8 +70,9 @@ export default function App() {
   };
 
   const handleLeaderboardOpened = () => {
-    if (shouldRevealMetaView(progress.deathsAt37, true)) {
+    if (shouldRevealMetaView(progress.deathsAt40, true)) {
       setMetaViewActive(true);
+      setProgress((previous) => ({ ...previous, phase: 'os_unlocked' }));
     }
   };
 
@@ -122,7 +123,7 @@ export default function App() {
   };
 
   const debugFlags = [
-    ['Gate 37 deaths', progress.deathsAt37],
+    ['Gate 40 deaths', progress.deathsAt40],
     ['Leaderboard seen', progress.seenLeaderboard],
     ['ARC_184 searched', progress.viewTubeSearchedArc],
     ['Replay watched', progress.watchedVideo],
@@ -228,7 +229,7 @@ export default function App() {
               
               {/* Clue 1: The Discrepancy */}
               <div className={`p-3 rounded-xl border text-xs transition-all flex gap-2.5 ${
-                progress.deathsAt37 >= 1 
+                progress.deathsAt40 >= 1
                   ? 'bg-slate-900/80 border-slate-800 text-slate-200' 
                   : 'bg-slate-950/20 border-slate-900/40 text-slate-600'
               }`} id="evidence-discrepancy">
@@ -236,8 +237,8 @@ export default function App() {
                 <div className="space-y-1">
                   <div className="font-bold">The Blocker Discrepancy</div>
                   <p className="text-[10px] text-slate-400 leading-snug">
-                    {progress.deathsAt37 >= 1 
-                      ? `Failed at Gate 37 (${progress.deathsAt37} times). Leaderboard tied perfectly at score 37. Suspicion: Real colliders bypassed.` 
+                    {progress.deathsAt40 >= 1
+                      ? `Failed at Gate 40 (${progress.deathsAt40} times). Leaderboard tied perfectly at score 40. Suspicion: Real colliders bypassed.`
                       : 'Investigation inactive. Play the mobile game to encounter the blocker.'}
                   </p>
                 </div>
@@ -254,7 +255,7 @@ export default function App() {
                   <div className="font-bold">The Recalled Console</div>
                   <p className="text-[10px] text-slate-400 leading-snug">
                     {progress.watchedVideo 
-                      ? 'ARC_184 run video shows he bypassed 37 using "Lumen Arc" phone with native altitude sensor. Tapping frequency unlocks collision bounds!' 
+                      ? 'ARC_184 run video shows he bypassed 40 using "Lumen Arc" phone with native altitude sensor. Tapping frequency unlocks collision bounds!'
                       : 'No hardware references discovered yet.'}
                   </p>
                 </div>
@@ -288,7 +289,7 @@ export default function App() {
                   <div className="font-bold">Collision Bypass Gained</div>
                   <p className="text-[10px] text-slate-400 leading-snug">
                     {progress.unlockedCodeRoute 
-                      ? 'Successfully logged in. Acquired flight heights near Gate 37: ALT 184, 172, 149, 133, 121, 118, 126, 143. Calibration sensor active!' 
+                      ? 'Successfully logged in. Acquired flight heights near Gate 40: ALT 184, 172, 149, 133, 121, 118, 126, 143. Calibration sensor active!'
                       : 'Developer coordinates locked.'}
                   </p>
                 </div>
@@ -542,7 +543,7 @@ export default function App() {
                     {progress.selectedEnding === 'submit' &&
                       'You update the scoreboard data. Social discussion swarms with your score of 257 as the world record. Yet, the corporate system logo stays as a modern slop clone. Noah\'s negative score is pushed further deep into memory, unacknowledged.'}
                     {progress.selectedEnding === 'publicize' &&
-                      'Your replay goes viral. Millions watch the altitude sensor bypassing Gate 37. SKG Automation reacts quickly: they close down the legacy database servers, claiming security breeches, and permanently scrub Noah\'s negative code records.'}
+                      'Your replay goes viral. Millions watch the altitude sensor bypassing Gate 40. SKG Automation reacts quickly: they close down the legacy database servers, claiming security breeches, and permanently scrub Noah\'s negative code records.'}
                     {progress.selectedEnding === 'preserve' &&
                       'You do not submit the score. You keep the secret safe on digital libraries. The original IPA remains possible. Download count: 1 (ARC_184), then 2. The game does not need to run forever. It only needs to remain possible.'}
                   </p>

@@ -12,28 +12,29 @@ const FIXED_GATE_HEIGHT_RATIOS = [
   0.52, 0.3, 0.62, 0.44, 0.22, 0.55,
 ] as const;
 
-export type FlappyDeathCause = 'gate37' | 'collision' | 'boundary' | 'sequence';
+export type FlappyDeathCause = 'gate40' | 'collision' | 'boundary' | 'sequence';
 
-export const nextGate37DeathCount = (
+export const nextGate40DeathCount = (
   currentCount: number,
   cause: FlappyDeathCause,
-): number => cause === 'gate37' ? currentCount + 1 : currentCount;
+): number => cause === 'gate40' ? currentCount + 1 : currentCount;
 
 const GATE_EDGE_MARGIN = 8;
 export const FLAPPY_PIPE_WIDTH = 50;
-const GATE_37_PIPE_SPACING = FLAPPY_PIPE_WIDTH + 6;
+export const GATE_40_CLEAR_GAP = 50;
+const GATE_40_PIPE_SPACING = FLAPPY_PIPE_WIDTH + GATE_40_CLEAR_GAP;
 
 /**
- * Gate 37 is spawned closer to Gate 36 than ordinary gates. Their visible
- * upper/lower pipe bodies overlap vertically, while the horizontal seam is
- * narrower than the bird, creating a real zig-zag seal instead of an air wall.
+ * Gate 40 is closer to Gate 39 than ordinary gates, but the pipes remain
+ * visibly separate. The short runway makes the high-to-low transition
+ * impossible at the configured fall speed without pretending they are one wall.
  */
 export const getGateSpawnX = (gateIndex: number, canvasWidth: number): number => {
-  if (gateIndex !== 37) return canvasWidth;
+  if (gateIndex !== 40) return canvasWidth;
 
   const ordinarySpacing =
     EASY_FLAPPY_SETTINGS.pipeSpeed * EASY_FLAPPY_SETTINGS.spawnIntervalFrames;
-  return canvasWidth - (ordinarySpacing - GATE_37_PIPE_SPACING);
+  return canvasWidth - (ordinarySpacing - GATE_40_PIPE_SPACING);
 };
 
 export interface GateHeights {
@@ -47,9 +48,31 @@ export interface GateOpeningBounds {
 }
 
 export const getFlappyNightMix = (score: number): number => {
-  if (score <= 35) return 0;
-  if (score >= 37) return 1;
-  return (score - 35) / 2;
+  if (score <= 37) return 0;
+  if (score >= 40) return 1;
+  return (score - 37) / 3;
+};
+
+export const getScoreAfterPassingGate = (gateIndex: number): number => gateIndex + 1;
+
+export interface CheapTelemetry {
+  neuralSync: string;
+  flapAccuracy: string;
+  birdConfidence: string;
+}
+
+/** Decorative fake analytics. They drift deterministically and never affect play. */
+export const getCheapTelemetry = (frameCount: number): CheapTelemetry => {
+  const tick = Math.floor(Math.max(0, frameCount) / 12);
+  const neuralSync = 91.5 + Math.sin(tick * 0.61) * 6.8;
+  const flapAccuracy = 18 + Math.sin(tick * 0.43 + 1.7) * 15;
+  const birdConfidence = 79 + Math.sin(tick * 0.79 + 0.4) * 18;
+
+  return {
+    neuralSync: `${neuralSync.toFixed(1)}%`,
+    flapAccuracy: `${flapAccuracy >= 0 ? '+' : ''}${Math.round(flapAccuracy)}%`,
+    birdConfidence: `${Math.round(birdConfidence)}%`,
+  };
 };
 
 export interface GateVisualStyle {
@@ -59,14 +82,14 @@ export interface GateVisualStyle {
 }
 
 export const getGateVisualStyle = (gateIndex: number): GateVisualStyle => ({
-  variant: gateIndex >= 37 ? 'level2-preview' : 'level1',
-  spikeCount: gateIndex === 37 ? 4 : 0,
+  variant: gateIndex >= 40 ? 'level2-preview' : 'level1',
+  spikeCount: gateIndex === 40 ? 4 : 0,
   showRedWarning: false,
 });
 
 /**
  * Every ordinary gate uses a fixed height sequence, so retries are learnable
- * and identical. Gate 36 forces the bird through a high opening; Gate 37
+ * and identical. Gate 39 forces the bird through a high opening; Gate 40
  * immediately moves the only normal opening to the floor. The secret bypass
  * intentionally does not use this normal opening.
  */
@@ -74,14 +97,14 @@ export const getGateHeights = (
   gateIndex: number,
   canvasHeight: number,
 ): GateHeights => {
-  if (gateIndex === 36) {
+  if (gateIndex === 39) {
     return {
       topHeight: GATE_EDGE_MARGIN,
       bottomHeight: canvasHeight - EASY_FLAPPY_SETTINGS.openingSize - GATE_EDGE_MARGIN,
     };
   }
 
-  if (gateIndex === 37) {
+  if (gateIndex === 40) {
     return {
       topHeight: canvasHeight - EASY_FLAPPY_SETTINGS.openingSize - GATE_EDGE_MARGIN,
       bottomHeight: GATE_EDGE_MARGIN,
@@ -109,31 +132,21 @@ export const getGateOpeningBounds = (
 });
 
 /**
- * Proves that the visible Gate 36 lower pipe and Gate 37 upper pipe form a
- * continuous physical seal in the real canvas. Their vertical bodies overlap,
- * and the horizontal seam between them is narrower than the bird's diameter.
+ * Proves that the visible gap is real, but too short for the maximum configured
+ * fall speed to carry the bird from Gate 39's high opening to Gate 40's low one.
  */
-export const isGate37PhysicalBarrierSealed = (
+export const isGate40NormalRouteImpossible = (
   canvasHeight: number,
   birdRadius: number,
 ): boolean => {
-  const gate36 = getGateHeights(36, canvasHeight);
-  const gate37 = getGateHeights(37, canvasHeight);
-  const gate36LowerPipeTop = canvasHeight - gate36.bottomHeight;
-  const verticalBodiesOverlap = gate36LowerPipeTop < gate37.topHeight;
-  const horizontalSeam = GATE_37_PIPE_SPACING - FLAPPY_PIPE_WIDTH;
+  const gate39 = getGateOpeningBounds(getGateHeights(39, canvasHeight), canvasHeight, birdRadius);
+  const gate40 = getGateOpeningBounds(getGateHeights(40, canvasHeight), canvasHeight, birdRadius);
+  const availableFrames = GATE_40_CLEAR_GAP / EASY_FLAPPY_SETTINGS.pipeSpeed;
+  const maximumDrop = availableFrames * EASY_FLAPPY_SETTINGS.maxFallSpeed;
+  const requiredDrop = gate40.top - gate39.bottom;
 
-  return verticalBodiesOverlap && horizontalSeam < birdRadius * 2;
+  return requiredDrop > maximumDrop;
 };
-
-/**
- * Normal entry is impossible because the visible geometry is sealed, not
- * because an invisible collider waits inside Gate 37's opening.
- */
-export const isGate37NormalRouteImpossible = (
-  canvasHeight: number,
-  birdRadius: number,
-): boolean => isGate37PhysicalBarrierSealed(canvasHeight, birdRadius);
 
 export type PipeCollisionKind = 'none' | 'side' | 'land' | 'ceiling';
 

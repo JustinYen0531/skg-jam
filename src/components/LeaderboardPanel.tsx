@@ -127,7 +127,7 @@ export const LeaderboardPanel: React.FC<LeaderboardPanelProps> = ({
 
     <div className="relative shrink-0 mx-3 my-2 rounded-xl border border-violet-400/25 bg-black/55 px-3 py-2 flex items-center justify-between gap-3" id="protagonist-monologue">
       <div className="min-w-0">
-        <p className="text-[10px] italic text-violet-100 truncate">“Everyone stops near 37. ARC_184 has 184. That cannot be normal.”</p>
+        <p className="text-[10px] italic text-violet-100 truncate">“Everyone stops near 40. ARC_184 has 184. That cannot be normal.”</p>
         <p className="text-[8px] text-violet-400 mt-0.5">The replay may explain what the ranking refuses to.</p>
       </div>
       <button

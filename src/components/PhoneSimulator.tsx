@@ -84,7 +84,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
 
   // Investigation checklist — the labels are clue text, do not reword them.
   const missionSteps = [
-    { done: progress.deathsAt37 >= 1, label: 'Die at pipe 37 to trigger the discrepancy' },
+    { done: progress.deathsAt40 >= 1, label: 'Die at pipe 40 to trigger the discrepancy' },
     { done: progress.watchedVideo, label: "Examine ARC_184's run video in ViewTube" },
     { done: progress.deliveredPhone, label: 'Buy the obsolete schematics folder in AmazeMart' },
     { done: progress.unlockedCodeRoute, label: "Decrypt Mother's Silver Kite Messenger login" },
@@ -650,12 +650,12 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
 
                 <div className="bg-[#0c0e12] p-2.5 rounded-xl border border-white/[0.07] space-y-1 font-mono text-[10px] text-slate-400">
                   <div className="font-bold text-white uppercase text-[11px] mb-1 text-amber-500">How to Play Guide:</div>
-                  <div>1. Open **Flappy Something** and die at 37 points.</div>
+                  <div>1. Open **Flappy Something** and die at 40 points.</div>
                   <div>2. Examine the controversial replay in **ViewTube**.</div>
                   <div>3. Search and order the obsolete schematic in **AmazeMart**.</div>
                   <div>4. Use **Wayback Browser** (2014) to investigate Silver Kite Games.</div>
                   <div>5. Explore Noah Kade's FaceSpace and message archives.</div>
-                  <div>6. Fly matching altitude sequences near Gate 37.</div>
+                  <div>6. Fly matching altitude sequences near Gate 40.</div>
                 </div>
 
                 <p className="text-[10px] text-slate-500 font-mono">

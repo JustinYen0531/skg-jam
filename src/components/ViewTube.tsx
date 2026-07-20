@@ -66,7 +66,7 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
 
     // Generate danmaku/bullet comments flying across screen
     const messages = [
-      'WAIT HOW DID HE PASS 37??',
+      'WAIT HOW DID HE PASS 40??',
       'This must be hacked, there is a collider wall there',
       'NO, he said he used Lumen Arc',
       'The device government recalled in 2014?',
@@ -202,14 +202,14 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
                           <div className="text-[8px] opacity-70">FLAPPY_SOMETHING_V2_BYPASS</div>
                         </div>
 
-                        {/* Visual representation of passing 37 */}
+                        {/* Visual representation of passing 40 */}
                         <div className="flex items-center justify-center gap-1 my-2">
                           <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping"></div>
                           <span className="text-emerald-400 font-bold text-xs animate-pulse">COLLISION_BYPASS_DETECTION</span>
                         </div>
 
                         <div className="flex justify-between text-xs font-bold text-white bg-black/40 p-1 rounded">
-                          <span>PIPE_SEC: 037</span>
+                          <span>PIPE_SEC: 040</span>
                           <span>ALT: 184m</span>
                         </div>
                       </div>
@@ -292,7 +292,7 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
                     <span>12y ago</span>
                   </div>
                   <p className="text-slate-200">
-                    This is 100% fake. At score 37, there is a hardcoded invisible collision volume. I inspected the bytecode. He is either using an emulator modification or spoofing values.
+                    This is 100% fake. At score 40, there is a hardcoded collision barrier. I inspected the bytecode. He is either using an emulator modification or spoofing values.
                   </p>
                   <div className="bg-slate-950 p-1.5 rounded text-[10px] text-yellow-400 border border-yellow-950 mt-1">
                     💬 **ARC_184 replied**: No emulator edits. No scripts. It runs on the <span className="underline font-bold text-white">Lumen Arc</span>, utilizing the native altitude sensor glitch of the LAOS operating system. Look up the device they recalled.

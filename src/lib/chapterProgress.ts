@@ -18,9 +18,9 @@ export interface DebugChapter {
 const BASE_PROGRESS: GameProgress = {
   currentChapter: 1,
   phase: 'os_unlocked',
-  deathsAt37: 3,
+  deathsAt40: 2,
   seenLeaderboard: true,
-  bestScore: 37,
+  bestScore: 40,
   viewTubeSearchedArc: false,
   watchedVideo: false,
   archiveDownloaded: false,
@@ -38,7 +38,7 @@ const BASE_PROGRESS: GameProgress = {
 };
 
 export const DEBUG_CHAPTERS: readonly DebugChapter[] = [
-  { id: 1, shortTitle: '尋找第一名', title: '謎題 1：尋找第一名', description: '排行榜指出 ARC_184 是唯一明顯突破 37 的玩家。', targetApp: 'viewtube' },
+  { id: 1, shortTitle: '尋找第一名', title: '謎題 1：尋找第一名', description: '排行榜指出 ARC_184 是唯一明顯突破 40 的玩家。', targetApp: 'viewtube' },
   { id: 2, shortTitle: '尋找舊版本', title: '謎題 2：尋找舊版本', description: '影片與留言把調查方向帶向 Archive 與 Lumen Arc。', targetApp: 'browser' },
   { id: 3, shortTitle: '購買舊裝置', title: '謎題 3：購買舊裝置', description: '舊版需要已被回收的 Lumen Arc，尋找殘存裝置。', targetApp: 'amazemart' },
   { id: 4, shortTitle: '解讀 SKG', title: '謎題 4：解讀 SKG', description: '收到的截圖揭露舊名稱與 SilverKite_Games。', targetApp: 'screenshots' },

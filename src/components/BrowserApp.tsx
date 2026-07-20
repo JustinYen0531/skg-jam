@@ -231,7 +231,7 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
                     <span className="italic">nk_altitude_final_184.gif — image not archived</span>
                   </div>
                   <p className="text-[11px] leading-relaxed font-bold text-[#7a2e00]">
-                    Once you cross the 37th pipe section, you enter our calibrated flight channel. Successfully navigate all 256 gates, and the simulation terminates correctly, writing your complete flag.
+                    Once you cross the 40th pipe section, you enter our calibrated flight channel. Successfully navigate all 256 gates, and the simulation terminates correctly, writing your complete flag.
                   </p>
                 </div>
 
