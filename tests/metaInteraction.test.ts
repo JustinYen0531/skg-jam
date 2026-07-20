@@ -100,8 +100,8 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   assert.equal((sceneSource.match(/src="\/assets\/meta-tapping-finger\.png"/g) ?? []).length, 2);
   assert.equal((sceneSource.match(/data-finger-orientation="upper-left"/g) ?? []).length, 2);
   assert.equal((sceneSource.match(/rotate: '-90deg'/g) ?? []).length, 2);
-  assert.equal((sceneSource.match(/h-\[clamp\(294px,43vh,420px\)\]/g) ?? []).length, 2);
-  assert.doesNotMatch(sceneSource, /h-\[clamp\(210px,31vh,300px\)\]/);
+  assert.equal((sceneSource.match(/h-\[clamp\(441px,64\.5vh,630px\)\]/g) ?? []).length, 2);
+  assert.doesNotMatch(sceneSource, /h-\[clamp\(294px,43vh,420px\)\]/);
   assert.match(sceneSource, /transformOrigin: '83% 13%'[\s\S]{0,600}id="meta-tapping-finger-asset"/);
   assert.match(sceneSource, /animate=\{\{ y: pressed \? 5 : 0, scale: pressed \? 0\.98 : 1 \}\}/);
   assert.match(sceneSource, /onWheelCapture=\{handleWheelCapture\}/);

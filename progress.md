@@ -186,3 +186,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Increased both generated finger render paths from `clamp(210px, 31vh, 300px)` to `clamp(294px, 43vh, 420px)`, approximately 1.4 times larger.
 - Preserved the `40% / 6%` fingertip anchor, target coordinates, press motion, swipe travel, and interaction timing so only the anatomical scale changes.
 - Browser validation remains intentionally omitted per project instruction; static regression coverage now locks both finger layers to the corrected size.
+
+## 2026-07-20 — Tapping finger skin-tone and scale match
+
+- Used the protagonist grip-hand screenshot as the color reference and changed the pointing-hand sprite from saturated orange to the same softer, muted peach-pink family.
+- Preserved the pointing pose and converted the edited chroma-key result back to a validated transparent PNG at `public/assets/meta-tapping-finger.png`.
+- Increased both click and wheel-swipe render paths by exactly 1.5 times, from `clamp(294px, 43vh, 420px)` to `clamp(441px, 64.5vh, 630px)`.
+- Browser validation remains intentionally omitted per project instruction; verification is limited to static tests, TypeScript lint, and production build.
