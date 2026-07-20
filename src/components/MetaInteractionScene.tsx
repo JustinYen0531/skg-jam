@@ -574,7 +574,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
               }}
               initial={false}
               transition={{ duration: reducedMotion ? 0 : 0.32, ease: [0.22, 1, 0.36, 1] }}
-              className="pointer-events-none absolute left-0 top-0 z-[8] h-0 w-0"
+              className="pointer-events-none absolute left-0 top-0 z-[8] hidden h-0 w-0"
               aria-hidden="true"
               id="meta-tapping-hand-back"
             >
@@ -712,7 +712,17 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
               aria-hidden="true"
               id="meta-pointer-hand"
             >
-              <RightHandFront pressed={pressed} />
+              <motion.img
+                src="/assets/meta-tapping-finger.png"
+                alt=""
+                draggable={false}
+                className="absolute left-0 top-0 h-[clamp(210px,31vh,300px)] w-auto max-w-none origin-[40%_6%] -translate-x-[40%] -translate-y-[6%] select-none drop-shadow-[0_14px_12px_rgba(0,0,0,0.3)]"
+                initial={false}
+                animate={{ y: pressed ? 5 : 0, scale: pressed ? 0.98 : 1 }}
+                transition={reducedMotion ? { duration: 0 } : HAND_PRESS_SPRING}
+                aria-hidden="true"
+                id="meta-tapping-finger-asset"
+              />
             </motion.div>
 
             <motion.div

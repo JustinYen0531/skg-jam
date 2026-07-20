@@ -163,3 +163,11 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Kept the in-progress SVG anatomy and tap-hand code intact but hid the four old idle grip containers, preventing duplicate hands while preserving the user's uncommitted work.
 - Added static coverage for the asset path, both left/right overlay layers, clip boundaries, and the right-side interaction fade.
 - Static verification before final build: `npm test` 53/53 and `npm run lint` passed. Browser validation remains intentionally omitted per project instruction.
+
+## 2026-07-20 — Generated tapping finger integration
+
+- Located the user's root-level `finger.png`; its checkerboard was baked into a 24-bit RGB image rather than stored as transparency.
+- Used the built-in image edit path to replace only the checkerboard with a flat chroma key, then converted it to real alpha as `public/assets/meta-tapping-finger.png`. The source `finger.png` remains untouched and untracked.
+- Replaced the visible SVG tapping hand with the new raster asset while retaining the existing delayed interaction queue, target travel, press timing, activation callback, return, and regrip behavior.
+- Anchored motion at the generated image's fingertip and added only a restrained five-pixel press movement; the obsolete rear SVG tapping layer remains preserved but hidden.
+- Verification is static and automated only; browser and screenshot validation remain intentionally omitted per project instruction.
