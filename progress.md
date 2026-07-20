@@ -278,3 +278,9 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Anchored the left hand at `left: -7%` and the right hand at `right: -7%`, moving both palms toward the outer scene edges while keeping the thumbs near the phone rim.
 - Preserved hand scale, vertical position, split-image clipping, interaction fade, tapping-finger animation, and phone geometry.
 - Browser/Preview validation remains intentionally omitted per project instruction; static offset coverage, TypeScript lint, and production build are required before upload.
+
+## 2026-07-21 — Grip offset visual correction
+
+- Reduced the mirrored persistent hand offset from `7%` to `5%` after the updated screenshot showed the thumbs sitting too far away from the phone rim.
+- Kept the vertical palms outside the text-safe area while bringing both thumbs two percentage points closer to the device edge.
+- Browser/Preview validation remains intentionally omitted per project instruction; static offset coverage, TypeScript lint, and production build are required before upload.

@@ -86,8 +86,8 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   assert.equal((sceneSource.match(/src="\/assets\/meta-hand-grip\.png"/g) ?? []).length, 2);
   assert.match(sceneSource, /id="meta-left-hand-asset"/);
   assert.match(sceneSource, /id="meta-right-hand-asset"/);
-  assert.match(sceneSource, /left-\[-7%\][\s\S]{0,300}data-hand-edge-offset="-7%"/);
-  assert.match(sceneSource, /right-\[-7%\][\s\S]{0,300}data-hand-edge-offset="7%"/);
+  assert.match(sceneSource, /left-\[-5%\][\s\S]{0,300}data-hand-edge-offset="-5%"/);
+  assert.match(sceneSource, /right-\[-5%\][\s\S]{0,300}data-hand-edge-offset="5%"/);
   assert.match(sceneSource, /clipPath: 'inset\(0 50% 0 0\)'/);
   assert.match(sceneSource, /clipPath: 'inset\(0 0 0 50%\)'/);
   assert.match(sceneSource, /opacity: interactionPending \|\| scrollGesture \? 0 : 1[\s\S]{0,900}id="meta-right-hand-asset"/);
