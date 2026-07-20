@@ -74,7 +74,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   }, []);
 
   const handleLaunchApp = (app: ActiveApp) => {
-    audio.playTick();
+    audio.play('phone.appOpen');
     setActiveApp(app);
     if (progress.currentChapter === 1 && metaInteraction.active) {
       if (app === 'viewtube') {
@@ -95,7 +95,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   };
 
   const handleHomeButton = () => {
-    audio.playTick();
+    audio.play('phone.home');
     setActiveApp('home');
     if (progress.currentChapter === 1 && metaInteraction.active) {
       const attempt = chapterOneHomeAttempt.current;

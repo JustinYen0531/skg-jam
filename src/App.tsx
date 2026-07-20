@@ -106,6 +106,7 @@ export default function App() {
     const nextMuted = !isMuted;
     setIsMuted(nextMuted);
     audio.setMute(nextMuted);
+    if (!nextMuted) audio.play('ui.toggle', { variant: 1 });
   };
 
   const restartLoop = () => {
@@ -116,7 +117,14 @@ export default function App() {
   };
 
   const selectEnding = (ending: 'submit' | 'publicize' | 'preserve') => {
-    audio.playSuccess();
+    // §4.8 — each ending owns its sound: preserving is a file finishing
+    // its write; submitting is a complete but hollow ad victory;
+    // publicizing is a notification swarm cut off by the server.
+    audio.play(
+      ending === 'preserve' ? 'story.endingPreserve'
+        : ending === 'submit' ? 'story.endingSubmit'
+          : 'story.endingPublicize',
+    );
     setProgress((prev) => ({
       ...prev,
       phase: 'ending_choice',
@@ -168,7 +176,7 @@ export default function App() {
                 ACTIVE COGNITIVE INVESTIGATION
               </span>
               <button 
-                onClick={() => setDeskLamp(!deskLamp)}
+                onClick={() => { audio.play('ui.toggle', { variant: deskLamp ? 0 : 1 }); setDeskLamp(!deskLamp); }}
                 className="text-[9px] text-slate-500 hover:text-slate-300 font-mono flex items-center gap-1 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800"
                 title="Toggle Lamp"
                 id="lamp-toggle"

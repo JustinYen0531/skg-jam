@@ -46,10 +46,13 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({ progress, updateProgress, 
 
   const handleBuy = () => {
     setOrdering(true);
-    audio.playUnlock();
-    
+    // Over-happy checkout now; the jingle gets truncated into a file
+    // dropping when the "device" arrives as paper (§4.7).
+    audio.play('amazemart.purchase');
+
     setTimeout(() => {
       setOrdering(false);
+      audio.play('amazemart.delivery');
       updateProgress((prev) => completePuzzleChapter(prev, 3, {
         orderedPhone: true,
         deliveredPhone: true, // immediately delivered!

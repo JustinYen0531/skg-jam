@@ -31,13 +31,14 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
 
   const handleYearChange = (year: number) => {
     if (year === 2014 && !canUseProgressionAction('browser-skg-history', progress)) {
-      audio.playGlitch();
+      audio.play('search.noResult');
       setArchiveError('2014 IS STILL THERE. YOUR CHARACTER JUST HAS NOT EARNED THE BOOKMARK YET.');
       return;
     }
 
     setArchiveError('');
-    audio.playUnlock();
+    // An old drive seeking to another year (§4.7).
+    audio.play('archive.yearSwitch');
     setSelectedYear(year);
     if (searchedKeyword === 'skg') {
       setAddressBar(year === 2026 ? 'http://www.skg-automation.com' : 'http://web.archive.org/web/2014/silverkitegames.com');
@@ -48,7 +49,9 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
   };
 
   const handleDownload = () => {
-    audio.playSuccess();
+    // Transfer chirp first, then the file settles — both on the audio clock.
+    audio.play('archive.downloadStart');
+    audio.play('archive.downloadComplete', { delay: 0.5 });
     updateProgress((prev) => completePuzzleChapter(prev, 2, { archiveDownloaded: true }));
   };
 

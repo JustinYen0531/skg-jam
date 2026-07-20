@@ -9,6 +9,7 @@ import {
   normalizeVirtualKey,
 } from '../lib/metaInteraction';
 import { CHAPTER_ONE_DIALOGUE, DialogueLines } from '../lib/chapterOneDialogue';
+import audio from '../lib/audio';
 import type { EnvironmentChapter } from '../lib/chapterEnvironment';
 import { ChapterEnvironment } from './ChapterEnvironment';
 
@@ -331,6 +332,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
       return;
     }
     setPointer(getRestPosition());
+    audio.play('meta.cameraPullback');
   }, [active, clearTimers, getRestPosition]);
 
   useEffect(() => clearTimers, [clearTimers]);
@@ -365,6 +367,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
 
       timersRef.current.push(window.setTimeout(() => {
         setPressed(true);
+        audio.play('meta.fingerContact');
       }, META_TAP_TIMING.unfoldMs + META_TAP_TIMING.travelMs));
 
       timersRef.current.push(window.setTimeout(() => {
@@ -395,6 +398,11 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
   const applyQueuedKey = useCallback((input: HTMLInputElement, key: string) => {
     const controller = inputControllersRef.current.get(input.id);
     if (!controller) return;
+    if (key === 'Backspace') {
+      audio.play('key.backspace');
+    } else if (key.length === 1) {
+      audio.play('key.character');
+    }
     const currentValue = controller.getValue();
     const result = applyVirtualKey(currentValue, key);
     if (result.value !== currentValue) controller.onChange(result.value);

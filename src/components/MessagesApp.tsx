@@ -61,22 +61,22 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({ progress, updateProgre
 
   const handleAdminLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    audio.playTick();
+    audio.play('key.enter');
 
     const formattedInput = passwordInput.toUpperCase().replace(/\s+/g, '');
 
     if (formattedInput === 'ALT184GATE40END256' && !canUseProgressionAction('admin-login', progress)) {
-      audio.playGlitch();
+      audio.play('auth.wrong');
       setLoginError('NICE TRY, TIME TRAVELER. FIND THE CLUES BEFORE THE PASSWORD FINDS YOU.');
       return;
     }
 
     if (formattedInput === 'ALT184GATE40END256') {
-      audio.playSuccess();
+      audio.play('auth.correct');
       setLoginError('');
       updateProgress((prev) => completePuzzleChapter(prev, 8, { loggedIntoAdmin: true }));
     } else {
-      audio.playGlitch();
+      audio.play('auth.wrong');
       setLoginError('CREDENTIALS REJECTED. ENSURE ALTITUDE, GATE, AND END VALUES ARE PROPERLY SEQUENCE-PAIRED.');
     }
   };
@@ -100,7 +100,12 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({ progress, updateProgre
         <div className="text-sm font-semibold text-white mb-2">Messages</div>
         <div className="flex rounded-full bg-white/[0.06] p-0.5">
           <button
-            onClick={() => { audio.playTick(); setActiveTab('mom'); }}
+            onClick={() => {
+              audio.play('phone.tab');
+              // She notices you looking, and starts — then stops (§4.7).
+              audio.play('messages.typing', { delay: 1.1 });
+              setActiveTab('mom');
+            }}
             className={`flex-1 py-1.5 text-[10.5px] font-medium rounded-full transition-colors ${
               activeTab === 'mom' ? 'bg-[#2a2f3a] text-white' : 'text-slate-400 hover:text-slate-200'
             }`}
@@ -109,7 +114,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({ progress, updateProgre
             Mom (Mara)
           </button>
           <button
-            onClick={() => { audio.playTick(); setActiveTab('admin'); }}
+            onClick={() => { audio.play('phone.tab'); setActiveTab('admin'); }}
             className={`flex-1 py-1.5 rounded-full font-laos text-[9.5px] tracking-[0.14em] laos-slow ${
               activeTab === 'admin'
                 ? 'bg-[var(--laos-surface-2)] text-[var(--laos-text)] shadow-[inset_0_0_0_1px_var(--laos-line)]'

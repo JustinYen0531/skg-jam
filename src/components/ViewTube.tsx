@@ -87,7 +87,7 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
   };
 
   const performSearch = () => {
-    audio.playTick();
+    audio.play('key.enter');
     const query = searchQuery.toLowerCase().trim();
     if (progress.currentChapter === 1 && metaInteraction.active) {
       const response = getChapterOneSearchResponse(searchQuery, chapterOneSearchAttempt.current);
@@ -95,16 +95,18 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
       metaInteraction.speak(response.lines);
 
       if (!response.isArcSearch) {
+        audio.play('search.noResult');
         setSearchError('NO RELEVANT RESULT FOR THE CURRENT INVESTIGATION.');
         return;
       }
 
       if (!canUseProgressionAction('viewtube-arc-search', progress)) {
-        audio.playGlitch();
+        audio.play('search.noResult');
         setSearchError('THAT NAME IS INTERESTING. YOUR CHARACTER HAS NOT SEEN IT YET.');
         return;
       }
 
+      audio.play('search.found');
       setSearchError('');
       setHasSearched(true);
       updateProgress((prev) => ({ ...prev, viewTubeSearchedArc: true }));
@@ -113,10 +115,11 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
 
     if (query.includes('arc') || query.includes('184')) {
       if (!canUseProgressionAction('viewtube-arc-search', progress)) {
-        audio.playGlitch();
+        audio.play('search.noResult');
         setSearchError('THAT NAME IS INTERESTING. YOUR CHARACTER HAS NOT SEEN IT YET.');
         return;
       }
+      audio.play('search.found');
       setSearchError('');
       setHasSearched(true);
       updateProgress((prev) => ({ ...prev, viewTubeSearchedArc: true }));
@@ -135,7 +138,8 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
   }), [metaInteraction.registerInput, searchQuery, progress, updateProgress]);
 
   const startVideo = () => {
-    audio.playUnlock();
+    // Old player relay click; the compressed recording floor engages.
+    audio.play('viewtube.videoStart');
     setIsPlayingVideo(true);
     setReplayPaused(false);
     speakChapterOne(CHAPTER_ONE_DIALOGUE.videoStarted);
@@ -284,10 +288,15 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
                         paused={replayPaused}
                         onBarrageChange={(isActive) => {
                           setBarrageActive(isActive);
-                          if (isActive) setBarrageCycle((cycle) => cycle + 1);
+                          if (isActive) {
+                            setBarrageCycle((cycle) => cycle + 1);
+                            // One density-rising sizzle for the whole flood.
+                            audio.play('viewtube.barrage');
+                          }
                         }}
                         onPausePoint={() => {
                           metaInteraction.tapElement('arc-run-replay-canvas', () => {
+                            audio.play('viewtube.pause');
                             setReplayPaused(true);
                             speakChapterOne(CHAPTER_ONE_DIALOGUE.videoPaused);
                           });

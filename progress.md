@@ -210,3 +210,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Defined five sound worlds, chapter evolution, bus and concurrency rules, asset naming/export requirements, a current `AudioManager` audit, a proposed event API, and P0/P1/P2 production priorities.
 - Kept BGM authority in `docs/CORE_MUSIC_LANGUAGE.md`; the new document explicitly avoids cinematic horror cues and prevents audio from revealing evidence before the player discovers it.
 - Linked the sound specification from the GDD and added its implementation tasks to the checklist. This step changes documentation only; no runtime audio implementation was added.
+
+## 2026-07-20 — P0 sound audibility correction
+
+- Static audit confirmed the P0 Web Audio event engine and core trigger paths existed locally but were not committed, and several late-story P0 events were still synthesis-only.
+- Raised bus gains to compensate for event × bus × master multiplication: gameplay `0.50 → 0.85`, UI `0.30 → 0.60`, narrative `0.16 → 0.50`, and Meta Foley `0.38 → 0.65`.
+- Reduced ambience `0.20 → 0.12` so the room/device bed does not mask flap, keyboard, monologue glyph, and fingertip details.
+- This pass changes gain staging only; event timbres, trigger timing, polyphony caps, and mute behavior remain unchanged. Browser listening validation remains intentionally omitted per project instruction.

@@ -118,9 +118,14 @@ export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, up
   ];
 
   const handleZoom = (idx: number) => {
-    audio.playUnlock();
+    // Paper coming closer under glass; the clue chime only on the first
+    // sheet that actually unlocks something (§4.7, §4.8).
+    audio.play('screenshot.zoom');
+    if (idx === 0 && !progress.discoveredOriginalTitle) {
+      audio.play('story.clueUnlock', { delay: 0.25 });
+    }
     setActiveSheet(idx);
-    
+
     if (idx === 0) {
       updateProgress((prev) => completePuzzleChapter(prev, 4, { discoveredOriginalTitle: true }));
     }
@@ -195,7 +200,7 @@ export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, up
                     </div>
                     <button
                       onClick={() => {
-                        audio.playTick();
+                        audio.play('phone.modalClose');
                         setActiveSheet(null);
                       }}
                       className="p-1 rounded-full hover:bg-black/10 transition-colors"

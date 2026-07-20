@@ -92,31 +92,36 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
     setIsPlaying(true);
     setShowLeaderboard(false);
     setShowResults(false);
-    audio.playUnlock();
+  };
+
+  // Retry is a reset-suction, never the clue-unlock chord (§4.1).
+  const restartRun = () => {
+    audio.play('flight.restart');
+    resetGame();
   };
 
   const handleJump = (e: React.MouseEvent | React.TouchEvent | KeyboardEvent) => {
     if (e.type === 'keydown' && (e as KeyboardEvent).code !== 'Space') return;
     if (e.cancelable) e.preventDefault();
-    
+
     if (!isPlaying) {
       if (showLeaderboard) {
         setShowLeaderboard(false);
       } else {
         // From the results screen or the start screen, SPACE starts a new run
-        resetGame();
+        restartRun();
       }
       return;
     }
 
     if (stateRef.current.gameOver) {
-      resetGame();
+      restartRun();
       return;
     }
 
     stateRef.current.birdVelocity = stateRef.current.birdJump;
     stateRef.current.lastJumpFrame = stateRef.current.frameCount; // tap ripple
-    audio.playJump();
+    audio.play('flight.flap');
   };
 
   useEffect(() => {
@@ -358,9 +363,16 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
           // Check passing midpoint
           if (!pipe.passed && pipe.x < birdX) {
             pipe.passed = true;
+            const scoreBeforeGate = state.score;
             const nextScore = getScoreAfterPassingGate(pipe.index);
             state.score = Math.max(state.score, nextScore);
             setScore(state.score);
+            audio.play('flight.score', { variant: state.score });
+            // The 256 black wall announces itself as a dry service
+            // disconnection when the final approach begins (§4.8).
+            if (hackedMode && scoreBeforeGate < 250 && state.score >= 250) {
+              audio.play('story.serviceTerminated');
+            }
             setHighScore((previousBest) => Math.max(previousBest, state.score));
             updateProgress((previousProgress) => (
               state.score > previousProgress.bestScore
@@ -381,6 +393,9 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
 
             // Trigger terminal/hacked graphics once we are inside sequence 40-47
             if (pipe.index >= 40 && state.bypassActive) {
+              // The old synth voice reconnects exactly once, when the
+              // wireframe layer first takes over (§4.1).
+              if (!hackedMode) audio.play('flight.level2Connect');
               setHackedMode(true);
             }
           }
@@ -425,7 +440,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
                   state.seqMatched[0] = true;
                   setSeqIndex(1);
                   setSeqMatched([...state.seqMatched]);
-                  audio.playTick();
+                  audio.play('flight.altitudeStep', { variant: 0 });
                   // spawn developer logs instantly
                   state.devNotes.push({ x: width, y: 100, text: 'COLLIDER_BYPASS_STAGE_01: INITIATED', opacity: 1 });
                 } else {
@@ -449,7 +464,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
                     state.seqIndex = seqOffset + 1;
                     setSeqIndex(seqOffset + 1);
                     setSeqMatched([...state.seqMatched]);
-                    audio.playTick();
+                    audio.play('flight.altitudeStep', { variant: seqOffset });
                     
                     state.devNotes.push({ 
                       x: width, 
@@ -461,7 +476,9 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
                     // At stage 5 (Altitude 118), complete the full structural collapse!
                     if (seqOffset === 5) {
                       state.terminalGlitchActive = true;
-                      audio.playGlitch();
+                      // The collision sound loses its middle — a data gap,
+                      // not a glitch burst (§4.1).
+                      audio.play('flight.collisionBypass');
                     }
                   } else {
                     // Missed the height sequence! Structural breakdown fails, you hit the pipe!
@@ -918,7 +935,17 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
       if (state.gameOver) return;
       state.gameOver = true;
       setIsPlaying(false);
-      audio.playExplode();
+      // Contact → stall → cheap result sting, scheduled on the audio clock
+      // so the results panel itself appears immediately (§4.1). Gate 40's
+      // seal uses the Level 2 material variant; the sting loses its
+      // decoration once the meta reveal is near.
+      audio.play('flight.pipeHit', { variant: cause === 'gate40' ? 1 : 0 });
+      if (cause === 'gate40') audio.play('flight.gate40Block');
+      audio.play('flight.birdFall', { delay: 0.07 });
+      audio.play('flight.deathResult', {
+        intensity: progress.deathsAt40 >= 1 ? 0.5 : 1,
+        delay: 0.5,
+      });
       
       // Update global context progress
       updateProgress((prev) => {
@@ -939,7 +966,8 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
       const state = stateRef.current;
       state.gameOver = true;
       setIsPlaying(false);
-      audio.playSuccess();
+      // Simple early-mobile completion — never the five-step victory chord.
+      audio.play('flight.complete');
       
       // Update progress to completion!
       updateProgress((prev) => ({
@@ -996,6 +1024,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
               const nextMuted = !isMuted;
               setIsMuted(nextMuted);
               audio.setMute(nextMuted);
+              if (!nextMuted) audio.play('ui.toggle', { variant: 1 });
             }}
             className="text-purple-300 hover:text-white transition-colors"
             title="Mute synth sfx"
@@ -1145,7 +1174,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
             {/* CTA row: verbose primary + ghost secondary */}
             <div className="flex items-center gap-2 mt-1.5">
               <button
-                onClick={resetGame}
+                onClick={() => { audio.play('ad.playNow'); resetGame(); }}
                 className="animate-float-button px-4 py-2.5 rounded-[24px] bg-gradient-to-r from-purple-600 via-fuchsia-500 to-cyan-400 text-white text-[10px] font-black tracking-wide uppercase shadow-[0_0_20px_rgba(139,92,246,0.5),0_0_60px_rgba(34,211,238,0.2)] border border-white/20 flex items-center gap-1.5"
                 id="start-button"
               >
@@ -1153,7 +1182,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
                 Begin Your Intelligent Flight Experience
               </button>
               <button
-                onClick={() => { audio.playTick(); setShowLearnMore(true); }}
+                onClick={() => { audio.play('phone.modalOpen'); setShowLearnMore(true); }}
                 className="px-3 py-2.5 rounded-2xl border border-white/20 bg-white/5 backdrop-blur text-[#9a9a9a] text-[9px] font-bold uppercase tracking-wider hover:text-white transition-colors"
                 id="learn-more-button"
               >
@@ -1163,7 +1192,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
 
             {/* Cheap emoji leaderboard entry point */}
             <button
-              onClick={() => { audio.playTick(); setShowLeaderboard(true); }}
+              onClick={() => { audio.play('leaderboard.open'); setShowLeaderboard(true); }}
               className="px-4 py-1.5 rounded-xl bg-[#1a1a2e] border border-purple-500/40 text-purple-200 text-[10px] font-black tracking-wide hover:bg-[#232345] transition-colors"
               id="home-leaderboard-button"
             >
@@ -1221,7 +1250,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
                   </div>
                 </div>
                 <button
-                  onClick={() => { audio.playTick(); setShowLearnMore(false); }}
+                  onClick={() => { audio.play('phone.modalClose'); setShowLearnMore(false); }}
                   className="text-[#9a9a9a] hover:text-white transition-colors shrink-0"
                   id="learn-more-close-x"
                 >
@@ -1254,7 +1283,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
               </p>
 
               <button
-                onClick={() => { audio.playTick(); setShowLearnMore(false); }}
+                onClick={() => { audio.play('phone.modalClose'); setShowLearnMore(false); }}
                 className="w-full py-2 rounded-[24px] bg-gradient-to-r from-purple-600 to-cyan-500 text-white text-[9px] font-black uppercase tracking-wider shadow-[0_0_18px_rgba(139,92,246,0.5)]"
                 id="learn-more-close"
               >
@@ -1282,7 +1311,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
 
             <div className="flex items-center gap-2 mt-3">
               <button
-                onClick={resetGame}
+                onClick={restartRun}
                 className="px-5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-fuchsia-500 text-white text-xs font-black tracking-wide"
                 id="results-retry"
               >
@@ -1290,7 +1319,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
               </button>
               <button
                 onClick={() => {
-                  audio.playTick();
+                  audio.play('leaderboard.open');
                   setShowLeaderboard(true);
                   updateProgress((prev) => ({ ...prev, seenLeaderboard: true }));
                   if (progress.deathsAt40 >= 2) onLeaderboardOpened();
@@ -1311,8 +1340,8 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
             entries={publicLeaderboard}
             playerBestScore={playerBestScore}
             beatPercentage={beatPercentage}
-            onRetry={resetGame}
-            onClose={() => { audio.playTick(); setShowLeaderboard(false); }}
+            onRetry={restartRun}
+            onClose={() => { audio.play('ui.close'); setShowLeaderboard(false); }}
             onInvestigate={onHome}
           />
         )}

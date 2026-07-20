@@ -47,8 +47,9 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress }
   };
 
   const toggleSort = () => {
-    audio.playTick();
     const nextSortOldest = !sortOldest;
+    // Cards shuffle; rewinding to the oldest posts runs the ticks upward.
+    audio.play('social.sort', { variant: nextSortOldest ? 1 : 0 });
     setSortOldest(nextSortOldest);
     if (nextSortOldest) {
       updateProgress((prev) => completePuzzleChapter(prev, 6, { discoveredMotherComment: true }));
@@ -56,7 +57,7 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress }
   };
 
   const openAbout = () => {
-    audio.playTick();
+    audio.play('phone.tab');
     setActiveTab('about');
     updateProgress((prev) => prev.currentChapter === 7
       ? { ...prev, discoveredNoahQA: true }
@@ -244,7 +245,7 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress }
               {/* Profile Navigation Tabs */}
               <div className="flex border-t border-slate-800/60 text-xs text-center font-mono">
                 <button
-                  onClick={() => { audio.playTick(); setActiveTab('posts'); }}
+                  onClick={() => { audio.play('phone.tab'); setActiveTab('posts'); }}
                   className={`flex-1 py-2 font-bold ${activeTab === 'posts' ? 'border-b-2 border-blue-500 text-blue-400' : 'text-slate-400'}`}
                 >
                   Post Timeline
