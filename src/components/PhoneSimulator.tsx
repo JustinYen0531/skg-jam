@@ -26,6 +26,7 @@ import {
   getChapterPhoneSignals,
   type PhoneLauncherApp,
 } from '../lib/chapterPhoneSignals';
+import { getChapterPhoneWidgetState } from '../lib/chapterPhoneWidgets';
 
 /** Modern widget chassis: translucent, friendly, current-year. */
 const WIDGET_SHELL =
@@ -46,7 +47,6 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
 }) => {
   const metaInteraction = useMetaInteraction();
   const [activeApp, setActiveApp] = useState<ActiveApp>('flappy');
-  const [currentTime, setCurrentTime] = useState('01:36');
   // Restore flash: nonce re-keys the overlay so the CSS animation replays.
   const [restoreNonce, setRestoreNonce] = useState(0);
   const [restoreVisible, setRestoreVisible] = useState(false);
@@ -56,6 +56,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
 
   const residue = getResidueLevel(progress);
   const phoneSignals = getChapterPhoneSignals(progress.currentChapter);
+  const phoneWidgets = getChapterPhoneWidgetState(progress.currentChapter);
   const launcherSignals = (app: PhoneLauncherApp) => {
     const notification = phoneSignals.notification?.app === app
       ? phoneSignals.notification
@@ -87,19 +88,6 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   useEffect(() => {
     if (debugTargetApp) setActiveApp(debugTargetApp.app);
   }, [debugTargetApp]);
-
-  // Real-time clock simulator for phone status bar
-  useEffect(() => {
-    const updateClock = () => {
-      const now = new Date();
-      const hrs = now.getHours().toString().padStart(2, '0');
-      const mins = now.getMinutes().toString().padStart(2, '0');
-      setCurrentTime(`${hrs}:${mins}`);
-    };
-    updateClock();
-    const timer = setInterval(updateClock, 60000);
-    return () => clearInterval(timer);
-  }, []);
 
   useEffect(() => () => {
     if (restoreTimer.current) clearTimeout(restoreTimer.current);
@@ -177,7 +165,12 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
       {!immersiveIntro && <div className="h-7 shrink-0 bg-[#0b0c0f] px-4 flex items-center justify-between text-[10.5px] text-slate-200 z-40" id="phone-status-bar">
         <div className="flex items-center gap-2.5" id="phone-notch">
           <span className="w-1.5 h-1.5 rounded-full bg-[#1e2128] border border-[#2a2e38]"></span>
-          <span className="font-medium tracking-wide">{currentTime}</span>
+          <span
+            className="font-medium tracking-wide"
+            data-fixed-time={phoneWidgets.clock}
+          >
+            {phoneWidgets.clock}
+          </span>
         </div>
         <div className="flex items-center gap-2">
           {/* LAOS sync glyph: a notification style from another system. It is
@@ -357,51 +350,76 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
 
                 {/* Ambient widgets: weather + calendar */}
                 <div className="grid grid-cols-2 gap-3 h-[36%] min-h-[118px] shrink-0">
-                  <div className={`${WIDGET_SHELL} p-3 flex flex-col`} id="widget-weather">
+                  <div
+                    className={`${WIDGET_SHELL} p-3 flex flex-col`}
+                    id="widget-weather"
+                    data-weather-chapter={progress.currentChapter}
+                    data-temperature={phoneWidgets.weather.temperature}
+                    style={{ background: phoneWidgets.weather.background }}
+                  >
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-medium text-slate-200">Harborview</span>
                       <svg viewBox="0 0 20 20" className="w-5 h-5" aria-hidden="true">
-                        <circle cx="9" cy="10" r="6.5" fill="#dfd7b6" />
-                        <circle cx="12.2" cy="8" r="5.6" fill="#161a24" />
+                        <circle cx="9" cy="10" r="6.5" fill={phoneWidgets.weather.moonColor} />
+                        <circle cx="12.2" cy="8" r="5.6" fill={phoneWidgets.weather.moonMask} />
                       </svg>
                     </div>
-                    <span className="font-semibold text-[30px] text-slate-50 leading-none mt-1.5">13°</span>
-                    <span className="text-[9.5px] text-slate-400 mt-0.5">Clear night</span>
-                    <div className="mt-auto pt-1.5 flex items-center justify-between text-[8.5px] text-slate-500">
-                      <span>H:17° L:9°</span>
+                    <span
+                      className="font-semibold text-[30px] leading-none mt-1.5"
+                      style={{ color: phoneWidgets.weather.temperatureColor }}
+                    >
+                      {phoneWidgets.weather.temperature}°
+                    </span>
+                    <span className="text-[9.5px] text-slate-300/75 mt-0.5">
+                      {phoneWidgets.weather.condition}
+                    </span>
+                    <div className="mt-auto pt-1.5 flex items-center justify-between text-[8.5px] text-slate-400/70">
+                      <span>H:{phoneWidgets.weather.high}° L:{phoneWidgets.weather.low}°</span>
                       {/* A data source that should not still be reporting */}
                       {residue >= 2 ? (
-                        <span className="font-laos text-[7px] tracking-[0.12em] text-[var(--laos-faint)]">SRC: LUMEN_WX</span>
+                        <span className="font-laos text-[7px] tracking-[0.12em] text-[var(--laos-faint)]">
+                          LUMEN_WX · {phoneWidgets.weather.updated.replace('Updated ', '')}
+                        </span>
                       ) : (
-                        <span>Updated now</span>
+                        <span>{phoneWidgets.weather.updated}</span>
                       )}
                     </div>
                   </div>
 
                   {/* The calendar widget's typography does not belong to this
                       phone. It has always been like that. Nobody asked why. */}
-                  <div className={`${WIDGET_SHELL} p-3 flex flex-col`} id="widget-agenda">
+                  <div
+                    className={`${WIDGET_SHELL} p-3 flex flex-col`}
+                    id="widget-agenda"
+                    data-agenda-chapter={progress.currentChapter}
+                    style={{ background: phoneWidgets.agenda.background }}
+                  >
                     <div className="flex items-center justify-between">
                       <span className="font-laos text-[9px] font-semibold tracking-[0.16em] uppercase text-slate-300">Agenda</span>
-                      <span className="font-laos text-[8.5px] tracking-[0.1em] text-slate-500">WED 12</span>
+                      <span
+                        className="font-laos text-[8.5px] tracking-[0.1em]"
+                        style={{ color: phoneWidgets.agenda.accent }}
+                      >
+                        {phoneWidgets.agenda.dayLabel}
+                      </span>
                     </div>
                     <div className="mt-2 space-y-2 flex-1 overflow-hidden">
-                      {([
-                        ['08:00', 'Recycling pickup', 'Curbside'],
-                        ['15:00', 'Visit Mom', 'Sunnybrook Care Home'],
-                        ['19:30', 'Groceries', 'On the way back'],
-                      ] as const).map(([time, title, place]) => (
-                        <div key={time} className="flex gap-2 items-baseline border-l-2 border-slate-500/40 pl-2">
-                          <span className="font-laos text-[9px] text-slate-400 shrink-0 w-8">{time}</span>
+                      {phoneWidgets.agenda.entries.map((entry) => (
+                        <div
+                          key={`${entry.time}-${entry.title}`}
+                          className="flex gap-2 items-baseline border-l-2 pl-2"
+                          style={{ borderColor: phoneWidgets.agenda.accent }}
+                        >
+                          <span className="font-laos text-[9px] text-slate-300/75 shrink-0 w-8">{entry.time}</span>
                           <div className="min-w-0 leading-tight">
-                            <div className="text-[10px] text-slate-200 font-medium truncate">{title}</div>
-                            <div className="text-[8px] text-slate-500 truncate">{place}</div>
+                            <div className="text-[10px] text-slate-100/90 font-medium truncate">{entry.title}</div>
+                            <div className="text-[8px] text-slate-400/70 truncate">{entry.place}</div>
                           </div>
                         </div>
                       ))}
                     </div>
-                    <div className="font-laos text-[7px] tracking-[0.14em] text-slate-600 pt-1.5 border-t border-white/[0.06]">
-                      1 REMINDER · SILENT
+                    <div className="font-laos text-[7px] tracking-[0.14em] text-slate-400/45 pt-1.5 border-t border-white/[0.06]">
+                      {phoneWidgets.agenda.footer}
                     </div>
                   </div>
                 </div>
