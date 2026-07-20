@@ -733,7 +733,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
                     src="/assets/meta-tapping-finger.png"
                     alt=""
                     draggable={false}
-                    className="absolute left-0 top-0 h-[clamp(210px,31vh,300px)] w-auto max-w-none -translate-x-[40%] -translate-y-[6%] select-none drop-shadow-[0_14px_12px_rgba(0,0,0,0.3)]"
+                    className="absolute left-0 top-0 h-[clamp(294px,43vh,420px)] w-auto max-w-none -translate-x-[40%] -translate-y-[6%] select-none drop-shadow-[0_14px_12px_rgba(0,0,0,0.3)]"
                   />
                 </motion.div>
               )}
@@ -782,7 +782,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
                 src="/assets/meta-tapping-finger.png"
                 alt=""
                 draggable={false}
-                className="absolute left-0 top-0 h-[clamp(210px,31vh,300px)] w-auto max-w-none origin-[40%_6%] -translate-x-[40%] -translate-y-[6%] select-none drop-shadow-[0_14px_12px_rgba(0,0,0,0.3)]"
+                className="absolute left-0 top-0 h-[clamp(294px,43vh,420px)] w-auto max-w-none origin-[40%_6%] -translate-x-[40%] -translate-y-[6%] select-none drop-shadow-[0_14px_12px_rgba(0,0,0,0.3)]"
                 initial={false}
                 animate={{ y: pressed ? 5 : 0, scale: pressed ? 0.98 : 1 }}
                 transition={reducedMotion ? { duration: 0 } : HAND_PRESS_SPRING}

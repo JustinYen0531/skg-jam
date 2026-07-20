@@ -179,3 +179,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - The generated right grip fades only during the 520ms swipe, then returns. A 180ms throttle prevents trackpad or wheel bursts from continuously restarting the hand.
 - The wheel event is never prevented, so the underlying ViewTube feed, leaderboard, or other scrollable phone content keeps its native movement.
 - Static verification passed: `npm test` 54/54, `npm run lint`, and `npm run build`; direction mapping, scene wiring, and generated finger reuse are covered. Browser validation remains intentionally omitted per project instruction.
+
+## 2026-07-20 — Tapping finger scale correction
+
+- User screenshots showed the generated tapping/swipe hand was visibly undersized beside the persistent grip hands.
+- Increased both generated finger render paths from `clamp(210px, 31vh, 300px)` to `clamp(294px, 43vh, 420px)`, approximately 1.4 times larger.
+- Preserved the `40% / 6%` fingertip anchor, target coordinates, press motion, swipe travel, and interaction timing so only the anatomical scale changes.
+- Browser validation remains intentionally omitted per project instruction; static regression coverage now locks both finger layers to the corrected size.
