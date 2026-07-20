@@ -271,3 +271,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Kept Chapter 2's cable loose; Chapter 3 alone now uses the connected cable and a downward plug tip aligned toward the phone's bottom-center port.
 - Shifted the coffee cup left and down, enlarged it slightly for foreground perspective, and added one dark coffee drop only in Chapter 3.
 - Browser validation remains intentionally omitted per project instruction; static tests, TypeScript lint, and production build cover the change.
+
+## 2026-07-21 — Wider text-safe grip position
+
+- Increased the mirrored persistent hand offset from `4.5%` to `7%` after the narrow-layout screenshot showed the vertical palms still covering phone text.
+- Anchored the left hand at `left: -7%` and the right hand at `right: -7%`, moving both palms toward the outer scene edges while keeping the thumbs near the phone rim.
+- Preserved hand scale, vertical position, split-image clipping, interaction fade, tapping-finger animation, and phone geometry.
+- Browser/Preview validation remains intentionally omitted per project instruction; static offset coverage, TypeScript lint, and production build are required before upload.
