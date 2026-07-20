@@ -22,6 +22,7 @@
 | 點擊熱門搜尋提示 | `An erased record run. That sounds like my problem.` / `The name at the top again: ARC_184.` |
 | 正確搜尋 `ARC_184` | `There you are.` / `“I BROKE THE UNBEATABLE FLAPPY GAME.” Subtle.` |
 | 播放影片 | `All right. Show me the trick.` / `Wait. He goes low at Gate 40.` |
+| 影片抵達 42、主角自動伸手暫停 | `I've seen enough. He's pulling some kind of cheating trick.` / `What I need is the exact moment forty becomes forty-one.` |
 | 播放後點擊影片證據 | `That should have killed him.` / `No cut. No jump. So what changed?` |
 | 播放前點 ARC 回覆 | `184 points. If this is edited, I want to see where.` |
 | 播放後點 ARC 回覆 | `Fine. Maybe he didn't fake the score.` / `Lumen Arc… I’ve never heard of it.`；此時才進入 Chapter 2 |
@@ -62,8 +63,9 @@ Chapter 1 打開其他 App 時，依 App 回應目前為何不重要。例如 Am
 5. 依序打開 AmazeMart、Browser、Messages，再打開 ViewTube；每個錯誤 App 都應有英文短句。
 6. 在 ViewTube 點擊至少三個推薦影片，確認吐槽會輪替，且不會切換成那些影片。
 7. 搜尋 `ALT184GATE40END256`、`Noah Kade`、`Lumen Arc`、完整高度序列；都只能收到提前輸入警示，不得出現 ARC_184 影片。
-8. 搜尋 `ARC_184` 並播放影片：前約十秒應看清加速遊戲畫面，Gate 40 才突然出現無底色、大小不一的密集彈幕；40→41 必須幾乎被洗板遮住，但分數增加仍可被察覺。
-9. 點擊播放中的畫面，再點 ARC_184 的黃色回覆；台詞應依序從懷疑作弊轉成追查 Lumen Arc。
-10. 重新以 Chapter 1 測試 `ARC184` 與 `arc 184` 可成功；單獨 `184` 不可成功。
+8. 搜尋 `ARC_184` 並播放影片：0–40 應有少量無底色彈幕流過；41–42 才突然出現大小不一的密集洗板，關鍵穿越幾乎看不清，但分數增加仍可被察覺。水管經過小鳥後只能繼續向左，不得消失或上下跳動。
+9. 42 分附近主角右手應自行伸出點擊 Canvas 並暫停，底部顯示 `I've seen enough…`；再次點影片應從原位置繼續，最後可抵達 184。
+10. 點擊播放中的畫面，再點 ARC_184 的黃色回覆；台詞應依序從懷疑作弊轉成追查 Lumen Arc。
+11. 重新以 Chapter 1 測試 `ARC184` 與 `arc 184` 可成功；單獨 `184` 不可成功。
 
 自動驗證只檢查事件接線、搜尋分類、英文限定與建置安全；語氣、閱讀節奏及是否真的有陪伴感，保留給玩家實測判斷。

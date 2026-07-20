@@ -34,12 +34,14 @@ interface MetaInteractionContextValue {
   active: boolean;
   registerInput: (id: string, controller: MetaInputController) => () => void;
   speak: (lines: DialogueLines) => void;
+  tapElement: (id: string, onActivate: () => void) => void;
 }
 
 const MetaInteractionContext = createContext<MetaInteractionContextValue>({
   active: false,
   registerInput: () => () => undefined,
   speak: () => undefined,
+  tapElement: (_id, onActivate) => onActivate(),
 });
 
 export const useMetaInteraction = () => useContext(MetaInteractionContext);
@@ -363,6 +365,15 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
     });
   }, [active, getRestPosition, reducedMotion]);
 
+  const tapElement = useCallback((id: string, onActivate: () => void) => {
+    const target = document.getElementById(id);
+    if (!target || !canStartMetaInteraction(active, pendingRef.current, reducedMotion)) {
+      onActivate();
+      return;
+    }
+    void animateTap(target, onActivate);
+  }, [active, animateTap, reducedMotion]);
+
   const applyQueuedKey = useCallback((input: HTMLInputElement, key: string) => {
     const controller = inputControllersRef.current.get(input.id);
     if (!controller) return;
@@ -477,7 +488,8 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
     active,
     registerInput,
     speak,
-  }), [active, registerInput, speak]);
+    tapElement,
+  }), [active, registerInput, speak, tapElement]);
 
   return (
     <MetaInteractionContext.Provider value={contextValue}>

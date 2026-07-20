@@ -53,6 +53,15 @@ const GATE_40_DANMAKU = [
   { text: 'HE IS STILL ALIVE', top: 80, size: 18, duration: 2.7, delay: 1.68, mode: 'scroll' },
 ] as const;
 
+const AMBIENT_DANMAKU = [
+  { text: 'clean run so far', top: 14, size: 10, duration: 9.5, delay: -2.1 },
+  { text: 'he makes this look easy', top: 31, size: 12, duration: 11, delay: -7.4 },
+  { text: 'what version is this?', top: 52, size: 9, duration: 8.8, delay: -4.8 },
+  { text: '184 incoming', top: 72, size: 13, duration: 10.4, delay: -8.9 },
+  { text: 'nice recovery', top: 86, size: 10, duration: 12, delay: -1.2 },
+  { text: 'watch Gate 40', top: 22, size: 11, duration: 10.8, delay: -5.7 },
+] as const;
+
 interface ViewTubeProps {
   progress: GameProgress;
   updateProgress: (updater: (prev: GameProgress) => GameProgress) => void;
@@ -63,6 +72,7 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
   const [searchQuery, setSearchQuery] = useState('');
   const [hasSearched, setHasSearched] = useState(progress.viewTubeSearchedArc);
   const [isPlayingVideo, setIsPlayingVideo] = useState(false);
+  const [replayPaused, setReplayPaused] = useState(false);
   const [searchError, setSearchError] = useState('');
   const [barrageActive, setBarrageActive] = useState(false);
   const [barrageCycle, setBarrageCycle] = useState(0);
@@ -127,6 +137,7 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
   const startVideo = () => {
     audio.playUnlock();
     setIsPlayingVideo(true);
+    setReplayPaused(false);
     speakChapterOne(CHAPTER_ONE_DIALOGUE.videoStarted);
     updateProgress((prev) => ({ ...prev, watchedVideo: true }));
 
@@ -261,22 +272,57 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
                 {isPlayingVideo ? (
                   <button
                     type="button"
-                    onClick={() => speakChapterOne(CHAPTER_ONE_DIALOGUE.videoEvidence)}
+                    onClick={() => {
+                      if (replayPaused) setReplayPaused(false);
+                      else setReplayPaused(true);
+                      speakChapterOne(CHAPTER_ONE_DIALOGUE.videoEvidence);
+                    }}
                     className="absolute inset-0 flex flex-col justify-between overflow-hidden text-left"
                     id="vt-player-active"
                   >
                     <div className="absolute inset-0 bg-black" id="vt-arc-replay-surface">
                       <ArcRunReplay
                         active={isPlayingVideo}
+                        paused={replayPaused}
                         onBarrageChange={(isActive) => {
                           setBarrageActive(isActive);
                           if (isActive) setBarrageCycle((cycle) => cycle + 1);
+                        }}
+                        onPausePoint={() => {
+                          metaInteraction.tapElement('arc-run-replay-canvas', () => {
+                            setReplayPaused(true);
+                            speakChapterOne(CHAPTER_ONE_DIALOGUE.videoPaused);
+                          });
                         }}
                       />
                       <div
                         className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(130,70,30,0.08),transparent_16%,transparent_82%,rgba(20,30,55,0.13))] mix-blend-color"
                         id="vt-aged-video-wash"
                       />
+                    </div>
+
+                    <div
+                      className="pointer-events-none absolute inset-0 z-10 overflow-hidden"
+                      id="vt-ambient-danmaku"
+                      aria-hidden="true"
+                    >
+                      {AMBIENT_DANMAKU.map((dan, index) => (
+                        <span
+                          key={`${dan.text}-${index}`}
+                          style={{
+                            top: `${dan.top}%`,
+                            fontSize: `${dan.size}px`,
+                            animationName: 'danmaku-run',
+                            animationDuration: `${dan.duration}s`,
+                            animationDelay: `${dan.delay}s`,
+                            animationIterationCount: 'infinite',
+                            animationPlayState: replayPaused ? 'paused' : 'running',
+                          }}
+                          className="absolute left-0 whitespace-nowrap font-bold text-white/85 [animation-timing-function:linear] [text-shadow:1px_1px_1px_rgba(0,0,0,.85)]"
+                        >
+                          {dan.text}
+                        </span>
+                      ))}
                     </div>
 
                     {barrageActive && (
@@ -296,12 +342,19 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
                               animationName: dan.mode === 'center' ? 'danmaku-hold' : 'danmaku-run',
                               animationDuration: `${dan.duration}s`,
                               animationDelay: `${dan.delay}s`,
+                              animationPlayState: replayPaused ? 'paused' : 'running',
                             }}
                             className="absolute left-0 whitespace-nowrap font-black text-white [animation-fill-mode:both] [animation-timing-function:linear] [text-shadow:1px_1px_1px_rgba(0,0,0,.9)]"
                           >
                             {dan.text}
                           </span>
                         ))}
+                      </div>
+                    )}
+
+                    {replayPaused && (
+                      <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center" id="vt-replay-paused">
+                        <span className="font-mono text-3xl font-black tracking-[0.18em] text-white [text-shadow:0_2px_3px_rgba(0,0,0,.9)]">Ⅱ</span>
                       </div>
                     )}
 

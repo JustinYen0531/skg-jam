@@ -138,3 +138,12 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Rendered the archived capture at 15 FPS with restrained desaturation, sepia, scan lines, deterministic compression blocks, and a 240p player label; the treatment stays old and cheap rather than glitch-horror.
 - Delayed the comment flood until Gate 40. Twenty-four comments now vary in size, speed, height, and movement; several hold in the center, all use bare text with no grey pills or masks, and together obscure the 40-to-41 crossing.
 - Static verification passed: `npm test` 52/52, `npm run lint`, and `npm run build`. Browser and screenshot validation were intentionally omitted per project instruction.
+
+## 2026-07-20 — Continuous replay pipes and protagonist auto-pause
+
+- Replaced score-derived replay pipe reconstruction with a continuous world-coordinate stream. Two passed gates remain alive behind the bird, and every gate retains its fixed index and opening height while crossing the screen.
+- Shortened the focused Gate 39–41 passage: score 40 arrives around nine seconds, the heavy barrage begins at score 41, and score 42 follows without the previous extended slow section.
+- Added six sparse, bare-text ambient comments throughout scores 0–40. The existing 24-comment flood now remains exclusive to scores 41–42 and freezes with the video.
+- Extended the deterministic replay to score 184 in 24 seconds. Score 42 holds long enough for the Meta right hand to tap the replay canvas and pause; clicking the paused video resumes the same timeline through 184.
+- Added the protagonist pause line: `I've seen enough. He's pulling some kind of cheating trick.` followed by a request to inspect the exact 40-to-41 moment.
+- Static verification passed: `npm test` 53/53 and `npm run lint`; final production build follows this documentation update. Browser and screenshot validation remain intentionally omitted per project instruction.

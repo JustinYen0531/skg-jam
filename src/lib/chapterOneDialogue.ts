@@ -41,6 +41,10 @@ export const CHAPTER_ONE_DIALOGUE = {
     'That should have killed him.',
     'No cut. No jump. So what changed?',
   ],
+  videoPaused: [
+    "I've seen enough. He's pulling some kind of cheating trick.",
+    'What I need is the exact moment forty becomes forty-one.',
+  ],
   lumenLead: [
     "Fine. Maybe he didn't fake the score.",
     'Lumen Arc… I’ve never heard of it.',

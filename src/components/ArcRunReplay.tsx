@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import {
+  ARC_RUN_AUTO_PAUSE_MS,
   ARC_RUN_REPLAY_DURATION_MS,
   ArcRunReplayFrame,
   getArcRunReplayFrame,
@@ -7,7 +8,9 @@ import {
 
 interface ArcRunReplayProps {
   active: boolean;
+  paused: boolean;
   onBarrageChange: (active: boolean) => void;
+  onPausePoint: () => void;
 }
 
 const WIDTH = 640;
@@ -156,13 +159,23 @@ const drawReplay = (ctx: CanvasRenderingContext2D, frame: ArcRunReplayFrame) => 
   ctx.fillText('ARC_184 · MOBILE CAPTURE', 10, HEIGHT - 12);
 };
 
-export const ArcRunReplay: React.FC<ArcRunReplayProps> = ({ active, onBarrageChange }) => {
+export const ArcRunReplay: React.FC<ArcRunReplayProps> = ({ active, paused, onBarrageChange, onPausePoint }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const barrageCallbackRef = useRef(onBarrageChange);
+  const pausePointCallbackRef = useRef(onPausePoint);
+  const pausedRef = useRef(paused);
 
   useEffect(() => {
     barrageCallbackRef.current = onBarrageChange;
   }, [onBarrageChange]);
+
+  useEffect(() => {
+    pausePointCallbackRef.current = onPausePoint;
+  }, [onPausePoint]);
+
+  useEffect(() => {
+    pausedRef.current = paused;
+  }, [paused]);
 
   useEffect(() => {
     if (!active) return;
@@ -173,10 +186,17 @@ export const ArcRunReplay: React.FC<ArcRunReplayProps> = ({ active, onBarrageCha
     let animationFrame = 0;
     let lastCaptureFrame = -1;
     let previousBarrage = false;
-    const startedAt = performance.now();
+    let pauseRequested = false;
+    let elapsed = 0;
+    let previousNow = performance.now();
 
     const render = (now: number) => {
-      const elapsed = (now - startedAt) % ARC_RUN_REPLAY_DURATION_MS;
+      const previousElapsed = elapsed;
+      const delta = Math.min(100, Math.max(0, now - previousNow));
+      previousNow = now;
+      if (!pausedRef.current) elapsed = (elapsed + delta) % ARC_RUN_REPLAY_DURATION_MS;
+      if (elapsed < previousElapsed) pauseRequested = false;
+
       const captureFrame = Math.floor(elapsed / (1000 / CAPTURE_FPS));
       if (captureFrame !== lastCaptureFrame) {
         const frame = getArcRunReplayFrame(elapsed);
@@ -185,6 +205,10 @@ export const ArcRunReplay: React.FC<ArcRunReplayProps> = ({ active, onBarrageCha
         if (frame.barrageActive !== previousBarrage) {
           previousBarrage = frame.barrageActive;
           barrageCallbackRef.current(frame.barrageActive);
+        }
+        if (!pauseRequested && elapsed >= ARC_RUN_AUTO_PAUSE_MS) {
+          pauseRequested = true;
+          pausePointCallbackRef.current();
         }
       }
       animationFrame = requestAnimationFrame(render);
