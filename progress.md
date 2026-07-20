@@ -130,3 +130,11 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Future names, Lumen Arc, Silver Kite, the final password, and the altitude sequence now receive teasing non-progression responses; only normalized `ARC_184` variants reveal the target video.
 - Chapter 2 progression now waits until the player has started the video and selected ARC_184's highlighted reply instead of advancing on search alone.
 - Static verification passed: `npm test` 47/47, `npm run lint`, and `npm run build`. Browser and screenshot validation were intentionally omitted per project instruction.
+
+## 2026-07-20 — ARC_184 accelerated gameplay replay
+
+- Replaced ViewTube's `COLLISION_BYPASS_DETECTION` placeholder with an isolated `ArcRunReplay` canvas that reuses the real game's Gate geometry, score semantics, day-to-night transition, bird language, and Level 2 pipe material without mutating live game progress.
+- Compressed score 0 through the Gate 40 controversy into a deterministic 14.5-second loop: the first 37 points are montage-paced, while Gate 39, the impossible dive through Gate 40, score 41, and a confirming score 42 remain individually legible.
+- Rendered the archived capture at 15 FPS with restrained desaturation, sepia, scan lines, deterministic compression blocks, and a 240p player label; the treatment stays old and cheap rather than glitch-horror.
+- Delayed the comment flood until Gate 40. Twenty-four comments now vary in size, speed, height, and movement; several hold in the center, all use bare text with no grey pills or masks, and together obscure the 40-to-41 crossing.
+- Static verification passed: `npm test` 52/52, `npm run lint`, and `npm run build`. Browser and screenshot validation were intentionally omitted per project instruction.

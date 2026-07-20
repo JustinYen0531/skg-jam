@@ -3,6 +3,7 @@ import { GameProgress, PuzzleChapter } from '../types';
 import audio from '../lib/audio';
 import { canUseProgressionAction } from '../lib/chapterProgress';
 import { useMetaInteraction } from './MetaInteractionScene';
+import { ArcRunReplay } from './ArcRunReplay';
 import { createFeedSeed, shuffleFeed } from '../lib/pseudoFeed';
 import {
   CHAPTER_ONE_DIALOGUE,
@@ -25,6 +26,33 @@ const VIEWTUBE_FEED = [
   { id: 'vt-10', title: 'World Record Attempts That Ended Strangely', channel: 'ReplayCabinet', views: '962K views', age: '5 days ago', duration: '21:37', label: 'SPORT', gradient: 'from-yellow-500 via-red-600 to-purple-950' },
 ] as const;
 
+const GATE_40_DANMAKU = [
+  { text: 'WAIT WAIT WAIT', top: 8, size: 17, duration: 2.8, delay: 0, mode: 'scroll' },
+  { text: 'HOW DID HE PASS 40??', top: 17, size: 20, duration: 3.2, delay: 0.05, mode: 'scroll' },
+  { text: 'THERE IS A WALL THERE', top: 28, size: 13, duration: 2.5, delay: 0.12, mode: 'scroll' },
+  { text: 'fake fake fake fake fake', top: 39, size: 11, duration: 3.5, delay: 0, mode: 'scroll' },
+  { text: 'DID ANYONE SEE THAT', top: 51, size: 18, duration: 2.7, delay: 0.18, mode: 'scroll' },
+  { text: 'NO CUT???', top: 65, size: 22, duration: 3.1, delay: 0.08, mode: 'scroll' },
+  { text: 'rewind it', top: 78, size: 12, duration: 2.4, delay: 0.24, mode: 'scroll' },
+  { text: 'HE WENT THROUGH THE PIPE', top: 88, size: 16, duration: 3.7, delay: 0.04, mode: 'scroll' },
+  { text: '40 → 41', top: 34, size: 25, duration: 2.4, delay: 0.4, mode: 'center' },
+  { text: 'WHAT', top: 58, size: 28, duration: 2.1, delay: 0.7, mode: 'center' },
+  { text: 'pause at 0:41', top: 12, size: 12, duration: 3.3, delay: 0.55, mode: 'scroll' },
+  { text: 'COLLIDER IS HARDCODED', top: 23, size: 14, duration: 3.8, delay: 0.34, mode: 'scroll' },
+  { text: 'my game always kills me here', top: 44, size: 10, duration: 3.1, delay: 0.62, mode: 'scroll' },
+  { text: 'EMULATOR MOD', top: 71, size: 19, duration: 2.6, delay: 0.48, mode: 'scroll' },
+  { text: 'the score changed', top: 83, size: 13, duration: 3.2, delay: 0.78, mode: 'scroll' },
+  { text: 'THAT WAS NOT THE GAP', top: 6, size: 16, duration: 2.9, delay: 0.92, mode: 'scroll' },
+  { text: 'I CANNOT SEE', top: 31, size: 21, duration: 2.5, delay: 1.05, mode: 'scroll' },
+  { text: 'move the comments!!', top: 55, size: 11, duration: 3.6, delay: 0.96, mode: 'scroll' },
+  { text: '184 IS REAL', top: 74, size: 23, duration: 2.8, delay: 1.12, mode: 'scroll' },
+  { text: 'rewind rewind rewind', top: 91, size: 14, duration: 3, delay: 1.2, mode: 'scroll' },
+  { text: '???', top: 47, size: 32, duration: 1.9, delay: 1.35, mode: 'center' },
+  { text: 'NO WAY', top: 19, size: 26, duration: 2.2, delay: 1.55, mode: 'center' },
+  { text: 'frame skip?', top: 62, size: 12, duration: 3.4, delay: 1.42, mode: 'scroll' },
+  { text: 'HE IS STILL ALIVE', top: 80, size: 18, duration: 2.7, delay: 1.68, mode: 'scroll' },
+] as const;
+
 interface ViewTubeProps {
   progress: GameProgress;
   updateProgress: (updater: (prev: GameProgress) => GameProgress) => void;
@@ -36,7 +64,8 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
   const [hasSearched, setHasSearched] = useState(progress.viewTubeSearchedArc);
   const [isPlayingVideo, setIsPlayingVideo] = useState(false);
   const [searchError, setSearchError] = useState('');
-  const [danmakus, setDanmakus] = useState<Array<{ id: number; text: string; top: number; delay: number }>>([]);
+  const [barrageActive, setBarrageActive] = useState(false);
+  const [barrageCycle, setBarrageCycle] = useState(0);
   const [recommendedVideos] = useState(() => shuffleFeed(VIEWTUBE_FEED, createFeedSeed('viewtube')));
   const chapterOneSearchAttempt = useRef(0);
   const chapterOneVideoAttempt = useRef(0);
@@ -101,28 +130,6 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
     speakChapterOne(CHAPTER_ONE_DIALOGUE.videoStarted);
     updateProgress((prev) => ({ ...prev, watchedVideo: true }));
 
-    // Generate danmaku/bullet comments flying across screen
-    const messages = [
-      'WAIT HOW DID HE PASS 40??',
-      'This must be hacked, there is a collider wall there',
-      'NO, he said he used Lumen Arc',
-      'The device government recalled in 2014?',
-      'Requires native altitude sensor on the old hardware!',
-      'He bypassed the invisible wall',
-      'Fake video, fake inputs',
-      'The old device they took away from everyone...',
-      'My mother had one, it was amazing until the recall',
-      'Is there an archive file of Skyline 256 somewhere?',
-      'Check Internet Archive'
-    ];
-
-    const generated = messages.map((m, idx) => ({
-      id: idx,
-      text: m,
-      top: 15 + Math.random() * 60, // random percentage from top
-      delay: idx * 1.5, // staggered entrance
-    }));
-    setDanmakus(generated);
   };
 
   return (
@@ -255,52 +262,53 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
                   <button
                     type="button"
                     onClick={() => speakChapterOne(CHAPTER_ONE_DIALOGUE.videoEvidence)}
-                    className="absolute inset-0 flex flex-col justify-between p-3 text-left"
+                    className="absolute inset-0 flex flex-col justify-between overflow-hidden text-left"
                     id="vt-player-active"
                   >
-                    
-                    {/* Retro Canvas Simulator showing bird moving low */}
-                    <div className="absolute inset-0 bg-slate-900 flex items-center justify-center">
-                      <div className="w-full h-full relative bg-purple-900/40 font-mono text-[9px] text-pink-300 p-2 flex flex-col justify-between">
-                        <div>
-                          <div>SIMULATOR_REPLAY_ACTIVE: ARC_184</div>
-                          <div className="text-[8px] opacity-70">FLAPPY_SOMETHING_V2_BYPASS</div>
-                        </div>
+                    <div className="absolute inset-0 bg-black" id="vt-arc-replay-surface">
+                      <ArcRunReplay
+                        active={isPlayingVideo}
+                        onBarrageChange={(isActive) => {
+                          setBarrageActive(isActive);
+                          if (isActive) setBarrageCycle((cycle) => cycle + 1);
+                        }}
+                      />
+                      <div
+                        className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(130,70,30,0.08),transparent_16%,transparent_82%,rgba(20,30,55,0.13))] mix-blend-color"
+                        id="vt-aged-video-wash"
+                      />
+                    </div>
 
-                        {/* Visual representation of passing 40 */}
-                        <div className="flex items-center justify-center gap-1 my-2">
-                          <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping"></div>
-                          <span className="text-emerald-400 font-bold text-xs animate-pulse">COLLISION_BYPASS_DETECTION</span>
-                        </div>
-
-                        <div className="flex justify-between text-xs font-bold text-white bg-black/40 p-1 rounded">
-                          <span>PIPE_SEC: 040</span>
-                          <span>ALT: 184m</span>
-                        </div>
+                    {barrageActive && (
+                      <div
+                        key={barrageCycle}
+                        className="pointer-events-none absolute inset-0 z-20 overflow-hidden"
+                        id="vt-gate40-danmaku-barrage"
+                        aria-hidden="true"
+                      >
+                        {GATE_40_DANMAKU.map((dan, index) => (
+                          <span
+                            key={`${dan.text}-${index}`}
+                            style={{
+                              top: `${dan.top}%`,
+                              left: dan.mode === 'center' ? '50%' : '0',
+                              fontSize: `${dan.size}px`,
+                              animationName: dan.mode === 'center' ? 'danmaku-hold' : 'danmaku-run',
+                              animationDuration: `${dan.duration}s`,
+                              animationDelay: `${dan.delay}s`,
+                            }}
+                            className="absolute left-0 whitespace-nowrap font-black text-white [animation-fill-mode:both] [animation-timing-function:linear] [text-shadow:1px_1px_1px_rgba(0,0,0,.9)]"
+                          >
+                            {dan.text}
+                          </span>
+                        ))}
                       </div>
-                    </div>
-
-                    {/* Danmaku Comment Layer */}
-                    <div className="absolute inset-0 pointer-events-none overflow-hidden z-20">
-                      {danmakus.map((dan) => (
-                        <div
-                          key={dan.id}
-                          style={{
-                            top: `${dan.top}%`,
-                            animation: `danmaku-run 10s linear infinite`,
-                            animationDelay: `${dan.delay}s`,
-                          }}
-                          className="absolute white-space-nowrap text-xs font-bold text-white bg-black/50 px-1.5 py-0.5 rounded shadow-md border border-slate-700/30 whitespace-nowrap"
-                        >
-                          {dan.text}
-                        </div>
-                      ))}
-                    </div>
+                    )}
 
                     {/* Controls Overlay */}
-                    <div className="z-10 flex items-center justify-between text-[10px] text-slate-300 bg-gradient-to-t from-black/80 p-2 w-full mt-auto">
-                      <span>▶ PLAYING | 0:24 / 1:12</span>
-                      <span className="text-emerald-400 font-bold">LAG/BUFFER: 12%</span>
+                    <div className="absolute inset-x-0 bottom-0 z-30 flex items-center justify-between bg-gradient-to-t from-black/90 to-transparent px-2 pb-1.5 pt-5 text-[9px] text-white/80">
+                      <span>▶ ARCHIVED CLIP</span>
+                      <span>0:38 / 1:12 · 240p</span>
                     </div>
                   </button>
                 ) : (
@@ -408,11 +416,20 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
         )}
       </div>
 
-      {/* Embedded CSS for Danmaku movement */}
+      {/* Embedded CSS for the Gate 40 comment flood. Text deliberately has no
+          pill, panel, or grey mask: the unreadability is the narrative beat. */}
       <style>{`
         @keyframes danmaku-run {
-          0% { transform: translateX(480px); }
-          100% { transform: translateX(-500px); }
+          0% { opacity: 0; transform: translateX(680px); }
+          5% { opacity: 1; }
+          94% { opacity: 1; }
+          100% { opacity: 0; transform: translateX(-115%); }
+        }
+        @keyframes danmaku-hold {
+          0% { opacity: 0; transform: translateX(-50%) scale(0.82); }
+          12% { opacity: 1; transform: translateX(-50%) scale(1); }
+          82% { opacity: 1; transform: translateX(-50%) scale(1); }
+          100% { opacity: 0; transform: translateX(-50%) scale(1.04); }
         }
       `}</style>
     </div>
