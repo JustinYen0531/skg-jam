@@ -290,3 +290,8 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Corrected the persistent grip offset to an absolute `2%` per side; the prior pass incorrectly interpreted the request as subtracting two percentage points from `7%`.
 - The left hand now uses `left: -2%` and the right hand uses `right: -2%`.
 - Browser/Preview validation remains intentionally omitted per project instruction; static offset coverage, TypeScript lint, and production build are required before upload.
+
+## 2026-07-21 — Grip offset final calibration
+
+- Set the persistent left and right grip offsets to the requested absolute `4%` per side.
+- Browser/Preview validation remains intentionally omitted per project instruction; static offset coverage, TypeScript lint, and production build are required before upload.
