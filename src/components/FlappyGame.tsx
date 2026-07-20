@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { GameProgress, ActiveApp } from '../types';
 import audio from '../lib/audio';
-import { EASY_FLAPPY_SETTINGS, FlappyDeathCause, getCheapTelemetry, getFlappyNightMix, getGateHeights, getGateSpawnX, getGateVisualStyle, getScoreAfterPassingGate, nextGate40DeathCount, resolvePipeCollision } from '../lib/flappyPhysics';
+import { EASY_FLAPPY_SETTINGS, FlappyDeathCause, GATE_40_INDEX, getCheapTelemetry, getFlappyNightMix, getGateHeights, getGateSpawnX, getGateVisualStyle, getScoreAfterPassingGate, nextGate40DeathCount, resolvePipeCollision } from '../lib/flappyPhysics';
 import { calculateBeatPercentage, createPublicLeaderboard } from '../lib/leaderboard';
 import { RefreshCw, Play, Volume2, VolumeX, CheckCircle, Zap, Crown, Sparkles, Rocket, Brain, Activity, X } from 'lucide-react';
 import { LeaderboardPanel } from './LeaderboardPanel';
@@ -392,7 +392,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
             }
 
             // Trigger terminal/hacked graphics once we are inside sequence 40-47
-            if (pipe.index >= 40 && state.bypassActive) {
+            if (pipe.index >= GATE_40_INDEX && state.bypassActive) {
               // The old synth voice reconnects exactly once, when the
               // wireframe layer first takes over (§4.1).
               if (!hackedMode) audio.play('flight.level2Connect');
@@ -417,7 +417,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
           // or bump the underside of an upper pipe without dying. Gate 40 keeps
           // its story-critical barrier until the route has been unlocked.
           const safeHorizontalContact = collision.kind === 'land' || collision.kind === 'ceiling';
-          if (safeHorizontalContact && (pipe.index !== 40 || state.bypassActive)) {
+          if (safeHorizontalContact && (pipe.index !== GATE_40_INDEX || state.bypassActive)) {
             state.birdY = collision.y;
             state.birdVelocity = collision.velocityY;
             return;
@@ -427,7 +427,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
           if (overlapsPipeX) {
             // Gate 40 is the visible Level 2 seal. The secret route is only
             // evaluated when the bird actually hits its rendered pipe body.
-            if (pipe.index === 40 && !state.bypassActive && collision.fatal) {
+            if (pipe.index === GATE_40_INDEX && !state.bypassActive && collision.fatal) {
               if (progress.unlockedCodeRoute) {
                 // If the player knows the code, let's track real-time sequence matching!
                 // Let's check the current altitude against target altitude sequence at index 0 (184)
@@ -449,7 +449,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
               } else {
                 handleDeath('Level 2 Seal #40', 'gate40');
               }
-            } else if (pipe.index > 40 && state.bypassActive) {
+            } else if (pipe.index > GATE_40_INDEX && state.bypassActive) {
               // We are active in the bypass mode!
               // For each pipe index from 41 to 47, check if the player matches the sequence target.
               const seqOffset = pipe.index - 40;

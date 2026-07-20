@@ -7,6 +7,9 @@ export const EASY_FLAPPY_SETTINGS = {
   maxFallSpeed: 3.2,
 } as const;
 
+export const SCORE_PER_PIPE = 2;
+export const GATE_40_INDEX = 20;
+
 const FIXED_GATE_HEIGHT_RATIOS = [
   0.32, 0.48, 0.25, 0.58, 0.4, 0.68,
   0.52, 0.3, 0.62, 0.44, 0.22, 0.55,
@@ -30,7 +33,7 @@ const GATE_40_PIPE_SPACING = FLAPPY_PIPE_WIDTH + GATE_40_CLEAR_GAP;
  * impossible at the configured fall speed without pretending they are one wall.
  */
 export const getGateSpawnX = (gateIndex: number, canvasWidth: number): number => {
-  if (gateIndex !== 40) return canvasWidth;
+  if (gateIndex !== GATE_40_INDEX) return canvasWidth;
 
   const ordinarySpacing =
     EASY_FLAPPY_SETTINGS.pipeSpeed * EASY_FLAPPY_SETTINGS.spawnIntervalFrames;
@@ -53,7 +56,8 @@ export const getFlappyNightMix = (score: number): number => {
   return (score - 37) / 3;
 };
 
-export const getScoreAfterPassingGate = (gateIndex: number): number => gateIndex + 1;
+export const getScoreAfterPassingGate = (gateIndex: number): number =>
+  (gateIndex + 1) * SCORE_PER_PIPE;
 
 export interface CheapTelemetry {
   neuralSync: string;
@@ -82,8 +86,8 @@ export interface GateVisualStyle {
 }
 
 export const getGateVisualStyle = (gateIndex: number): GateVisualStyle => ({
-  variant: gateIndex >= 40 ? 'level2-preview' : 'level1',
-  spikeCount: gateIndex === 40 ? 4 : 0,
+  variant: gateIndex >= GATE_40_INDEX ? 'level2-preview' : 'level1',
+  spikeCount: gateIndex === GATE_40_INDEX ? 4 : 0,
   showRedWarning: false,
 });
 
@@ -97,14 +101,14 @@ export const getGateHeights = (
   gateIndex: number,
   canvasHeight: number,
 ): GateHeights => {
-  if (gateIndex === 39) {
+  if (gateIndex === GATE_40_INDEX - 1) {
     return {
       topHeight: GATE_EDGE_MARGIN,
       bottomHeight: canvasHeight - EASY_FLAPPY_SETTINGS.openingSize - GATE_EDGE_MARGIN,
     };
   }
 
-  if (gateIndex === 40) {
+  if (gateIndex === GATE_40_INDEX) {
     return {
       topHeight: canvasHeight - EASY_FLAPPY_SETTINGS.openingSize - GATE_EDGE_MARGIN,
       bottomHeight: GATE_EDGE_MARGIN,
@@ -139,8 +143,8 @@ export const isGate40NormalRouteImpossible = (
   canvasHeight: number,
   birdRadius: number,
 ): boolean => {
-  const gate39 = getGateOpeningBounds(getGateHeights(39, canvasHeight), canvasHeight, birdRadius);
-  const gate40 = getGateOpeningBounds(getGateHeights(40, canvasHeight), canvasHeight, birdRadius);
+  const gate39 = getGateOpeningBounds(getGateHeights(GATE_40_INDEX - 1, canvasHeight), canvasHeight, birdRadius);
+  const gate40 = getGateOpeningBounds(getGateHeights(GATE_40_INDEX, canvasHeight), canvasHeight, birdRadius);
   const availableFrames = GATE_40_CLEAR_GAP / EASY_FLAPPY_SETTINGS.pipeSpeed;
   const maximumDrop = availableFrames * EASY_FLAPPY_SETTINGS.maxFallSpeed;
   const requiredDrop = gate40.top - gate39.bottom;

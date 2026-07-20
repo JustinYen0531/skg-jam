@@ -115,6 +115,13 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - The three upper-left fake analytics values now drift independently through deterministic decorative telemetry and never affect gameplay.
 - Browser and screenshot validation remain intentionally omitted per project instruction; verification uses automated tests, TypeScript, and production build only.
 
+## 2026-07-20 — Score acceleration to Gate 40
+
+- Each passed pipe now awards 2 points instead of 1.
+- The score-40 blocker remains the same visible impossible route, but its physical pipe index is now 20 so the player reaches it after 20 pipes.
+- Formal Flappy physics and the ARC_184 replay share `SCORE_PER_PIPE = 2` and `GATE_40_INDEX = 20`; story-facing Gate 40 naming remains unchanged.
+- Static verification: `npm test` 69/69, `npm run lint`, and `npm run build` passed. Browser and screenshot validation remain intentionally omitted per project instruction.
+
 ## 2026-07-20 — Core music language and generation baseline
 
 - Added `docs/CORE_MUSIC_LANGUAGE.md` as the canonical basis for all eleven music stages.

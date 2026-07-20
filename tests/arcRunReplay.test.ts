@@ -11,8 +11,8 @@ test('the archived excerpt runs at half speed and ends at the score 42 evidence 
   assert.equal(ARC_RUN_REPLAY_DURATION_MS, 21_500);
   assert.equal(getArcRunReplayFrame(0).score, 0);
   assert.ok(getArcRunReplayFrame(15_000).score >= 36);
-  assert.equal(getArcRunReplayFrame(17_850).score, 40);
-  assert.equal(getArcRunReplayFrame(18_500).score, 41);
+  assert.equal(getArcRunReplayFrame(17_850).score, 38);
+  assert.equal(getArcRunReplayFrame(18_500).score, 40);
   assert.equal(getArcRunReplayFrame(20_050).score, 42);
   assert.equal(getArcRunReplayFrame(21_000).score, 42);
 });
@@ -20,7 +20,7 @@ test('the archived excerpt runs at half speed and ends at the score 42 evidence 
 test('the comment barrage waits until the Gate 40 crossing', () => {
   assert.equal(getArcRunReplayFrame(ARC_RUN_GATE_40_BARRAGE_MS - 1).barrageActive, false);
   const crossing = getArcRunReplayFrame(ARC_RUN_GATE_40_BARRAGE_MS);
-  assert.equal(crossing.score, 41);
+  assert.equal(crossing.score, 40);
   assert.equal(crossing.barrageActive, true);
   assert.equal(getArcRunReplayFrame(20_200).barrageActive, true);
 });
@@ -33,7 +33,7 @@ test('the replay visibly dives from Gate 39 into the impossible Gate 40 route', 
   assert.ok(highRoute.birdY < 90);
   assert.ok(pipeContact.birdY > 190 && pipeContact.birdY < 240);
   assert.ok(escaped.birdY > 275);
-  assert.ok(pipeContact.pipes.some((pipe) => pipe.index === 40));
+  assert.ok(pipeContact.pipes.some((pipe) => pipe.index === 20));
 });
 
 test('pipes keep the same position and height while crossing the bird', () => {

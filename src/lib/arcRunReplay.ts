@@ -1,4 +1,4 @@
-import { getFlappyNightMix, getGateHeights } from './flappyPhysics';
+import { GATE_40_INDEX, getFlappyNightMix, getGateHeights, SCORE_PER_PIPE } from './flappyPhysics';
 
 export const ARC_RUN_REPLAY_DURATION_MS = 21_500;
 export const ARC_RUN_GATE_40_BARRAGE_MS = 18_550;
@@ -64,19 +64,23 @@ export const getArcRunReplayFrame = (unboundedElapsedMs: number): ArcRunReplayFr
   let pipes: ArcRunReplayPipe[];
 
   if (elapsedMs < FINALE_START_MS) {
-    const gateProgress = (elapsedMs / FINALE_START_MS) * 39;
-    score = Math.floor(gateProgress);
+    const gateProgress = (elapsedMs / FINALE_START_MS) * (GATE_40_INDEX - 1);
+    score = Math.floor(gateProgress) * SCORE_PER_PIPE;
     pipes = createContinuousPipeStream(gateProgress);
   } else {
     const gate39X = 430 - finaleElapsed * GATE_SPEED_PX_PER_MS;
     const gate40X = 530 - finaleElapsed * GATE_SPEED_PX_PER_MS;
     const gate41X = 760 - finaleElapsed * GATE_SPEED_PX_PER_MS;
-    pipes = [createPipe(39, gate39X), createPipe(40, gate40X), createPipe(41, gate41X)];
+    pipes = [
+      createPipe(GATE_40_INDEX - 1, gate39X),
+      createPipe(GATE_40_INDEX, gate40X),
+      createPipe(GATE_40_INDEX + 1, gate41X),
+    ];
 
     if (gate41X < BIRD_X) score = 42;
-    else if (gate40X < BIRD_X) score = 41;
-    else if (gate39X < BIRD_X) score = 40;
-    else score = 39;
+    else if (gate40X < BIRD_X) score = GATE_40_INDEX * SCORE_PER_PIPE;
+    else if (gate39X < BIRD_X) score = (GATE_40_INDEX - 1) * SCORE_PER_PIPE;
+    else score = (GATE_40_INDEX - 2) * SCORE_PER_PIPE;
   }
 
   const ordinaryY = 176 + Math.sin(elapsedMs / 230) * 36 + Math.sin(elapsedMs / 71) * 7;

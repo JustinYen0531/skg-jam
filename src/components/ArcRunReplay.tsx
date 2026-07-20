@@ -5,6 +5,7 @@ import {
   ArcRunReplayFrame,
   getArcRunReplayFrame,
 } from '../lib/arcRunReplay';
+import { GATE_40_INDEX } from '../lib/flappyPhysics';
 
 interface ArcRunReplayProps {
   active: boolean;
@@ -29,7 +30,7 @@ const drawCloud = (ctx: CanvasRenderingContext2D, x: number, y: number, scale: n
 
 const drawPipe = (ctx: CanvasRenderingContext2D, pipe: ArcRunReplayFrame['pipes'][number]) => {
   const bottomY = HEIGHT - pipe.bottomHeight;
-  const levelTwo = pipe.index >= 40;
+  const levelTwo = pipe.index >= GATE_40_INDEX;
   const fill = levelTwo ? 'rgba(15,118,110,0.88)' : 'rgba(91,68,174,0.9)';
   const edge = levelTwo ? '#2dd4bf' : '#67e8f9';
 
@@ -55,7 +56,7 @@ const drawPipe = (ctx: CanvasRenderingContext2D, pipe: ArcRunReplayFrame['pipes'
     ctx.stroke();
   }
 
-  if (pipe.index === 40) {
+  if (pipe.index === GATE_40_INDEX) {
     ctx.fillStyle = 'rgba(167,243,208,0.78)';
     ctx.font = 'bold 8px monospace';
     ctx.textAlign = 'center';
