@@ -315,6 +315,12 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Kept the P2 layer quiet and non-instructional; it adds physical detail without revealing clues or competing with P0/P1 feedback.
 - Browser listening remains intentionally omitted per project instruction; static tests, TypeScript lint, and production build are required before upload.
 
+## 2026-07-21 — Independent coffee state assets
+
+- Replaced the failed three-panel background-crop approach with three user-supplied, independent RGBA images: `coffee-full.png`, `coffee-empty-drip.png`, and `coffee-tipped-spill.png`.
+- Chapters now select one complete image per coffee state through a typed source map and render it with `object-contain`; no shared sprite coordinates or background-size crop remains.
+- Final static verification passed: 77 tests, TypeScript lint, and production build. Browser validation remains intentionally omitted per project instruction.
+
 ## 2026-07-21 — Chapter coffee PNG material replacement
 
 - Added the user-provided transparent three-state coffee material at `public/assets/chapter-coffee-states.png`.

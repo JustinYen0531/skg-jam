@@ -14,14 +14,14 @@ interface ChapterEnvironmentProps {
   layer?: 'lighting' | 'underlay' | 'objects';
 }
 
-const COFFEE_ASSET_POSITION: Record<Exclude<CoffeeState, 'none'>, string> = {
-  fresh: '8.333%',
-  sipped: '8.333%',
-  half: '50%',
-  'near-empty': '50%',
-  empty: '50%',
-  'tipped-empty': '91.667%',
-  'pushed-away': '50%',
+const COFFEE_ASSET_SOURCE: Record<Exclude<CoffeeState, 'none'>, string> = {
+  fresh: '/assets/coffee-full.png',
+  sipped: '/assets/coffee-full.png',
+  half: '/assets/coffee-empty-drip.png',
+  'near-empty': '/assets/coffee-empty-drip.png',
+  empty: '/assets/coffee-empty-drip.png',
+  'tipped-empty': '/assets/coffee-tipped-spill.png',
+  'pushed-away': '/assets/coffee-empty-drip.png',
 };
 const NOTEBOOK_COPY: Record<NotebookState, readonly string[]> = {
   none: [],
@@ -55,7 +55,7 @@ const CoffeeCup: React.FC<{
   if (state === 'none') return null;
   const pushedAway = state === 'pushed-away';
   const tipped = state === 'tipped-empty';
-  const assetPosition = COFFEE_ASSET_POSITION[state];
+  const assetSource = COFFEE_ASSET_SOURCE[state];
 
   return (
     <motion.div
@@ -90,13 +90,10 @@ const CoffeeCup: React.FC<{
           ))}
         </svg>
       )}
-      <div
-        className="absolute inset-0 bg-no-repeat drop-shadow-[0_10px_10px_rgba(0,0,0,0.36)]"
-        style={{
-          backgroundImage: 'url(/assets/chapter-coffee-states.png)',
-          backgroundPosition: `${assetPosition} 45%`,
-          backgroundSize: '500% 210%',
-        }}
+      <img
+        src={assetSource}
+        alt=""
+        className="absolute inset-0 h-full w-full object-contain drop-shadow-[0_10px_10px_rgba(0,0,0,0.36)]"
         id="meta-coffee-png"
       />
     </motion.div>
