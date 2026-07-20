@@ -9,9 +9,12 @@ import {
   normalizeVirtualKey,
 } from '../lib/metaInteraction';
 import { CHAPTER_ONE_DIALOGUE, DialogueLines } from '../lib/chapterOneDialogue';
+import type { EnvironmentChapter } from '../lib/chapterEnvironment';
+import { ChapterEnvironment } from './ChapterEnvironment';
 
 interface MetaInteractionSceneProps {
   active: boolean;
+  chapter: EnvironmentChapter;
   children: React.ReactNode;
 }
 
@@ -257,7 +260,7 @@ const PHONE_SURFACE_SIZE: React.CSSProperties = {
 
 const PROTAGONIST_LABEL = 'YOU · LOCAL PLAYER';
 
-export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ active, children }) => {
+export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ active, chapter, children }) => {
   const sceneRef = useRef<HTMLDivElement | null>(null);
   const pendingRef = useRef(false);
   const keyQueueRef = useRef<QueuedKey[]>([]);
@@ -541,6 +544,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
       data-meta-view={active ? 'revealed' : 'screen-capture'}
       data-meta-pending={interactionPending ? 'true' : 'false'}
       data-hand-pose={interactionPending ? 'reaching' : 'holding'}
+      data-environment-chapter={chapter}
       id="meta-interaction-scene"
     >
       <AnimatePresence>
@@ -567,6 +571,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
               }}
               id="meta-desk-surface"
             />
+            <ChapterEnvironment chapter={chapter} reducedMotion={reducedMotion} />
             <div className="absolute inset-x-0 bottom-0 h-[8%] border-t border-[#513526] bg-gradient-to-b from-[#24170f] to-[#0d0906] shadow-[0_-8px_20px_rgba(0,0,0,0.42)]" id="meta-desk-front-edge" />
             <div className="absolute left-1/2 top-[57%] h-[12%] w-[64%] -translate-x-1/2 rounded-[50%] bg-black/55 blur-2xl" />
             <div className="absolute bottom-[7%] right-[5%] h-[13%] w-[13%] rotate-6 rounded-md border border-amber-100/5 bg-black/15 shadow-xl" />

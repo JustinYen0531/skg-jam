@@ -194,6 +194,16 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Increased both click and wheel-swipe render paths by exactly 1.5 times, from `clamp(294px, 43vh, 420px)` to `clamp(441px, 64.5vh, 630px)`.
 - Browser validation remains intentionally omitted per project instruction; verification is limited to static tests, TypeScript lint, and production build.
 
+## 2026-07-20 — Chapter 0–10 physical desk environment foundation
+
+- Added a pure `CHAPTER_ENVIRONMENTS` map for Chapter 0–10. It reads chapter state only and cannot mutate game progress.
+- Chapter 0 explicitly has no physical desk objects; Chapter 1–10 now drive cumulative coffee, cup-ring, charging-cable, notebook, pen, sticky-note, lighting, and desk-order states.
+- Added a layered `ChapterEnvironment` component beneath the phone and hands, with a brief case marker and reduced-motion fallback. All clues written on physical paper are gated to the chapter where the player has already earned them.
+- Wired `progress.currentChapter` into the revealed Meta scene while the unrevealed fullscreen game passes Chapter 0.
+- Added static coverage for all eleven deterministic states, spoiler timing, the clutter-to-quiet-to-organized arc, DOM integration, and the display-only boundary.
+- Subagent review tightened spoiler timing, disabled layout motion under reduced-motion preferences, and made restart explicitly restore the Chapter 0 fullscreen presentation.
+- Remaining physical-world work: phone-home icon reordering, chapter-specific phone/hand pose presets, final art assets, and user visual tuning. Browser validation remains intentionally omitted per project instruction.
+
 ## 2026-07-20 — Complete sound-effect design document
 
 - Added `docs/SOUND_EFFECT_DESIGN.md` as the canonical specification for all non-music audio: flight feedback, cheap ad UI, phone navigation, keyboard input, protagonist typewriter text, Meta hand/glass Foley, app evidence actions, hidden leaderboard reveals, and endings.

@@ -111,6 +111,8 @@ export default function App() {
   const restartLoop = () => {
     audio.playUnlock();
     setProgress(INITIAL_PROGRESS);
+    setMetaViewActive(false);
+    setDebugTargetApp(null);
   };
 
   const selectEnding = (ending: 'submit' | 'publicize' | 'preserve') => {
@@ -348,7 +350,7 @@ export default function App() {
         {/* Faint cold spill from the screen onto the desk */}
         {metaSceneActive && <div className="absolute w-96 h-96 bg-[#41526e]/[0.08] blur-[130px] rounded-full top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>}
 
-        <MetaInteractionScene active={metaSceneActive}>
+        <MetaInteractionScene active={metaSceneActive} chapter={metaSceneActive ? progress.currentChapter : 0}>
           <PhoneSimulator
             progress={progress}
             updateProgress={updateProgress}
