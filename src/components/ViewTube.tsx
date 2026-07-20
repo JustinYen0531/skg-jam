@@ -273,8 +273,6 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
                   <button
                     type="button"
                     onClick={() => {
-                      if (replayPaused) setReplayPaused(false);
-                      else setReplayPaused(true);
                       speakChapterOne(CHAPTER_ONE_DIALOGUE.videoEvidence);
                     }}
                     className="absolute inset-0 flex flex-col justify-between overflow-hidden text-left"
@@ -360,8 +358,8 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
 
                     {/* Controls Overlay */}
                     <div className="absolute inset-x-0 bottom-0 z-30 flex items-center justify-between bg-gradient-to-t from-black/90 to-transparent px-2 pb-1.5 pt-5 text-[9px] text-white/80">
-                      <span>▶ ARCHIVED CLIP</span>
-                      <span>0:38 / 1:12 · 240p</span>
+                      <span>{replayPaused ? '■ END OF EXAMINED CLIP' : '▶ ARCHIVED CLIP'}</span>
+                      <span>{replayPaused ? '0:42 / 1:12' : '0:38 / 1:12'} · 240p</span>
                     </div>
                   </button>
                 ) : (

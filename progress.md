@@ -148,6 +148,13 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Added the protagonist pause line: `I've seen enough. He's pulling some kind of cheating trick.` followed by a request to inspect the exact 40-to-41 moment.
 - Static verification passed: `npm test` 53/53 and `npm run lint`; final production build follows this documentation update. Browser and screenshot validation remain intentionally omitted per project instruction.
 
+## 2026-07-20 — Half-speed ARC excerpt and final pause
+
+- Reduced both the accelerated prelude scroll and the focused Gate 39–41 scroll to exactly 50 percent of their previous horizontal rates; the Gate 42 evidence beat now arrives around 20 seconds instead of 10.
+- Removed the generated score 42–184 continuation that produced visually unrelated pipe states. The posted video may still claim a score of 184, but Chapter 1 deliberately examines only its Gate 40 excerpt.
+- The protagonist's automatic pause at score 42 is now the terminal state of the replay. Later clicks retain the evidence monologue but cannot resume the canvas.
+- Static verification passed: `npm test` 53/53, `npm run lint`, and `npm run build`. Browser validation remains intentionally omitted per project instruction.
+
 ## 2026-07-20 — Generated hand asset integration
 
 - Located the user's root-level `hand.png` and confirmed it matches the attached image exactly. Its checkerboard was baked into a 24-bit RGB image rather than stored as transparency.
