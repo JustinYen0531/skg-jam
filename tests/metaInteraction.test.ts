@@ -4,6 +4,7 @@ import { test } from 'node:test';
 import {
   applyVirtualKey,
   canStartMetaInteraction,
+  getScrollFingerTravel,
   META_TAP_TIMING,
   normalizeVirtualKey,
   shouldRevealMetaView,
@@ -53,6 +54,12 @@ test('unsupported keys are ignored and max length is respected', () => {
   assert.deepEqual(applyVirtualKey('ABCD', 'E', 4), { value: 'ABCD', submit: false });
 });
 
+test('mouse wheel direction maps to the opposite touchscreen finger swipe', () => {
+  assert.equal(getScrollFingerTravel(120), -58);
+  assert.equal(getScrollFingerTravel(-120), 58);
+  assert.equal(getScrollFingerTravel(0), 0);
+});
+
 test('meta camera uses layered anatomical hands instead of rounded placeholder blobs', () => {
   const sceneSource = readFileSync(
     new URL('../src/components/MetaInteractionScene.tsx', import.meta.url),
@@ -69,7 +76,7 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   assert.match(sceneSource, /id="meta-right-hand-asset"/);
   assert.match(sceneSource, /clipPath: 'inset\(0 50% 0 0\)'/);
   assert.match(sceneSource, /clipPath: 'inset\(0 0 0 50%\)'/);
-  assert.match(sceneSource, /opacity: interactionPending \? 0 : 1[\s\S]{0,900}id="meta-right-hand-asset"/);
+  assert.match(sceneSource, /opacity: interactionPending \|\| scrollGesture \? 0 : 1[\s\S]{0,900}id="meta-right-hand-asset"/);
   assert.match(sceneSource, /id="meta-left-grip-back"/);
   assert.match(sceneSource, /id="meta-left-thumb"/);
   assert.match(sceneSource, /id="meta-right-hold-back"/);
@@ -90,9 +97,12 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   assert.match(sceneSource, /opacity: interactionPending && pointer\.x > 0 \? 1 : 0/);
   assert.match(sceneSource, /className="[^"]*z-\[8\][^"]*"[\s\S]{0,180}id="meta-tapping-hand-back"/);
   assert.match(sceneSource, /className="[^"]*z-\[60\][^"]*"[\s\S]{0,180}id="meta-pointer-hand"/);
-  assert.equal((sceneSource.match(/src="\/assets\/meta-tapping-finger\.png"/g) ?? []).length, 1);
+  assert.equal((sceneSource.match(/src="\/assets\/meta-tapping-finger\.png"/g) ?? []).length, 2);
   assert.match(sceneSource, /origin-\[40%_6%\][\s\S]{0,500}id="meta-tapping-finger-asset"/);
   assert.match(sceneSource, /animate=\{\{ y: pressed \? 5 : 0, scale: pressed \? 0\.98 : 1 \}\}/);
+  assert.match(sceneSource, /onWheelCapture=\{handleWheelCapture\}/);
+  assert.match(sceneSource, /id="meta-scroll-finger"/);
+  assert.match(sceneSource, /data-scroll-direction=\{scrollGesture\.travelY < 0 \? 'finger-up' : 'finger-down'\}/);
   assert.match(appSource, /setMetaViewActive\(true\);[\s\S]{0,180}setDebugTargetApp/);
   assert.match(appSource, /const metaSceneActive = shouldShowMetaScene\(metaViewActive, debugMode\)/);
   assert.match(appSource, /immersiveIntro=\{!metaSceneActive\}/);

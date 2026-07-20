@@ -171,3 +171,11 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Replaced the visible SVG tapping hand with the new raster asset while retaining the existing delayed interaction queue, target travel, press timing, activation callback, return, and regrip behavior.
 - Anchored motion at the generated image's fingertip and added only a restrained five-pixel press movement; the obsolete rear SVG tapping layer remains preserved but hidden.
 - Verification is static and automated only; browser and screenshot validation remain intentionally omitted per project instruction.
+
+## 2026-07-20 — Mouse-wheel finger swipe
+
+- Reused `public/assets/meta-tapping-finger.png`; no new image was generated or requested.
+- Added a non-blocking wheel-capture gesture limited to the physical phone. Wheel-down maps to a 58-pixel upward finger swipe, while wheel-up maps to the same distance downward.
+- The generated right grip fades only during the 520ms swipe, then returns. A 180ms throttle prevents trackpad or wheel bursts from continuously restarting the hand.
+- The wheel event is never prevented, so the underlying ViewTube feed, leaderboard, or other scrollable phone content keeps its native movement.
+- Static verification passed: `npm test` 54/54, `npm run lint`, and `npm run build`; direction mapping, scene wiring, and generated finger reuse are covered. Browser validation remains intentionally omitted per project instruction.

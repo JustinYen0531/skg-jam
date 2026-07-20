@@ -4,6 +4,7 @@ import { Terminal } from 'lucide-react';
 import {
   applyVirtualKey,
   canStartMetaInteraction,
+  getScrollFingerTravel,
   META_TAP_TIMING,
   normalizeVirtualKey,
 } from '../lib/metaInteraction';
@@ -17,6 +18,11 @@ interface MetaInteractionSceneProps {
 interface PointerPosition {
   x: number;
   y: number;
+}
+
+interface ScrollGesture {
+  nonce: number;
+  travelY: number;
 }
 
 interface QueuedKey {
@@ -260,6 +266,8 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
   const timersRef = useRef<number[]>([]);
   const replayingButtonsRef = useRef(new WeakSet<HTMLButtonElement>());
   const inputControllersRef = useRef(new Map<string, MetaInputController>());
+  const scrollGestureTimerRef = useRef<number | null>(null);
+  const lastScrollGestureAtRef = useRef(0);
   const [pointer, setPointer] = useState<PointerPosition>({ x: 0, y: 0 });
   const [pressed, setPressed] = useState(false);
   const [interactionPending, setInteractionPending] = useState(false);
@@ -267,6 +275,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [dialogueLines, setDialogueLines] = useState<DialogueLines>(CHAPTER_ONE_DIALOGUE.entry);
+  const [scrollGesture, setScrollGesture] = useState<ScrollGesture | null>(null);
 
   const speak = useCallback((lines: DialogueLines) => {
     if (lines.length > 0) setDialogueLines(lines);
@@ -322,6 +331,12 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
   }, [active, clearTimers, getRestPosition]);
 
   useEffect(() => clearTimers, [clearTimers]);
+
+  useEffect(() => () => {
+    if (scrollGestureTimerRef.current !== null) {
+      window.clearTimeout(scrollGestureTimerRef.current);
+    }
+  }, []);
 
   const animateTap = useCallback((target: Element, onActivate?: () => void): Promise<void> => {
     if (!active || reducedMotion) {
@@ -484,6 +499,30 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
     enqueueKey(input, key);
   };
 
+  const handleWheelCapture = (event: React.WheelEvent<HTMLDivElement>) => {
+    if (!active || reducedMotion || interactionPending) return;
+    const source = event.target;
+    if (!(source instanceof Element) || !source.closest('#phone-bezel')) return;
+
+    const travelY = getScrollFingerTravel(event.deltaY);
+    if (travelY === 0) return;
+    const now = performance.now();
+    if (now - lastScrollGestureAtRef.current < 180) return;
+    lastScrollGestureAtRef.current = now;
+
+    setScrollGesture((previous) => ({
+      nonce: (previous?.nonce ?? 0) + 1,
+      travelY,
+    }));
+    if (scrollGestureTimerRef.current !== null) {
+      window.clearTimeout(scrollGestureTimerRef.current);
+    }
+    scrollGestureTimerRef.current = window.setTimeout(() => {
+      setScrollGesture(null);
+      scrollGestureTimerRef.current = null;
+    }, 560);
+  };
+
   const contextValue = useMemo<MetaInteractionContextValue>(() => ({
     active,
     registerInput,
@@ -498,6 +537,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
       className={`relative h-full w-full overflow-hidden ${active ? 'bg-[#17130f]' : 'bg-transparent'}`}
       onClickCapture={handleClickCapture}
       onKeyDownCapture={handleKeyDownCapture}
+      onWheelCapture={handleWheelCapture}
       data-meta-view={active ? 'revealed' : 'screen-capture'}
       data-meta-pending={interactionPending ? 'true' : 'false'}
       data-hand-pose={interactionPending ? 'reaching' : 'holding'}
@@ -662,7 +702,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
               alt=""
               draggable={false}
               animate={{
-                opacity: interactionPending ? 0 : 1,
+                opacity: interactionPending || scrollGesture ? 0 : 1,
                 x: interactionPending ? 18 : 0,
               }}
               initial={false}
@@ -672,6 +712,32 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
               aria-hidden="true"
               id="meta-right-hand-asset"
             />
+
+            <AnimatePresence>
+              {scrollGesture && (
+                <motion.div
+                  key={scrollGesture.nonce}
+                  initial={{ opacity: 0, y: scrollGesture.travelY * -0.42 }}
+                  animate={{
+                    opacity: [0, 1, 1, 0],
+                    y: [scrollGesture.travelY * -0.42, 0, scrollGesture.travelY],
+                  }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.52, times: [0, 0.16, 1], ease: 'easeOut' }}
+                  className="pointer-events-none absolute left-[76%] top-[39%] z-[60] h-0 w-0"
+                  data-scroll-direction={scrollGesture.travelY < 0 ? 'finger-up' : 'finger-down'}
+                  aria-hidden="true"
+                  id="meta-scroll-finger"
+                >
+                  <img
+                    src="/assets/meta-tapping-finger.png"
+                    alt=""
+                    draggable={false}
+                    className="absolute left-0 top-0 h-[clamp(210px,31vh,300px)] w-auto max-w-none -translate-x-[40%] -translate-y-[6%] select-none drop-shadow-[0_14px_12px_rgba(0,0,0,0.3)]"
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             <motion.div
               initial={{ opacity: 0, x: -42, y: 18 }}

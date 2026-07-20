@@ -46,3 +46,9 @@ export const normalizeVirtualKey = (key: string): string | null => {
   if (key.length !== 1) return null;
   return key;
 };
+
+/** Wheel-down reveals lower content, so a touchscreen finger travels upward. */
+export const getScrollFingerTravel = (deltaY: number): number => {
+  if (deltaY === 0) return 0;
+  return deltaY > 0 ? -58 : 58;
+};
