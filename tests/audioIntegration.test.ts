@@ -6,6 +6,9 @@ const audioSource = readFileSync(new URL('../src/lib/audio.ts', import.meta.url)
 const flappySource = readFileSync(new URL('../src/components/FlappyGame.tsx', import.meta.url), 'utf8');
 const phoneSource = readFileSync(new URL('../src/components/PhoneSimulator.tsx', import.meta.url), 'utf8');
 const metaSource = readFileSync(new URL('../src/components/MetaInteractionScene.tsx', import.meta.url), 'utf8');
+const appSource = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
+const leaderboardSource = readFileSync(new URL('../src/components/LeaderboardPanel.tsx', import.meta.url), 'utf8');
+const screenshotsSource = readFileSync(new URL('../src/components/SavedScreenshots.tsx', import.meta.url), 'utf8');
 
 test('P0 and P1 sounds use audible event gain with a final limiter', () => {
   assert.match(audioSource, /gameplay: 4\.5/);
@@ -34,4 +37,30 @@ test('core P0 sound events remain connected to gameplay and the Meta interface',
   assert.match(metaSource, /audio\.play\('meta\.fingerContact'\)/);
   assert.match(metaSource, /audio\.play\('meta\.cameraPullback'\)/);
   assert.match(audioSource, /case 'narrative\.glyph'/);
+});
+
+test('P2 fine-detail sounds are defined, restrained, and connected to their interactions', () => {
+  for (const event of [
+    'leaderboard.rowPass',
+    'leaderboard.percent',
+    'phone.scrollLimit',
+    'meta.fingerRelease',
+    'meta.deviceCreak',
+    'meta.deskContact',
+    'screenshot.rotate',
+    'story.downloadCount',
+  ]) {
+    assert.match(audioSource, new RegExp(`case '${event.replace('.', '\\.')}'`));
+  }
+  assert.match(audioSource, /const pastArc = count > 184/);
+  assert.match(audioSource, /if \(!pastArc && count > 0 && count % 5 === 0\)/);
+  assert.match(audioSource, /nowT - \(this\.lastPlayed\['creak'\] \?\? 0\) < 30/);
+  assert.match(leaderboardSource, /audio\.play\('leaderboard\.rowPass'\)/);
+  assert.match(leaderboardSource, /audio\.play\('leaderboard\.percent'\)/);
+  assert.match(metaSource, /audio\.play\('phone\.scrollLimit'\)/);
+  assert.match(metaSource, /audio\.play\('meta\.fingerRelease'\)/);
+  assert.match(metaSource, /audio\.play\('meta\.deskContact', \{ delay: 1\.15 \}\)/);
+  assert.match(metaSource, /audio\.play\('meta\.deviceCreak'\)/);
+  assert.match(screenshotsSource, /audio\.play\('screenshot\.rotate'\)/);
+  assert.equal((appSource.match(/audio\.play\('story\.downloadCount'/g) ?? []).length, 2);
 });

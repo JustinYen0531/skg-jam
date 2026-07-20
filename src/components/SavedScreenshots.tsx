@@ -158,6 +158,7 @@ export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, up
             <motion.div
               key={sheet.id}
               onClick={() => handleZoom(index)}
+              onHoverStart={() => audio.play('screenshot.rotate')}
               whileHover={{ scale: 1.02, rotate: sheet.angle * 0.8 }}
               style={{ rotate: `${sheet.angle}deg` }}
               className={`relative paper-texture paper-crease p-3 rounded-sm shadow-[0_10px_24px_rgba(0,0,0,0.45)] cursor-pointer border border-black/20 flex flex-col justify-between ${sheet.bg} ${sheet.textColor} min-h-[95px] overflow-hidden`}

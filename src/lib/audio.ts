@@ -83,7 +83,16 @@ export type SfxEvent =
   | 'story.dataCorrupt'
   | 'story.serviceTerminated'
   | 'story.endingSubmit'
-  | 'story.endingPublicize';
+  | 'story.endingPublicize'
+  /* ---- P2: fine detail ---- */
+  | 'leaderboard.rowPass'
+  | 'leaderboard.percent'
+  | 'phone.scrollLimit'
+  | 'meta.fingerRelease'
+  | 'meta.deviceCreak'
+  | 'meta.deskContact'
+  | 'screenshot.rotate'
+  | 'story.downloadCount';
 
 export interface SfxOptions {
   /** Deterministic variant selector (e.g. pipe material, score count). */
@@ -357,10 +366,13 @@ class AudioManager {
 
       case 'flight.score': {
         // 40–80 ms clean ping, higher than flap; every 5th score gains one
-        // very light overtone layer — never a melody.
+        // very light overtone layer — never a melody. Past ARC_184 the ping
+        // loses a layer instead of gaining one: the moment ranking stops
+        // meaning anything becomes audible (§4.1 score184).
         const count = options.variant ?? 0;
-        this.tone({ bus: 'gameplay', type: 'triangle', f0: 1175, t, dur: 0.06, g: 0.06, family: 'score', cap: 3 });
-        if (count > 0 && count % 5 === 0) {
+        const pastArc = count > 184;
+        this.tone({ bus: 'gameplay', type: pastArc ? 'sine' : 'triangle', f0: 1175, t, dur: 0.06, g: pastArc ? 0.042 : 0.06, family: 'score', cap: 3 });
+        if (!pastArc && count > 0 && count % 5 === 0) {
           this.tone({ bus: 'gameplay', type: 'sine', f0: 2350, t: t + 0.01, dur: 0.05, g: 0.018, family: 'score', cap: 3 });
         }
         break;
@@ -923,6 +935,83 @@ class AudioManager {
           this.tone({ bus: 'ui', type: 'triangle', f0: f, t: t + i * 0.1, dur: 0.09, g: 0.04 });
         });
         this.tone({ bus: 'ui', type: 'square', f0: 400, f1: 60, t: t + 0.48, dur: 0.2, g: 0.06, filterType: 'lowpass', filterFreq: 900 });
+        break;
+      }
+
+      /* ============ P2: fine detail ============ */
+
+      case 'leaderboard.rowPass': {
+        // Only your row and story rows locate themselves; a whisper of a
+        // tick, throttled so fast scrolling never machine-guns (§4.2).
+        const nowT = this.ctx.currentTime;
+        if (nowT - (this.lastPlayed['rowPass'] ?? 0) < 0.12) return;
+        this.lastPlayed['rowPass'] = nowT;
+        this.tone({ bus: 'ui', type: 'sine', f0: 1240, t, dur: 0.014, g: 0.025 });
+        this.noise({ bus: 'ui', t, dur: 0.008, g: 0.012, filterType: 'highpass', filterFreq: 3000 });
+        break;
+      }
+
+      case 'leaderboard.percent': {
+        // A small ad-bright ding for the fake percentage, on a cooldown —
+        // never per frame (§4.2).
+        const nowT = this.ctx.currentTime;
+        if (nowT - (this.lastPlayed['percent'] ?? 0) < 1.2) return;
+        this.lastPlayed['percent'] = nowT;
+        this.tone({ bus: 'ui', type: 'triangle', f0: 1319, t, dur: 0.07, g: 0.04 });
+        this.tone({ bus: 'ui', type: 'sine', f0: 2637, t: t + 0.01, dur: 0.05, g: 0.012 });
+        break;
+      }
+
+      case 'phone.scrollLimit': {
+        // A soft boundary bounce when scrolling past the end (§4.3).
+        const nowT = this.ctx.currentTime;
+        if (nowT - (this.lastPlayed['scrollLimit'] ?? 0) < 0.35) return;
+        this.lastPlayed['scrollLimit'] = nowT;
+        this.tone({ bus: 'ui', type: 'sine', f0: 300, f1: 260, t, dur: 0.05, g: 0.04 });
+        this.tone({ bus: 'ui', type: 'sine', f0: 140, t: t + 0.01, dur: 0.04, g: 0.03 });
+        break;
+      }
+
+      case 'meta.fingerRelease': {
+        // The pad peeling off the glass — lighter than the contact (§4.6).
+        this.noise({ bus: 'metaFoley', t, dur: 0.008, g: 0.03, filterType: 'highpass', filterFreq: 2800 });
+        this.noise({ bus: 'metaFoley', t: t + 0.004, dur: 0.014, g: 0.035, filterType: 'lowpass', filterFreq: 900 });
+        break;
+      }
+
+      case 'meta.deviceCreak': {
+        // The chassis settling in a long-held grip. Rare by contract:
+        // a hard minimum interval lives here, not in the caller (§4.6).
+        const nowT = this.ctx.currentTime;
+        if (nowT - (this.lastPlayed['creak'] ?? 0) < 30) return;
+        this.lastPlayed['creak'] = nowT;
+        this.tone({ bus: 'metaFoley', type: 'sine', f0: 92, f1: 74, t, dur: 0.32, g: 0.03, attack: 0.06 });
+        this.noise({ bus: 'metaFoley', t: t + 0.05, dur: 0.22, g: 0.016, attack: 0.08, filterType: 'bandpass', filterFreq: 300, filterQ: 2 });
+        break;
+      }
+
+      case 'meta.deskContact': {
+        // The phone arriving in the full physical composition: small and
+        // weighted, a placement rather than an impact (§4.6).
+        this.tone({ bus: 'metaFoley', type: 'sine', f0: 95, t, dur: 0.09, g: 0.08, attack: 0.008 });
+        this.noise({ bus: 'metaFoley', t, dur: 0.05, g: 0.045, filterType: 'lowpass', filterFreq: 350 });
+        this.tone({ bus: 'metaFoley', type: 'sine', f0: 240, t: t + 0.012, dur: 0.03, g: 0.02 });
+        break;
+      }
+
+      case 'screenshot.rotate': {
+        // Light paper friction as evidence shifts on the desk (§4.7).
+        const nowT = this.ctx.currentTime;
+        if (nowT - (this.lastPlayed['paper'] ?? 0) < 0.25) return;
+        this.lastPlayed['paper'] = nowT;
+        this.noise({ bus: 'ui', t, dur: 0.09, g: 0.028, attack: 0.02, filterType: 'bandpass', filterFreq: 1300, filterQ: 1 });
+        break;
+      }
+
+      case 'story.downloadCount': {
+        // One very small old-system tick per download: 1, then 2 (§4.8).
+        this.tone({ bus: 'ui', type: 'square', f0: 660, t, dur: 0.025, g: 0.03, filterType: 'lowpass', filterFreq: 1500 });
+        this.tone({ bus: 'ui', type: 'sine', f0: 1320, t, dur: 0.018, g: 0.008 });
         break;
       }
     }

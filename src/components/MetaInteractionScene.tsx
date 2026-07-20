@@ -335,6 +335,9 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
     }
     setPointer(getRestPosition());
     audio.play('meta.cameraPullback');
+    audio.play('meta.deskContact', { delay: 1.15 });
+    const creakTimer = window.setInterval(() => audio.play('meta.deviceCreak'), 52000);
+    return () => window.clearInterval(creakTimer);
   }, [active, clearTimers, getRestPosition]);
 
   useEffect(() => clearTimers, [clearTimers]);
@@ -374,6 +377,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
 
       timersRef.current.push(window.setTimeout(() => {
         setPressed(false);
+        audio.play('meta.fingerRelease');
         onActivate?.();
       }, META_TAP_TIMING.unfoldMs + META_TAP_TIMING.travelMs + META_TAP_TIMING.pressMs));
 
@@ -522,6 +526,18 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
     const now = performance.now();
     if (now - lastScrollGestureAtRef.current < 180) return;
     lastScrollGestureAtRef.current = now;
+
+    let scrollable: HTMLElement | null = source instanceof HTMLElement ? source : null;
+    while (scrollable && scrollable.id !== 'meta-interaction-scene') {
+      const overflowY = window.getComputedStyle(scrollable).overflowY;
+      if ((overflowY === 'auto' || overflowY === 'scroll') && scrollable.scrollHeight > scrollable.clientHeight + 2) break;
+      scrollable = scrollable.parentElement;
+    }
+    if (scrollable && scrollable.id !== 'meta-interaction-scene') {
+      const atTop = scrollable.scrollTop <= 1 && event.deltaY < 0;
+      const atBottom = scrollable.scrollTop + scrollable.clientHeight >= scrollable.scrollHeight - 1 && event.deltaY > 0;
+      if (atTop || atBottom) audio.play('phone.scrollLimit');
+    }
 
     setScrollGesture((previous) => ({
       nonce: (previous?.nonce ?? 0) + 1,

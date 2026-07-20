@@ -135,6 +135,10 @@ export default function App() {
         : ending === 'submit' ? 'story.endingSubmit'
           : 'story.endingPublicize',
     );
+    if (ending === 'preserve') {
+      audio.play('story.downloadCount', { delay: 2.4 });
+      audio.play('story.downloadCount', { delay: 3.6 });
+    }
     setProgress((prev) => ({
       ...prev,
       phase: 'ending_choice',

@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Crown, RefreshCw, Sparkles, Trophy, X, Zap } from 'lucide-react';
+import audio from '../lib/audio';
 import type { PublicLeaderboardEntry } from '../lib/leaderboard';
 
 interface LeaderboardPanelProps {
@@ -20,7 +21,46 @@ export const LeaderboardPanel: React.FC<LeaderboardPanelProps> = ({
   onRetry,
   onClose,
   onInvestigate,
-}) => (
+}) => {
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const mountedAtRef = useRef(0);
+  const seenRowsRef = useRef(new Set<string>());
+  const lastPercentRef = useRef(beatPercentage);
+
+  // §4.2 rowPass: only your own row and story rows announce themselves as
+  // they scroll into view; the anonymous filler stays silent.
+  useEffect(() => {
+    const list = listRef.current;
+    if (!list) return;
+    mountedAtRef.current = performance.now();
+    const rows = list.querySelectorAll(
+      '[data-entry-kind="player"], [data-entry-kind="featured"], [data-entry-kind="named"]',
+    );
+    const observer = new IntersectionObserver((intersections) => {
+      intersections.forEach((intersection) => {
+        if (!intersection.isIntersecting) return;
+        const key = intersection.target.getAttribute('data-row-key') ?? '';
+        if (seenRowsRef.current.has(key)) return;
+        seenRowsRef.current.add(key);
+        // Rows already visible when the panel opens were not "passed".
+        if (performance.now() - mountedAtRef.current < 400) return;
+        audio.play('leaderboard.rowPass');
+      });
+    }, { root: list, threshold: 0.6 });
+    rows.forEach((row) => observer.observe(row));
+    return () => observer.disconnect();
+  }, [entries]);
+
+  // §4.2 percent: the fake stat only dings when it actually changes while
+  // the panel is open; the engine adds its own cooldown on top.
+  useEffect(() => {
+    if (lastPercentRef.current !== beatPercentage) {
+      lastPercentRef.current = beatPercentage;
+      audio.play('leaderboard.percent');
+    }
+  }, [beatPercentage]);
+
+  return (
   <div
     className="absolute inset-0 z-30 overflow-hidden bg-[#070511] text-slate-100 flex flex-col font-sans"
     id="leaderboard-panel"
@@ -75,7 +115,7 @@ export const LeaderboardPanel: React.FC<LeaderboardPanelProps> = ({
       <div className="shrink-0 grid grid-cols-[44px_1fr_58px] items-center px-2.5 py-1.5 text-[8px] font-black tracking-widest text-slate-500 border-b border-white/10 bg-white/[0.03]">
         <span>RANK</span><span>FLYER ID</span><span className="text-right">SCORE</span>
       </div>
-      <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain" id="leaderboard-scroll-list">
+      <div ref={listRef} className="flex-1 min-h-0 overflow-y-auto overscroll-contain" id="leaderboard-scroll-list">
         {entries.map((entry) => {
           const isPlayer = entry.kind === 'player';
           const isFeatured = entry.kind === 'featured';
@@ -92,6 +132,7 @@ export const LeaderboardPanel: React.FC<LeaderboardPanelProps> = ({
                     : 'border-white/[0.05] odd:bg-white/[0.025]'
               }`}
               data-entry-kind={entry.kind}
+              data-row-key={entry.id}
             >
               <span className={`font-mono font-black ${isFeatured ? 'text-amber-300' : isPlayer ? 'text-cyan-300' : 'text-slate-500'}`}>
                 {rankLabel(entry.rank)}
@@ -139,4 +180,5 @@ export const LeaderboardPanel: React.FC<LeaderboardPanelProps> = ({
       </button>
     </div>
   </div>
-);
+  );
+};

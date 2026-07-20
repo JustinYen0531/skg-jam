@@ -307,3 +307,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Extended both cable strokes from SVG x=510 to x=650 so the right end continues beyond the scene crop instead of exposing a rounded tail.
 - The phone now occludes the metal insertion point without hiding the cable body or moving the coffee cup.
 - Browser validation remains intentionally omitted per project instruction; static tests, TypeScript lint, and production build are required before upload.
+
+## 2026-07-21 — P2 fine-detail sound implementation
+
+- Added the complete P2 synthesis tier: leaderboard row/percentage cues, scroll-boundary bounce, finger release, rare device creak, desk contact, evidence-paper rotation, preserve-ending download counts, and the reduced score ping after 184.
+- Connected each event to its real interaction with engine-level cooldowns for row scanning, percentage changes, scroll limits, paper movement, and the 30-second device-creak floor.
+- Kept the P2 layer quiet and non-instructional; it adds physical detail without revealing clues or competing with P0/P1 feedback.
+- Browser listening remains intentionally omitted per project instruction; static tests, TypeScript lint, and production build are required before upload.
