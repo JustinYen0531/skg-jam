@@ -7,6 +7,7 @@ import {
   META_TAP_TIMING,
   normalizeVirtualKey,
 } from '../lib/metaInteraction';
+import { CHAPTER_ONE_DIALOGUE, DialogueLines } from '../lib/chapterOneDialogue';
 
 interface MetaInteractionSceneProps {
   active: boolean;
@@ -32,11 +33,13 @@ interface MetaInputController {
 interface MetaInteractionContextValue {
   active: boolean;
   registerInput: (id: string, controller: MetaInputController) => () => void;
+  speak: (lines: DialogueLines) => void;
 }
 
 const MetaInteractionContext = createContext<MetaInteractionContextValue>({
   active: false,
   registerInput: () => () => undefined,
+  speak: () => undefined,
 });
 
 export const useMetaInteraction = () => useContext(MetaInteractionContext);
@@ -261,6 +264,11 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
   const [keyboardTarget, setKeyboardTarget] = useState<HTMLInputElement | null>(null);
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
+  const [dialogueLines, setDialogueLines] = useState<DialogueLines>(CHAPTER_ONE_DIALOGUE.entry);
+
+  const speak = useCallback((lines: DialogueLines) => {
+    if (lines.length > 0) setDialogueLines(lines);
+  }, []);
 
   const clearTimers = useCallback(() => {
     timersRef.current.forEach((timer) => window.clearTimeout(timer));
@@ -291,6 +299,10 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
     media.addEventListener?.('change', updatePreference);
     return () => media.removeEventListener?.('change', updatePreference);
   }, []);
+
+  useEffect(() => {
+    if (active) setDialogueLines(CHAPTER_ONE_DIALOGUE.entry);
+  }, [active]);
 
   useEffect(() => {
     if (!active) {
@@ -464,7 +476,8 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
   const contextValue = useMemo<MetaInteractionContextValue>(() => ({
     active,
     registerInput,
-  }), [active, registerInput]);
+    speak,
+  }), [active, registerInput, speak]);
 
   return (
     <MetaInteractionContext.Provider value={contextValue}>
@@ -681,8 +694,9 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
                 </div>
               </div>
               <div className="space-y-1.5 font-display text-[clamp(16px,2.1cqh,22px)] font-semibold leading-snug text-emerald-50">
-                <p>&gt; 「這不是紀錄。」</p>
-                <p>&gt; 「這是作弊。」</p>
+                {dialogueLines.map((line, index) => (
+                  <p key={`${line}-${index}`}>&gt; “{line}”</p>
+                ))}
               </div>
             </motion.div>
           </>

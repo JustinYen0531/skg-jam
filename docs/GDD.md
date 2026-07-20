@@ -91,6 +91,8 @@ ARC_184 聲稱自己使用 Internet Archive 保存的舊版本，任何找到舊
 
 在 ViewTube 搜尋 `ARC_184`。影片顯示第 40 分的奇怪低空路線；留言指出 ARC_184 使用 Archive 保存的舊版。他的回答是：`The one they took away from everyone.`
 
+本階段底部 `LIVE TRANSCRIPT` 的英文內心獨白、無關操作回應、提前輸入警示與實測流程，以 [Chapter 1 主角內心獨白規格](./CHAPTER_1_PROTAGONIST_DIALOGUE.md) 為準。主角只能根據已看見的證據推理，不得提前知道後續人名、裝置、密碼或高度序列。
+
 ### 謎題 2：尋找舊版本
 
 在 Archive 找到 `Skyline256_LAOS_Final.ipa`：十二年前上傳、平台 LAOS、相容 Lumen Arc、現代裝置無法執行，並註記 `Requires native altitude sensor`。玩家想起母親的舊裝置，但新版已覆蓋舊版。

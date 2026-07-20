@@ -9,6 +9,7 @@ import { SavedScreenshots } from './SavedScreenshots';
 import { BrowserApp } from './BrowserApp';
 import { SocialApp } from './SocialApp';
 import { MessagesApp } from './MessagesApp';
+import { useMetaInteraction } from './MetaInteractionScene';
 import { motion, AnimatePresence } from 'motion/react';
 import { Wifi, CheckCircle2 } from 'lucide-react';
 import {
@@ -16,6 +17,11 @@ import {
   IconMessages, IconSchematics, IconConcept,
   IconVoiceLog, IconFileBox, IconGallery, IconTerminal, IconControls,
 } from './OsIcons';
+import {
+  CHAPTER_ONE_DIALOGUE,
+  getChapterOneCompanionDialogue,
+  getChapterOneWrongAppDialogue,
+} from '../lib/chapterOneDialogue';
 
 /** Modern widget chassis: translucent, friendly, current-year. */
 const WIDGET_SHELL =
@@ -34,12 +40,15 @@ interface PhoneSimulatorProps {
 export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   progress, updateProgress, onMuteToggle, isMuted, immersiveIntro = false, debugTargetApp, onLeaderboardOpened
 }) => {
+  const metaInteraction = useMetaInteraction();
   const [activeApp, setActiveApp] = useState<ActiveApp>('flappy');
   const [currentTime, setCurrentTime] = useState('01:36');
   // Restore flash: nonce re-keys the overlay so the CSS animation replays.
   const [restoreNonce, setRestoreNonce] = useState(0);
   const [restoreVisible, setRestoreVisible] = useState(false);
   const restoreTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const chapterOneAppAttempt = useRef(0);
+  const chapterOneHomeAttempt = useRef(0);
 
   const residue = getResidueLevel(progress);
 
@@ -67,6 +76,14 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   const handleLaunchApp = (app: ActiveApp) => {
     audio.playTick();
     setActiveApp(app);
+    if (progress.currentChapter === 1 && metaInteraction.active) {
+      if (app === 'viewtube') {
+        metaInteraction.speak(CHAPTER_ONE_DIALOGUE.viewTubeOpened);
+      } else {
+        metaInteraction.speak(getChapterOneWrongAppDialogue(app, chapterOneAppAttempt.current));
+        chapterOneAppAttempt.current += 1;
+      }
+    }
     // Migrated apps briefly hand the display to the old runtime. Decorative
     // only: the overlay ignores pointer events and clears itself.
     if (isMigratedApp(app, residue)) {
@@ -80,6 +97,15 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   const handleHomeButton = () => {
     audio.playTick();
     setActiveApp('home');
+    if (progress.currentChapter === 1 && metaInteraction.active) {
+      const attempt = chapterOneHomeAttempt.current;
+      metaInteraction.speak(
+        attempt === 0
+          ? CHAPTER_ONE_DIALOGUE.homeReturned
+          : getChapterOneCompanionDialogue(attempt - 1),
+      );
+      chapterOneHomeAttempt.current += 1;
+    }
   };
 
   // Investigation checklist — the labels are clue text, do not reword them.

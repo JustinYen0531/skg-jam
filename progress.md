@@ -121,3 +121,12 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Preserved the user's original core-language paragraph verbatim and recorded the fixed twelve-bar structure, withheld final four bars, stage-by-stage degradation arc, reusable master prompt, negative prompt, and version metadata rules.
 - The GDD now links to the music document and explicitly forbids generating eleven unrelated tracks from text; every stage must derive from one approved master melody or reference audio.
 - No audio was generated or modified in this step.
+
+## 2026-07-20 — Chapter 1 protagonist dialogue and companion prompts
+
+- Added `docs/CHAPTER_1_PROTAGONIST_DIALOGUE.md` as the canonical Chapter 1 voice, trigger, early-input warning, and manual-testing reference.
+- Replaced the fixed Chinese Meta transcript with event-driven English internal monologue while retaining `YOU · LOCAL PLAYER` as the unnamed protagonist label.
+- Wired Chapter 1 guidance into returning home, opening correct and incorrect apps, clicking irrelevant ViewTube videos, focusing and submitting searches, playing the ARC_184 run, inspecting the impossible Gate 40 pass, and reading ARC_184's Lumen Arc reply.
+- Future names, Lumen Arc, Silver Kite, the final password, and the altitude sequence now receive teasing non-progression responses; only normalized `ARC_184` variants reveal the target video.
+- Chapter 2 progression now waits until the player has started the video and selected ARC_184's highlighted reply instead of advancing on search alone.
+- Static verification passed: `npm test` 47/47, `npm run lint`, and `npm run build`. Browser and screenshot validation were intentionally omitted per project instruction.

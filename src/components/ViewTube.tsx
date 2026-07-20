@@ -1,9 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { GameProgress, PuzzleChapter } from '../types';
 import audio from '../lib/audio';
 import { canUseProgressionAction } from '../lib/chapterProgress';
 import { useMetaInteraction } from './MetaInteractionScene';
 import { createFeedSeed, shuffleFeed } from '../lib/pseudoFeed';
+import {
+  CHAPTER_ONE_DIALOGUE,
+  DialogueLines,
+  getChapterOneIrrelevantVideoDialogue,
+  getChapterOneSearchResponse,
+} from '../lib/chapterOneDialogue';
 import { Search, Play, ThumbsUp, MessageSquare, Share2, AlertTriangle, Radio, TrendingUp } from 'lucide-react';
 
 const VIEWTUBE_FEED = [
@@ -32,10 +38,40 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
   const [searchError, setSearchError] = useState('');
   const [danmakus, setDanmakus] = useState<Array<{ id: number; text: string; top: number; delay: number }>>([]);
   const [recommendedVideos] = useState(() => shuffleFeed(VIEWTUBE_FEED, createFeedSeed('viewtube')));
+  const chapterOneSearchAttempt = useRef(0);
+  const chapterOneVideoAttempt = useRef(0);
+
+  const speakChapterOne = (lines: DialogueLines) => {
+    if (progress.currentChapter === 1 && metaInteraction.active) {
+      metaInteraction.speak(lines);
+    }
+  };
 
   const performSearch = () => {
     audio.playTick();
     const query = searchQuery.toLowerCase().trim();
+    if (progress.currentChapter === 1 && metaInteraction.active) {
+      const response = getChapterOneSearchResponse(searchQuery, chapterOneSearchAttempt.current);
+      chapterOneSearchAttempt.current += 1;
+      metaInteraction.speak(response.lines);
+
+      if (!response.isArcSearch) {
+        setSearchError('NO RELEVANT RESULT FOR THE CURRENT INVESTIGATION.');
+        return;
+      }
+
+      if (!canUseProgressionAction('viewtube-arc-search', progress)) {
+        audio.playGlitch();
+        setSearchError('THAT NAME IS INTERESTING. YOUR CHARACTER HAS NOT SEEN IT YET.');
+        return;
+      }
+
+      setSearchError('');
+      setHasSearched(true);
+      updateProgress((prev) => ({ ...prev, viewTubeSearchedArc: true }));
+      return;
+    }
+
     if (query.includes('arc') || query.includes('184')) {
       if (!canUseProgressionAction('viewtube-arc-search', progress)) {
         audio.playGlitch();
@@ -62,6 +98,7 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
   const startVideo = () => {
     audio.playUnlock();
     setIsPlayingVideo(true);
+    speakChapterOne(CHAPTER_ONE_DIALOGUE.videoStarted);
     updateProgress((prev) => ({ ...prev, watchedVideo: true }));
 
     // Generate danmaku/bullet comments flying across screen
@@ -103,6 +140,7 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
             placeholder="Search Creator or Video..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={() => speakChapterOne(CHAPTER_ONE_DIALOGUE.searchFocused)}
             readOnly={metaInteraction.active}
             className="w-full bg-red-950/40 text-xs text-white placeholder-red-300 px-2.5 py-1.5 pr-8 rounded border border-red-800 focus:outline-none focus:border-red-500 font-mono"
             id="vt-search-input"
@@ -130,7 +168,16 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
               ))}
             </div>
 
-            <section className="rounded-xl overflow-hidden border border-slate-800 bg-slate-900 shadow-xl" id="vt-featured-video">
+            <button
+              type="button"
+              onClick={() => {
+                audio.playTick();
+                speakChapterOne(getChapterOneIrrelevantVideoDialogue(chapterOneVideoAttempt.current));
+                chapterOneVideoAttempt.current += 1;
+              }}
+              className="w-full text-left rounded-xl overflow-hidden border border-slate-800 bg-slate-900 shadow-xl"
+              id="vt-featured-video"
+            >
               <div className={`h-28 bg-gradient-to-br ${recommendedVideos[0].gradient} relative p-3 flex flex-col justify-between`}>
                 <div className="flex justify-between items-start">
                   <span className="text-[8px] font-black tracking-widest bg-black/50 px-1.5 py-0.5 rounded">FEATURED FOR YOU</span>
@@ -147,7 +194,7 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
                 <h2 className="text-xs font-bold leading-tight text-white">{recommendedVideos[0].title}</h2>
                 <div className="text-[9px] text-slate-400 mt-1">{recommendedVideos[0].channel} · {recommendedVideos[0].views} · {recommendedVideos[0].age}</div>
               </div>
-            </section>
+            </button>
 
             <div className="flex items-center justify-between pt-1">
               <div className="flex items-center gap-1 text-xs font-bold"><TrendingUp className="w-3.5 h-3.5 text-red-500" /> Recommended</div>
@@ -156,7 +203,16 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
 
             <div className="grid grid-cols-2 gap-2" id="vt-recommendations">
               {recommendedVideos.slice(1, 9).map((video) => (
-                <article key={video.id} className="min-w-0 rounded-lg overflow-hidden bg-slate-900 border border-slate-800/80">
+                <button
+                  type="button"
+                  key={video.id}
+                  onClick={() => {
+                    audio.playTick();
+                    speakChapterOne(getChapterOneIrrelevantVideoDialogue(chapterOneVideoAttempt.current));
+                    chapterOneVideoAttempt.current += 1;
+                  }}
+                  className="min-w-0 text-left rounded-lg overflow-hidden bg-slate-900 border border-slate-800/80"
+                >
                   <div className={`h-16 bg-gradient-to-br ${video.gradient} relative p-1.5`}>
                     <span className="absolute left-1.5 top-1.5 text-[7px] font-black bg-black/45 px-1 rounded">{video.label}</span>
                     <span className={`absolute right-1 bottom-1 text-[7px] font-mono px-1 rounded ${video.duration === 'LIVE' ? 'bg-red-600 text-white' : 'bg-black/75 text-white'}`}>{video.duration}</span>
@@ -167,12 +223,16 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
                     <div className="text-[8px] text-slate-500 mt-1 truncate">{video.channel}</div>
                     <div className="text-[8px] text-slate-600 truncate">{video.views} · {video.age}</div>
                   </div>
-                </article>
+                </button>
               ))}
             </div>
 
             <button
-              onClick={() => { audio.playTick(); setSearchQuery('ARC_184'); }}
+              onClick={() => {
+                audio.playTick();
+                setSearchQuery('ARC_184');
+                speakChapterOne(CHAPTER_ONE_DIALOGUE.rumorSelected);
+              }}
               className="w-full text-left rounded-lg border border-red-900/50 bg-red-950/20 p-2.5 flex items-center gap-2"
               id="vt-rumor-suggestion"
             >
@@ -192,7 +252,12 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
               {/* Fake Player Viewport */}
               <div className="aspect-video bg-black relative flex items-center justify-center overflow-hidden" id="vt-player">
                 {isPlayingVideo ? (
-                  <div className="absolute inset-0 flex flex-col justify-between p-3" id="vt-player-active">
+                  <button
+                    type="button"
+                    onClick={() => speakChapterOne(CHAPTER_ONE_DIALOGUE.videoEvidence)}
+                    className="absolute inset-0 flex flex-col justify-between p-3 text-left"
+                    id="vt-player-active"
+                  >
                     
                     {/* Retro Canvas Simulator showing bird moving low */}
                     <div className="absolute inset-0 bg-slate-900 flex items-center justify-center">
@@ -237,7 +302,7 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
                       <span>▶ PLAYING | 0:24 / 1:12</span>
                       <span className="text-emerald-400 font-bold">LAG/BUFFER: 12%</span>
                     </div>
-                  </div>
+                  </button>
                 ) : (
                   <button 
                     onClick={startVideo}
@@ -294,9 +359,25 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
                   <p className="text-slate-200">
                     This is 100% fake. At score 40, there is a hardcoded collision barrier. I inspected the bytecode. He is either using an emulator modification or spoofing values.
                   </p>
-                  <div className="bg-slate-950 p-1.5 rounded text-[10px] text-yellow-400 border border-yellow-950 mt-1">
+                  <button
+                    type="button"
+                    className="w-full bg-slate-950 p-1.5 rounded text-left text-[10px] text-yellow-400 border border-yellow-950 mt-1"
+                    id="vt-arc-reply"
+                    onClick={() => {
+                      audio.playTick();
+                      if (!isPlayingVideo) {
+                        speakChapterOne(CHAPTER_ONE_DIALOGUE.videoReady);
+                        return;
+                      }
+                      speakChapterOne(CHAPTER_ONE_DIALOGUE.lumenLead);
+                      updateProgress((prev) => ({
+                        ...prev,
+                        currentChapter: Math.max(prev.currentChapter, 2) as PuzzleChapter,
+                      }));
+                    }}
+                  >
                     💬 **ARC_184 replied**: No emulator edits. No scripts. It runs on the <span className="underline font-bold text-white">Lumen Arc</span>, utilizing the native altitude sensor glitch of the LAOS operating system. Look up the device they recalled.
-                  </div>
+                  </button>
                 </div>
 
                 {/* Comment 2 */}
