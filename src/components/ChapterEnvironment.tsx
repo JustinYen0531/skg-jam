@@ -11,6 +11,7 @@ import {
 interface ChapterEnvironmentProps {
   chapter: EnvironmentChapter;
   reducedMotion: boolean;
+  layer?: 'lighting' | 'objects';
 }
 
 const COFFEE_LEVEL: Record<CoffeeState, number> = {
@@ -51,7 +52,7 @@ const CoffeeCup: React.FC<{ state: CoffeeState; ring: boolean; animateLayout: bo
   return (
     <motion.div
       layout={animateLayout}
-      className={`absolute z-[3] h-[11%] w-[8%] min-w-16 ${pushedAway ? 'right-[2.5%] top-[63%] scale-[0.82]' : 'right-[7%] top-[65%]'}`}
+      className={`absolute z-[3] h-[11%] w-[8%] min-w-16 origin-bottom-right ${pushedAway ? 'right-[2.5%] top-[63%] scale-[1.55]' : 'right-[7%] top-[65%] scale-[1.9]'}`}
       data-coffee-state={state}
       id="meta-desk-coffee"
     >
@@ -80,7 +81,7 @@ const ChargingCable: React.FC<{ connected: boolean; animateLayout: boolean }> = 
   <motion.svg
     layout={animateLayout}
     viewBox="0 0 500 140"
-    className="absolute bottom-[19%] right-[-2%] z-[2] h-[12%] w-[39%] overflow-visible opacity-75 drop-shadow-[0_5px_4px_rgba(0,0,0,0.45)]"
+    className="absolute bottom-[19%] right-[-2%] z-[2] h-[12%] w-[39%] origin-bottom-right scale-[1.7] overflow-visible opacity-75 drop-shadow-[0_5px_4px_rgba(0,0,0,0.45)]"
     data-cable-state={connected ? 'connected' : 'loose'}
     id="meta-desk-cable"
   >
@@ -116,7 +117,7 @@ const Pen: React.FC<{ state: PenState; animateLayout: boolean }> = ({ state, ani
   return (
     <motion.div
       layout={animateLayout}
-      className={`absolute z-[5] h-[5px] w-[17%] min-w-28 origin-left rounded-full bg-gradient-to-r from-[#15181c] via-[#464d58] to-[#111318] shadow-[0_4px_4px_rgba(0,0,0,0.38)] ${poseClass[state]}`}
+      className={`absolute z-[5] h-[5px] w-[17%] min-w-28 origin-left scale-[1.8] rounded-full bg-gradient-to-r from-[#15181c] via-[#464d58] to-[#111318] shadow-[0_4px_4px_rgba(0,0,0,0.38)] ${poseClass[state]}`}
       data-pen-state={state}
       id="meta-desk-pen"
     >
@@ -134,7 +135,7 @@ const Notebook: React.FC<{ state: NotebookState; stickyNote: string | null; anim
   return (
     <motion.div
       layout={animateLayout}
-      className={`absolute left-[5%] top-[64%] z-[3] h-[20%] w-[24%] min-w-56 origin-center -rotate-[4deg] rounded-sm shadow-[0_16px_18px_rgba(0,0,0,0.38)] ${isClosed ? 'bg-[#243a42]' : 'bg-[#d6ccb7]'}`}
+      className={`absolute left-[5%] top-[64%] z-[3] h-[20%] w-[24%] min-w-56 origin-bottom-left scale-[1.85] -rotate-[4deg] rounded-sm shadow-[0_16px_18px_rgba(0,0,0,0.38)] ${isClosed ? 'bg-[#243a42]' : 'bg-[#d6ccb7]'}`}
       data-notebook-state={state}
       id="meta-desk-notebook"
     >
@@ -164,28 +165,33 @@ const Notebook: React.FC<{ state: NotebookState; stickyNote: string | null; anim
   );
 };
 
-export const ChapterEnvironment: React.FC<ChapterEnvironmentProps> = ({ chapter, reducedMotion }) => {
+export const ChapterEnvironment: React.FC<ChapterEnvironmentProps> = ({ chapter, reducedMotion, layer = 'objects' }) => {
   const environment = getChapterEnvironment(chapter);
   if (chapter === 0) return null;
 
   const transition = reducedMotion ? { duration: 0.12 } : { duration: 0.62, ease: 'easeOut' as const };
 
-  return (
-    <div
-      className="pointer-events-none absolute inset-0 z-[2] overflow-hidden"
-      data-environment-chapter={chapter}
-      data-desk-order={environment.deskOrder}
-      id="meta-chapter-environment"
-    >
+  if (layer === 'lighting') {
+    return (
       <motion.div
         animate={{ opacity: 1 }}
         initial={{ opacity: 0 }}
         transition={transition}
-        className={`absolute inset-0 ${LIGHTING_CLASS[environment.lighting]}`}
+        className={`pointer-events-none absolute inset-0 z-[1] ${LIGHTING_CLASS[environment.lighting]}`}
         data-lighting={environment.lighting}
         id="meta-desk-lighting"
       />
+    );
+  }
 
+  return (
+    <div
+      className="pointer-events-none absolute inset-0 z-[25] overflow-hidden"
+      data-environment-chapter={chapter}
+      data-desk-order={environment.deskOrder}
+      data-environment-layer="foreground"
+      id="meta-chapter-environment"
+    >
       <AnimatePresence mode="popLayout">
         <motion.div
           key={`objects-${chapter}`}

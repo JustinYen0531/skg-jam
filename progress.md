@@ -240,3 +240,11 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Added capture-phase pointer/keyboard AudioContext unlocking and retry of the triggering event after a suspended context resumes.
 - Preserved event timing, pitch, deterministic variants, P1 event identities, mute behavior, and the deliberately quiet ambience layer.
 - Browser listening validation remains intentionally omitted per project instruction; static tests, TypeScript lint, and production build are required before upload.
+
+## 2026-07-20 — Foreground chapter objects and translucent dialogue
+
+- Split `ChapterEnvironment` into a background lighting layer and a foreground object layer so chapter props are no longer trapped behind the animated phone stacking context during normal play.
+- Positioned the object layer at z-index 25: above the phone and fixed grip hands, below the animated interaction finger and dialogue.
+- Enlarged the coffee, notebook, pen, and cable from approximately 1.7x to 1.9x using object-specific bottom/side transform origins so they remain anchored on the desk instead of drifting off-screen.
+- Reduced the dialogue panel background from 82% to 52% opacity and its blur to 1px so the evolving desk objects remain visible beneath the text.
+- Browser validation remains intentionally omitted per project instruction; static tests, TypeScript lint, and production build cover the change.

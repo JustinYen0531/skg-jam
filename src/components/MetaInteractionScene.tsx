@@ -557,6 +557,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
       data-environment-chapter={chapter}
       id="meta-interaction-scene"
     >
+      <style>{`#meta-terminal-dialogue { background-color: rgb(13 19 27 / 0.52) !important; backdrop-filter: blur(1px) !important; }`}</style>
       <AnimatePresence>
         {active && (
           <motion.div
@@ -581,7 +582,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
               }}
               id="meta-desk-surface"
             />
-            <ChapterEnvironment chapter={chapter} reducedMotion={reducedMotion} />
+            <ChapterEnvironment chapter={chapter} reducedMotion={reducedMotion} layer="lighting" />
             <div className="absolute inset-x-0 bottom-0 h-[8%] border-t border-[#513526] bg-gradient-to-b from-[#24170f] to-[#0d0906] shadow-[0_-8px_20px_rgba(0,0,0,0.42)]" id="meta-desk-front-edge" />
             <div className="absolute left-1/2 top-[57%] h-[12%] w-[64%] -translate-x-1/2 rounded-[50%] bg-black/55 blur-2xl" />
             <div className="absolute bottom-[7%] right-[5%] h-[13%] w-[13%] rotate-6 rounded-md border border-amber-100/5 bg-black/15 shadow-xl" />
@@ -695,6 +696,8 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
           )}
         </motion.div>
       </motion.div>
+
+      {active && <ChapterEnvironment chapter={chapter} reducedMotion={reducedMotion} layer="objects" />}
 
       <AnimatePresence>
         {active && (

@@ -53,6 +53,12 @@ test('the physical environment is display-only and does not mutate progress', ()
   assert.match(environmentSource, /id="meta-desk-notebook"/);
   assert.match(environmentSource, /id="meta-desk-cable"/);
   assert.match(environmentSource, /id="meta-case-marker"/);
+  assert.match(environmentSource, /data-environment-layer="foreground"/);
+  assert.match(environmentSource, /z-\[25\]/);
+  assert.match(environmentSource, /scale-\[1\.9\]/);
+  assert.match(environmentSource, /scale-\[1\.85\]/);
+  assert.match(environmentSource, /scale-\[1\.8\]/);
+  assert.match(environmentSource, /scale-\[1\.7\]/);
   assert.match(environmentSource, /skg: \['SKG', '\?'\]/);
   assert.match(environmentSource, /quiet: \[\]/);
   assert.equal((environmentSource.match(/layout=\{animateLayout\}/g) ?? []).length, 4);
