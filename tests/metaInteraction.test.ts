@@ -127,6 +127,7 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   assert.match(appSource, /metaSceneActive \? 'phone-stage bg-slate-950\/40' : 'bg-black'/);
   assert.match(appSource, /<MetaInteractionScene active=\{metaSceneActive\} chapter=\{metaSceneActive \? progress\.currentChapter : 0\}>/);
   assert.match(sceneSource, /<ChapterEnvironment chapter=\{chapter\} reducedMotion=\{reducedMotion\} layer="lighting" \/>/);
+  assert.match(sceneSource, /<ChapterEnvironment chapter=\{chapter\} reducedMotion=\{reducedMotion\} layer="underlay" \/>/);
   assert.match(sceneSource, /<ChapterEnvironment chapter=\{chapter\} reducedMotion=\{reducedMotion\} layer="objects" \/>/);
   assert.match(sceneSource, /#meta-terminal-dialogue \{ background-color: rgb\(13 19 27 \/ 0\.52\)/);
   assert.match(sceneSource, /data-environment-chapter=\{chapter\}/);

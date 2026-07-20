@@ -14,6 +14,7 @@ export interface ChapterEnvironmentState {
   lighting: DeskLighting;
   coffee: CoffeeState;
   coffeeRing: boolean;
+  coffeeDrop: boolean;
   cable: CableState;
   notebook: NotebookState;
   pen: PenState;
@@ -28,6 +29,7 @@ export const CHAPTER_ENVIRONMENTS: Readonly<Record<EnvironmentChapter, ChapterEn
     lighting: 'hidden',
     coffee: 'none',
     coffeeRing: false,
+    coffeeDrop: false,
     cable: 'none',
     notebook: 'none',
     pen: 'none',
@@ -40,6 +42,7 @@ export const CHAPTER_ENVIRONMENTS: Readonly<Record<EnvironmentChapter, ChapterEn
     lighting: 'cool',
     coffee: 'fresh',
     coffeeRing: false,
+    coffeeDrop: false,
     cable: 'none',
     notebook: 'none',
     pen: 'none',
@@ -52,6 +55,7 @@ export const CHAPTER_ENVIRONMENTS: Readonly<Record<EnvironmentChapter, ChapterEn
     lighting: 'cool',
     coffee: 'sipped',
     coffeeRing: true,
+    coffeeDrop: false,
     cable: 'loose',
     notebook: 'none',
     pen: 'none',
@@ -64,6 +68,7 @@ export const CHAPTER_ENVIRONMENTS: Readonly<Record<EnvironmentChapter, ChapterEn
     lighting: 'cool',
     coffee: 'half',
     coffeeRing: true,
+    coffeeDrop: true,
     cable: 'connected',
     notebook: 'closed',
     pen: 'neat',
@@ -76,6 +81,7 @@ export const CHAPTER_ENVIRONMENTS: Readonly<Record<EnvironmentChapter, ChapterEn
     lighting: 'focused',
     coffee: 'half',
     coffeeRing: true,
+    coffeeDrop: false,
     cable: 'connected',
     notebook: 'blank',
     pen: 'working',
@@ -88,6 +94,7 @@ export const CHAPTER_ENVIRONMENTS: Readonly<Record<EnvironmentChapter, ChapterEn
     lighting: 'focused',
     coffee: 'near-empty',
     coffeeRing: true,
+    coffeeDrop: false,
     cable: 'connected',
     notebook: 'company',
     pen: 'working',
@@ -100,6 +107,7 @@ export const CHAPTER_ENVIRONMENTS: Readonly<Record<EnvironmentChapter, ChapterEn
     lighting: 'focused',
     coffee: 'empty',
     coffeeRing: true,
+    coffeeDrop: false,
     cable: 'connected',
     notebook: 'noah',
     pen: 'working',
@@ -112,6 +120,7 @@ export const CHAPTER_ENVIRONMENTS: Readonly<Record<EnvironmentChapter, ChapterEn
     lighting: 'focused',
     coffee: 'empty',
     coffeeRing: true,
+    coffeeDrop: false,
     cable: 'connected',
     notebook: 'noah',
     pen: 'working',
@@ -124,6 +133,7 @@ export const CHAPTER_ENVIRONMENTS: Readonly<Record<EnvironmentChapter, ChapterEn
     lighting: 'focused',
     coffee: 'empty',
     coffeeRing: true,
+    coffeeDrop: false,
     cable: 'connected',
     notebook: 'password',
     pen: 'crossed',
@@ -136,6 +146,7 @@ export const CHAPTER_ENVIRONMENTS: Readonly<Record<EnvironmentChapter, ChapterEn
     lighting: 'still',
     coffee: 'pushed-away',
     coffeeRing: true,
+    coffeeDrop: false,
     cable: 'connected',
     notebook: 'quiet',
     pen: 'resting',
@@ -148,6 +159,7 @@ export const CHAPTER_ENVIRONMENTS: Readonly<Record<EnvironmentChapter, ChapterEn
     lighting: 'ready',
     coffee: 'pushed-away',
     coffeeRing: false,
+    coffeeDrop: false,
     cable: 'connected',
     notebook: 'route',
     pen: 'route',

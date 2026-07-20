@@ -591,6 +591,8 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
         )}
       </AnimatePresence>
 
+      {active && <ChapterEnvironment chapter={chapter} reducedMotion={reducedMotion} layer="underlay" />}
+
       <AnimatePresence>
         {active && (
           <>

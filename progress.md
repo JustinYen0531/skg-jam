@@ -263,3 +263,11 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Replaced full `inset-0` positioning with independent left/right edge anchors so the vertical palms no longer cover phone text while the thumbs remain close to the device rim.
 - Preserved hand scale, vertical placement, clipping halves, interaction fade, tapping-finger animation, and all phone geometry.
 - Browser/Preview validation remains intentionally omitted per project instruction; static hand-offset coverage, TypeScript lint, and production build are required before upload.
+
+## 2026-07-21 - Chapter 3 desk contact pass
+
+- Split the notebook and pen into a dedicated z-index 9 underlay beneath the z-index 10 phone and z-index 22 grip hands, so the device and hands now visibly rest over the notebook.
+- Reduced and repositioned the notebook and pen to remain inside the lower-left desk area instead of crossing the scene boundary.
+- Kept Chapter 2's cable loose; Chapter 3 alone now uses the connected cable and a downward plug tip aligned toward the phone's bottom-center port.
+- Shifted the coffee cup left and down, enlarged it slightly for foreground perspective, and added one dark coffee drop only in Chapter 3.
+- Browser validation remains intentionally omitted per project instruction; static tests, TypeScript lint, and production build cover the change.

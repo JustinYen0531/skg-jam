@@ -11,7 +11,7 @@ import {
 interface ChapterEnvironmentProps {
   chapter: EnvironmentChapter;
   reducedMotion: boolean;
-  layer?: 'lighting' | 'objects';
+  layer?: 'lighting' | 'underlay' | 'objects';
 }
 
 const COFFEE_LEVEL: Record<CoffeeState, number> = {
@@ -44,7 +44,7 @@ const LIGHTING_CLASS = {
   ready: 'bg-[radial-gradient(circle_at_50%_66%,rgba(232,177,115,0.11),transparent_42%)]',
 } as const;
 
-const CoffeeCup: React.FC<{ state: CoffeeState; ring: boolean; animateLayout: boolean }> = ({ state, ring, animateLayout }) => {
+const CoffeeCup: React.FC<{ state: CoffeeState; ring: boolean; drop: boolean; animateLayout: boolean }> = ({ state, ring, drop, animateLayout }) => {
   if (state === 'none') return null;
   const pushedAway = state === 'pushed-away';
   const level = COFFEE_LEVEL[state];
@@ -52,7 +52,7 @@ const CoffeeCup: React.FC<{ state: CoffeeState; ring: boolean; animateLayout: bo
   return (
     <motion.div
       layout={animateLayout}
-      className={`absolute z-[3] h-[11%] w-[8%] min-w-16 origin-bottom-right ${pushedAway ? 'right-[2.5%] top-[63%] scale-[1.55]' : 'right-[7%] top-[65%] scale-[1.9]'}`}
+      className={`absolute z-[3] h-[11%] w-[8%] min-w-16 origin-bottom-right ${pushedAway ? 'right-[8%] top-[69%] scale-[1.7]' : 'right-[13%] top-[70%] scale-[2.05]'}`}
       data-coffee-state={state}
       id="meta-desk-coffee"
     >
@@ -60,6 +60,12 @@ const CoffeeCup: React.FC<{ state: CoffeeState; ring: boolean; animateLayout: bo
         <div
           className="absolute left-[5%] top-[78%] h-[34%] w-[72%] rounded-[50%] border-[3px] border-amber-950/35 opacity-60 blur-[0.4px]"
           id="meta-coffee-ring"
+        />
+      )}
+      {drop && (
+        <div
+          className="absolute -left-[13%] top-[91%] h-[10%] w-[13%] rotate-[-18deg] rounded-[58%_42%_64%_36%] bg-[#140a06] shadow-[0_2px_3px_rgba(0,0,0,0.5),inset_1px_1px_1px_rgba(255,255,255,0.08)]"
+          id="meta-coffee-drop"
         />
       )}
       <div className="absolute left-[11%] top-[10%] h-[72%] w-[66%] rounded-b-[32%] rounded-t-[22%] border border-[#c8b5a1]/55 bg-gradient-to-r from-[#77685d] via-[#c2b09d] to-[#66574d] shadow-[0_12px_16px_rgba(0,0,0,0.34),inset_5px_0_8px_rgba(255,255,255,0.14)]">
@@ -81,8 +87,9 @@ const ChargingCable: React.FC<{ connected: boolean; animateLayout: boolean }> = 
   <motion.svg
     layout={animateLayout}
     viewBox="0 0 500 140"
-    className="absolute bottom-[19%] right-[-2%] z-[2] h-[12%] w-[39%] origin-bottom-right scale-[1.7] overflow-visible opacity-75 drop-shadow-[0_5px_4px_rgba(0,0,0,0.45)]"
+    className="absolute bottom-[15.5%] right-[-2%] z-[2] h-[12%] w-[39%] origin-bottom-right scale-[1.7] overflow-visible opacity-75 drop-shadow-[0_5px_4px_rgba(0,0,0,0.45)]"
     data-cable-state={connected ? 'connected' : 'loose'}
+    data-plug-target={connected ? 'phone-bottom-port' : undefined}
     id="meta-desk-cable"
   >
     <path
@@ -100,7 +107,12 @@ const ChargingCable: React.FC<{ connected: boolean; animateLayout: boolean }> = 
       strokeLinecap="round"
     />
     <rect x={connected ? 54 : 102} y={connected ? 49 : 80} width="28" height="24" rx="5" fill="#343840" stroke="#747b85" strokeWidth="2" />
-    {connected && <rect x="46" y="55" width="10" height="12" rx="2" fill="#aeb4bc" />}
+    {connected && (
+      <>
+        <rect x="62" y="70" width="12" height="20" rx="2" fill="#aeb4bc" id="meta-cable-plug-tip" />
+        <rect x="64" y="82" width="8" height="9" rx="2" fill="#1f2329" />
+      </>
+    )}
   </motion.svg>
 );
 
@@ -117,7 +129,7 @@ const Pen: React.FC<{ state: PenState; animateLayout: boolean }> = ({ state, ani
   return (
     <motion.div
       layout={animateLayout}
-      className={`absolute z-[5] h-[5px] w-[17%] min-w-28 origin-left scale-[1.8] rounded-full bg-gradient-to-r from-[#15181c] via-[#464d58] to-[#111318] shadow-[0_4px_4px_rgba(0,0,0,0.38)] ${poseClass[state]}`}
+      className={`absolute z-[5] h-[5px] w-[17%] min-w-28 origin-left scale-[1.35] rounded-full bg-gradient-to-r from-[#15181c] via-[#464d58] to-[#111318] shadow-[0_4px_4px_rgba(0,0,0,0.38)] ${poseClass[state]}`}
       data-pen-state={state}
       id="meta-desk-pen"
     >
@@ -135,7 +147,7 @@ const Notebook: React.FC<{ state: NotebookState; stickyNote: string | null; anim
   return (
     <motion.div
       layout={animateLayout}
-      className={`absolute left-[5%] top-[64%] z-[3] h-[20%] w-[24%] min-w-56 origin-bottom-left scale-[1.85] -rotate-[4deg] rounded-sm shadow-[0_16px_18px_rgba(0,0,0,0.38)] ${isClosed ? 'bg-[#243a42]' : 'bg-[#d6ccb7]'}`}
+      className={`absolute left-[4%] top-[68%] z-[3] h-[20%] w-[24%] min-w-56 origin-bottom-left scale-[1.35] -rotate-[4deg] rounded-sm shadow-[0_16px_18px_rgba(0,0,0,0.38)] ${isClosed ? 'bg-[#243a42]' : 'bg-[#d6ccb7]'}`}
       data-notebook-state={state}
       id="meta-desk-notebook"
     >
@@ -184,31 +196,40 @@ export const ChapterEnvironment: React.FC<ChapterEnvironmentProps> = ({ chapter,
     );
   }
 
+  const underlay = layer === 'underlay';
+
   return (
     <div
-      className="pointer-events-none absolute inset-0 z-[25] overflow-hidden"
+      className={`pointer-events-none absolute inset-0 overflow-hidden ${underlay ? 'z-[9]' : 'z-[25]'}`}
       data-environment-chapter={chapter}
       data-desk-order={environment.deskOrder}
-      data-environment-layer="foreground"
-      id="meta-chapter-environment"
+      data-environment-layer={underlay ? 'underlay' : 'foreground'}
+      id={underlay ? 'meta-chapter-underlay' : 'meta-chapter-environment'}
     >
       <AnimatePresence mode="popLayout">
         <motion.div
-          key={`objects-${chapter}`}
+          key={`${layer}-${chapter}`}
           initial={reducedMotion ? { opacity: 0 } : { opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0 }}
           transition={transition}
           className="absolute inset-0"
         >
-          <CoffeeCup state={environment.coffee} ring={environment.coffeeRing} animateLayout={!reducedMotion} />
-          {environment.cable !== 'none' && <ChargingCable connected={environment.cable === 'connected'} animateLayout={!reducedMotion} />}
-          <Notebook state={environment.notebook} stickyNote={environment.stickyNote} animateLayout={!reducedMotion} />
-          <Pen state={environment.pen} animateLayout={!reducedMotion} />
+          {underlay ? (
+            <>
+              <Notebook state={environment.notebook} stickyNote={environment.stickyNote} animateLayout={!reducedMotion} />
+              <Pen state={environment.pen} animateLayout={!reducedMotion} />
+            </>
+          ) : (
+            <>
+              <CoffeeCup state={environment.coffee} ring={environment.coffeeRing} drop={environment.coffeeDrop} animateLayout={!reducedMotion} />
+              {environment.cable !== 'none' && <ChargingCable connected={environment.cable === 'connected'} animateLayout={!reducedMotion} />}
+            </>
+          )}
         </motion.div>
       </AnimatePresence>
 
-      <AnimatePresence mode="wait">
+      {!underlay && <AnimatePresence mode="wait">
         <motion.div
           key={`case-${chapter}`}
           initial={reducedMotion ? { opacity: 0 } : { opacity: 0, x: -8 }}
@@ -220,7 +241,7 @@ export const ChapterEnvironment: React.FC<ChapterEnvironmentProps> = ({ chapter,
         >
           CASE {chapter.toString().padStart(2, '0')} // {environment.caseLabel}
         </motion.div>
-      </AnimatePresence>
+      </AnimatePresence>}
     </div>
   );
 };

@@ -17,6 +17,7 @@ test('Chapter 0 exposes no physical desk objects', () => {
     lighting: 'hidden',
     coffee: 'none',
     coffeeRing: false,
+    coffeeDrop: false,
     cable: 'none',
     notebook: 'none',
     pen: 'none',
@@ -37,6 +38,14 @@ test('desk evidence never appears before the player has earned it', () => {
   assert.equal(getChapterEnvironment(10).notebook, 'route');
 });
 
+test('Chapter 3 alone adds the coffee drop and connects the charging cable', () => {
+  assert.equal(getChapterEnvironment(2).coffeeDrop, false);
+  assert.equal(getChapterEnvironment(2).cable, 'loose');
+  assert.equal(getChapterEnvironment(3).coffeeDrop, true);
+  assert.equal(getChapterEnvironment(3).cable, 'connected');
+  assert.equal(getChapterEnvironment(4).coffeeDrop, false);
+});
+
 test('the desk progresses from gathering to clutter, quiet, and organized', () => {
   assert.equal(getChapterEnvironment(1).deskOrder, 'clean');
   assert.equal(getChapterEnvironment(3).cable, 'connected');
@@ -53,12 +62,15 @@ test('the physical environment is display-only and does not mutate progress', ()
   assert.match(environmentSource, /id="meta-desk-notebook"/);
   assert.match(environmentSource, /id="meta-desk-cable"/);
   assert.match(environmentSource, /id="meta-case-marker"/);
-  assert.match(environmentSource, /data-environment-layer="foreground"/);
+  assert.match(environmentSource, /data-environment-layer=\{underlay \? 'underlay' : 'foreground'\}/);
+  assert.match(environmentSource, /z-\[9\]/);
   assert.match(environmentSource, /z-\[25\]/);
-  assert.match(environmentSource, /scale-\[1\.9\]/);
-  assert.match(environmentSource, /scale-\[1\.85\]/);
-  assert.match(environmentSource, /scale-\[1\.8\]/);
+  assert.match(environmentSource, /scale-\[2\.05\]/);
+  assert.match(environmentSource, /scale-\[1\.35\]/);
   assert.match(environmentSource, /scale-\[1\.7\]/);
+  assert.match(environmentSource, /id="meta-coffee-drop"/);
+  assert.match(environmentSource, /id="meta-cable-plug-tip"/);
+  assert.match(environmentSource, /data-plug-target=\{connected \? 'phone-bottom-port'/);
   assert.match(environmentSource, /skg: \['SKG', '\?'\]/);
   assert.match(environmentSource, /quiet: \[\]/);
   assert.equal((environmentSource.match(/layout=\{animateLayout\}/g) ?? []).length, 4);
