@@ -1,4 +1,5 @@
 import { strict as assert } from 'node:assert';
+import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import {
@@ -80,9 +81,14 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   const appSource = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
   const gripAsset = new URL('../public/assets/meta-hand-grip.png', import.meta.url);
   const tappingFingerAsset = new URL('../public/assets/meta-tapping-finger.png', import.meta.url);
+  const tappingFingerBytes = readFileSync(tappingFingerAsset);
 
   assert.equal(existsSync(gripAsset), true);
   assert.equal(existsSync(tappingFingerAsset), true);
+  assert.equal(
+    createHash('sha256').update(tappingFingerBytes).digest('hex'),
+    '24c713bfd019da0cb679072a70179397923868d2a2ff67f048424dd6383edc7c',
+  );
   assert.equal((sceneSource.match(/src="\/assets\/meta-hand-grip\.png"/g) ?? []).length, 2);
   assert.match(sceneSource, /id="meta-left-hand-asset"/);
   assert.match(sceneSource, /id="meta-right-hand-asset"/);

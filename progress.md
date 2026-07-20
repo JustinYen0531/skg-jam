@@ -327,3 +327,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Replaced the CSS-drawn cup, fake cup drip, and fake desk spill with a three-panel background crop: full cup for Chapters 1–2, empty/dripping cup for Chapters 3–4, and tipped/spilled cup for Chapters 5–6.
 - Kept the existing steam animation only for the full-cup chapters and retained chapter-state data attributes for the cup-drip and spill evidence.
 - Browser validation remains intentionally omitted per project instruction; final static verification passed: 73 tests, TypeScript lint, and production build.
+
+## 2026-07-21 — NewFinger2 interaction asset
+
+- Replaced the photoreal tapping/swiping hand with the user-supplied stylized `NewFinger2` artwork.
+- Kept the shared interaction path: button taps and both scroll directions still use `meta-tapping-finger.png`.
+- Preserved the existing `-90deg` transform so the new source artwork points toward the upper-left in every interaction.
+- Added a static asset fingerprint guard; browser validation remains intentionally omitted per project instruction.
