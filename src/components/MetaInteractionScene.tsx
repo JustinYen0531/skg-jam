@@ -761,9 +761,9 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
               initial={{ opacity: 0, x: -24 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: reducedMotion ? 0 : 0.5, duration: reducedMotion ? 0 : 0.55 }}
-              className="pointer-events-none absolute left-[-5%] top-0 z-[22] h-full w-full select-none object-fill drop-shadow-[0_16px_14px_rgba(0,0,0,0.28)]"
+              className="pointer-events-none absolute left-[-2%] top-0 z-[22] h-full w-full select-none object-fill drop-shadow-[0_16px_14px_rgba(0,0,0,0.28)]"
               style={{ clipPath: 'inset(0 50% 0 0)' }}
-              data-hand-edge-offset="-5%"
+              data-hand-edge-offset="-2%"
               aria-hidden="true"
               id="meta-left-hand-asset"
             />
@@ -778,9 +778,9 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
               }}
               initial={false}
               transition={{ duration: reducedMotion ? 0 : 0.24, ease: 'easeOut' }}
-              className="pointer-events-none absolute right-[-5%] top-0 z-[22] h-full w-full select-none object-fill drop-shadow-[0_16px_14px_rgba(0,0,0,0.28)]"
+              className="pointer-events-none absolute right-[-2%] top-0 z-[22] h-full w-full select-none object-fill drop-shadow-[0_16px_14px_rgba(0,0,0,0.28)]"
               style={{ clipPath: 'inset(0 0 0 50%)' }}
-              data-hand-edge-offset="5%"
+              data-hand-edge-offset="2%"
               aria-hidden="true"
               id="meta-right-hand-asset"
             />

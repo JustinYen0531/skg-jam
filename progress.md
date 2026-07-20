@@ -284,3 +284,9 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Reduced the mirrored persistent hand offset from `7%` to `5%` after the updated screenshot showed the thumbs sitting too far away from the phone rim.
 - Kept the vertical palms outside the text-safe area while bringing both thumbs two percentage points closer to the device edge.
 - Browser/Preview validation remains intentionally omitted per project instruction; static offset coverage, TypeScript lint, and production build are required before upload.
+
+## 2026-07-21 — Grip offset clarification
+
+- Corrected the persistent grip offset to an absolute `2%` per side; the prior pass incorrectly interpreted the request as subtracting two percentage points from `7%`.
+- The left hand now uses `left: -2%` and the right hand uses `right: -2%`.
+- Browser/Preview validation remains intentionally omitted per project instruction; static offset coverage, TypeScript lint, and production build are required before upload.
