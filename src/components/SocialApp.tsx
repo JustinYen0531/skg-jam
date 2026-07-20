@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { GameProgress } from '../types';
 import audio from '../lib/audio';
-import { canUseProgressionAction } from '../lib/chapterProgress';
+import { canUseProgressionAction, completePuzzleChapter } from '../lib/chapterProgress';
 import { createFeedSeed, shuffleFeed } from '../lib/pseudoFeed';
 import { Search, Heart, MessageCircle, ArrowDownAZ, ArrowUpAZ, Award, Globe2, MoreHorizontal, UserPlus, Users } from 'lucide-react';
 
@@ -23,7 +23,9 @@ interface SocialAppProps {
 
 export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [hasSearched, setHasSearched] = useState(progress.discoveredNoahQA);
+  const [hasSearched, setHasSearched] = useState(
+    progress.discoveredMotherComment || progress.discoveredNoahQA || progress.currentChapter >= 7,
+  );
   const [sortOldest, setSortOldest] = useState(false);
   const [activeTab, setActiveTab] = useState<'posts' | 'about'>('posts');
   const [searchError, setSearchError] = useState('');
@@ -41,18 +43,24 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress }
       }
       setSearchError('');
       setHasSearched(true);
-      updateProgress((prev) => ({
-        ...prev,
-        discoveredNoahQA: true,
-        discoveredMotherComment: true,
-        unlockedAdminLogin: true, // unlocks the ALT184GATE40END256 password path
-      }));
     }
   };
 
   const toggleSort = () => {
     audio.playTick();
-    setSortOldest(!sortOldest);
+    const nextSortOldest = !sortOldest;
+    setSortOldest(nextSortOldest);
+    if (nextSortOldest) {
+      updateProgress((prev) => completePuzzleChapter(prev, 6, { discoveredMotherComment: true }));
+    }
+  };
+
+  const openAbout = () => {
+    audio.playTick();
+    setActiveTab('about');
+    updateProgress((prev) => prev.currentChapter === 7
+      ? { ...prev, discoveredNoahQA: true }
+      : prev);
   };
 
   const posts = [
@@ -242,7 +250,7 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress }
                   Post Timeline
                 </button>
                 <button
-                  onClick={() => { audio.playTick(); setActiveTab('about'); }}
+                  onClick={openAbout}
                   className={`flex-1 py-2 font-bold ${activeTab === 'about' ? 'border-b-2 border-blue-500 text-blue-400' : 'text-slate-400'}`}
                   id="social-about-tab"
                 >

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { GameProgress } from '../types';
 import audio from '../lib/audio';
+import { completePuzzleChapter } from '../lib/chapterProgress';
 import { motion, AnimatePresence } from 'motion/react';
 import { FileText, RotateCw, X, ZoomIn } from 'lucide-react';
 
@@ -120,11 +121,9 @@ export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, up
     audio.playUnlock();
     setActiveSheet(idx);
     
-    // Once they inspect any sheet, mark the original title / lore unlocked
-    updateProgress((prev) => ({
-      ...prev,
-      discoveredOriginalTitle: true,
-    }));
+    if (idx === 0) {
+      updateProgress((prev) => completePuzzleChapter(prev, 4, { discoveredOriginalTitle: true }));
+    }
   };
 
   return (

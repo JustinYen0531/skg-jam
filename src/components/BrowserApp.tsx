@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { GameProgress } from '../types';
 import audio from '../lib/audio';
-import { canUseProgressionAction } from '../lib/chapterProgress';
+import { canUseProgressionAction, completePuzzleChapter } from '../lib/chapterProgress';
 import { Search, RotateCcw, Clock, Download, ArrowRight, ShieldCheck, HeartCrack } from 'lucide-react';
 
 interface BrowserAppProps {
@@ -41,13 +41,15 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
     setSelectedYear(year);
     if (searchedKeyword === 'skg') {
       setAddressBar(year === 2026 ? 'http://www.skg-automation.com' : 'http://web.archive.org/web/2014/silverkitegames.com');
-      updateProgress((prev) => ({ ...prev, discoveredSKGHistory: true }));
+      if (year === 2014) {
+        updateProgress((prev) => completePuzzleChapter(prev, 5, { discoveredSKGHistory: true }));
+      }
     }
   };
 
   const handleDownload = () => {
     audio.playSuccess();
-    updateProgress((prev) => ({ ...prev, archiveDownloaded: true }));
+    updateProgress((prev) => completePuzzleChapter(prev, 2, { archiveDownloaded: true }));
   };
 
   return (

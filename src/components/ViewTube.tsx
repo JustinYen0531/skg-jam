@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { GameProgress, PuzzleChapter } from '../types';
+import { GameProgress } from '../types';
 import audio from '../lib/audio';
-import { canUseProgressionAction } from '../lib/chapterProgress';
+import { canUseProgressionAction, completePuzzleChapter } from '../lib/chapterProgress';
 import { useMetaInteraction } from './MetaInteractionScene';
 import { ArcRunReplay } from './ArcRunReplay';
 import { createFeedSeed, shuffleFeed } from '../lib/pseudoFeed';
@@ -119,7 +119,7 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
       }
       setSearchError('');
       setHasSearched(true);
-      updateProgress((prev) => ({ ...prev, viewTubeSearchedArc: true, currentChapter: Math.max(prev.currentChapter, 2) as PuzzleChapter }));
+      updateProgress((prev) => ({ ...prev, viewTubeSearchedArc: true }));
     }
   };
 
@@ -429,10 +429,7 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
                         return;
                       }
                       speakChapterOne(CHAPTER_ONE_DIALOGUE.lumenLead);
-                      updateProgress((prev) => ({
-                        ...prev,
-                        currentChapter: Math.max(prev.currentChapter, 2) as PuzzleChapter,
-                      }));
+                      updateProgress((prev) => completePuzzleChapter(prev, 1, { watchedVideo: true }));
                     }}
                   >
                     💬 **ARC_184 replied**: No emulator edits. No scripts. It runs on the <span className="underline font-bold text-white">Lumen Arc</span>, utilizing the native altitude sensor glitch of the LAOS operating system. Look up the device they recalled.

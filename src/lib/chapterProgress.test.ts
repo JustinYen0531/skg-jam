@@ -5,6 +5,7 @@ import {
   getChapterSnapshot,
   getChapterById,
   canUseProgressionAction,
+  completePuzzleChapter,
 } from './chapterProgress';
 
 test('defines exactly ten ordered GDD puzzle chapters', () => {
@@ -25,10 +26,36 @@ test('chapter snapshots accumulate discoveries instead of leaking future discove
   assert.equal(getChapterSnapshot(1).watchedVideo, false);
   assert.equal(getChapterSnapshot(2).watchedVideo, true);
   assert.equal(getChapterSnapshot(3).archiveDownloaded, true);
-  assert.equal(getChapterSnapshot(4).discoveredOriginalTitle, true);
+  assert.equal(getChapterSnapshot(4).discoveredOriginalTitle, false);
+  assert.equal(getChapterSnapshot(5).discoveredOriginalTitle, true);
   assert.equal(getChapterSnapshot(6).discoveredSKGHistory, true);
+  assert.equal(getChapterSnapshot(7).discoveredNoahQA, false);
   assert.equal(getChapterSnapshot(8).unlockedAdminLogin, true);
   assert.equal(getChapterSnapshot(10).unlockedCodeRoute, true);
+});
+
+test('chapter completion advances exactly one chapter and stores earned evidence', () => {
+  const chapterFour = getChapterSnapshot(4);
+  const result = completePuzzleChapter(chapterFour, 4, { discoveredOriginalTitle: true });
+
+  assert.equal(result.currentChapter, 5);
+  assert.equal(result.discoveredOriginalTitle, true);
+});
+
+test('out-of-order completion cannot skip chapters or leak future evidence', () => {
+  const chapterFour = getChapterSnapshot(4);
+  const result = completePuzzleChapter(chapterFour, 8, { loggedIntoAdmin: true });
+
+  assert.strictEqual(result, chapterFour);
+  assert.equal(result.currentChapter, 4);
+  assert.equal(result.loggedIntoAdmin, false);
+});
+
+test('the final chapter remains ten when its completion evidence is recorded', () => {
+  const chapterTen = getChapterSnapshot(10);
+  const result = completePuzzleChapter(chapterTen, 10, { unlockedCodeRoute: true });
+
+  assert.equal(result.currentChapter, 10);
 });
 
 test('chapter metadata supplies a target phone app for debug navigation', () => {
@@ -50,7 +77,8 @@ test('normal player gates guessed searches while debug snapshots can unlock them
   assert.equal(canUseProgressionAction('amazemart-lumen-search', getChapterSnapshot(1)), false);
   assert.equal(canUseProgressionAction('amazemart-lumen-search', getChapterSnapshot(2)), true);
   assert.equal(canUseProgressionAction('browser-skg-history', getChapterSnapshot(3)), false);
-  assert.equal(canUseProgressionAction('browser-skg-history', getChapterSnapshot(4)), true);
+  assert.equal(canUseProgressionAction('browser-skg-history', getChapterSnapshot(4)), false);
+  assert.equal(canUseProgressionAction('browser-skg-history', getChapterSnapshot(5)), true);
   assert.equal(canUseProgressionAction('social-noah-search', getChapterSnapshot(4)), false);
   assert.equal(canUseProgressionAction('social-noah-search', getChapterSnapshot(6)), true);
 });

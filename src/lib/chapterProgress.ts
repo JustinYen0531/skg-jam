@@ -15,6 +15,21 @@ export interface DebugChapter {
   targetApp: ActiveApp;
 }
 
+type ChapterEvidence = Partial<Pick<GameProgress,
+  | 'viewTubeSearchedArc'
+  | 'watchedVideo'
+  | 'archiveDownloaded'
+  | 'orderedPhone'
+  | 'deliveredPhone'
+  | 'discoveredOriginalTitle'
+  | 'discoveredSKGHistory'
+  | 'discoveredNoahQA'
+  | 'discoveredMotherComment'
+  | 'unlockedAdminLogin'
+  | 'loggedIntoAdmin'
+  | 'unlockedCodeRoute'
+>>;
+
 const BASE_PROGRESS: GameProgress = {
   currentChapter: 1,
   phase: 'os_unlocked',
@@ -44,7 +59,7 @@ export const DEBUG_CHAPTERS: readonly DebugChapter[] = [
   { id: 4, shortTitle: '解讀 SKG', title: '謎題 4：解讀 SKG', description: '收到的截圖揭露舊名稱與 SilverKite_Games。', targetApp: 'screenshots' },
   { id: 5, shortTitle: '被覆蓋的公司', title: '謎題 5：被機器覆蓋的公司', description: '回溯 SKG Automation，追查被覆蓋的公司歷史。', targetApp: 'browser' },
   { id: 6, shortTitle: '開發者帳號', title: '謎題 6：開發者的社群帳號', description: 'Silver Kite Games 的舊資料指向設計師 Noah Kade。', targetApp: 'social' },
-  { id: 7, shortTitle: '最喜歡的數字', title: '謎題 7：最喜歡的數字', description: 'Noah 的舊 Q&A 與 Mara 的訊息留下數字線索。', targetApp: 'messages' },
+  { id: 7, shortTitle: '最喜歡的數字', title: '謎題 7：最喜歡的數字', description: 'Noah 的舊 Q&A 與 Mara 的訊息留下數字線索。', targetApp: 'social' },
   { id: 8, shortTitle: '登入舊帳號', title: '謎題 8：登入母親的舊帳號', description: '把數字理解為 ALT、GATE 與 END，而不是分數。', targetApp: 'messages' },
   { id: 9, shortTitle: '母親與 Noah', title: '謎題 9：母親與 Noah 的對話', description: '登入舊帳號，讀取關於最後更新與秘密路線的對話。', targetApp: 'messages' },
   { id: 10, shortTitle: '名字中的路線', title: '謎題 10：找到名字中的路線', description: '從開發者帳號辨識八個高度，準備返回遊戲驗證。', targetApp: 'flappy' },
@@ -54,10 +69,10 @@ const CHAPTER_OVERRIDES: Record<PuzzleChapter, Partial<GameProgress>> = {
   1: {},
   2: { viewTubeSearchedArc: true, watchedVideo: true },
   3: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true },
-  4: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true },
+  4: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true },
   5: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true },
   6: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true },
-  7: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true },
+  7: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredMotherComment: true },
   8: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true, unlockedAdminLogin: true },
   9: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true, unlockedAdminLogin: true, loggedIntoAdmin: true },
   10: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true, unlockedAdminLogin: true, loggedIntoAdmin: true, unlockedCodeRoute: true },
@@ -76,6 +91,20 @@ export function getChapterSnapshot(chapter: PuzzleChapter): GameProgress {
     currentChapter: chapter,
     completedGame: false,
     selectedEnding: null,
+  };
+}
+
+export function completePuzzleChapter(
+  progress: GameProgress,
+  completedChapter: PuzzleChapter,
+  evidence: ChapterEvidence = {},
+): GameProgress {
+  if (progress.currentChapter !== completedChapter) return progress;
+
+  return {
+    ...progress,
+    ...evidence,
+    currentChapter: Math.min(10, completedChapter + 1) as PuzzleChapter,
   };
 }
 

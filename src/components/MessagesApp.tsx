@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { GameProgress, ChatMessage } from '../types';
 import audio from '../lib/audio';
-import { canUseProgressionAction } from '../lib/chapterProgress';
+import { canUseProgressionAction, completePuzzleChapter } from '../lib/chapterProgress';
 import { KeyRound } from 'lucide-react';
 
 interface MessagesAppProps {
@@ -74,15 +74,21 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({ progress, updateProgre
     if (formattedInput === 'ALT184GATE40END256') {
       audio.playSuccess();
       setLoginError('');
-      updateProgress((prev) => ({
-        ...prev,
-        loggedIntoAdmin: true,
-        unlockedCodeRoute: true, // fully unlocks flight coordinates
-      }));
+      updateProgress((prev) => completePuzzleChapter(prev, 8, { loggedIntoAdmin: true }));
     } else {
       audio.playGlitch();
       setLoginError('CREDENTIALS REJECTED. ENSURE ALTITUDE, GATE, AND END VALUES ARE PROPERLY SEQUENCE-PAIRED.');
     }
+  };
+
+  const handleInterpretCoordinateKey = () => {
+    audio.playUnlock();
+    updateProgress((prev) => completePuzzleChapter(prev, 7, { unlockedAdminLogin: true }));
+  };
+
+  const handleRecoverRoute = () => {
+    audio.playSuccess();
+    updateProgress((prev) => completePuzzleChapter(prev, 9, { unlockedCodeRoute: true }));
   };
 
   return (
@@ -147,6 +153,17 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({ progress, updateProgre
                   <span className="text-[8px] text-slate-500 mt-0.5 px-1">{msg.time}</span>
                 </div>
               ))}
+
+              {progress.discoveredNoahQA && progress.discoveredMotherComment && !progress.unlockedAdminLogin && (
+                <button
+                  type="button"
+                  onClick={handleInterpretCoordinateKey}
+                  className="mx-auto border border-amber-300/45 bg-amber-200/10 px-3 py-2 text-[9px] font-mono font-bold tracking-[0.12em] text-amber-200 hover:bg-amber-200/15"
+                  id="messages-interpret-number"
+                >
+                  ASSEMBLE COORDINATE KEY
+                </button>
+              )}
             </div>
 
             {/* Decayed archive artifacts: the system kept the slots, not the words */}
@@ -227,7 +244,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({ progress, updateProgre
             ) : (
               /* Already Logged In: Show emotional dialog logs containing the sequence */
               <div className="space-y-4" id="admin-unlocked-logs">
-                <div className="laos-panel p-3 text-center space-y-1.5" id="bypass-acquired-card">
+                {progress.unlockedCodeRoute && <div className="laos-panel p-3 text-center space-y-1.5" id="bypass-acquired-card">
                   <div className="laos-label text-[9px] flex items-center justify-center gap-1.5 !text-[var(--laos-warm)]">
                     <span className="w-1.5 h-1.5 bg-[var(--laos-warm)]"></span>
                     <span>COLLISION BYPASS ENGINE OBTAINED!</span>
@@ -238,7 +255,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({ progress, updateProgre
                   <div className="bg-[var(--laos-bg)] p-2 border border-[var(--laos-line)] text-xs font-mono font-bold text-[var(--laos-text)] select-all mt-1.5 text-center">
                     NK_184.172.149.133.121.118.126.143
                   </div>
-                </div>
+                </div>}
 
                 {/* Legacy Archive Private Messages */}
                 <div className="space-y-3.5 text-xs">
@@ -277,14 +294,27 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({ progress, updateProgre
                     <p className="text-[var(--laos-text)] font-laos leading-relaxed">
                       Yes. I hid the true route within the collision loop. The scraper doesn't examine the old barometric altitude sensor registers. I hardcoded a structural bypass on Gate 40.
                     </p>
-                    <p className="font-mono text-[10px] bg-[var(--laos-bg)] p-2 border border-[var(--laos-line)] leading-relaxed text-[var(--laos-dim)]">
-                      If you fly precisely at the following altitudes as you pass each consecutive gate starting at 40, the collider fails and you enter the legacy wireframe layer: <br />
-                      <span className="text-[var(--laos-text)] font-bold">184, 172, 149, 133, 121, 118, 126, 143</span>
-                    </p>
+                    {progress.unlockedCodeRoute && (
+                      <p className="font-mono text-[10px] bg-[var(--laos-bg)] p-2 border border-[var(--laos-line)] leading-relaxed text-[var(--laos-dim)]">
+                        If you fly precisely at the following altitudes as you pass each consecutive gate starting at 40, the collider fails and you enter the legacy wireframe layer: <br />
+                        <span className="text-[var(--laos-text)] font-bold">184, 172, 149, 133, 121, 118, 126, 143</span>
+                      </p>
+                    )}
                     <p className="text-[var(--laos-text)] font-laos leading-relaxed">
                       I don't expect common players to find this. But I'll leave the device with you. Let our future son fly it one day. Let him see that we existed.
                     </p>
                   </div>
+
+                  {!progress.unlockedCodeRoute && (
+                    <button
+                      type="button"
+                      onClick={handleRecoverRoute}
+                      className="laos-slow w-full border border-[var(--laos-warm)]/60 bg-[var(--laos-surface-2)] px-3 py-2 font-laos text-[10px] font-semibold tracking-[0.14em] text-[var(--laos-warm)] hover:bg-[var(--laos-line-dim)]"
+                      id="messages-recover-route"
+                    >
+                      RECOVER ATTACHED FLIGHT SEQUENCE
+                    </button>
+                  )}
                 </div>
 
               </div>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { GameProgress } from '../types';
 import audio from '../lib/audio';
-import { canUseProgressionAction } from '../lib/chapterProgress';
+import { canUseProgressionAction, completePuzzleChapter } from '../lib/chapterProgress';
 import { createFeedSeed, shuffleFeed } from '../lib/pseudoFeed';
 import { ShoppingBag, Search, Package, CheckCircle, Smartphone, Star, Truck, Flame } from 'lucide-react';
 
@@ -50,8 +50,7 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({ progress, updateProgress, 
     
     setTimeout(() => {
       setOrdering(false);
-      updateProgress((prev) => ({
-        ...prev,
+      updateProgress((prev) => completePuzzleChapter(prev, 3, {
         orderedPhone: true,
         deliveredPhone: true, // immediately delivered!
       }));

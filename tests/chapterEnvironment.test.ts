@@ -28,10 +28,11 @@ test('Chapter 0 exposes no physical desk objects', () => {
 test('desk evidence never appears before the player has earned it', () => {
   assert.equal(getChapterEnvironment(3).notebook, 'closed');
   assert.equal(getChapterEnvironment(3).stickyNote, null);
-  assert.equal(getChapterEnvironment(4).notebook, 'skg');
+  assert.equal(getChapterEnvironment(4).notebook, 'blank');
   assert.equal(getChapterEnvironment(5).stickyNote, '');
   assert.equal(getChapterEnvironment(6).stickyNote, 'NOAH KADE?');
-  assert.equal(getChapterEnvironment(7).notebook, 'numbers');
+  assert.equal(getChapterEnvironment(7).notebook, 'noah');
+  assert.equal(getChapterEnvironment(7).stickyNote, 'MARA COMMENT');
   assert.equal(getChapterEnvironment(8).notebook, 'password');
   assert.equal(getChapterEnvironment(10).notebook, 'route');
 });
