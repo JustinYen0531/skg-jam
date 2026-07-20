@@ -256,3 +256,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Set the complete keyboard overlay to sixty percent opacity while keeping its buttons interactive and slightly increasing key contrast.
 - Removed the old root-level keyboard that was positioned behind the protagonist dialogue panel.
 - Browser/Preview validation remains intentionally omitted per project instruction; static placement coverage, TypeScript lint, and production build are required before upload.
+
+## 2026-07-21 — Grip-hand text-safe positioning
+
+- Shifted the persistent left and right grip-hand assets outward by `4.5%` in mirrored directions.
+- Replaced full `inset-0` positioning with independent left/right edge anchors so the vertical palms no longer cover phone text while the thumbs remain close to the device rim.
+- Preserved hand scale, vertical placement, clipping halves, interaction fade, tapping-finger animation, and all phone geometry.
+- Browser/Preview validation remains intentionally omitted per project instruction; static hand-offset coverage, TypeScript lint, and production build are required before upload.
