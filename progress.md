@@ -193,3 +193,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Preserved the pointing pose and converted the edited chroma-key result back to a validated transparent PNG at `public/assets/meta-tapping-finger.png`.
 - Increased both click and wheel-swipe render paths by exactly 1.5 times, from `clamp(294px, 43vh, 420px)` to `clamp(441px, 64.5vh, 630px)`.
 - Browser validation remains intentionally omitted per project instruction; verification is limited to static tests, TypeScript lint, and production build.
+
+## 2026-07-20 — Complete sound-effect design document
+
+- Added `docs/SOUND_EFFECT_DESIGN.md` as the canonical specification for all non-music audio: flight feedback, cheap ad UI, phone navigation, keyboard input, protagonist typewriter text, Meta hand/glass Foley, app evidence actions, hidden leaderboard reveals, and endings.
+- Defined five sound worlds, chapter evolution, bus and concurrency rules, asset naming/export requirements, a current `AudioManager` audit, a proposed event API, and P0/P1/P2 production priorities.
+- Kept BGM authority in `docs/CORE_MUSIC_LANGUAGE.md`; the new document explicitly avoids cinematic horror cues and prevents audio from revealing evidence before the player discovers it.
+- Linked the sound specification from the GDD and added its implementation tasks to the checklist. This step changes documentation only; no runtime audio implementation was added.
