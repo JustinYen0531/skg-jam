@@ -590,9 +590,16 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
             <div className="absolute right-[9%] top-[12%] h-28 w-28 rounded-full bg-sky-200/5 blur-[65px]" />
 
             <div
-              className="pointer-events-none absolute inset-x-[4%] bottom-[-3%] top-[72%] z-[1] bg-white"
+              className="pointer-events-none absolute inset-x-0 bottom-[-4%] top-[58%] z-[1] bg-white"
               id="meta-desk-surface"
-            />
+            >
+              <img
+                src="/assets/meta-desk-table.png"
+                alt=""
+                className="absolute inset-0 h-full w-full object-contain object-bottom"
+                id="meta-desk-table-art"
+              />
+            </div>
             <ChapterEnvironment chapter={chapter} reducedMotion={reducedMotion} layer="lighting" />
             <div className="absolute left-1/2 top-[57%] h-[12%] w-[64%] -translate-x-1/2 rounded-[50%] bg-black/55 blur-2xl" />
             <div className="absolute bottom-[7%] right-[5%] h-[13%] w-[13%] rotate-6 rounded-md border border-amber-100/5 bg-black/15 shadow-xl" />
