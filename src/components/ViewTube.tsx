@@ -203,8 +203,9 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
   };
 
   const closeReplayFullscreen = useCallback(() => {
-    if (!replayExitUnlockedRef.current) return;
     audio.playTick();
+    setReplayPaused(true);
+    document.getElementById('vt-comments')?.scrollIntoView({ block: 'start', inline: 'nearest' });
     setReplayFullscreenOpen(false);
     setReplayControlsVisible(true);
   }, []);

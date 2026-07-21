@@ -74,6 +74,9 @@ test('ViewTube locks the real replay canvas fullscreen until Gate 41', () => {
   const barrageStart = viewTube.indexOf('id="vt-gate40-danmaku-barrage"');
   const barrageEnd = viewTube.indexOf('{replayPaused && (', barrageStart);
   const barrageMarkup = viewTube.slice(barrageStart, barrageEnd);
+  const closeStart = viewTube.indexOf('const closeReplayFullscreen');
+  const closeEnd = viewTube.indexOf('useEffect(() => {', closeStart);
+  const closeSource = viewTube.slice(closeStart, closeEnd);
 
   assert.match(viewTube, /<ArcRunReplay/);
   assert.match(viewTube, /id="vt-gate40-danmaku-barrage"/);
@@ -82,6 +85,10 @@ test('ViewTube locks the real replay canvas fullscreen until Gate 41', () => {
   assert.match(viewTube, /data-fullscreen-lock=/);
   assert.match(viewTube, /id="vt-fullscreen-exit"/);
   assert.match(viewTube, /disabled=\{!replayExitUnlocked\}/);
+  assert.doesNotMatch(closeSource, /replayExitUnlockedRef/);
+  assert.match(closeSource, /setReplayPaused\(true\)/);
+  assert.match(closeSource, /getElementById\('vt-comments'\)\?\.scrollIntoView/);
+  assert.match(closeSource, /setReplayFullscreenOpen\(false\)/);
   assert.match(viewTube, /onMouseMove=\{revealReplayControls\}/);
   assert.match(viewTube, /id="vt-replay-timeline-progress"/);
   assert.match(viewTube, /bg-\[#ff1f1f\]/);

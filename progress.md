@@ -453,3 +453,9 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Shifted both charging-cable layers three percent right by changing their shared right anchor from -2% to -5%, filling the empty right-side span without changing cable geometry or scale.
 - Preserved coffee size, state artwork, steam, spills, cable insertion logic, phone projection, hands, wall, floor, and desk transforms.
 - Browser Preview remains intentionally omitted under the repository's static-analysis-only rule; 94 static tests, TypeScript lint, production build, and diff checks pass.
+
+## 2026-07-21 — Reliable replay fullscreen exit
+
+- Removed the redundant ref guard inside the already-gated fullscreen close handler; the EXIT button remains disabled until Gate 41, but an unlocked click can no longer silently no-op because two unlock states drifted apart.
+- Exit now pauses the replay, scrolls the underlying ViewTube page directly to `#vt-comments`, and closes the fullscreen portal so the evidence discussion is immediately visible.
+- Added static regression coverage for the complete unlocked EXIT path while preserving the mandatory pre-Gate-41 lock.
