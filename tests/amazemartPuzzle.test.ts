@@ -17,10 +17,11 @@ test('Lumen Arc search accepts spacing variants but not a vague single clue', ()
 });
 
 test('seller challenge only accepts the simple impossible score 184', () => {
-  assert.equal(normalizeSellerCode(' 1-8-4 '), '184');
+  assert.equal(normalizeSellerCode(' 184 '), '184');
   assert.equal(isSellerCodeAccepted('184'), true);
-  assert.equal(isSellerCodeAccepted('1 8 4'), true);
-  assert.equal(isSellerCodeAccepted('ARC-184'), true);
+  assert.equal(isSellerCodeAccepted(' 184 '), true);
+  assert.equal(isSellerCodeAccepted('1 8 4'), false);
+  assert.equal(isSellerCodeAccepted('ARC-184'), false);
   assert.equal(isSellerCodeAccepted('184-40-256'), false);
   assert.equal(isSellerCodeAccepted('40'), false);
 });

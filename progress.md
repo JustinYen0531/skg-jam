@@ -5,7 +5,7 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Expanded AmazeMart Chapter 3 without bloating the North Star GDD: search noise, a scroll-gated suppressed seller, scam confirmation, an embedded seller relay, the simple score code `184`, and delivery signature are now the canonical beats.
 - Searching `Lumen Arc` first returns eight unrelated promoted products. The dangerous unverified seller only loads after meaningful scrolling and must be manually expanded.
 - `ORDER INSTANT` now opens a scam warning instead of auto-completing the chapter. Accepting it produces a seller notification and opens the in-app AmazeMart Seller Relay.
-- The relay asks for the impossible runner's score. `184` is the intended answer; punctuation-wrapped variants remain forgiving, wrong answers provide a hint, and there is no lockout.
+- The relay asks for the impossible runner's score. Only `184` is accepted (surrounding whitespace is ignored); wrong answers provide a hint, and there is no lockout.
 - Chapter 3 advances only when the player signs for the delivered screenshot packet; the Screenshots app then opens through the existing route.
 - Added pure tests for search normalization, score validation, scroll reveal, and the full warning/relay/signature integration boundary.
 - Static verification only, per project instruction: 141/141 tests, TypeScript lint, production build, and `git diff --check` passed. Browser and Preview were intentionally not used.

@@ -9,7 +9,7 @@ export function isLumenArcSearch(value: string): boolean {
 }
 
 export function normalizeSellerCode(value: string): string {
-  return value.replace(/\D/g, '');
+  return value.trim();
 }
 
 export function isSellerCodeAccepted(value: string): boolean {
