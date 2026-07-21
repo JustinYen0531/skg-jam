@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&family=Titillium+Web:wght@300;400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&family=Titillium+Web:wght@300;400;600;700&family=Courier+Prime:wght@400;700&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -8,6 +8,9 @@
   /* LAOS: the dead system's own typeface — a 2014 idea of "the future".
      Dated, consistent, engineer-made. Never used by the modern layer. */
   --font-laos: "Titillium Web", "Trebuchet MS", sans-serif;
+  /* The protagonist's inner voice: humane typewriter, thoughts arriving one
+     keystroke at a time. Never used for system chrome. */
+  --font-thought: "Courier Prime", "Courier New", monospace;
 }
 
 body {

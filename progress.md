@@ -1,12 +1,5 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
-## 2026-07-21 — Mouse-driven Meta camera pitch
-
-- Added a clamped mouse-height mapping: top of the scene tilts the held phone toward the desk, while the bottom returns it toward an upright view.
-- The phone, both full-frame grip-hand assets, the scroll finger, and the tapping finger share one spring-smoothed pitch value so the grip remains coherent.
-- Reduced-motion keeps the existing fixed 5.5-degree resting pose; leaving the scene also settles back to that pose.
-- Verification remains static and automated only per project instruction; browser validation is intentionally omitted.
-
 ## 2026-07-19
 
 - 已確認 Meta 揭露不能直接沿用 `seenLeaderboard`，因為舊邏輯在第二次死亡時便提前設為 true。
@@ -248,14 +241,6 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Preserved event timing, pitch, deterministic variants, P1 event identities, mute behavior, and the deliberately quiet ambience layer.
 - Browser listening validation remains intentionally omitted per project instruction; static tests, TypeScript lint, and production build are required before upload.
 
-## 2026-07-20 — Foreground chapter objects and translucent dialogue
-
-- Split `ChapterEnvironment` into a background lighting layer and a foreground object layer so chapter props are no longer trapped behind the animated phone stacking context during normal play.
-- Positioned the object layer at z-index 25: above the phone and fixed grip hands, below the animated interaction finger and dialogue.
-- Enlarged the coffee, notebook, pen, and cable from approximately 1.7x to 1.9x using object-specific bottom/side transform origins so they remain anchored on the desk instead of drifting off-screen.
-- Reduced the dialogue panel background from 82% to 52% opacity and its blur to 1px so the evolving desk objects remain visible beneath the text.
-- Browser validation remains intentionally omitted per project instruction; static tests, TypeScript lint, and production build cover the change.
-
 ## 2026-07-20 — Phone-embedded virtual keyboard
 
 - Moved the Meta virtual keyboard from the scene root into the same transformed surface as the physical phone screen.
@@ -264,14 +249,15 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Removed the old root-level keyboard that was positioned behind the protagonist dialogue panel.
 - Browser/Preview validation remains intentionally omitted per project instruction; static placement coverage, TypeScript lint, and production build are required before upload.
 
-## 2026-07-21 — Grip-hand text-safe positioning
+## 2026-07-20 — Foreground chapter objects and translucent dialogue
 
-- Shifted the persistent left and right grip-hand assets outward by `4.5%` in mirrored directions.
-- Replaced full `inset-0` positioning with independent left/right edge anchors so the vertical palms no longer cover phone text while the thumbs remain close to the device rim.
-- Preserved hand scale, vertical placement, clipping halves, interaction fade, tapping-finger animation, and all phone geometry.
-- Browser/Preview validation remains intentionally omitted per project instruction; static hand-offset coverage, TypeScript lint, and production build are required before upload.
+- Split `ChapterEnvironment` into a background lighting layer and a foreground object layer so chapter props are no longer trapped behind the animated phone stacking context during normal play.
+- Positioned the object layer at z-index 25: above the phone and fixed grip hands, below the animated interaction finger and dialogue.
+- Enlarged the coffee, notebook, pen, and cable from approximately 1.7x to 1.9x using object-specific bottom/side transform origins so they remain anchored on the desk instead of drifting off-screen.
+- Reduced the dialogue panel background from 82% to 52% opacity and its blur to 1px so the evolving desk objects remain visible beneath the text.
+- Browser validation remains intentionally omitted per project instruction; static tests, TypeScript lint, and production build cover the change.
 
-## 2026-07-21 - Chapter 3 desk contact pass
+## 2026-07-21 — Chapter 3 desk contact pass
 
 - Split the notebook and pen into a dedicated z-index 9 underlay beneath the z-index 10 phone and z-index 22 grip hands, so the device and hands now visibly rest over the notebook.
 - Reduced and repositioned the notebook and pen to remain inside the lower-left desk area instead of crossing the scene boundary.
@@ -281,8 +267,8 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 
 ## 2026-07-21 — Wider text-safe grip position
 
-- Increased the mirrored persistent hand offset from `4.5%` to `7%` after the narrow-layout screenshot showed the vertical palms still covering phone text.
-- Anchored the left hand at `left: -7%` and the right hand at `right: -7%`, moving both palms toward the outer scene edges while keeping the thumbs near the phone rim.
+- Restored the persistent hand offsets that had been overwritten in the shared working copy and increased the mirrored horizontal shift from `4.5%` to `7%`.
+- Anchored the left hand at `left: -7%` and the right hand at `right: -7%`, moving both vertical palms toward the outer scene edges while keeping the thumbs near the phone rim.
 - Preserved hand scale, vertical position, split-image clipping, interaction fade, tapping-finger animation, and phone geometry.
 - Browser/Preview validation remains intentionally omitted per project instruction; static offset coverage, TypeScript lint, and production build are required before upload.
 
@@ -291,6 +277,13 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Reduced the mirrored persistent hand offset from `7%` to `5%` after the updated screenshot showed the thumbs sitting too far away from the phone rim.
 - Kept the vertical palms outside the text-safe area while bringing both thumbs two percentage points closer to the device edge.
 - Browser/Preview validation remains intentionally omitted per project instruction; static offset coverage, TypeScript lint, and production build are required before upload.
+
+## 2026-07-21 — Charging cable rear-layer continuation
+
+- Split the connected plug across the phone depth plane: only the inserted metal tip sits in the z-index 9 underlay, while the plug housing and cable remain visible in the foreground.
+- Extended both cable strokes from SVG x=510 to x=650 so the right end continues beyond the scene crop instead of exposing a rounded tail.
+- The phone now occludes the metal insertion point without hiding the cable body or moving the coffee cup.
+- Browser validation remains intentionally omitted per project instruction; static tests, TypeScript lint, and production build are required before upload.
 
 ## 2026-07-21 — Grip offset clarification
 
@@ -308,39 +301,12 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Set the persistent left and right grip offsets to the requested absolute `3%` per side.
 - Browser/Preview validation remains intentionally omitted per project instruction; static offset coverage, TypeScript lint, and production build are required before upload.
 
-## 2026-07-21 — Charging cable rear-layer continuation
-
-- Split the connected plug across the phone depth plane: only the inserted metal tip sits in the z-index 9 underlay, while the plug housing and cable remain visible in the foreground.
-- Extended both cable strokes from SVG x=510 to x=650 so the right end continues beyond the scene crop instead of exposing a rounded tail.
-- The phone now occludes the metal insertion point without hiding the cable body or moving the coffee cup.
-- Browser validation remains intentionally omitted per project instruction; static tests, TypeScript lint, and production build are required before upload.
-
 ## 2026-07-21 — P2 fine-detail sound implementation
 
 - Added the complete P2 synthesis tier: leaderboard row/percentage cues, scroll-boundary bounce, finger release, rare device creak, desk contact, evidence-paper rotation, preserve-ending download counts, and the reduced score ping after 184.
 - Connected each event to its real interaction with engine-level cooldowns for row scanning, percentage changes, scroll limits, paper movement, and the 30-second device-creak floor.
 - Kept the P2 layer quiet and non-instructional; it adds physical detail without revealing clues or competing with P0/P1 feedback.
 - Browser listening remains intentionally omitted per project instruction; static tests, TypeScript lint, and production build are required before upload.
-
-## 2026-07-21 — Independent coffee state assets
-
-- Replaced the failed three-panel background-crop approach with three user-supplied, independent RGBA images: `coffee-full.png`, `coffee-empty-drip.png`, and `coffee-tipped-spill.png`.
-- Chapters now select one complete image per coffee state through a typed source map and render it with `object-contain`; no shared sprite coordinates or background-size crop remains.
-- Final static verification passed: 77 tests, TypeScript lint, and production build. Browser validation remains intentionally omitted per project instruction.
-
-## 2026-07-21 — Chapter coffee PNG material replacement
-
-- Added the user-provided transparent three-state coffee material at `public/assets/chapter-coffee-states.png`.
-- Replaced the CSS-drawn cup, fake cup drip, and fake desk spill with a three-panel background crop: full cup for Chapters 1–2, empty/dripping cup for Chapters 3–4, and tipped/spilled cup for Chapters 5–6.
-- Kept the existing steam animation only for the full-cup chapters and retained chapter-state data attributes for the cup-drip and spill evidence.
-- Browser validation remains intentionally omitted per project instruction; final static verification passed: 73 tests, TypeScript lint, and production build.
-
-## 2026-07-21 — NewFinger2 interaction asset
-
-- Replaced the photoreal tapping/swiping hand with the user-supplied stylized `NewFinger2` artwork.
-- Kept the shared interaction path: button taps and both scroll directions still use `meta-tapping-finger.png`.
-- Preserved the existing `-90deg` transform so the new source artwork points toward the upper-left in every interaction.
-- Added a static asset fingerprint guard; browser validation remains intentionally omitted per project instruction.
 
 ## 2026-07-21 — Developer chapter advance guide
 

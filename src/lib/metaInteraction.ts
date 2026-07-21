@@ -10,7 +10,9 @@ export const META_CAMERA_PITCH = {
   topDeg: 14,
   bottomDeg: 2,
   restDeg: 5.5,
-  tableDeg: 68,
+  // Keep the resting tablet on the desk plane without collapsing it into a
+  // nearly edge-on strip; this matches the table's visible receding angle.
+  tableDeg: 54,
 } as const;
 
 export type MetaDevicePostureAction = 'rest' | 'wake' | null;

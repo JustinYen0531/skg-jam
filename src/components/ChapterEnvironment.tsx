@@ -12,6 +12,8 @@ interface ChapterEnvironmentProps {
   chapter: EnvironmentChapter;
   reducedMotion: boolean;
   layer?: 'lighting' | 'underlay' | 'objects';
+  /** Share the tablet's resting camera scale so desk props remain one scene. */
+  deviceResting?: boolean;
 }
 
 const COFFEE_ASSET_SOURCE: Record<Exclude<CoffeeState, 'none'>, string> = {
@@ -233,7 +235,12 @@ const PaperBalls: React.FC = () => (
   </div>
 );
 
-export const ChapterEnvironment: React.FC<ChapterEnvironmentProps> = ({ chapter, reducedMotion, layer = 'objects' }) => {
+export const ChapterEnvironment: React.FC<ChapterEnvironmentProps> = ({
+  chapter,
+  reducedMotion,
+  layer = 'objects',
+  deviceResting = false,
+}) => {
   const environment = getChapterEnvironment(chapter);
   if (chapter === 0) return null;
 
@@ -255,11 +262,15 @@ export const ChapterEnvironment: React.FC<ChapterEnvironmentProps> = ({ chapter,
   const underlay = layer === 'underlay';
 
   return (
-    <div
+    <motion.div
       className={`pointer-events-none absolute inset-0 overflow-hidden ${underlay ? 'z-[9]' : 'z-[25]'}`}
+      animate={{ scale: deviceResting ? 0.91 : 1, y: deviceResting ? '11%' : 0 }}
+      transition={transition}
+      style={{ transformOrigin: '50% 72%' }}
       data-environment-chapter={chapter}
       data-desk-order={environment.deskOrder}
       data-environment-layer={underlay ? 'underlay' : 'foreground'}
+      data-desk-resting-scale={deviceResting ? 'shared' : 'full'}
       id={underlay ? 'meta-chapter-underlay' : 'meta-chapter-environment'}
     >
       <AnimatePresence mode="popLayout">
@@ -301,6 +312,6 @@ export const ChapterEnvironment: React.FC<ChapterEnvironmentProps> = ({ chapter,
           CASE {chapter.toString().padStart(2, '0')} // {environment.caseLabel}
         </motion.div>
       </AnimatePresence>}
-    </div>
+    </motion.div>
   );
 };

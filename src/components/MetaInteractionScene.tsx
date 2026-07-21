@@ -1,6 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion, useMotionValue, useSpring } from 'motion/react';
-import { Terminal } from 'lucide-react';
 import {
   applyVirtualKey,
   canStartMetaInteraction,
@@ -69,76 +68,259 @@ const KEYBOARD_ROWS = [
 const isViewTubeSearch = (element: Element): element is HTMLInputElement =>
   element instanceof HTMLInputElement && element.id === 'vt-search-input';
 
-const LeftGripBack = () => (
+/* ==========================================================================
+   Hand anatomy kit.
+
+   Fingers are generated from joint skeletons instead of hand-drawn blobs:
+   each finger is three tapered round-capped segments laid over a shared
+   user-space gradient, so knuckles bulge where segments meet, creases sit
+   exactly on the joints, and the nail is placed perpendicular to the last
+   phalanx. Stylised, not photoreal — but the proportions are anatomical.
+   ========================================================================== */
+
+type Pt = readonly [number, number];
+
+const line = (a: Pt, b: Pt) => `M${a[0]} ${a[1]} L${b[0]} ${b[1]}`;
+
+/** Perpendicular crease across a joint, bowed slightly toward the fingertip. */
+const jointCrease = (joint: Pt, from: Pt, to: Pt, width: number, scale: number) => {
+  const vx = to[0] - from[0];
+  const vy = to[1] - from[1];
+  const vl = Math.hypot(vx, vy) || 1;
+  const px = -vy / vl;
+  const py = vx / vl;
+  const half = (width * scale) / 2;
+  const bow = width * 0.14;
+  return `M${joint[0] - px * half} ${joint[1] - py * half} Q${joint[0] + (vx / vl) * bow} ${joint[1] + (vy / vl) * bow} ${joint[0] + px * half} ${joint[1] + py * half}`;
+};
+
+interface NailProps {
+  tip: Pt;
+  prev: Pt;
+  width: number;
+  fill: string;
+  scale?: number;
+}
+
+/** A fingernail seated just behind the fingertip, aligned to the phalanx.
+    Texture: rounded plate, lunula, one soft shine band, two faint ridges. */
+const Nail: React.FC<NailProps> = ({ tip, prev, width, fill, scale = 1 }) => {
+  const dx = tip[0] - prev[0];
+  const dy = tip[1] - prev[1];
+  const len = Math.hypot(dx, dy) || 1;
+  const ux = dx / len;
+  const uy = dy / len;
+  const w = width * 0.54 * scale;
+  const l = width * 0.62 * scale;
+  const cx = tip[0] - ux * width * 0.33;
+  const cy = tip[1] - uy * width * 0.33;
+  const angle = (Math.atan2(uy, ux) * 180) / Math.PI - 90;
+
+  return (
+    <g transform={`translate(${cx} ${cy}) rotate(${angle})`}>
+      <rect
+        x={-w / 2} y={-l / 2} width={w} height={l} rx={w * 0.42}
+        fill={fill} stroke="rgba(139,84,58,0.38)" strokeWidth={0.8}
+      />
+      {/* lunula */}
+      <ellipse cx={0} cy={-l * 0.3} rx={w * 0.28} ry={l * 0.14} fill="rgba(255,255,255,0.3)" />
+      {/* shine band */}
+      <rect x={-w * 0.34} y={-l * 0.24} width={w * 0.18} height={l * 0.5} rx={w * 0.09} fill="rgba(255,255,255,0.26)" />
+      {/* keratin ridges */}
+      <line x1={-w * 0.14} y1={-l * 0.2} x2={-w * 0.14} y2={l * 0.3} stroke="rgba(120,70,48,0.1)" strokeWidth={0.7} />
+      <line x1={w * 0.16} y1={-l * 0.16} x2={w * 0.16} y2={l * 0.3} stroke="rgba(120,70,48,0.08)" strokeWidth={0.7} />
+    </g>
+  );
+};
+
+interface FingerShapeProps {
+  joints: readonly [Pt, Pt, Pt, Pt];
+  width: number;
+  stroke: string;
+  taper?: readonly [number, number, number];
+  creaseColor?: string;
+  nailFill?: string;
+  showNail?: boolean;
+  nailScale?: number;
+}
+
+const FingerShape: React.FC<FingerShapeProps> = ({
+  joints, width, stroke,
+  taper = [1, 0.93, 0.85],
+  creaseColor = 'rgba(116,62,42,0.24)',
+  nailFill = '#efd0b7',
+  showNail = false,
+  nailScale = 1,
+}) => {
+  const [mcp, pip, dip, tip] = joints;
+  return (
+    <g>
+      <path d={line(mcp, pip)} stroke={stroke} strokeWidth={width * taper[0]} strokeLinecap="round" fill="none" />
+      <path d={line(pip, dip)} stroke={stroke} strokeWidth={width * taper[1]} strokeLinecap="round" fill="none" />
+      <path d={line(dip, tip)} stroke={stroke} strokeWidth={width * taper[2]} strokeLinecap="round" fill="none" />
+      <path d={jointCrease(pip, mcp, dip, width, 0.5)} stroke={creaseColor} strokeWidth={1.6} fill="none" strokeLinecap="round" />
+      <path d={jointCrease(dip, pip, tip, width, 0.44)} stroke={creaseColor} strokeWidth={1.4} fill="none" strokeLinecap="round" />
+      {showNail && <Nail tip={tip} prev={dip} width={width} fill={nailFill} scale={nailScale} />}
+    </g>
+  );
+};
+
+interface FoldedFingerProps {
+  base: Pt;
+  knuckle: Pt;
+  tip: Pt;
+  width: number;
+  stroke: string;
+  nailFill?: string;
+  creaseColor?: string;
+}
+
+/** A finger curled into the palm: proximal phalanx up, the rest folded back
+    down so the nail faces the viewer. */
+const FoldedFinger: React.FC<FoldedFingerProps> = ({
+  base, knuckle, tip, width, stroke,
+  nailFill = '#efd0b7',
+  creaseColor = 'rgba(116,62,42,0.24)',
+}) => (
+  <g>
+    <path d={line(base, knuckle)} stroke={stroke} strokeWidth={width} strokeLinecap="round" fill="none" />
+    <path d={line(knuckle, tip)} stroke={stroke} strokeWidth={width * 0.88} strokeLinecap="round" fill="none" />
+    <path d={jointCrease(knuckle, base, tip, width, 0.48)} stroke={creaseColor} strokeWidth={1.5} fill="none" strokeLinecap="round" />
+    <Nail tip={tip} prev={knuckle} width={width} fill={nailFill} scale={0.75} />
+  </g>
+);
+
+/* --------------------------------------------------------------------------
+   Left hand — gripping the device edge. Back layer sits behind the phone
+   (four fingers wrapping the chassis), front layer is the thumb over the
+   bezel. Right-side grips reuse these mirrored.
+   -------------------------------------------------------------------------- */
+
+export const LeftGripBack = () => (
   <svg
     viewBox="0 0 340 360"
     className="h-full w-full overflow-visible drop-shadow-[0_18px_16px_rgba(0,0,0,0.32)]"
     role="presentation"
   >
     <defs>
-      <linearGradient id="left-skin-back" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stopColor="#efc2a1" />
-        <stop offset="0.48" stopColor="#c98968" />
-        <stop offset="1" stopColor="#754531" />
+      <linearGradient id="lgb-skin" x1="60" y1="80" x2="320" y2="340" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stopColor="#f2c9a8" />
+        <stop offset="0.5" stopColor="#d09272" />
+        <stop offset="1" stopColor="#8f5a3e" />
       </linearGradient>
-      <linearGradient id="left-fingers-back" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stopColor="#dfaa8a" />
-        <stop offset="0.5" stopColor="#ba7558" />
-        <stop offset="1" stopColor="#71412f" />
+      <linearGradient id="lgb-finger" x1="200" y1="70" x2="340" y2="250" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stopColor="#eec2a0" />
+        <stop offset="0.55" stopColor="#c98a68" />
+        <stop offset="1" stopColor="#82503a" />
       </linearGradient>
-      <linearGradient id="left-sleeve" x1="0" y1="0" x2="1" y2="0">
+      <linearGradient id="lgb-sleeve" x1="0" y1="0" x2="1" y2="0">
         <stop offset="0" stopColor="#15171c" />
         <stop offset="1" stopColor="#343942" />
       </linearGradient>
     </defs>
 
-    <path d="M0 360V270C35 245 69 236 105 243L151 360Z" fill="url(#left-sleeve)" />
+    {/* Sleeve */}
+    <path d="M0 360 V256 C34 238 74 232 112 244 L158 360 Z" fill="url(#lgb-sleeve)" />
+    <path d="M100 242 C114 252 124 266 130 284" stroke="rgba(255,255,255,0.08)" strokeWidth="3" fill="none" strokeLinecap="round" />
+
+    {/* Back of hand + wrist, one continuous mass */}
     <path
-      d="M68 360C74 313 82 270 105 224C126 182 157 144 195 124C225 108 257 114 276 139C294 163 291 196 272 222L230 281L207 360Z"
-      fill="url(#left-skin-back)"
+      d="M72 360 C64 318 62 276 70 236 C78 196 96 158 126 128 C150 104 180 88 206 86 C216 86 222 91 224 100 L226 244 C226 274 214 298 194 314 C166 336 128 352 96 360 Z"
+      fill="url(#lgb-skin)"
     />
 
-    <g fill="url(#left-fingers-back)">
-      <path data-grip-finger="1" d="M208 92C208 73 222 57 240 57H307C324 57 337 70 337 86C337 102 324 114 307 114H239C222 114 208 105 208 92Z" />
-      <path data-grip-finger="2" d="M205 133C205 115 220 101 238 101H316C330 101 340 112 340 126C340 141 329 152 314 152H236C219 152 205 146 205 133Z" />
-      <path data-grip-finger="3" d="M207 174C207 157 221 144 239 144H312C326 144 337 155 337 169C337 183 326 194 311 194H239C221 194 207 188 207 174Z" />
-      <path data-grip-finger="4" d="M215 214C215 198 229 186 246 186H301C315 186 326 197 326 211C326 225 315 236 300 236H245C228 236 215 229 215 214Z" />
+    {/* Shadow seams between the wrapped fingers */}
+    <g stroke="rgba(58,28,17,0.24)" strokeWidth="3" fill="none" strokeLinecap="round">
+      <path d="M208 117 C244 112 274 113 300 119" />
+      <path d="M206 159 C242 154 272 155 298 161" />
+      <path d="M210 200 C242 196 268 197 292 202" />
     </g>
 
-    <g fill="none" stroke="#70422f" strokeLinecap="round" strokeWidth="2" opacity="0.26">
-      <path d="M236 77H295" />
-      <path d="M235 121H302" />
-      <path d="M237 163H298" />
-      <path d="M246 205H289" />
-      <path d="M114 283C145 277 171 285 190 307" />
+    {/* Four fingers wrapping behind the chassis */}
+    <FingerShape joints={[[204, 96], [254, 88], [298, 90], [330, 97]]} width={31} stroke="url(#lgb-finger)" />
+    <FingerShape joints={[[200, 138], [256, 131], [304, 133], [336, 140]]} width={32} stroke="url(#lgb-finger)" />
+    <FingerShape joints={[[202, 180], [254, 174], [298, 176], [326, 183]]} width={30} stroke="url(#lgb-finger)" />
+    <FingerShape joints={[[208, 220], [250, 215], [284, 217], [306, 223]]} width={26} stroke="url(#lgb-finger)" />
+
+    {/* Knuckle dimples where the fingers root into the hand */}
+    <g stroke="rgba(116,62,42,0.18)" strokeWidth="2" fill="none" strokeLinecap="round">
+      <path d="M204 84 Q212 80 220 83" />
+      <path d="M200 126 Q209 122 218 125" />
+      <path d="M202 168 Q210 164 219 167" />
+      <path d="M208 209 Q215 205 222 208" />
     </g>
+
+    {/* Tendons fanning across the back of the hand */}
+    <g stroke="rgba(90,46,28,0.1)" strokeWidth="3" fill="none" strokeLinecap="round">
+      <path d="M118 300 C148 242 176 190 200 134" />
+      <path d="M140 308 C168 254 190 210 204 174" />
+    </g>
+
+    {/* Rim light along the top edge */}
+    <path d="M126 128 C152 102 182 88 206 86" stroke="rgba(255,236,214,0.5)" strokeWidth="5" fill="none" strokeLinecap="round" />
   </svg>
 );
 
-const LeftGripFront = () => (
+export const LeftGripFront = () => (
   <svg
     viewBox="0 0 280 210"
     className="h-full w-full overflow-visible drop-shadow-[0_9px_9px_rgba(0,0,0,0.24)]"
     role="presentation"
   >
     <defs>
-      <linearGradient id="left-skin-front" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stopColor="#f7d0b2" />
-        <stop offset="0.5" stopColor="#d29473" />
-        <stop offset="1" stopColor="#7b4934" />
+      <linearGradient id="lgf-skin" x1="20" y1="60" x2="240" y2="210" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stopColor="#f6d0b0" />
+        <stop offset="0.5" stopColor="#d39575" />
+        <stop offset="1" stopColor="#8f5a3e" />
       </linearGradient>
+      <linearGradient id="lgf-thumb" x1="30" y1="60" x2="230" y2="200" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stopColor="#f6d0b0" />
+        <stop offset="0.52" stopColor="#d09272" />
+        <stop offset="1" stopColor="#8a5539" />
+      </linearGradient>
+      <linearGradient id="lgf-nail" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stopColor="#f7e2cf" />
+        <stop offset="1" stopColor="#e3b394" />
+      </linearGradient>
+      <filter id="lgf-soft" x="-40%" y="-40%" width="180%" height="180%">
+        <feGaussianBlur stdDeviation="6" />
+      </filter>
     </defs>
 
+    {/* Soft shadow the thumb casts on the glass */}
     <path
-      d="M16 207C27 166 50 134 84 114C105 102 129 96 150 100C156 88 165 78 176 68L202 46C216 34 234 36 244 49C255 63 251 80 238 92L204 122C192 133 187 143 190 154C196 176 187 195 168 207C143 224 104 226 67 218C43 213 26 213 16 207Z"
-      fill="url(#left-skin-front)"
-      id="meta-left-thumb"
-      data-continuous-grip="palm-thumb"
+      d="M88 182 C130 158 180 124 232 88"
+      stroke="rgba(30,12,6,0.3)" strokeWidth="20" fill="none" strokeLinecap="round"
+      filter="url(#lgf-soft)"
     />
-    <path d="M211 50C220 44 232 47 237 55" fill="none" stroke="#f8dec9" strokeLinecap="round" strokeWidth="7" opacity="0.72" />
-    <path d="M157 112C172 119 187 119 201 113" fill="none" stroke="#7a4634" strokeLinecap="round" strokeWidth="2" opacity="0.24" />
-    <path d="M70 164C98 151 126 154 148 170" fill="none" stroke="#7a4634" strokeLinecap="round" strokeWidth="2" opacity="0.22" />
-    <path d="M82 188C106 179 130 181 148 193" fill="none" stroke="#7a4634" strokeLinecap="round" strokeWidth="1.75" opacity="0.18" />
+
+    {/* Palm heel resting against the device edge, fused into the thumb root */}
+    <path
+      d="M-12 216 C-8 176 8 144 42 124 C68 108 100 104 124 118 C114 142 110 164 118 184 C98 206 50 216 12 216 Z"
+      fill="url(#lgf-skin)"
+    />
+
+    {/* Thumb over the bezel */}
+    <g id="meta-left-thumb" data-continuous-grip="palm-thumb">
+      <FingerShape
+        joints={[[28, 198], [96, 160], [170, 112], [242, 62]]}
+        width={48}
+        taper={[1, 0.9, 0.8]}
+        stroke="url(#lgf-thumb)"
+        showNail
+        nailScale={1.05}
+        nailFill="url(#lgf-nail)"
+      />
+    </g>
+
+    {/* Folds where the thumb roots into the thenar */}
+    <g stroke="rgba(116,62,42,0.2)" strokeWidth="2" fill="none" strokeLinecap="round">
+      <path d="M52 176 C70 166 88 162 104 164" />
+      <path d="M44 192 C66 182 90 178 112 180" />
+    </g>
+
+    {/* Rim light along the thumb's upper edge, kept inside the silhouette */}
+    <path d="M96 138 C136 110 180 82 226 58" stroke="rgba(255,236,214,0.5)" strokeWidth="4" fill="none" strokeLinecap="round" />
   </svg>
 );
 
@@ -154,105 +336,156 @@ const RightGripFront = () => (
   </div>
 );
 
+/* --------------------------------------------------------------------------
+   The reaching hand. Back layer is the forearm passing behind the device;
+   front layer is the pointing hand over the glass. The index fingertip is
+   authored at (69, 5) ≈ (30%, 1%) so the container's translate calibration
+   lands the finger pad exactly on the tap target.
+   -------------------------------------------------------------------------- */
+
 const HAND_PRESS_SPRING = { type: 'spring', stiffness: 520, damping: 30 } as const;
 
 interface InteractiveHandProps {
   pressed: boolean;
 }
 
-const RightHandBack: React.FC<InteractiveHandProps> = ({ pressed }) => (
+export const RightHandBack: React.FC<InteractiveHandProps> = ({ pressed }) => (
   <div className="absolute left-0 top-0 h-[clamp(165px,25vh,235px)] w-[clamp(125px,15vw,180px)] -translate-x-[30%] -translate-y-[1%]">
     <motion.svg
       viewBox="0 0 230 300"
-      animate={{ rotate: pressed ? -5 : 0, scale: pressed ? 0.96 : 1 }}
+      animate={{ rotate: pressed ? -4 : 0, scale: pressed ? 0.965 : 1 }}
+      transition={HAND_PRESS_SPRING}
       className="h-full w-full origin-[30%_1%] overflow-visible drop-shadow-[0_18px_16px_rgba(0,0,0,0.34)]"
       role="presentation"
     >
-    <defs>
-      <linearGradient id="right-skin-back" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stopColor="#edbd9c" />
-        <stop offset="0.5" stopColor="#c68464" />
-        <stop offset="1" stopColor="#70402f" />
-      </linearGradient>
-      <linearGradient id="right-fingers-back" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stopColor="#dda686" />
-        <stop offset="0.5" stopColor="#b97155" />
-        <stop offset="1" stopColor="#6b3d2d" />
-      </linearGradient>
-      <linearGradient id="right-sleeve" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0" stopColor="#353a44" />
-        <stop offset="1" stopColor="#111319" />
-      </linearGradient>
-    </defs>
+      <defs>
+        <linearGradient id="rhb-skin" x1="50" y1="120" x2="210" y2="290" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#e6b492" />
+          <stop offset="0.5" stopColor="#bd7d5d" />
+          <stop offset="1" stopColor="#774832" />
+        </linearGradient>
+        <linearGradient id="rhb-sleeve" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor="#343942" />
+          <stop offset="1" stopColor="#111319" />
+        </linearGradient>
+      </defs>
 
-    <path d="M95 300L101 224C127 206 165 205 196 222L230 256V300Z" fill="url(#right-sleeve)" />
-    <path
-      d="M80 300C79 266 81 235 91 204C102 171 125 145 158 136C187 128 211 143 221 168C231 194 219 220 197 237L178 300Z"
-      fill="url(#right-skin-back)"
-    />
-    <g fill="url(#right-fingers-back)">
-      <path d="M82 106C88 93 103 87 116 94L197 136C211 143 216 158 208 171C200 184 185 188 172 180L94 134C81 127 76 117 82 106Z" />
-      <path d="M72 139C79 126 94 121 108 128L190 169C204 177 209 192 201 205C193 218 177 222 164 214L84 170C71 163 66 152 72 139Z" />
-      <path d="M72 175C80 162 95 159 108 166L176 203C190 211 194 226 187 239C179 252 164 256 150 248L82 210C68 203 64 188 72 175Z" />
-    </g>
-    <g fill="none" stroke="#6d3e2e" strokeLinecap="round" strokeWidth="2" opacity="0.25">
-      <path d="M105 111L180 151" />
-      <path d="M96 147L173 188" />
-      <path d="M96 184L160 220" />
-      <path d="M105 237C132 226 158 231 177 249" />
-    </g>
+      {/* Sleeve entering from the lower right */}
+      <path d="M112 300 L106 240 C136 218 176 216 204 234 L230 258 V300 Z" fill="url(#rhb-sleeve)" />
+      <path d="M112 246 C130 236 152 232 172 236" stroke="rgba(255,255,255,0.07)" strokeWidth="3" fill="none" strokeLinecap="round" />
+
+      {/* Forearm */}
+      <path d="M96 180 L130 248" stroke="url(#rhb-skin)" strokeWidth="66" strokeLinecap="round" fill="none" />
+
+      {/* Hand mass silhouette behind the device */}
+      <path
+        d="M58 214 C54 176 66 146 96 130 C126 116 158 124 176 148 C190 170 188 198 170 220 C150 244 118 254 90 244 C72 238 60 228 58 214 Z"
+        fill="url(#rhb-skin)"
+      />
     </motion.svg>
   </div>
 );
 
-const RightHandFront: React.FC<InteractiveHandProps> = ({ pressed }) => (
+export const RightHandFront: React.FC<InteractiveHandProps> = ({ pressed }) => (
   <div className="absolute left-0 top-0 h-[clamp(165px,25vh,235px)] w-[clamp(125px,15vw,180px)] -translate-x-[30%] -translate-y-[1%]">
     <motion.svg
       viewBox="0 0 230 300"
-      animate={{ rotate: pressed ? -5 : 0, scale: pressed ? 0.96 : 1 }}
+      animate={{ rotate: pressed ? -4 : 0, scale: pressed ? 0.965 : 1 }}
+      transition={HAND_PRESS_SPRING}
       className="h-full w-full origin-[30%_1%] overflow-visible drop-shadow-[0_10px_10px_rgba(0,0,0,0.24)]"
       role="presentation"
     >
-    <defs>
-      <linearGradient id="right-skin-front" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stopColor="#f3c9aa" />
-        <stop offset="0.52" stopColor="#ca8969" />
-        <stop offset="1" stopColor="#784632" />
-      </linearGradient>
-      <linearGradient id="right-index-front" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stopColor="#f8d3b6" />
-        <stop offset="0.5" stopColor="#d99a78" />
-        <stop offset="1" stopColor="#93563e" />
-      </linearGradient>
-      <linearGradient id="right-thumb-front" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stopColor="#e8b392" />
-        <stop offset="0.52" stopColor="#bf785a" />
-        <stop offset="1" stopColor="#70402f" />
-      </linearGradient>
-    </defs>
+      <defs>
+        <linearGradient id="rhf-skin" x1="40" y1="60" x2="220" y2="290" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#f2c9a8" />
+          <stop offset="0.52" stopColor="#cf8f6d" />
+          <stop offset="1" stopColor="#8a5539" />
+        </linearGradient>
+        <linearGradient id="rhf-index" x1="55" y1="0" x2="105" y2="200" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#f6d2b3" />
+          <stop offset="0.55" stopColor="#d69674" />
+          <stop offset="1" stopColor="#96603f" />
+        </linearGradient>
+        <linearGradient id="rhf-nail" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor="#f7e2cf" />
+          <stop offset="1" stopColor="#e3b394" />
+        </linearGradient>
+      </defs>
 
-    <path
-      d="M54 224C66 192 85 160 111 143C137 126 169 125 191 143C214 163 217 196 199 220C184 241 161 253 136 255C102 258 78 246 54 224Z"
-      fill="url(#right-skin-front)"
-    />
-    <path
-      d="M45 171C43 137 42 102 44 64L45 29C46 12 56 2 70 3C84 4 92 16 90 33L87 70C84 106 82 137 86 162C89 181 79 194 64 195C50 196 46 187 45 171Z"
-      fill="url(#right-index-front)"
-      data-fingertip="right-index"
-    />
-    <path
-      d="M112 168C129 153 145 139 160 119C171 104 189 100 200 110C213 121 211 139 198 152L164 187C151 200 129 202 116 190C109 184 106 175 112 168Z"
-      fill="url(#right-thumb-front)"
-    />
-    <path d="M55 18C62 10 73 10 81 17" fill="none" stroke="#fae0cc" strokeLinecap="round" strokeWidth="9" opacity="0.72" />
-    <path d="M174 116C181 111 190 113 196 119" fill="none" stroke="#fae0cc" strokeLinecap="round" strokeWidth="7" opacity="0.62" />
-    <g fill="none" stroke="#754230" strokeLinecap="round" strokeWidth="2" opacity="0.28">
-      <path d="M52 84C64 88 76 88 87 83" />
-      <path d="M51 111C62 115 73 115 84 111" />
-      <path d="M83 205C111 193 143 197 165 215" />
-      <path d="M104 225C124 220 143 224 157 236" />
-      <path d="M143 164C151 172 159 177 170 179" />
-    </g>
+      {/* Contact shadow under the fingertip while pressing */}
+      <motion.ellipse
+        cx={69} cy={11} rx={17} ry={8}
+        fill="rgba(20,8,4,0.3)"
+        initial={false}
+        animate={{ opacity: pressed ? 1 : 0 }}
+        transition={{ duration: 0.12 }}
+      />
+
+      {/* Wrist */}
+      <path d="M150 264 C172 258 194 266 208 284 L216 300 H150 Z" fill="url(#rhf-skin)" />
+      <path d="M148 300 L146 274 C176 260 206 268 226 290 L230 300 Z" fill="#1c2027" />
+
+      {/* Palm / back-of-hand mass */}
+      <path
+        d="M62 210 C60 172 72 150 92 142 C120 130 168 132 196 156 C214 172 218 200 208 228 C196 258 164 276 128 274 C96 272 70 246 62 210 Z"
+        fill="url(#rhf-skin)"
+      />
+
+      {/* Thumb tucked across the palm */}
+      <FingerShape
+        joints={[[118, 248], [96, 236], [72, 224], [52, 214]]}
+        width={42}
+        taper={[1, 0.92, 0.84]}
+        stroke="url(#rhf-skin)"
+        showNail
+        nailScale={0.7}
+        nailFill="url(#rhf-nail)"
+      />
+
+      {/* Curled middle, ring and pinky — nails facing the viewer */}
+      <FoldedFinger base={[122, 184]} knuckle={[134, 130]} tip={[148, 162]} width={42} stroke="url(#rhf-skin)" nailFill="url(#rhf-nail)" />
+      <FoldedFinger base={[152, 198]} knuckle={[162, 148]} tip={[176, 178]} width={39} stroke="url(#rhf-skin)" nailFill="url(#rhf-nail)" />
+      <FoldedFinger base={[180, 212]} knuckle={[188, 170]} tip={[198, 196]} width={33} stroke="url(#rhf-skin)" nailFill="url(#rhf-nail)" />
+
+      {/* Shadow separating the index from the curled fingers */}
+      <path d="M94 152 C86 110 82 66 84 28" stroke="rgba(70,35,22,0.18)" strokeWidth="7" fill="none" strokeLinecap="round" />
+
+      {/* Index finger, extended to the target */}
+      <g data-fingertip="right-index">
+        <FingerShape
+          joints={[[86, 182], [76, 120], [70, 62], [69, 5]]}
+          width={45}
+          taper={[1, 0.92, 0.84]}
+          stroke="url(#rhf-index)"
+          showNail
+          nailFill="url(#rhf-nail)"
+        />
+      </g>
+
+      {/* Rim light along the index's outer edge, inside the silhouette */}
+      <path d="M62 148 C58 104 60 58 64 24" stroke="rgba(255,236,214,0.38)" strokeWidth="3.5" fill="none" strokeLinecap="round" />
+
+      {/* Palm creases */}
+      <g stroke="rgba(116,62,42,0.2)" strokeWidth="2" fill="none" strokeLinecap="round">
+        <path d="M108 238 C138 228 170 230 194 246" />
+        <path d="M118 256 C142 249 164 251 182 262" />
+      </g>
+
+      {/* Tap ripple on the glass */}
+      <AnimatePresence>
+        {pressed && (
+          <motion.circle
+            cx={69} cy={7}
+            fill="none"
+            stroke="rgba(255,255,255,0.55)"
+            strokeWidth={2}
+            initial={{ r: 5, opacity: 0.65 }}
+            animate={{ r: 24, opacity: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5, ease: 'easeOut' }}
+          />
+        )}
+      </AnimatePresence>
     </motion.svg>
   </div>
 );
@@ -264,7 +497,105 @@ const PHONE_SURFACE_SIZE: React.CSSProperties = {
   maxHeight: '760px',
 };
 
-const PROTAGONIST_LABEL = 'YOU · LOCAL PLAYER';
+const PROTAGONIST_LABEL = 'YOU';
+
+/* --------------------------------------------------------------------------
+   The protagonist's thought layer.
+
+   Not a terminal, not a HUD — a makeshift space the mind assembles at night:
+   dim blue-grey, half-framed, mostly empty. Thoughts arrive one keystroke at
+   a time, with longer breaths after punctuation, because they are being
+   formed, not printed.
+   -------------------------------------------------------------------------- */
+
+const THOUGHT_START_DELAY_MS = 300;
+const THOUGHT_CHAR_MS = 50;
+const THOUGHT_LINE_PAUSE_MS = 560;
+
+/** Hesitation: sentence ends breathe, commas pause, ellipses linger. */
+const thoughtPauseAfter = (ch: string): number => {
+  if ('…'.includes(ch)) return 460;
+  if ('。．.！？!?'.includes(ch)) return 330;
+  if ('，,、；;：:—'.includes(ch)) return 150;
+  return 0;
+};
+
+interface ThoughtProgress {
+  line: number;
+  chars: number;
+}
+
+const TypewriterThoughts: React.FC<{ lines: DialogueLines; instant: boolean }> = ({ lines, instant }) => {
+  const [progress, setProgress] = useState<ThoughtProgress>({ line: 0, chars: 0 });
+  const doneRef = useRef(true);
+
+  useEffect(() => {
+    if (instant) {
+      setProgress({ line: Math.max(0, lines.length - 1), chars: lines[lines.length - 1]?.length ?? 0 });
+      doneRef.current = true;
+      return;
+    }
+    // A new thought arriving mid-sentence cuts the old one off (§4.5).
+    if (!doneRef.current) audio.play('narrative.interrupt');
+    doneRef.current = false;
+    setProgress({ line: 0, chars: 0 });
+    let li = 0;
+    let ci = 0;
+    let timer = 0;
+    const step = () => {
+      const current = lines[li] ?? '';
+      if (ci < current.length) {
+        ci += 1;
+        setProgress({ line: li, chars: ci });
+        const ch = current[ci - 1];
+        // §4.5: no sound for spaces; among punctuation only full stops,
+        // question marks and dashes are voiced.
+        if (ch !== ' ' && !'，,、；;：:…“”"\'‘’()[]'.includes(ch)) {
+          audio.play('narrative.glyph');
+        }
+        timer = window.setTimeout(step, THOUGHT_CHAR_MS + thoughtPauseAfter(ch) + Math.random() * 36);
+      } else if (li < lines.length - 1) {
+        audio.play('narrative.lineEnd');
+        li += 1;
+        ci = 0;
+        setProgress({ line: li, chars: 0 });
+        timer = window.setTimeout(step, THOUGHT_LINE_PAUSE_MS);
+      } else {
+        audio.play('narrative.lineEnd');
+        doneRef.current = true;
+      }
+    };
+    timer = window.setTimeout(step, THOUGHT_START_DELAY_MS);
+    return () => window.clearTimeout(timer);
+  }, [lines, instant]);
+
+  const lastLine = lines[lines.length - 1] ?? '';
+  const done = progress.line >= lines.length - 1 && progress.chars >= lastLine.length;
+
+  return (
+    <>
+      <div aria-hidden="true" className="space-y-2.5 font-thought text-[clamp(15px,2cqh,19px)] leading-relaxed text-[#c6d1de]">
+        {lines.slice(0, progress.line + 1).map((lineText, index) => {
+          const visible = index < progress.line ? lineText : lineText.slice(0, progress.chars);
+          const isActive = index === progress.line;
+          return (
+            <p key={`${lineText}-${index}`} className="min-h-[1em]">
+              {visible}
+              {isActive && (
+                <span
+                  className={`ml-[3px] inline-block h-[0.95em] w-[2px] translate-y-[0.15em] ${
+                    done ? 'bg-[#8fa8c0]/40' : 'bg-[#8fa8c0]/75'
+                  }`}
+                  style={{ animation: 'thought-caret 1.5s ease-in-out infinite' }}
+                />
+              )}
+            </p>
+          );
+        })}
+      </div>
+    </>
+  );
+};
 
 export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ active, chapter, children }) => {
   const sceneRef = useRef<HTMLDivElement | null>(null);
@@ -349,10 +680,20 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
       return;
     }
     setPointer(getRestPosition());
+    // The screen capture disconnects and the room's air quietly appears —
+    // the first physical-space sound the player ever hears (§4.6). The
+    // room tone persists for as long as the meta view exists.
     audio.play('meta.cameraPullback');
+    audio.startRoomTone();
+    // The phone settles into the desk composition as the camera lands.
     audio.play('meta.deskContact', { delay: 1.15 });
+    // A long-held grip lets the chassis creak, rarely; the engine enforces
+    // a hard 30-second minimum between creaks on top of this interval.
     const creakTimer = window.setInterval(() => audio.play('meta.deviceCreak'), 52000);
-    return () => window.clearInterval(creakTimer);
+    return () => {
+      window.clearInterval(creakTimer);
+      audio.stopRoomTone();
+    };
   }, [active, clearTimers, getRestPosition]);
 
   useEffect(() => clearTimers, [clearTimers]);
@@ -375,6 +716,8 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
 
     pendingRef.current = true;
     setInteractionPending(true);
+    // The holding hand leaves the frame: low skin-on-frame friction (§4.6).
+    audio.play('meta.handDepart');
     const targetPosition = {
       x: targetRect.left - sceneRect.left + targetRect.width / 2,
       y: targetRect.top - sceneRect.top + targetRect.height / 2,
@@ -387,11 +730,13 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
 
       timersRef.current.push(window.setTimeout(() => {
         setPressed(true);
+        // Foley fires exactly when the fingertip lands, never earlier (§12).
         audio.play('meta.fingerContact');
       }, META_TAP_TIMING.unfoldMs + META_TAP_TIMING.travelMs));
 
       timersRef.current.push(window.setTimeout(() => {
         setPressed(false);
+        // The pad peels off the glass as the tap registers (§4.6).
         audio.play('meta.fingerRelease');
         onActivate?.();
       }, META_TAP_TIMING.unfoldMs + META_TAP_TIMING.travelMs + META_TAP_TIMING.pressMs));
@@ -401,6 +746,8 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
         timersRef.current.push(window.setTimeout(() => {
           pendingRef.current = false;
           setInteractionPending(false);
+          // The right hand settles back onto the frame (§4.6).
+          audio.play('meta.regrip');
           resolve();
         }, META_TAP_TIMING.settleMs));
       }, META_TAP_TIMING.unfoldMs + META_TAP_TIMING.travelMs + META_TAP_TIMING.pressMs + META_TAP_TIMING.releaseMs));
@@ -419,8 +766,11 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
   const applyQueuedKey = useCallback((input: HTMLInputElement, key: string) => {
     const controller = inputControllersRef.current.get(input.id);
     if (!controller) return;
+    // Enter's confirm sound belongs to the submit handler, not the key.
     if (key === 'Backspace') {
       audio.play('key.backspace');
+    } else if (key === ' ' || key === '_') {
+      audio.play('key.space');
     } else if (key.length === 1) {
       audio.play('key.character');
     }
@@ -572,7 +922,10 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
     const now = performance.now();
     if (now - lastScrollGestureAtRef.current < 180) return;
     lastScrollGestureAtRef.current = now;
+    // Fine finger-on-glass friction; length follows the travel (§4.6).
+    audio.play('meta.fingerSwipe', { intensity: Math.min(1, Math.abs(travelY) / 30) });
 
+    // Scrolling past the end of a list answers with a soft bounce (§4.3).
     let scrollable: HTMLElement | null = source instanceof HTMLElement ? source : null;
     while (scrollable && scrollable.id !== 'meta-interaction-scene') {
       const overflowY = window.getComputedStyle(scrollable).overflowY;
@@ -615,6 +968,37 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
     speak,
     tapElement,
   }), [active, registerInput, speak, tapElement]);
+
+  // Hands are never perfectly still: a slow breathing drift applied inside
+  // the entrance containers, mirrored per hand so both layers stay fused.
+  const idleDrift = (duration: number) => (reducedMotion
+    ? {}
+    : {
+        animate: { y: [0, 2.2, 0], rotate: [0, 0.3, 0] },
+        transition: { repeat: Infinity, duration, ease: 'easeInOut' as const },
+      });
+
+  // The reaching hand travels on a spring so arrivals decelerate like a real
+  // wrist instead of easing on rails; opacity is kept on a short fade so the
+  // grip-to-reach handoff reads as one motion.
+  const travelTransition = reducedMotion
+    ? { duration: 0 }
+    : {
+        type: 'spring' as const,
+        stiffness: 300,
+        damping: 30,
+        mass: 0.72,
+        opacity: { duration: 0.16, ease: 'easeOut' as const },
+      };
+
+  const gripSwapTransition = reducedMotion
+    ? { duration: 0 }
+    : {
+        type: 'spring' as const,
+        stiffness: 240,
+        damping: 26,
+        opacity: { duration: 0.2, ease: 'easeOut' as const },
+      };
 
   const cameraPitchStyle = active
     ? (reducedMotion
@@ -681,7 +1065,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
         )}
       </AnimatePresence>
 
-      {active && <ChapterEnvironment chapter={chapter} reducedMotion={reducedMotion} layer="underlay" />}
+      {active && <ChapterEnvironment chapter={chapter} reducedMotion={reducedMotion} layer="underlay" deviceResting={deviceResting} />}
 
       {active && (
         <motion.div
@@ -707,23 +1091,27 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
               aria-hidden="true"
               id="meta-left-grip-back"
             >
-              <LeftGripBack />
+              <motion.div className="h-full w-full" {...idleDrift(6.4)}>
+                <LeftGripBack />
+              </motion.div>
             </motion.div>
 
             <motion.div
               animate={{
                 opacity: interactionPending ? 0 : 1,
-                x: interactionPending ? 24 : 0,
-                y: interactionPending ? 10 : 0,
+                x: interactionPending ? 26 : 0,
+                y: interactionPending ? -14 : 0,
                 rotate: 1.8,
               }}
               initial={false}
-              transition={{ duration: reducedMotion ? 0 : 0.24, ease: 'easeOut' }}
+              transition={gripSwapTransition}
               className="pointer-events-none absolute bottom-[29%] right-[-7%] z-[8] hidden h-[48%] w-[28%] min-w-44"
               aria-hidden="true"
               id="meta-right-hold-back"
             >
-              <RightGripBack />
+              <motion.div className="h-full w-full" {...idleDrift(5.7)}>
+                <RightGripBack />
+              </motion.div>
             </motion.div>
 
             <motion.div
@@ -733,7 +1121,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
                 opacity: interactionPending && pointer.x > 0 ? 1 : 0,
               }}
               initial={false}
-              transition={{ duration: reducedMotion ? 0 : 0.32, ease: [0.22, 1, 0.36, 1] }}
+              transition={travelTransition}
               className="pointer-events-none absolute left-0 top-0 z-[8] hidden h-0 w-0"
               aria-hidden="true"
               id="meta-tapping-hand-back"
@@ -747,7 +1135,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
       <motion.div
         className={`${active ? 'phone-stage' : ''} absolute inset-0 z-10 flex items-center justify-center [perspective:1500px]`}
         animate={active
-          ? (deviceResting ? { scale: 0.88, y: '9%' } : { scale: 0.92, y: '-13%' })
+          ? (deviceResting ? { scale: 0.84, y: '12%' } : { scale: 0.92, y: '-13%' })
           : { scale: 1, y: '0%' }}
         transition={{ duration: reducedMotion ? 0 : 1.05, ease: [0.22, 1, 0.36, 1] }}
         id="meta-phone-camera-frame"
@@ -858,7 +1246,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
         </motion.div>
       </motion.div>
 
-      {active && <ChapterEnvironment chapter={chapter} reducedMotion={reducedMotion} layer="objects" />}
+      {active && <ChapterEnvironment chapter={chapter} reducedMotion={reducedMotion} layer="objects" deviceResting={deviceResting} />}
 
       <AnimatePresence>
         {active && (
@@ -919,10 +1307,10 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
               animate={{
                 opacity: deviceResting ? 1 : 0,
                 x: deviceResting ? '-8%' : 0,
-                y: deviceResting ? '-10%' : '12%',
+                y: deviceResting ? '2%' : '12%',
                 rotateX: deviceResting ? 4 : 18,
                 rotateZ: deviceResting ? -8 : 0,
-                scale: deviceResting ? 0.5 : 0.46,
+                scale: deviceResting ? 0.46 : 0.46,
               }}
               transition={{ duration: reducedMotion ? 0 : 0.72, ease: [0.22, 1, 0.36, 1] }}
               className="pointer-events-none absolute left-0 top-0 z-[22] h-full w-full select-none object-fill drop-shadow-[0_12px_10px_rgba(0,0,0,0.24)]"
@@ -945,10 +1333,10 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
               animate={{
                 opacity: deviceResting && !interactionPending && !scrollGesture ? 1 : 0,
                 x: deviceResting ? '8%' : 0,
-                y: deviceResting ? '-10%' : '12%',
+                y: deviceResting ? '2%' : '12%',
                 rotateX: deviceResting ? 4 : 18,
                 rotateZ: deviceResting ? 8 : 0,
-                scale: deviceResting ? 0.5 : 0.46,
+                scale: deviceResting ? 0.46 : 0.46,
               }}
               transition={{ duration: reducedMotion ? 0 : 0.72, ease: [0.22, 1, 0.36, 1] }}
               className="pointer-events-none absolute left-0 top-0 z-[22] h-full w-full select-none object-fill drop-shadow-[0_12px_10px_rgba(0,0,0,0.24)]"
@@ -1004,23 +1392,27 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
               aria-hidden="true"
               id="meta-left-hand"
             >
-              <LeftGripFront />
+              <motion.div className="h-full w-full" {...idleDrift(6.4)}>
+                <LeftGripFront />
+              </motion.div>
             </motion.div>
 
             <motion.div
               animate={{
                 opacity: interactionPending ? 0 : 1,
-                x: interactionPending ? 24 : 0,
-                y: interactionPending ? 10 : 0,
+                x: interactionPending ? 26 : 0,
+                y: interactionPending ? -14 : 0,
                 rotate: 3.2,
               }}
               initial={false}
-              transition={{ duration: reducedMotion ? 0 : 0.24, ease: 'easeOut' }}
+              transition={gripSwapTransition}
               className="pointer-events-none absolute right-[-9%] top-[21%] z-20 hidden h-[25%] w-[21%] min-w-36"
               aria-hidden="true"
               id="meta-right-hold-front"
             >
-              <RightGripFront />
+              <motion.div className="h-full w-full" {...idleDrift(5.7)}>
+                <RightGripFront />
+              </motion.div>
             </motion.div>
 
             <motion.div
@@ -1030,7 +1422,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
                 opacity: interactionPending && pointer.x > 0 ? 1 : 0,
               }}
               initial={false}
-              transition={{ duration: reducedMotion ? 0 : 0.32, ease: [0.22, 1, 0.36, 1] }}
+              transition={travelTransition}
               className="pointer-events-none absolute left-0 top-0 z-[60] h-0 w-0"
               style={{
                 rotateX: cameraPitchStyle,
@@ -1056,29 +1448,49 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, y: 28 }}
+              initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: reducedMotion ? 0 : 1.05, duration: 0.45 }}
-              className="absolute bottom-[2.5%] left-1/2 z-[70] min-h-[19%] w-[92%] -translate-x-1/2 rounded-xl border border-emerald-400/45 bg-black/94 px-6 py-4 font-mono text-sm text-emerald-200 shadow-[0_0_42px_rgba(16,185,129,0.2)] backdrop-blur-sm"
+              transition={{ delay: reducedMotion ? 0 : 1.05, duration: reducedMotion ? 0 : 0.7, ease: 'easeOut' }}
+              className="absolute bottom-[2.5%] left-1/2 z-[70] min-h-[19%] w-[92%] -translate-x-1/2 rounded-[6px] bg-[#0d131b]/[0.82] px-7 py-5 shadow-[0_18px_50px_rgba(0,0,0,0.5)] backdrop-blur-[3px]"
               id="meta-terminal-dialogue"
-              aria-live="polite"
             >
-              <div className="mb-3 flex items-start justify-between gap-4 border-b border-emerald-500/25 pb-2.5">
-                <div>
-                  <div className="text-base font-black tracking-[0.08em] text-emerald-100" id="meta-protagonist-name">
-                    {PROTAGONIST_LABEL}
-                  </div>
-                  <div className="mt-0.5 text-[9px] tracking-[0.24em] text-emerald-500/70">LIVE TRANSCRIPT</div>
-                </div>
-                <div className="flex items-center gap-2 pt-1 text-[9px] tracking-[0.18em] text-emerald-500/60">
-                  <Terminal className="h-3.5 w-3.5" /> INPUT SOURCE CHANGED · SCREEN CAPTURE DISCONNECTED
-                </div>
+              <style>{`@keyframes thought-caret { 0%, 52% { opacity: 1; } 68%, 100% { opacity: 0.12; } }`}</style>
+
+              {/* An unfinished frame: cold metal edges that never quite close */}
+              <span aria-hidden="true" className="pointer-events-none absolute left-0 top-0 h-px w-[58%] bg-gradient-to-r from-[#61758a]/60 via-[#4a5a6b]/35 to-transparent" />
+              <span aria-hidden="true" className="pointer-events-none absolute left-0 top-0 h-[64%] w-px bg-gradient-to-b from-[#61758a]/50 to-transparent" />
+              <span aria-hidden="true" className="pointer-events-none absolute bottom-0 right-0 h-px w-16 bg-[#4a5a6b]/45" />
+              <span aria-hidden="true" className="pointer-events-none absolute bottom-0 right-0 h-9 w-px bg-[#4a5a6b]/45" />
+
+              {/* Night fog drifting through the layer, and two faint scuffs */}
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 rounded-[6px]"
+                style={{
+                  background:
+                    'radial-gradient(85% 130% at 16% -6%, rgba(158,180,202,0.055), transparent 56%), radial-gradient(60% 90% at 86% 112%, rgba(110,132,155,0.045), transparent 70%)',
+                }}
+              />
+              <span aria-hidden="true" className="pointer-events-none absolute left-[24%] top-0 h-full w-px rotate-[14deg] bg-[#cfe0f2]/[0.03]" />
+              <span aria-hidden="true" className="pointer-events-none absolute left-[71%] top-0 h-full w-px rotate-[-9deg] bg-[#cfe0f2]/[0.02]" />
+
+              {/* Who is thinking — a small matte toy-button, nothing more */}
+              <div className="mb-4 flex items-center gap-2.5">
+                <span aria-hidden="true" className="h-[7px] w-[7px] rounded-[2px] border border-[#8ba4bd]/30 bg-[#66809a]/45" />
+                <span className="font-thought text-[11px] tracking-[0.3em] text-[#94a3b4]" id="meta-protagonist-name">
+                  {PROTAGONIST_LABEL}
+                </span>
               </div>
-              <div className="space-y-1.5 font-display text-[clamp(16px,2.1cqh,22px)] font-semibold leading-snug text-emerald-50">
+
+              {/* Screen readers get the whole thought at once, not keystrokes */}
+              <div className="sr-only" aria-live="polite">
                 {dialogueLines.map((line, index) => (
-                  <p key={`${line}-${index}`}>&gt; “{line}”</p>
+                  <p key={`${line}-${index}`}>{line}</p>
                 ))}
               </div>
+
+              {/* The thought, arriving one keystroke at a time */}
+              <TypewriterThoughts lines={dialogueLines} instant={reducedMotion} />
             </motion.div>
           </>
         )}

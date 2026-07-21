@@ -81,7 +81,7 @@ test('mouse height maps to a clamped camera pitch from desk-flat to upright', ()
 });
 
 test('an idle desk click rests the phone and the next click anywhere wakes it', () => {
-  assert.equal(META_CAMERA_PITCH.tableDeg >= 60, true);
+  assert.equal(META_CAMERA_PITCH.tableDeg >= 50, true);
   assert.equal(getMetaDevicePostureAction(true, false, false, false), 'rest');
   assert.equal(getMetaDevicePostureAction(true, false, true, false), null);
   assert.equal(getMetaDevicePostureAction(true, false, false, true), 'wake');
@@ -98,13 +98,13 @@ test('rest posture lays down the phone and swaps the grip for desk-plane hands',
   assert.match(scene, /data-device-posture=\{deviceResting \? 'table-rest' : 'upright'\}/);
   assert.match(scene, /deviceResting \? 'locked-table' : 'mouse-y'/);
   assert.match(scene, /cameraPitchTarget\.set\(nextResting \? META_CAMERA_PITCH\.tableDeg : META_CAMERA_PITCH\.restDeg\)/);
-  assert.match(scene, /deviceResting \? \{ scale: 0\.88, y: '9%' \} : \{ scale: 0\.92, y: '-13%' \}/);
+  assert.match(scene, /deviceResting \? \{ scale: 0\.84, y: '12%' \} : \{ scale: 0\.92, y: '-13%' \}/);
   assert.match(scene, /deviceResting \? \{ rotateY: 0, rotateZ: 0 \} : \{ rotateY: -1\.4, rotateZ: -0\.35 \}/);
   assert.match(scene, /opacity: deviceResting \? 0 : 1,[\s\S]{0,100}x: deviceResting \? '-3%' : 0/);
   assert.match(scene, /opacity: deviceResting \|\| interactionPending \|\| scrollGesture \? 0 : 1/);
-  assert.match(scene, /opacity: deviceResting \? 1 : 0,[\s\S]{0,240}x: deviceResting \? '-8%' : 0,[\s\S]{0,100}y: deviceResting \? '-10%' : '12%'/);
+  assert.match(scene, /opacity: deviceResting \? 1 : 0,[\s\S]{0,240}x: deviceResting \? '-8%' : 0,[\s\S]{0,100}y: deviceResting \? '2%' : '12%'/);
   assert.match(scene, /opacity: deviceResting && !interactionPending && !scrollGesture \? 1 : 0/);
-  assert.equal((scene.match(/scale: deviceResting \? 0\.5 : 0\.46/g) ?? []).length, 2);
+  assert.equal((scene.match(/scale: deviceResting \? 0\.46 : 0\.46/g) ?? []).length, 2);
   assert.match(scene, /rotateZ: deviceResting \? -8 : 0/);
   assert.match(scene, /rotateZ: deviceResting \? 8 : 0/);
   assert.match(scene, /transformOrigin: '25% 100%'/);
@@ -181,17 +181,6 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   assert.match(sceneSource, /bottom-\[30%\] left-\[-7%\]/);
   assert.match(sceneSource, /left-\[-10%\] top-\[20%\]/);
   assert.match(sceneSource, /id="meta-desk-surface"/);
-  assert.equal(existsSync(new URL('../public/assets/meta-desk-table.png', import.meta.url)), true);
-  assert.match(sceneSource, /inset-x-0 bottom-\[-4%\] top-\[58%\] z-\[1\] bg-\[#292119\]/);
-  assert.match(sceneSource, /src="\/assets\/meta-desk-table\.png"/);
-  assert.match(
-    sceneSource,
-    /left-1\/2 top-\[-40%\] z-\[2\] h-\[212%\] w-auto max-w-none/,
-  );
-  assert.match(sceneSource, /style=\{\{ x: '-50%', transformOrigin: '50% 50%' \}\}/);
-  assert.doesNotMatch(sceneSource, /object-contain object-bottom/);
-  assert.match(sceneSource, /id="meta-desk-table-art"/);
-  assert.doesNotMatch(sceneSource, /repeating-linear-gradient\(4deg, #2d1f16/);
   assert.match(sceneSource, /id="meta-phone-depth"/);
   assert.match(sceneSource, /id="meta-glass-reflection"/);
   assert.match(sceneSource, /data-camera-pitch-control=\{active \? \(deviceResting \? 'locked-table' : 'mouse-y'\) : 'inactive'\}/);
@@ -219,8 +208,8 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   assert.match(appSource, /metaSceneActive \? 'phone-stage bg-slate-950\/40' : 'bg-black'/);
   assert.match(appSource, /<MetaInteractionScene active=\{metaSceneActive\} chapter=\{metaSceneActive \? progress\.currentChapter : 0\}>/);
   assert.match(sceneSource, /<ChapterEnvironment chapter=\{chapter\} reducedMotion=\{reducedMotion\} layer="lighting" \/>/);
-  assert.match(sceneSource, /<ChapterEnvironment chapter=\{chapter\} reducedMotion=\{reducedMotion\} layer="underlay" \/>/);
-  assert.match(sceneSource, /<ChapterEnvironment chapter=\{chapter\} reducedMotion=\{reducedMotion\} layer="objects" \/>/);
+  assert.match(sceneSource, /<ChapterEnvironment chapter=\{chapter\} reducedMotion=\{reducedMotion\} layer="underlay" deviceResting=\{deviceResting\} \/>/);
+  assert.match(sceneSource, /<ChapterEnvironment chapter=\{chapter\} reducedMotion=\{reducedMotion\} layer="objects" deviceResting=\{deviceResting\} \/>/);
   assert.match(sceneSource, /#meta-terminal-dialogue \{ background-color: rgb\(13 19 27 \/ 0\.52\)/);
   assert.match(sceneSource, /data-environment-chapter=\{chapter\}/);
   assert.match(sceneSource, /scale: 0\.92/);

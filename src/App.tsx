@@ -120,7 +120,7 @@ export default function App() {
   };
 
   const restartLoop = () => {
-    audio.playUnlock();
+    audio.play('ui.primaryTap');
     setProgress(INITIAL_PROGRESS);
     setMetaViewActive(false);
     setDebugTargetApp(null);
@@ -136,6 +136,7 @@ export default function App() {
           : 'story.endingPublicize',
     );
     if (ending === 'preserve') {
+      // "Download count: 1 (ARC_184), then 2." — audible, barely (§4.8).
       audio.play('story.downloadCount', { delay: 2.4 });
       audio.play('story.downloadCount', { delay: 3.6 });
     }
