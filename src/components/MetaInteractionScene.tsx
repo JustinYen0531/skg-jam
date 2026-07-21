@@ -9,6 +9,7 @@ import {
   META_CAMERA_PITCH,
   META_TAP_TIMING,
   normalizeVirtualKey,
+  shouldToggleMetaDeviceRest,
 } from '../lib/metaInteraction';
 import { CHAPTER_ONE_DIALOGUE, DialogueLines } from '../lib/chapterOneDialogue';
 import audio from '../lib/audio';
@@ -290,6 +291,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
   const [reducedMotion, setReducedMotion] = useState(false);
   const [dialogueLines, setDialogueLines] = useState<DialogueLines>(CHAPTER_ONE_DIALOGUE.entry);
   const [scrollGesture, setScrollGesture] = useState<ScrollGesture | null>(null);
+  const [deviceResting, setDeviceResting] = useState(false);
 
   const speak = useCallback((lines: DialogueLines) => {
     if (lines.length > 0) setDialogueLines(lines);
@@ -330,6 +332,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
   }, [active]);
 
   useEffect(() => {
+    setDeviceResting(false);
     cameraPitchTarget.set(META_CAMERA_PITCH.restDeg);
   }, [active, cameraPitchTarget, reducedMotion]);
 
@@ -473,6 +476,25 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
     if (!active) return;
     const source = event.target;
     if (!(source instanceof Element)) return;
+
+    const targetInsidePhone = Boolean(source.closest('#phone-bezel'));
+    if (shouldToggleMetaDeviceRest(active, pendingRef.current, targetInsidePhone)) {
+      event.preventDefault();
+      event.stopPropagation();
+      const nextResting = !deviceResting;
+      setDeviceResting(nextResting);
+      setScrollGesture(null);
+      closeKeyboard();
+      cameraPitchTarget.set(nextResting ? META_CAMERA_PITCH.tableDeg : META_CAMERA_PITCH.restDeg);
+      if (nextResting) {
+        audio.play('meta.handDepart');
+        audio.play('meta.deskContact', { delay: 0.48 });
+      } else {
+        audio.play('meta.regrip');
+      }
+      return;
+    }
+
     if (source.closest('[data-meta-immediate="true"]')) return;
 
     const input = source.closest('input');
@@ -565,15 +587,15 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
   };
 
   const handlePointerMove = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
-    if (!active || reducedMotion || event.pointerType !== 'mouse') return;
+    if (!active || deviceResting || reducedMotion || event.pointerType !== 'mouse') return;
     const rect = sceneRef.current?.getBoundingClientRect();
     if (!rect) return;
     cameraPitchTarget.set(getMetaCameraPitch(event.clientY - rect.top, rect.height));
-  }, [active, cameraPitchTarget, reducedMotion]);
+  }, [active, cameraPitchTarget, deviceResting, reducedMotion]);
 
   const handlePointerLeave = useCallback(() => {
-    cameraPitchTarget.set(META_CAMERA_PITCH.restDeg);
-  }, [cameraPitchTarget]);
+    cameraPitchTarget.set(deviceResting ? META_CAMERA_PITCH.tableDeg : META_CAMERA_PITCH.restDeg);
+  }, [cameraPitchTarget, deviceResting]);
 
   const contextValue = useMemo<MetaInteractionContextValue>(() => ({
     active,
@@ -583,7 +605,9 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
   }), [active, registerInput, speak, tapElement]);
 
   const cameraPitchStyle = active
-    ? (reducedMotion ? META_CAMERA_PITCH.restDeg : cameraPitch)
+    ? (reducedMotion
+        ? (deviceResting ? META_CAMERA_PITCH.tableDeg : META_CAMERA_PITCH.restDeg)
+        : cameraPitch)
     : 0;
 
   return (
@@ -597,7 +621,8 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
       data-meta-view={active ? 'revealed' : 'screen-capture'}
-      data-camera-pitch-control={active ? 'mouse-y' : 'inactive'}
+      data-camera-pitch-control={active ? (deviceResting ? 'locked-table' : 'mouse-y') : 'inactive'}
+      data-device-posture={deviceResting ? 'table-rest' : 'upright'}
       data-meta-pending={interactionPending ? 'true' : 'false'}
       data-hand-pose={interactionPending ? 'reaching' : 'holding'}
       data-environment-chapter={chapter}
@@ -638,6 +663,18 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
       </AnimatePresence>
 
       {active && <ChapterEnvironment chapter={chapter} reducedMotion={reducedMotion} layer="underlay" />}
+
+      {active && (
+        <motion.div
+          animate={deviceResting
+            ? { opacity: 0.72, scaleX: 1.08, scaleY: 0.42, y: '18%' }
+            : { opacity: 0.38, scaleX: 0.82, scaleY: 0.78, y: '-7%' }}
+          transition={{ duration: reducedMotion ? 0 : 0.82, ease: [0.22, 1, 0.36, 1] }}
+          className="pointer-events-none absolute left-[18%] top-[53%] z-[9] h-[18%] w-[64%] rounded-[50%] bg-black blur-2xl"
+          aria-hidden="true"
+          id="meta-device-contact-shadow"
+        />
+      )}
 
       <AnimatePresence>
         {active && (
@@ -690,14 +727,16 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
 
       <motion.div
         className={`${active ? 'phone-stage' : ''} absolute inset-0 z-10 flex items-center justify-center [perspective:1500px]`}
-        animate={active ? { scale: 0.92, y: '-13%' } : { scale: 1, y: '0%' }}
+        animate={active
+          ? (deviceResting ? { scale: 0.88, y: '9%' } : { scale: 0.92, y: '-13%' })
+          : { scale: 1, y: '0%' }}
         transition={{ duration: reducedMotion ? 0 : 1.05, ease: [0.22, 1, 0.36, 1] }}
         id="meta-phone-camera-frame"
       >
         <motion.div
           className="absolute inset-0 flex items-center justify-center [transform-style:preserve-3d]"
           animate={active
-            ? { rotateY: -1.4, rotateZ: -0.35 }
+            ? (deviceResting ? { rotateY: 0, rotateZ: 0 } : { rotateY: -1.4, rotateZ: -0.35 })
             : { rotateY: 0, rotateZ: 0 }}
           style={{
             rotateX: cameraPitchStyle,
@@ -810,8 +849,13 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
               alt=""
               draggable={false}
               initial={{ opacity: 0, x: -24 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: reducedMotion ? 0 : 0.5, duration: reducedMotion ? 0 : 0.55 }}
+              animate={{
+                opacity: deviceResting ? 0.9 : 1,
+                x: deviceResting ? '-7%' : 0,
+                y: deviceResting ? '13%' : 0,
+                scale: deviceResting ? 0.94 : 1,
+              }}
+              transition={{ delay: reducedMotion ? 0 : 0.5, duration: reducedMotion ? 0 : 0.82, ease: [0.22, 1, 0.36, 1] }}
               className="pointer-events-none absolute left-[-3%] top-0 z-[22] h-full w-full select-none object-fill drop-shadow-[0_16px_14px_rgba(0,0,0,0.28)]"
               style={{
                 clipPath: 'inset(0 50% 0 0)',
@@ -830,10 +874,12 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
               draggable={false}
               animate={{
                 opacity: interactionPending || scrollGesture ? 0 : 1,
-                x: interactionPending ? 18 : 0,
+                x: interactionPending ? 18 : deviceResting ? '7%' : 0,
+                y: deviceResting ? '13%' : 0,
+                scale: deviceResting ? 0.94 : 1,
               }}
               initial={false}
-              transition={{ duration: reducedMotion ? 0 : 0.24, ease: 'easeOut' }}
+              transition={{ duration: reducedMotion ? 0 : deviceResting ? 0.82 : 0.42, ease: [0.22, 1, 0.36, 1] }}
               className="pointer-events-none absolute right-[-3%] top-0 z-[22] h-full w-full select-none object-fill drop-shadow-[0_16px_14px_rgba(0,0,0,0.28)]"
               style={{
                 clipPath: 'inset(0 0 0 50%)',

@@ -12,6 +12,7 @@ import {
   normalizeVirtualKey,
   shouldRevealMetaView,
   shouldShowMetaScene,
+  shouldToggleMetaDeviceRest,
 } from '../src/lib/metaInteraction';
 
 test('meta camera reveal requires both a second Gate 40 death and an opened leaderboard', () => {
@@ -70,6 +71,28 @@ test('mouse height maps to a clamped camera pitch from desk-flat to upright', ()
   assert.equal(getMetaCameraPitch(-200, 1000), META_CAMERA_PITCH.topDeg);
   assert.equal(getMetaCameraPitch(1200, 1000), META_CAMERA_PITCH.bottomDeg);
   assert.equal(getMetaCameraPitch(20, 0), META_CAMERA_PITCH.restDeg);
+});
+
+test('only an idle click outside the phone toggles the table-rest posture', () => {
+  assert.equal(META_CAMERA_PITCH.tableDeg >= 60, true);
+  assert.equal(shouldToggleMetaDeviceRest(true, false, false), true);
+  assert.equal(shouldToggleMetaDeviceRest(true, false, true), false);
+  assert.equal(shouldToggleMetaDeviceRest(true, true, false), false);
+  assert.equal(shouldToggleMetaDeviceRest(false, false, false), false);
+});
+
+test('rest posture lays down the phone and relaxes both grip hands as one perspective group', () => {
+  const scene = readFileSync(new URL('../src/components/MetaInteractionScene.tsx', import.meta.url), 'utf8');
+
+  assert.match(scene, /source\.closest\('#phone-bezel'\)/);
+  assert.match(scene, /data-device-posture=\{deviceResting \? 'table-rest' : 'upright'\}/);
+  assert.match(scene, /deviceResting \? 'locked-table' : 'mouse-y'/);
+  assert.match(scene, /cameraPitchTarget\.set\(nextResting \? META_CAMERA_PITCH\.tableDeg : META_CAMERA_PITCH\.restDeg\)/);
+  assert.match(scene, /deviceResting \? \{ scale: 0\.88, y: '9%' \} : \{ scale: 0\.92, y: '-13%' \}/);
+  assert.match(scene, /deviceResting \? \{ rotateY: 0, rotateZ: 0 \} : \{ rotateY: -1\.4, rotateZ: -0\.35 \}/);
+  assert.match(scene, /x: deviceResting \? '-7%' : 0,[\s\S]{0,100}y: deviceResting \? '13%' : 0/);
+  assert.match(scene, /x: interactionPending \? 18 : deviceResting \? '7%' : 0,[\s\S]{0,100}y: deviceResting \? '13%' : 0/);
+  assert.match(scene, /id="meta-device-contact-shadow"/);
 });
 
 test('virtual keyboard is embedded in the phone surface at sixty percent opacity', () => {
@@ -133,7 +156,7 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   assert.doesNotMatch(sceneSource, /repeating-linear-gradient\(4deg, #2d1f16/);
   assert.match(sceneSource, /id="meta-phone-depth"/);
   assert.match(sceneSource, /id="meta-glass-reflection"/);
-  assert.match(sceneSource, /data-camera-pitch-control=\{active \? 'mouse-y' : 'inactive'\}/);
+  assert.match(sceneSource, /data-camera-pitch-control=\{active \? \(deviceResting \? 'locked-table' : 'mouse-y'\) : 'inactive'\}/);
   assert.match(sceneSource, /rotateX: cameraPitchStyle/);
   assert.equal((sceneSource.match(/rotateX: cameraPitchStyle/g) ?? []).length, 5);
   assert.match(sceneSource, /onPointerMove=\{handlePointerMove\}/);

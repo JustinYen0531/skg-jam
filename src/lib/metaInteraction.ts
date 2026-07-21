@@ -10,7 +10,14 @@ export const META_CAMERA_PITCH = {
   topDeg: 14,
   bottomDeg: 2,
   restDeg: 5.5,
+  tableDeg: 68,
 } as const;
+
+export const shouldToggleMetaDeviceRest = (
+  metaViewActive: boolean,
+  interactionPending: boolean,
+  targetInsidePhone: boolean,
+): boolean => metaViewActive && !interactionPending && !targetInsidePhone;
 
 export const getMetaCameraPitch = (pointerY: number, sceneHeight: number): number => {
   if (!Number.isFinite(pointerY) || !Number.isFinite(sceneHeight) || sceneHeight <= 0) {

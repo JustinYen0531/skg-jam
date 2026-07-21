@@ -349,3 +349,12 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Chapter 1 specifically guides ViewTube search, evidence playback, and the ARC_184 reply that advances into Chapter 2; Chapter 10 guides the altitude route into the ending.
 - Added static coverage for all-English guide copy, all ten chapter mappings, and removal of the obsolete evidence/flag panels.
 - Browser validation remains intentionally omitted per project instruction.
+
+## 2026-07-21 — Desk-click phone rest posture
+
+- Added a two-state Meta posture toggle: clicking outside `#phone-bezel` lays the device on the desk; clicking the desk again raises it.
+- Phone-screen clicks remain dedicated to normal app interactions and never toggle the rest posture.
+- The phone, persistent grip hands, scroll finger, and tapping finger share one camera-pitch spring; table-rest locks that pitch at 68 degrees instead of following mouse height.
+- Both grip-hand halves also move down and outward while resting, so the protagonist visibly loosens their hold rather than leaving upright hands around a flat phone.
+- Added a tighter table contact shadow and existing desk-contact/regrip Foley to sell the placement and pickup.
+- Browser validation remains intentionally omitted per project instruction; static interaction tests, TypeScript lint, and production build are required before upload.
