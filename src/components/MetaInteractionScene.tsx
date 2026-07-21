@@ -660,10 +660,17 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
               className="pointer-events-none absolute inset-x-0 bottom-[-4%] top-[58%] z-[1] bg-[#292119]"
               id="meta-desk-surface"
             />
-            <img
+            <motion.img
               src="/assets/meta-desk-table.png"
               alt=""
-              className="pointer-events-none absolute left-1/2 top-[-40%] z-[2] h-[212%] w-auto max-w-none -translate-x-1/2"
+              initial={false}
+              animate={deviceResting
+                ? { scaleX: 0.36, scaleY: 0.72, y: '-1%' }
+                : { scaleX: 1, scaleY: 1, y: 0 }}
+              transition={{ duration: reducedMotion ? 0 : 0.82, ease: [0.22, 1, 0.36, 1] }}
+              className="pointer-events-none absolute left-1/2 top-[-40%] z-[2] h-[212%] w-auto max-w-none"
+              style={{ x: '-50%', transformOrigin: '50% 50%' }}
+              data-desk-perspective={deviceResting ? 'flattened-trapezoid' : 'raised-front-edge'}
               id="meta-desk-table-art"
             />
             <ChapterEnvironment chapter={chapter} reducedMotion={reducedMotion} layer="lighting" />
@@ -911,17 +918,17 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
               initial={false}
               animate={{
                 opacity: deviceResting ? 1 : 0,
-                x: deviceResting ? '-3%' : '-1%',
-                y: deviceResting ? '22%' : '10%',
-                rotateX: deviceResting ? 8 : 18,
-                rotateZ: deviceResting ? -1.5 : 0,
-                scale: deviceResting ? 1 : 0.96,
+                x: deviceResting ? '-8%' : 0,
+                y: deviceResting ? '-10%' : '12%',
+                rotateX: deviceResting ? 4 : 18,
+                rotateZ: deviceResting ? -8 : 0,
+                scale: deviceResting ? 0.5 : 0.46,
               }}
-              transition={{ duration: reducedMotion ? 0 : 0.62, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: reducedMotion ? 0 : 0.72, ease: [0.22, 1, 0.36, 1] }}
               className="pointer-events-none absolute left-0 top-0 z-[22] h-full w-full select-none object-fill drop-shadow-[0_12px_10px_rgba(0,0,0,0.24)]"
               style={{
                 clipPath: 'inset(0 50% 0 0)',
-                transformOrigin: '50% 100%',
+                transformOrigin: '25% 100%',
                 transformPerspective: 1500,
               }}
               data-resting-hand-perspective="desk-plane"
@@ -937,17 +944,17 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
               initial={false}
               animate={{
                 opacity: deviceResting && !interactionPending && !scrollGesture ? 1 : 0,
-                x: deviceResting ? '3%' : '1%',
-                y: deviceResting ? '22%' : '10%',
-                rotateX: deviceResting ? 8 : 18,
-                rotateZ: deviceResting ? 1.5 : 0,
-                scale: deviceResting ? 1 : 0.96,
+                x: deviceResting ? '8%' : 0,
+                y: deviceResting ? '-10%' : '12%',
+                rotateX: deviceResting ? 4 : 18,
+                rotateZ: deviceResting ? 8 : 0,
+                scale: deviceResting ? 0.5 : 0.46,
               }}
-              transition={{ duration: reducedMotion ? 0 : 0.62, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: reducedMotion ? 0 : 0.72, ease: [0.22, 1, 0.36, 1] }}
               className="pointer-events-none absolute left-0 top-0 z-[22] h-full w-full select-none object-fill drop-shadow-[0_12px_10px_rgba(0,0,0,0.24)]"
               style={{
                 clipPath: 'inset(0 0 0 50%)',
-                transformOrigin: '50% 100%',
+                transformOrigin: '75% 100%',
                 transformPerspective: 1500,
               }}
               data-resting-hand-perspective="desk-plane"

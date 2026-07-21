@@ -382,3 +382,11 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Kept the initial `intro_game` presentation bare, but made every restored-phone phase from Chapter 1 onward retain the Meta scene even if the transient reveal flag is absent.
 - Made ARC_184 searching available after either the real leaderboard evidence or entry into the Chapter 1 restored-phone phase, fixing developer snapshots with stale leaderboard state without allowing intro guessing.
 - Browser validation remains intentionally omitted per project instruction; 90 tests, TypeScript lint, production build, and diff checks pass.
+
+## 2026-07-21 — Resting composition perspective correction
+
+- Reduced the dedicated resting-hand pair to half size and moved the left and right halves diagonally toward the upper-left and upper-right desk areas, clearing the phone screen.
+- Gave each hand its own palm-side transform origin and mirrored eight-degree rotation so the two halves settle naturally instead of collapsing toward the same center point.
+- Animated the existing trapezoid table artwork from the raised-front composition into a horizontally contained, vertically flattened desk plane while resting, exposing its upper edge and both corners.
+- Kept the hand, table, phone, and contact-shadow transitions synchronized without replacing or redrawing the supplied PNG assets.
+- Browser validation remains intentionally omitted per project instruction; static tests, TypeScript lint, and production build are required before upload.

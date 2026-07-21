@@ -102,8 +102,15 @@ test('rest posture lays down the phone and swaps the grip for desk-plane hands',
   assert.match(scene, /deviceResting \? \{ rotateY: 0, rotateZ: 0 \} : \{ rotateY: -1\.4, rotateZ: -0\.35 \}/);
   assert.match(scene, /opacity: deviceResting \? 0 : 1,[\s\S]{0,100}x: deviceResting \? '-3%' : 0/);
   assert.match(scene, /opacity: deviceResting \|\| interactionPending \|\| scrollGesture \? 0 : 1/);
-  assert.match(scene, /opacity: deviceResting \? 1 : 0,[\s\S]{0,250}y: deviceResting \? '22%' : '10%'/);
+  assert.match(scene, /opacity: deviceResting \? 1 : 0,[\s\S]{0,240}x: deviceResting \? '-8%' : 0,[\s\S]{0,100}y: deviceResting \? '-10%' : '12%'/);
   assert.match(scene, /opacity: deviceResting && !interactionPending && !scrollGesture \? 1 : 0/);
+  assert.equal((scene.match(/scale: deviceResting \? 0\.5 : 0\.46/g) ?? []).length, 2);
+  assert.match(scene, /rotateZ: deviceResting \? -8 : 0/);
+  assert.match(scene, /rotateZ: deviceResting \? 8 : 0/);
+  assert.match(scene, /transformOrigin: '25% 100%'/);
+  assert.match(scene, /transformOrigin: '75% 100%'/);
+  assert.match(scene, /scaleX: 0\.36, scaleY: 0\.72, y: '-1%'/);
+  assert.match(scene, /data-desk-perspective=\{deviceResting \? 'flattened-trapezoid' : 'raised-front-edge'\}/);
   assert.equal((scene.match(/data-resting-hand-perspective="desk-plane"/g) ?? []).length, 2);
   assert.equal((scene.match(/data-wrist-crop="below-scene-edge"/g) ?? []).length, 2);
   assert.match(scene, /id="meta-device-contact-shadow"/);
@@ -160,7 +167,7 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   assert.match(sceneSource, /opacity: deviceResting \|\| interactionPending \|\| scrollGesture \? 0 : 1[\s\S]{0,900}id="meta-right-hand-asset"/);
   assert.match(sceneSource, /opacity: deviceResting \? 1 : 0[\s\S]{0,1000}id="meta-left-resting-hand"/);
   assert.match(sceneSource, /opacity: deviceResting && !interactionPending && !scrollGesture \? 1 : 0[\s\S]{0,1000}id="meta-right-resting-hand"/);
-  assert.equal((sceneSource.match(/rotateX: deviceResting \? 8 : 18/g) ?? []).length, 2);
+  assert.equal((sceneSource.match(/rotateX: deviceResting \? 4 : 18/g) ?? []).length, 2);
   assert.match(sceneSource, /id="meta-left-grip-back"/);
   assert.match(sceneSource, /id="meta-left-thumb"/);
   assert.match(sceneSource, /id="meta-right-hold-back"/);
@@ -179,8 +186,9 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   assert.match(sceneSource, /src="\/assets\/meta-desk-table\.png"/);
   assert.match(
     sceneSource,
-    /left-1\/2 top-\[-40%\] z-\[2\] h-\[212%\] w-auto max-w-none -translate-x-1\/2/,
+    /left-1\/2 top-\[-40%\] z-\[2\] h-\[212%\] w-auto max-w-none/,
   );
+  assert.match(sceneSource, /style=\{\{ x: '-50%', transformOrigin: '50% 50%' \}\}/);
   assert.doesNotMatch(sceneSource, /object-contain object-bottom/);
   assert.match(sceneSource, /id="meta-desk-table-art"/);
   assert.doesNotMatch(sceneSource, /repeating-linear-gradient\(4deg, #2d1f16/);
