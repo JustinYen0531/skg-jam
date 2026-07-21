@@ -8,10 +8,12 @@ import {
   getProjectiveTransformMatrix,
   getScrollFingerTravel,
   formatProjectiveMatrix3d,
+  isPointInsideProjectiveQuad,
   META_CAMERA_PITCH,
   META_TAP_TIMING,
   normalizeVirtualKey,
   scaleProjectiveQuad,
+  type ProjectivePoint,
   type ProjectiveQuad,
 } from '../lib/metaInteraction';
 import { CHAPTER_ONE_DIALOGUE, DialogueLines } from '../lib/chapterOneDialogue';
@@ -513,6 +515,36 @@ const DESK_SURFACE_QUAD: ProjectiveQuad = [
 ];
 
 const PROTAGONIST_LABEL = 'YOU';
+type BoxQuadProvider = HTMLElement & {
+  getBoxQuads?: () => readonly [{
+    p1: ProjectivePoint;
+    p2: ProjectivePoint;
+    p3: ProjectivePoint;
+    p4: ProjectivePoint;
+  }];
+};
+
+const getPhoneCollisionQuad = (phone: HTMLElement): ProjectiveQuad => {
+  const transformedQuad = (phone as BoxQuadProvider).getBoxQuads?.()[0];
+  if (transformedQuad) {
+    return [
+      transformedQuad.p1,
+      transformedQuad.p2,
+      transformedQuad.p3,
+      transformedQuad.p4,
+    ];
+  }
+
+  const rect = phone.getBoundingClientRect();
+  const topInset = rect.width * 0.035;
+  return [
+    { x: rect.left + topInset, y: rect.top },
+    { x: rect.right - topInset, y: rect.top },
+    { x: rect.right, y: rect.bottom },
+    { x: rect.left, y: rect.bottom },
+  ];
+};
+
 
 /* --------------------------------------------------------------------------
    The protagonist's thought layer.
@@ -895,16 +927,18 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
     const source = event.target;
     if (!(source instanceof Element)) return;
 
-    const targetInsidePhone = Boolean(source.closest('#phone-bezel'));
-    const targetOnRestSurface = Boolean(
-      source.closest('[data-meta-rest-surface="room-background"]'),
+    const phone = document.getElementById('phone-bezel');
+    const targetInsidePhone = Boolean(source.closest('#phone-bezel')) || Boolean(
+      phone && isPointInsideProjectiveQuad(
+        { x: event.clientX, y: event.clientY },
+        getPhoneCollisionQuad(phone),
+      ),
     );
     const postureAction = getMetaDevicePostureAction(
       active,
       pendingRef.current,
       targetInsidePhone,
       deviceResting,
-      targetOnRestSurface,
     );
     if (postureAction) {
       const nextResting = postureAction === 'rest';
@@ -921,8 +955,8 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
 
       // A click on the resting screen lifts the device immediately, then keeps
       // travelling through the normal input path so the requested tap is not
-      // discarded. Whitelisted background clicks only change posture and have
-      // no second action.
+      // discarded. Clicks outside the visible device quad only change posture
+      // and have no second action.
       if (!targetInsidePhone) {
         event.preventDefault();
         event.stopPropagation();
@@ -1109,7 +1143,6 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
             transition={{ duration: reducedMotion ? 0 : 0.9 }}
             className="absolute inset-0"
             aria-hidden="true"
-            data-meta-rest-surface="room-background"
           >
             <div className="absolute inset-0 bg-black" />
             {wallStage > 0 && (

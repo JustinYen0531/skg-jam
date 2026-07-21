@@ -19,6 +19,27 @@ export interface ProjectivePoint {
 
 export type ProjectiveQuad = readonly [ProjectivePoint, ProjectivePoint, ProjectivePoint, ProjectivePoint];
 
+export const isPointInsideProjectiveQuad = (
+  point: ProjectivePoint,
+  quad: ProjectiveQuad,
+): boolean => {
+  let windingSign = 0;
+
+  for (let index = 0; index < quad.length; index += 1) {
+    const start = quad[index];
+    const end = quad[(index + 1) % quad.length];
+    const cross = (end.x - start.x) * (point.y - start.y)
+      - (end.y - start.y) * (point.x - start.x);
+    if (Math.abs(cross) < 0.001) continue;
+
+    const edgeSign = Math.sign(cross);
+    if (windingSign !== 0 && edgeSign !== windingSign) return false;
+    windingSign = edgeSign;
+  }
+
+  return true;
+};
+
 export const scaleProjectiveQuad = (quad: ProjectiveQuad, scale: number): ProjectiveQuad => {
   const center = quad.reduce(
     (sum, point) => ({ x: sum.x + point.x / quad.length, y: sum.y + point.y / quad.length }),
@@ -85,12 +106,11 @@ export const getMetaDevicePostureAction = (
   metaViewActive: boolean,
   interactionPending: boolean,
   targetInsidePhone: boolean,
-  targetOnRestSurface: boolean,
   deviceResting: boolean,
 ): MetaDevicePostureAction => {
   if (!metaViewActive || interactionPending) return null;
   if (deviceResting) return targetInsidePhone ? 'wake' : null;
-  return !targetInsidePhone && targetOnRestSurface ? 'rest' : null;
+  return targetInsidePhone ? null : 'rest';
 };
 
 export const getMetaCameraPitch = (pointerY: number, sceneHeight: number): number => {

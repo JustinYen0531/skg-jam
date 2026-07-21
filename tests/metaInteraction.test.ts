@@ -9,6 +9,7 @@ import {
   getMetaCameraPitch,
   getProjectiveTransformMatrix,
   getScrollFingerTravel,
+  isPointInsideProjectiveQuad,
   META_CAMERA_PITCH,
   META_TAP_TIMING,
   normalizeVirtualKey,
@@ -96,23 +97,36 @@ test('mouse height maps to a clamped camera pitch from desk-flat to upright', ()
   assert.equal(getMetaCameraPitch(20, 0), META_CAMERA_PITCH.restDeg);
 });
 
-test('only an explicitly marked background rests the phone', () => {
-  assert.equal(getMetaDevicePostureAction(true, false, false, true, false), 'rest');
-  assert.equal(getMetaDevicePostureAction(true, false, true, false, false), null);
-  assert.equal(getMetaDevicePostureAction(true, false, true, true, false), null);
-  assert.equal(getMetaDevicePostureAction(true, false, false, false, false), null);
-  assert.equal(getMetaDevicePostureAction(true, false, false, true, true), null);
-  assert.equal(getMetaDevicePostureAction(true, false, true, false, true), 'wake');
-  assert.equal(getMetaDevicePostureAction(true, true, false, true, false), null);
-  assert.equal(getMetaDevicePostureAction(false, false, false, true, false), null);
+test('the visible phone trapezoid is the only upright no-rest collision area', () => {
+  const phoneQuad = [
+    { x: 120, y: 75 },
+    { x: 1080, y: 75 },
+    { x: 1140, y: 625 },
+    { x: 85, y: 625 },
+  ] as const;
+
+  assert.equal(isPointInsideProjectiveQuad({ x: 600, y: 350 }, phoneQuad), true);
+  assert.equal(isPointInsideProjectiveQuad({ x: 120, y: 75 }, phoneQuad), true);
+  assert.equal(isPointInsideProjectiveQuad({ x: 95, y: 100 }, phoneQuad), false);
+  assert.equal(isPointInsideProjectiveQuad({ x: 1160, y: 500 }, phoneQuad), false);
+  assert.equal(isPointInsideProjectiveQuad({ x: 600, y: 650 }, phoneQuad), false);
+
+  assert.equal(getMetaDevicePostureAction(true, false, true, false), null);
+  assert.equal(getMetaDevicePostureAction(true, false, false, false), 'rest');
+  assert.equal(getMetaDevicePostureAction(true, false, false, true), null);
+  assert.equal(getMetaDevicePostureAction(true, false, true, true), 'wake');
+  assert.equal(getMetaDevicePostureAction(true, true, false, false), null);
+  assert.equal(getMetaDevicePostureAction(false, false, false, false), null);
 });
 
 test('rest posture lays down the phone and swaps the grip for desk-plane hands', () => {
   const scene = readFileSync(new URL('../src/components/MetaInteractionScene.tsx', import.meta.url), 'utf8');
 
-  assert.match(scene, /source\.closest\('\[data-meta-rest-surface="room-background"\]'\)/);
-  assert.match(scene, /getMetaDevicePostureAction\([\s\S]{0,220}targetOnRestSurface[\s\S]{0,80}deviceResting/);
-  assert.equal((scene.match(/data-meta-rest-surface="room-background"/g) ?? []).length, 2);
+  assert.match(scene, /getBoxQuads\?\./);
+  assert.match(scene, /const topInset = rect\.width \* 0\.035/);
+  assert.match(scene, /isPointInsideProjectiveQuad\([\s\S]{0,120}event\.clientX[\s\S]{0,80}getPhoneCollisionQuad\(phone\)/);
+  assert.match(scene, /getMetaDevicePostureAction\([\s\S]{0,180}targetInsidePhone[\s\S]{0,80}deviceResting/);
+  assert.doesNotMatch(scene, /data-meta-rest-surface|targetOnRestSurface/);
   assert.match(scene, /if \(!targetInsidePhone\) \{[\s\S]{0,120}event\.preventDefault\(\)/);
   assert.match(scene, /data-device-posture=\{deviceResting \? 'table-rest' : 'upright'\}/);
   assert.match(scene, /deviceResting \? 'locked-table' : 'mouse-y'/);
