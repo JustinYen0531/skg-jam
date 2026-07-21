@@ -132,7 +132,12 @@ test('the physical environment is display-only and does not mutate progress', ()
   assert.match(environmentSource, /id=\{part === 'insert' \? 'meta-cable-insert-layer' : 'meta-desk-cable'\}/);
   assert.match(environmentSource, /id="meta-case-marker"/);
   assert.match(environmentSource, /data-environment-layer=\{underlay \? 'underlay' : 'foreground'\}/);
-  assert.match(environmentSource, /x: deviceResting \? '4%' : 0/);
+  // The desk layer's resting shift must be a declarative CSS transform, not a
+  // Framer `animate` — a JS-projected transform could be stranded on a layout
+  // reflow (e.g. closing the dev panel), which flung the scaled coffee cup to
+  // the middle of the desk.
+  assert.match(environmentSource, /transform: deviceResting \? 'translate\(4%, 2%\) scale\(0\.87\)' : 'none'/);
+  assert.doesNotMatch(environmentSource, /x: deviceResting \? '4%' : 0/);
   assert.match(environmentSource, /z-\[9\]/);
   assert.match(environmentSource, /z-\[25\]/);
   assert.match(environmentSource, /scale-\[1\.35\]/);

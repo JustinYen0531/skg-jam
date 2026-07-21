@@ -29,6 +29,10 @@ interface MetaInteractionSceneProps {
   chapter: EnvironmentChapter;
   cameraPitchEnabled?: boolean;
   postureControlEnabled?: boolean;
+  /** Whether the developer panel is open. Toggling it reshapes the layout
+      without changing any scene prop, so the scene must reconcile its posture
+      and desk projection when it flips (see the effect below). */
+  developerToolsOpen?: boolean;
   children: React.ReactNode;
 }
 
@@ -654,6 +658,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   chapter,
   cameraPitchEnabled = true,
   postureControlEnabled = true,
+  developerToolsOpen = false,
   children,
 }) => {
   const sceneRef = useRef<HTMLDivElement | null>(null);
@@ -729,6 +734,17 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   useEffect(() => {
     if (!postureControlEnabled) setDeviceResting(false);
   }, [postureControlEnabled]);
+
+  // Opening or closing the developer panel reshapes the layout underneath the
+  // scene without changing `active` or `chapter`, so none of the posture or
+  // projection effects would otherwise re-run — leaving the device and desk in
+  // a stale in-between state (the coffee cup stranded mid-desk). Snap posture
+  // back to a known upright rest whenever the panel toggles so everything
+  // recomputes cleanly from a defined baseline.
+  useEffect(() => {
+    setDeviceResting(false);
+    cameraPitchTarget.set(META_CAMERA_PITCH.restDeg);
+  }, [developerToolsOpen, cameraPitchTarget]);
 
   useEffect(() => {
     if (!cameraPitchEnabled) cameraPitchTarget.set(META_CAMERA_PITCH.restDeg);

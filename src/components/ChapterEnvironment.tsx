@@ -277,12 +277,22 @@ export const ChapterEnvironment: React.FC<ChapterEnvironmentProps> = ({
 
   const underlay = layer === 'underlay';
 
+  // The whole desk layer shifts and shrinks a little when the device lies
+  // down. This is driven by DECLARATIVE CSS (a plain transform + transition),
+  // deliberately NOT a Framer `animate`: a JS-projected transform could be
+  // left stale when the surrounding layout reflows without a state change —
+  // e.g. closing the developer panel with the hotkey — which stranded the
+  // (2.7x-scaled) coffee cup out in the middle of the desk. A CSS transform is
+  // always re-rendered by the browser from its declared value, so it can never
+  // be stranded.
   return (
-    <motion.div
+    <div
       className={`pointer-events-none absolute inset-0 overflow-hidden ${underlay ? 'z-[9]' : 'z-[25]'}`}
-      animate={{ scale: deviceResting ? 0.87 : 1, x: deviceResting ? '4%' : 0, y: deviceResting ? '2%' : 0 }}
-      transition={transition}
-      style={{ transformOrigin: '50% 72%' }}
+      style={{
+        transformOrigin: '50% 72%',
+        transform: deviceResting ? 'translate(4%, 2%) scale(0.87)' : 'none',
+        transition: reducedMotion ? undefined : 'transform 620ms ease-out',
+      }}
       data-environment-chapter={chapter}
       data-desk-order={environment.deskOrder}
       data-environment-layer={underlay ? 'underlay' : 'foreground'}
@@ -328,6 +338,6 @@ export const ChapterEnvironment: React.FC<ChapterEnvironmentProps> = ({
           CASE {chapter.toString().padStart(2, '0')} // {environment.caseLabel}
         </motion.div>
       </AnimatePresence>}
-    </motion.div>
+    </div>
   );
 };
