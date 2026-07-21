@@ -155,6 +155,10 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
     updateProgress((prev) => completePuzzleChapter(prev, 2, { archiveDownloaded: true }));
   };
 
+  const handleCompatibilityDiscovered = () => {
+    updateProgress((prev) => completePuzzleChapter(prev, 2, { archiveDownloaded: true }));
+  };
+
   return (
     <div className="flex flex-col h-full bg-[#101218] text-slate-100 font-sans overflow-hidden" id="browser-root">
 
@@ -234,7 +238,7 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
       {/* Main Browser Content area */}
       <div className="flex-1 overflow-y-auto p-3 bg-[#0d0f14] font-sans" id="browser-viewport">
         {archiveFinderOpen ? (
-          <ChapterTwoArchiveFinder downloaded={progress.archiveDownloaded} onDownload={handleDownload} />
+          <ChapterTwoArchiveFinder attempted={progress.archiveDownloaded} onCompatibilityDiscovered={handleCompatibilityDiscovered} />
         ) : searchedKeyword === null ? (
           /* Browser home: a SearchFinder-branded landing page. Nothing here
              names SKG — the player has to type and search it themselves. */

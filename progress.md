@@ -597,3 +597,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - SearchFinder now replaces one existing Trending Today row only during Chapter 2 with a quiet old-game-file lead; the layout and the other decoy rows stay unchanged.
 - The lead opens Archive Finder, where plausible package types conceal the preserved build until the player selects `.ipa`, then identifies `Skyline256_LAOS_Final.ipa`, LAOS 4.1, the Lumen Arc, and its native barometric altitude sensor requirement.
 - SKG, Silver Kite, and related direct searches remain intentionally unhelpful until the Chapter 5 company-history action has been earned.
+
+## 2026-07-22 — Chapter 2 archive website redesign
+
+- Replaced the artificial package-type quiz with a credible community archive landing page, filename search, five real format tags (`.ipa`, `.apk`, `.jar`, `.sis`, `.zip`), and populated file tables for every format.
+- Kept every filename row visually neutral; non-target mirrors are visible but disabled, while `Skyline256_LAOS_Final.ipa` must be found and opened without a colored answer highlight.
+- Opening the target no longer claims it was saved locally. It reports that the current device cannot open IPA packages and identifies the canonical Lumen Arc hardware requirement.
+- Browser verification remains intentionally omitted under the repository rule; static tests, TypeScript lint, and production build are required before delivery.
