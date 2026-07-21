@@ -16,6 +16,9 @@ test('dock utilities stay on the home screen in one small non-modal popover', ()
   assert.match(phoneSource, /w-\[min\(88%,400px\)\]/);
   assert.doesNotMatch(typesSource, /'voicelog'|'filebox'|'gallery'|'terminal'|'controls'/);
   assert.match(phoneSource, /toggleDockUtility\(utility\)/);
+  assert.match(phoneSource, /id="home-dock"\s+data-meta-immediate="true"/);
+  assert.match(phoneSource, /onPointerUp=\{\(event\) => handleDockUtilityPointerUp\(event, utility\)\}/);
+  assert.match(phoneSource, /onClick=\{\(event\) => handleDockUtilityClick\(event, utility\)\}/);
 });
 
 test('all five dock icons expose working utility controls', () => {

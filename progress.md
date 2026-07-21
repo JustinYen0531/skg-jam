@@ -572,3 +572,9 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Relayed Meta-layer wheel input directly to the detected scrollable phone list, so the finger gesture and the ViewTube discussion now move as one action.
 - Hardened the phone display and ViewTube flex hierarchy with explicit minimum-height and zero-basis constraints, preventing the comment pane from expanding instead of scrolling.
 - Browser verification remains intentionally omitted under the repository rule; static tests, TypeScript lint, production build, and diff checks are required before delivery.
+
+## 2026-07-22 — Dock Controls native input path
+
+- Restored immediate pointer activation for all five dock utilities, including Controls, because Meta's delayed hand relay was consuming their native click event.
+- Controls now reliably opens the existing Camera follow and Desk posture switches; keyboard activation remains available through the click handler.
+- Browser verification remains intentionally omitted under the repository rule; static tests, TypeScript lint, production build, and diff checks are required before delivery.

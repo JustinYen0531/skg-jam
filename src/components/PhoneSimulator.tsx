@@ -284,6 +284,19 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
     setDockUtility((current) => current === utility ? null : utility);
   };
 
+  // Dock utilities are functional controls, not story-facing app launches.
+  // Give them the same immediate pointer path as the home launchers so Meta's
+  // hand relay cannot consume their click before the popover opens.
+  const handleDockUtilityPointerUp = (event: React.PointerEvent<HTMLButtonElement>, utility: DockUtility) => {
+    event.stopPropagation();
+    toggleDockUtility(utility);
+  };
+
+  const handleDockUtilityClick = (event: React.MouseEvent<HTMLButtonElement>, utility: DockUtility) => {
+    if (event.detail !== 0) return;
+    toggleDockUtility(utility);
+  };
+
   const handleResetRequest = (target: ResetTarget) => {
     if (resetConfirmation !== target) {
       audio.play('ui.toggle', { variant: 1 });
@@ -958,6 +971,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                       : 'rounded-[26px] border border-white/[0.08] bg-white/[0.05] backdrop-blur-md'
                   }`}
                   id="home-dock"
+                  data-meta-immediate="true"
                 >
                   {([
                     ['VoiceLog', 'voicelog', IconVoiceLog],
@@ -968,7 +982,8 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                   ] as Array<[string, DockUtility, React.FC]>).map(([name, utility, Icon]) => (
                     <button
                       key={name}
-                      onClick={() => toggleDockUtility(utility)}
+                      onPointerUp={(event) => handleDockUtilityPointerUp(event, utility)}
+                      onClick={(event) => handleDockUtilityClick(event, utility)}
                       aria-expanded={dockUtility === utility}
                       aria-controls="home-dock-utility-popover"
                       className={`group flex flex-col items-center gap-1 min-w-0 ${dockUtility === utility ? 'text-white' : ''}`}
