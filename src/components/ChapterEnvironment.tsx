@@ -62,11 +62,21 @@ const CoffeeCup: React.FC<{
   const positionClass = deviceResting
     ? (pushedAway ? 'right-[7%] top-[51%] scale-[2.1]' : tipped ? 'right-[14%] top-[53%] scale-[2.5]' : 'right-[12%] top-[48%] scale-[2.7]')
     : (pushedAway ? 'right-[7%] top-[65%] scale-[2.1]' : tipped ? 'right-[14%] top-[67%] scale-[2.5]' : 'right-[12%] top-[62%] scale-[2.7]');
+  // The cup is anchored purely by CSS (right/top/scale) and lifts between its
+  // resting and upright spots with a plain CSS transition. It deliberately
+  // does NOT use Framer's `layout` prop: that writes a projection transform
+  // measured in viewport space, and because the cup is scaled 2.7x from its
+  // bottom-right corner, any stale measurement (a scene reflow from the dev
+  // panel, or a chapter remount outside Framer's measure cycle) was amplified
+  // into the cup floating to the middle of the desk. A CSS transition depends
+  // on nothing but this element, so its position is always correct.
+  const motionClass = animateLayout
+    ? 'transition-[top,right,transform] duration-[820ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)]'
+    : '';
 
   return (
     <motion.div
-      layout={animateLayout}
-      className={`absolute z-[3] h-[27%] w-[17%] min-w-36 origin-bottom-right ${positionClass}`}
+      className={`absolute z-[3] h-[27%] w-[17%] min-w-36 origin-bottom-right ${motionClass} ${positionClass}`}
       data-composition-offset={deviceResting ? 'resting-coffee-up-14' : 'upright-original'}
       data-coffee-state={state}
       data-coffee-asset-state={tipped ? 'tipped' : state === 'fresh' || state === 'sipped' ? 'full' : 'empty'}

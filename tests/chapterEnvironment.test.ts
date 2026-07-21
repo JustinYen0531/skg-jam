@@ -168,5 +168,17 @@ test('the physical environment is display-only and does not mutate progress', ()
   assert.match(environmentSource, /data-plug-target=\{connected && part === 'insert' \? 'phone-bottom-port'/);
   assert.match(environmentSource, /skg: \['SKG', '\?'\]/);
   assert.match(environmentSource, /quiet: \[\]/);
-  assert.equal((environmentSource.match(/layout=\{animateLayout\}/g) ?? []).length, 4);
+  // Pen, Notebook, and both charging-cable layers still animate via Framer
+  // layout; the coffee cup deliberately does not (see below).
+  assert.equal((environmentSource.match(/layout=\{animateLayout\}/g) ?? []).length, 3);
+  // The coffee cup must NOT use Framer's `layout` projection — because it is
+  // scaled 2.7x from its bottom-right corner, a stale viewport measurement
+  // (dev-panel reflow, chapter remount) amplified into the cup floating to the
+  // middle of the desk. It anchors purely in CSS and lifts with a transition.
+  assert.match(environmentSource, /transition-\[top,right,transform\] duration-\[820ms\]/);
+  const coffeeCupBlock = environmentSource.slice(
+    environmentSource.indexOf('const CoffeeCup'),
+    environmentSource.indexOf('const ChargingCable'),
+  );
+  assert.doesNotMatch(coffeeCupBlock, /layout=\{animateLayout\}/);
 });
