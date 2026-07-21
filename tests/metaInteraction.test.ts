@@ -225,6 +225,17 @@ test('home navigation completes before the Chapter 1 entry transition starts', (
   );
 });
 
+test('Chapter 1 commits app navigation before updating Meta dialogue', () => {
+  const phoneSource = readFileSync(new URL('../src/components/PhoneSimulator.tsx', import.meta.url), 'utf8');
+  const styles = readFileSync(new URL('../src/index.css', import.meta.url), 'utf8');
+  const launchStart = phoneSource.indexOf('const handleLaunchApp =');
+  const navigation = phoneSource.indexOf('setActiveApp(app)', launchStart);
+  const deferredDialogue = phoneSource.indexOf('chapterOneDialogueTimer.current = setTimeout', launchStart);
+
+  assert.ok(launchStart >= 0 && navigation > launchStart && deferredDialogue > navigation);
+  assert.match(styles, /#meta-terminal-dialogue\s*\{\s*pointer-events: none;/);
+});
+
 test('meta camera uses layered anatomical hands instead of rounded placeholder blobs', () => {
   const sceneSource = readFileSync(
     new URL('../src/components/MetaInteractionScene.tsx', import.meta.url),
