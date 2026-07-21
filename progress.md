@@ -394,3 +394,11 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Converted the wall layer to a full-scene clipping surface while preserving the previous rendered scale mathematically: `-20% × 58% = -11.6%` top offset and `163% × 58% = 94.54%` image height.
 - The complete source artwork now reaches about 83% of the scene behind the wooden desk; its included floor strip is marked temporary and can be covered by the upcoming dedicated floor asset.
 - Browser Preview remains intentionally omitted under the repository's static-analysis-only rule; 92 static tests, TypeScript lint, production build, and diff checks pass.
+
+## 2026-07-21 — Raised phone far edge and parallel side correction
+
+- Rechecked the user's annotated 1289×530 reference instead of relying on the earlier top/bottom-width comparison.
+- Reduced the resting pitch from 55 to 48 degrees so the phone's far edge visibly rises instead of collapsing into a flat strip.
+- Tightened the resting perspective to 1500 px so the phone's converging side edges follow the annotated desk-edge direction while preserving the 0.60 device scale.
+- Moved the resting phone upward from 16% to 8%, placing its raised far edge near the wooden desk's upper surface.
+- Used the explicitly requested Preview at 1289×530 to verify the table-rest silhouette and placement.
