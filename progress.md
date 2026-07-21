@@ -604,3 +604,9 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Kept every filename row visually neutral; non-target mirrors are visible but disabled, while `Skyline256_LAOS_Final.ipa` must be found and opened without a colored answer highlight.
 - Opening the target no longer claims it was saved locally. It reports that the current device cannot open IPA packages and identifies the canonical Lumen Arc hardware requirement.
 - Browser verification remains intentionally omitted under the repository rule; static tests, TypeScript lint, and production build are required before delivery.
+
+## 2026-07-22 — Chapter 2 protagonist dialogue draft
+
+- Added a review-only Chapter 2 dialogue document modeled on the complete Chapter 1 specification; no runtime dialogue was wired yet.
+- Defined the protagonist's knowledge boundary, archive-format reactions, wrong-app companionship, premature-search responses, and the compatibility-error completion beat.
+- Offered three strengths for the first maternal-memory line, with the restrained concrete version marked as the current recommendation pending user review.
