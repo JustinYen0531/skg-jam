@@ -1108,16 +1108,16 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
             <div className="absolute inset-0 bg-black" />
             {wallStage > 0 && (
               <div
-                className="pointer-events-none absolute inset-0 z-[0] overflow-hidden"
+                className="pointer-events-none absolute inset-0 z-[1] overflow-hidden"
                 data-wall-stage={wallStage}
-                data-floor-treatment="dedicated-floor"
+                data-floor-treatment="wall-over-floor"
                 id="meta-wall-surface"
               >
                 <img
                   src={`/assets/meta-wall-stage-${wallStage}.png`}
                   alt=""
                   className="absolute left-[-10%] top-[-11.6%] h-[94.6%] w-[120%] max-w-none object-fill"
-                  data-source-floor="covered-by-floor"
+                  data-source-floor="visible-over-floor"
                   id="meta-wall-art"
                 />
               </div>
@@ -1126,7 +1126,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
               <img
                 src={`/assets/meta-floor-stage-${floorStage}.png`}
                 alt=""
-                className="pointer-events-none absolute left-1/2 top-[28%] z-[1] h-full w-[180%] max-w-none -translate-x-1/2 object-fill"
+                className="pointer-events-none absolute left-1/2 top-[28%] z-[0] h-full w-[180%] max-w-none -translate-x-1/2 object-fill"
                 data-floor-stage={floorStage}
                 data-visible-crop="upper-two-thirds"
                 id="meta-floor-art"

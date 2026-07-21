@@ -430,3 +430,11 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Reduced the homothetic resting-phone quadrilateral from 60% to 40% of the rendered desk surface while preserving exact corresponding-edge parallelism.
 - Shifted all four projected phone corners upward by 10% of scene height, keeping the trapezoid unchanged while opening more foreground and right-side space for the coffee cup and chapter props.
 - Kept the existing desk, coffee, hands, and object-layer transforms unchanged.
+
+## 2026-07-21 — Preserve the complete wall edge above the floor
+
+- Corrected the background stacking order after the widened floor artwork covered the wall baseboard and lower furniture silhouette.
+- Locked the environment layers to floor `z=0`, complete wall `z=1`, and wooden desk `z=2`; the floor still fills the viewport, while the wall's original lower edge remains visible in front of it.
+- Kept the 180% centered floor overscan, upper-two-thirds crop, rug placement, wall dimensions, and all foreground transforms unchanged.
+- Applied the compiler-required `unknown` bridge to the concurrently added four-corner projection test without changing its geometry or runtime behavior.
+- Browser Preview remains intentionally omitted under the repository's static-analysis-only rule; 94 static tests, TypeScript lint, production build, and diff checks pass.

@@ -132,7 +132,7 @@ test('desk projection maps the phone to a homothetic quad with parallel correspo
   const phone = scaleProjectiveQuad(desk, 0.4).map((point) => ({
     x: point.x,
     y: point.y - 50,
-  })) as typeof desk;
+  })) as unknown as typeof desk;
   const source = [
     { x: 0, y: 0 },
     { x: 100, y: 0 },

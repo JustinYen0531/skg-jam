@@ -90,11 +90,11 @@ test('the supplied wall artwork ages in five stages and keeps its complete lower
 
   const sceneSource = readFileSync(new URL('../src/components/MetaInteractionScene.tsx', import.meta.url), 'utf8');
   assert.match(sceneSource, /id="meta-wall-surface"/);
-  assert.match(sceneSource, /absolute inset-0 z-\[0\] overflow-hidden/);
+  assert.match(sceneSource, /absolute inset-0 z-\[1\] overflow-hidden/);
   assert.match(sceneSource, /src=\{`\/assets\/meta-wall-stage-\$\{wallStage\}\.png`\}/);
   assert.match(sceneSource, /left-\[-10%\] top-\[-11\.6%\] h-\[94\.6%\] w-\[120%\]/);
-  assert.match(sceneSource, /data-source-floor="covered-by-floor"/);
-  assert.match(sceneSource, /data-floor-treatment="dedicated-floor"/);
+  assert.match(sceneSource, /data-source-floor="visible-over-floor"/);
+  assert.match(sceneSource, /data-floor-treatment="wall-over-floor"/);
 });
 
 test('the supplied floor artwork shares each state across two chapters and meets the wall edge', () => {
@@ -113,9 +113,11 @@ test('the supplied floor artwork shares each state across two chapters and meets
   const sceneSource = readFileSync(new URL('../src/components/MetaInteractionScene.tsx', import.meta.url), 'utf8');
   assert.match(sceneSource, /id="meta-floor-art"/);
   assert.match(sceneSource, /src=\{`\/assets\/meta-floor-stage-\$\{floorStage\}\.png`\}/);
-  assert.match(sceneSource, /left-1\/2 top-\[28%\] z-\[1\] h-full w-\[180%\] max-w-none -translate-x-1\/2 object-fill/);
+  assert.match(sceneSource, /left-1\/2 top-\[28%\] z-\[0\] h-full w-\[180%\] max-w-none -translate-x-1\/2 object-fill/);
   assert.match(sceneSource, /data-floor-stage=\{floorStage\}/);
   assert.match(sceneSource, /data-visible-crop="upper-two-thirds"/);
+  assert.match(sceneSource, /id="meta-desk-table-art"/);
+  assert.match(sceneSource, /top-\[-40%\] z-\[2\] h-\[212%\]/);
 });
 
 test('the physical environment is display-only and does not mutate progress', () => {
