@@ -380,3 +380,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Same-size Preview comparison measured the visible desk edge near 49 degrees and the phone edge near 54 degrees at a 64-degree pitch; the final 68-degree pitch closes that remaining visual gap while preserving the requested smaller footprint.
 - Final 1193×621 Preview confirmed the 0.60-scale phone remains inside the trapezoid and sits near the desk front edge; its side edges now visually track the table edges, and the console reported zero errors.
 - The bundled web-game screenshot client was also run; because it intentionally crops to the game canvas, the full-scene Browser Preview remains the authoritative composition check for this DOM-based Meta camera.
+
+## 2026-07-21 — Exact similar-trapezoid correction
+
+- The previous pass matched only the general slant and did not make the resting phone geometrically similar to the supplied wooden-table trapezoid.
+- Measured the table PNG alpha silhouette: its surface is approximately 477 px across the top and 644 px across the bottom, giving a target top/bottom ratio near 0.74.
+- Solved both visible constraints instead of adjusting pitch alone: a 55-degree resting pitch restores the table-like trapezoid height, while a 2370 px perspective distance targets the measured 0.74 top/bottom ratio at the existing 0.60 scale.
+- Shifted both chapter-object layers four percent right as one group, moving coffee and every supporting desk prop consistently.

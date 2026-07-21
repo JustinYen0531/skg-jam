@@ -99,6 +99,8 @@ test('rest posture lays down the phone and swaps the grip for desk-plane hands',
   assert.match(scene, /deviceResting \? 'locked-table' : 'mouse-y'/);
   assert.match(scene, /cameraPitchTarget\.set\(nextResting \? META_CAMERA_PITCH\.tableDeg : META_CAMERA_PITCH\.restDeg\)/);
   assert.match(scene, /deviceResting \? \{ scale: 0\.6, y: '16%' \} : \{ scale: 0\.92, y: '-13%' \}/);
+  assert.match(scene, /const devicePerspective = deviceResting \? PHONE_PERSPECTIVE\.table : PHONE_PERSPECTIVE\.upright/);
+  assert.match(scene, /table: 2370/);
   assert.match(scene, /deviceResting \? \{ rotateY: 0, rotateZ: 0 \} : \{ rotateY: -1\.4, rotateZ: -0\.35 \}/);
   assert.match(scene, /opacity: deviceResting \? 0 : 1,[\s\S]{0,100}x: deviceResting \? '-3%' : 0/);
   assert.match(scene, /opacity: deviceResting \|\| interactionPending \|\| scrollGesture \? 0 : 1/);

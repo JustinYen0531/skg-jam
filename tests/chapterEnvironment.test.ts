@@ -100,6 +100,7 @@ test('the physical environment is display-only and does not mutate progress', ()
   assert.match(environmentSource, /id=\{part === 'insert' \? 'meta-cable-insert-layer' : 'meta-desk-cable'\}/);
   assert.match(environmentSource, /id="meta-case-marker"/);
   assert.match(environmentSource, /data-environment-layer=\{underlay \? 'underlay' : 'foreground'\}/);
+  assert.match(environmentSource, /x: deviceResting \? '4%' : 0/);
   assert.match(environmentSource, /z-\[9\]/);
   assert.match(environmentSource, /z-\[25\]/);
   assert.match(environmentSource, /scale-\[1\.35\]/);

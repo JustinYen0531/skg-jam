@@ -497,6 +497,11 @@ const PHONE_SURFACE_SIZE: React.CSSProperties = {
   maxHeight: '760px',
 };
 
+const PHONE_PERSPECTIVE = {
+  upright: 1500,
+  table: 2370,
+} as const;
+
 const PROTAGONIST_LABEL = 'YOU';
 
 /* --------------------------------------------------------------------------
@@ -1005,6 +1010,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
         ? (deviceResting ? META_CAMERA_PITCH.tableDeg : META_CAMERA_PITCH.restDeg)
         : cameraPitch)
     : 0;
+  const devicePerspective = deviceResting ? PHONE_PERSPECTIVE.table : PHONE_PERSPECTIVE.upright;
   const wallStage = getMetaWallStage(chapter);
 
   return (
@@ -1146,10 +1152,11 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
       </AnimatePresence>
 
       <motion.div
-        className={`${active ? 'phone-stage' : ''} absolute inset-0 z-10 flex items-center justify-center [perspective:1500px]`}
+        className={`${active ? 'phone-stage' : ''} absolute inset-0 z-10 flex items-center justify-center`}
         animate={active
           ? (deviceResting ? { scale: 0.6, y: '16%' } : { scale: 0.92, y: '-13%' })
           : { scale: 1, y: '0%' }}
+        style={{ perspective: devicePerspective }}
         transition={{ duration: reducedMotion ? 0 : 1.05, ease: [0.22, 1, 0.36, 1] }}
         id="meta-phone-camera-frame"
       >
@@ -1161,7 +1168,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
           style={{
             rotateX: cameraPitchStyle,
             transformOrigin: '50% 72%',
-            transformPerspective: 1500,
+            transformPerspective: devicePerspective,
           }}
           transition={{ duration: reducedMotion ? 0 : 1.05, ease: [0.22, 1, 0.36, 1] }}
           id="meta-device-tilt"

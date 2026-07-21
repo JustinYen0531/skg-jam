@@ -264,7 +264,7 @@ export const ChapterEnvironment: React.FC<ChapterEnvironmentProps> = ({
   return (
     <motion.div
       className={`pointer-events-none absolute inset-0 overflow-hidden ${underlay ? 'z-[9]' : 'z-[25]'}`}
-      animate={{ scale: deviceResting ? 0.87 : 1, y: deviceResting ? '2%' : 0 }}
+      animate={{ scale: deviceResting ? 0.87 : 1, x: deviceResting ? '4%' : 0, y: deviceResting ? '2%' : 0 }}
       transition={transition}
       style={{ transformOrigin: '50% 72%' }}
       data-environment-chapter={chapter}
