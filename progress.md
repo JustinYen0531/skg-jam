@@ -518,3 +518,13 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Made the home gesture bar an immediate Meta action so navigation finishes before the transition mounts, preventing a stale pending-interaction state from blocking the newly shown home screen.
 - Preserved the Chapter 1 transition and left later chapter navigation unchanged.
 - Browser verification remains intentionally omitted under the repository's static-analysis-only rule.
+
+## 2026-07-21 — Five-stage storm window and synchronized wall clock
+
+- Added a code-authored SVG/CSS window scene behind the supplied transparent wall panes: sparse clear-night cloud, gathering cloud, sealed overcast with first rain, deep-night downpour, and a darkest violent-storm stage.
+- Made darkness, cloud opacity, rain density, rain angle, cloud speed, and branch sway intensify deterministically across the same two-chapter cadence as the five wall/floor states.
+- Reduced cloud softness from the rejected 6px blur to 1.5px and the window vignette from 22px to 9px so the small panes retain visible structure.
+- Removed the Chapter 10 first-light reversal: the fixed phone timeline now ends at 03:40 with a violent storm, and late weather/temperature/widget colors remain consistent with deep night.
+- Added SVG hour and minute hands over the clock face in the wall artwork; both angles read the exact `getChapterPhoneWidgetState(chapter).clock` value already displayed at the phone's upper-left corner.
+- Added regression coverage for monotonic weather escalation, SVG/CSS-only window authorship, corrected stage-one pane transparency, synchronized clock angles, and scene integration.
+- Browser Preview remains intentionally omitted under the repository's static-analysis-only rule; 101 static tests, TypeScript lint, production build, and diff checks pass.

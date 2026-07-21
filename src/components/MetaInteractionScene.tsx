@@ -19,7 +19,10 @@ import {
 import { CHAPTER_ONE_DIALOGUE, DialogueLines } from '../lib/chapterOneDialogue';
 import audio from '../lib/audio';
 import { getMetaFloorStage, getMetaWallStage, type EnvironmentChapter } from '../lib/chapterEnvironment';
+import { getChapterPhoneWidgetState } from '../lib/chapterPhoneWidgets';
 import { ChapterEnvironment } from './ChapterEnvironment';
+import { MetaWallClock } from './MetaWallClock';
+import { MetaWindowScene } from './MetaWindowScene';
 
 interface MetaInteractionSceneProps {
   active: boolean;
@@ -1114,6 +1117,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
     : 0;
   const wallStage = getMetaWallStage(chapter);
   const floorStage = getMetaFloorStage(chapter);
+  const chapterClock = chapter === 0 ? null : getChapterPhoneWidgetState(chapter).clock;
 
   return (
     <MetaInteractionContext.Provider value={contextValue}>
@@ -1145,6 +1149,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
             aria-hidden="true"
           >
             <div className="absolute inset-0 bg-black" />
+            <MetaWindowScene stage={wallStage} reducedMotion={reducedMotion} />
             {wallStage > 0 && (
               <div
                 className="pointer-events-none absolute inset-0 z-[1] overflow-hidden"
@@ -1159,6 +1164,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
                   data-source-floor="visible-over-floor"
                   id="meta-wall-art"
                 />
+                {chapterClock && <MetaWallClock time={chapterClock} />}
               </div>
             )}
             {floorStage > 0 && (

@@ -76,7 +76,7 @@ const CHAPTER_WIDGETS: Record<PuzzleChapter, ChapterPhoneWidgetState> = {
   3: {
     clock: '21:24',
     weather: {
-      temperature: 12, condition: 'Thin clouds', high: 16, low: 9, updated: 'Updated 4m ago',
+      temperature: 12, condition: 'Clouds gathering', high: 16, low: 9, updated: 'Updated 4m ago',
       background: 'linear-gradient(145deg, rgba(52,67,93,0.94), rgba(29,38,55,0.98))',
       temperatureColor: '#eef3fb', moonColor: '#d8d9c5', moonMask: '#313e57',
     },
@@ -89,7 +89,7 @@ const CHAPTER_WIDGETS: Record<PuzzleChapter, ChapterPhoneWidgetState> = {
   4: {
     clock: '22:13',
     weather: {
-      temperature: 12, condition: 'Cloud cover', high: 16, low: 8, updated: 'Updated 4m ago',
+      temperature: 12, condition: 'Overcast', high: 16, low: 8, updated: 'Updated 4m ago',
       background: 'linear-gradient(145deg, rgba(48,53,85,0.94), rgba(25,28,49,0.98))',
       temperatureColor: '#f1f0fb', moonColor: '#d8d3c2', moonMask: '#2d3250',
     },
@@ -102,7 +102,7 @@ const CHAPTER_WIDGETS: Record<PuzzleChapter, ChapterPhoneWidgetState> = {
   5: {
     clock: '23:02',
     weather: {
-      temperature: 11, condition: 'Cloudy', high: 15, low: 8, updated: 'Updated 5m ago',
+      temperature: 11, condition: 'Heavy overcast', high: 15, low: 8, updated: 'Updated 5m ago',
       background: 'linear-gradient(145deg, rgba(44,48,75,0.94), rgba(23,26,42,0.98))',
       temperatureColor: '#edeefa', moonColor: '#d7cfbb', moonMask: '#292d47',
     },
@@ -115,7 +115,7 @@ const CHAPTER_WIDGETS: Record<PuzzleChapter, ChapterPhoneWidgetState> = {
   6: {
     clock: '00:07',
     weather: {
-      temperature: 10, condition: 'Light wind', high: 15, low: 8, updated: 'Updated 6m ago',
+      temperature: 10, condition: 'First rain', high: 15, low: 8, updated: 'Updated 6m ago',
       background: 'linear-gradient(145deg, rgba(48,43,70,0.94), rgba(23,22,37,0.98))',
       temperatureColor: '#f0ebf6', moonColor: '#d9c8bd', moonMask: '#2d2943',
     },
@@ -128,7 +128,7 @@ const CHAPTER_WIDGETS: Record<PuzzleChapter, ChapterPhoneWidgetState> = {
   7: {
     clock: '00:52',
     weather: {
-      temperature: 10, condition: 'Light wind', high: 14, low: 8, updated: 'Updated 6m ago',
+      temperature: 10, condition: 'Heavy rain', high: 14, low: 8, updated: 'Updated 6m ago',
       background: 'linear-gradient(145deg, rgba(41,45,76,0.94), rgba(21,24,39,0.98))',
       temperatureColor: '#ebeff9', moonColor: '#d7d2c6', moonMask: '#272b48',
     },
@@ -141,7 +141,7 @@ const CHAPTER_WIDGETS: Record<PuzzleChapter, ChapterPhoneWidgetState> = {
   8: {
     clock: '01:41',
     weather: {
-      temperature: 9, condition: 'Clear and cold', high: 14, low: 7, updated: 'Updated 7m ago',
+      temperature: 9, condition: 'Driving rain', high: 14, low: 7, updated: 'Updated 7m ago',
       background: 'linear-gradient(145deg, rgba(33,55,74,0.94), rgba(18,31,44,0.98))',
       temperatureColor: '#e8f4f8', moonColor: '#d7dde0', moonMask: '#203647',
     },
@@ -154,8 +154,8 @@ const CHAPTER_WIDGETS: Record<PuzzleChapter, ChapterPhoneWidgetState> = {
   9: {
     clock: '02:34',
     weather: {
-      temperature: 9, condition: 'Before dawn', high: 14, low: 7, updated: 'Updated 8m ago',
-      background: 'linear-gradient(145deg, rgba(38,50,68,0.94), rgba(23,28,39,0.98))',
+      temperature: 8, condition: 'Gale warning', high: 13, low: 6, updated: 'Updated 8m ago',
+      background: 'linear-gradient(145deg, rgba(25,36,52,0.96), rgba(12,17,27,0.99))',
       temperatureColor: '#edf1f5', moonColor: '#e0d5ca', moonMask: '#253142',
     },
     agenda: {
@@ -165,16 +165,16 @@ const CHAPTER_WIDGETS: Record<PuzzleChapter, ChapterPhoneWidgetState> = {
     },
   },
   10: {
-    clock: '05:46',
+    clock: '03:40',
     weather: {
-      temperature: 10, condition: 'First light', high: 15, low: 7, updated: 'Updated 9m ago',
-      background: 'linear-gradient(145deg, rgba(74,70,88,0.94), rgba(34,41,54,0.98))',
-      temperatureColor: '#fff2dc', moonColor: '#f0c995', moonMask: '#474353',
+      temperature: 8, condition: 'Violent storm', high: 13, low: 6, updated: 'Updated 9m ago',
+      background: 'linear-gradient(145deg, rgba(17,26,40,0.97), rgba(7,10,18,0.995))',
+      temperatureColor: '#e8eef7', moonColor: '#8d98a8', moonMask: '#111a28',
     },
     agenda: {
-      dayLabel: 'THU 13', entries: agendaWindow(9), footer: 'MORNING QUEUE · SILENT',
-      background: 'linear-gradient(150deg, rgba(75,64,72,0.94), rgba(39,35,43,0.98))',
-      accent: 'rgba(216,161,120,0.48)',
+      dayLabel: 'THU 13', entries: agendaWindow(9), footer: 'DEEP NIGHT · SILENT',
+      background: 'linear-gradient(150deg, rgba(28,34,49,0.97), rgba(12,16,25,0.995))',
+      accent: 'rgba(103,129,166,0.42)',
     },
   },
 };

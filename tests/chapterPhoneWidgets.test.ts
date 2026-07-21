@@ -18,7 +18,7 @@ test('phone clock advances through one fixed overnight timeline', () => {
   }
 
   assert.equal(getChapterPhoneWidgetState(1).clock, '19:48');
-  assert.equal(getChapterPhoneWidgetState(10).clock, '05:46');
+  assert.equal(getChapterPhoneWidgetState(10).clock, '03:40');
 });
 
 test('agenda drops its oldest item, moves two entries up, and appends one new entry', () => {
@@ -44,11 +44,14 @@ test('weather cools through the night and every chapter receives distinct widget
     (chapter) => getChapterPhoneWidgetState(chapter).agenda.background,
   ));
 
-  assert.deepEqual(temperatures, [13, 13, 12, 12, 11, 10, 10, 9, 9, 10]);
+  assert.deepEqual(temperatures, [13, 13, 12, 12, 11, 10, 10, 9, 8, 8]);
   assert.equal(weatherBackgrounds.size, chapters.length);
   assert.equal(agendaBackgrounds.size, chapters.length);
   assert.equal(getChapterPhoneWidgetState(5).agenda.dayLabel, 'WED 12');
   assert.equal(getChapterPhoneWidgetState(6).agenda.dayLabel, 'THU 13');
+  assert.equal(getChapterPhoneWidgetState(9).weather.condition, 'Gale warning');
+  assert.equal(getChapterPhoneWidgetState(10).weather.condition, 'Violent storm');
+  assert.equal(getChapterPhoneWidgetState(10).agenda.footer, 'DEEP NIGHT · SILENT');
 });
 
 test('phone screen consumes chapter widget state and never reads the computer clock', () => {
