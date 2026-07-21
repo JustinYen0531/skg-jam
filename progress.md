@@ -365,4 +365,4 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Playback may be paused and resumed by clicking, Space, or Enter, while Escape and the disabled exit control cannot leave the replay early.
 - Mouse movement reveals a shadowed ViewTube-style HUD with a red timeline; the Gate 40-to-41 evidence pause is mapped to exactly `1 / 3.2` (`31.25%`) of the displayed timeline.
 - Reaching the evidence frame automatically pauses playback, records `watchedVideo`, and unlocks the fullscreen exit. The ARC_184 reply cannot advance Chapter 1 before that point.
-- Browser validation remains intentionally omitted per project instruction; 86 tests, TypeScript lint, production build, and diff checks pass.
+- Browser validation remains intentionally omitted per project instruction; 88 tests, TypeScript lint, production build, and diff checks pass after integration with the latest remote main.
