@@ -650,3 +650,11 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Routed all five archive format tags through the same Meta tap path; ZIP, APK, JAR, and SIS retain their evidence-specific wrong-format lines, while IPA remains neutrally worded.
 - Kept every distraction non-progressing and visually secondary. No notification, recommendation marker, answer highlight, or chapter mutation was added.
 - Browser verification remains intentionally omitted under the repository rule; static interaction tests, TypeScript lint, full tests, and production build are the acceptance boundary.
+
+## 2026-07-22 — AmazeMart shopping sidebar
+
+- Replaced the storefront's horizontal five-tile category strip with a persistent two-column commerce layout: the product/search journey remains primary while a narrow right sidebar owns departments, quick filters, delivery context, and low-priority membership advertising.
+- Added working storefront department and price/rating filters without changing the deterministic recommendation feed or any Chapter 3 merchant state.
+- Disabled storefront filters during the broad Lumen Arc results mode so the full decoy feed and scroll-triggered suppressed seller remain reachable inside the original `am-body` scroll container.
+- Kept the sidebar visually secondary and free of notification, recommendation, or puzzle-answer cues.
+- Browser verification remains intentionally omitted under the repository rule; static layout tests, TypeScript lint, full tests, production build, and diff checks are the acceptance boundary.

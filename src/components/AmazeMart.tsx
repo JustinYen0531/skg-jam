@@ -9,6 +9,11 @@ import {
   shouldRevealSuppressedSeller,
 } from '../lib/amazemartPuzzle';
 import {
+  AmazeMartSidebar,
+  type AmazeMartDepartment,
+  type AmazeMartPriceFilter,
+} from './AmazeMartSidebar';
+import {
   ShoppingBag,
   Search,
   Package,
@@ -36,6 +41,13 @@ const AMAZEMART_PRODUCTS = [
   { id: 'am-9', name: 'Wireless Sleep Headphones Headband', price: '$15.59', oldPrice: '$31.00', rating: '4.6', reviews: '7,902', badge: 'CHOICE', symbol: '♫', gradient: 'from-blue-500 to-indigo-950' },
 ] as const;
 
+const AMAZEMART_DEPARTMENT_PRODUCTS: Readonly<Record<Exclude<AmazeMartDepartment, 'all'>, readonly string[]>> = {
+  deals: ['am-1', 'am-3', 'am-4', 'am-6', 'am-8'],
+  tech: ['am-2', 'am-4', 'am-6', 'am-7', 'am-9'],
+  home: ['am-1', 'am-3', 'am-5', 'am-8'],
+  trending: ['am-5', 'am-7', 'am-8'],
+};
+
 interface AmazeMartProps {
   progress: GameProgress;
   updateProgress: (updater: (prev: GameProgress) => GameProgress) => void;
@@ -53,7 +65,19 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({ progress, updateProgress, 
   const [merchantPhase, setMerchantPhase] = useState<MerchantPhase>('browsing');
   const [sellerCode, setSellerCode] = useState('');
   const [sellerCodeError, setSellerCodeError] = useState('');
+  const [department, setDepartment] = useState<AmazeMartDepartment>('all');
+  const [priceFilter, setPriceFilter] = useState<AmazeMartPriceFilter>('all');
   const [recommendedProducts] = useState(() => shuffleFeed(AMAZEMART_PRODUCTS, createFeedSeed('amazemart')));
+
+  const storefrontProducts = recommendedProducts.filter((product) => {
+    const matchesDepartment = department === 'all' || AMAZEMART_DEPARTMENT_PRODUCTS[department].includes(product.id);
+    const numericPrice = Number(product.price.slice(1));
+    const numericRating = Number(product.rating);
+    const matchesPrice = priceFilter === 'all'
+      || (priceFilter === 'under-25' && numericPrice < 25)
+      || (priceFilter === 'rated-45' && numericRating >= 4.5);
+    return matchesDepartment && matchesPrice;
+  });
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -145,8 +169,10 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({ progress, updateProgress, 
         </div>
       )}
       <div className="flex-1 overflow-y-auto p-3" id="am-body" onScroll={handleResultsScroll}>
-        {!searched ? (
-          <div className="space-y-3" id="am-storefront">
+        <div className="grid grid-cols-[minmax(0,1fr)_132px] items-start gap-3" id="am-commerce-layout">
+          <main className="min-w-0" id="am-commerce-main">
+            {!searched ? (
+              <div className="space-y-3" id="am-storefront">
             <section className="rounded-xl overflow-hidden bg-gradient-to-r from-amber-400 via-orange-400 to-rose-500 text-indigo-950 p-3 relative" id="am-deal-banner">
               <div className="absolute -right-5 -top-6 w-24 h-24 rounded-full bg-white/25"></div>
               <div className="relative flex justify-between items-center gap-3">
@@ -162,24 +188,13 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({ progress, updateProgress, 
               </div>
             </section>
 
-            <div className="grid grid-cols-5 gap-1 text-center" id="am-categories">
-              {[
-                ['⚡', 'Deals'], ['⌕', 'Tech'], ['⌂', 'Home'], ['✦', 'Trending'], ['▦', 'More'],
-              ].map(([symbol, label]) => (
-                <div key={label} className="rounded-lg bg-slate-900 border border-slate-800 p-1.5">
-                  <div className="text-base leading-none">{symbol}</div>
-                  <div className="text-[7px] text-slate-400 mt-1 truncate">{label}</div>
-                </div>
-              ))}
-            </div>
-
             <div className="flex items-center justify-between">
               <h2 className="text-xs font-black flex items-center gap-1"><Flame className="w-3.5 h-3.5 text-orange-500" /> Flash recommendations</h2>
-              <span className="text-[8px] text-amber-400 font-mono">ENDS 00:43:19</span>
+              <span className="text-[8px] text-amber-400 font-mono">{storefrontProducts.length} PICKS · ENDS 00:43:19</span>
             </div>
 
             <div className="grid grid-cols-2 gap-2" id="am-product-feed">
-              {recommendedProducts.slice(0, 8).map((product, index) => (
+              {storefrontProducts.slice(0, 8).map((product, index) => (
                 <article key={product.id} className="rounded-lg overflow-hidden bg-slate-900 border border-slate-800">
                   <div className={`h-20 bg-gradient-to-br ${product.gradient} relative flex items-center justify-center`}>
                     <span className="text-4xl text-white/90 drop-shadow-lg">{product.symbol}</span>
@@ -211,9 +226,9 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({ progress, updateProgress, 
                 <div className="text-[9px] text-amber-400 font-mono">Lumen Arc · recalled electronics · collector inventory</div>
               </div>
             </button>
-          </div>
-        ) : (
-          <div className="space-y-4" id="am-results">
+              </div>
+            ) : (
+              <div className="space-y-4" id="am-results">
             {!progress.deliveredPhone ? (
               <>
                 <section className="rounded-lg border border-slate-800 bg-slate-900 p-3" id="am-search-summary">
@@ -373,8 +388,18 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({ progress, updateProgress, 
                 </button>
               </div>
             )}
-          </div>
-        )}
+              </div>
+            )}
+          </main>
+
+          <AmazeMartSidebar
+            department={department}
+            priceFilter={priceFilter}
+            searchMode={searched}
+            onDepartmentChange={(nextDepartment) => { audio.playTick(); setDepartment(nextDepartment); }}
+            onPriceFilterChange={(nextFilter) => { audio.playTick(); setPriceFilter(nextFilter); }}
+          />
+        </div>
       </div>
 
       {merchantPhase === 'risk-confirm' && (
