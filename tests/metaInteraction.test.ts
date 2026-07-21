@@ -82,11 +82,11 @@ test('mouse height maps to a clamped camera pitch from desk-flat to upright', ()
   assert.equal(getMetaCameraPitch(20, 0), META_CAMERA_PITCH.restDeg);
 });
 
-test('an idle desk click rests the phone and the next click anywhere wakes it', () => {
-  assert.equal(getMetaDevicePostureAction(true, false, false, false), 'rest');
+test('screen clicks never put the phone down or switch its posture', () => {
+  assert.equal(getMetaDevicePostureAction(true, false, false, false), null);
   assert.equal(getMetaDevicePostureAction(true, false, true, false), null);
-  assert.equal(getMetaDevicePostureAction(true, false, false, true), 'wake');
-  assert.equal(getMetaDevicePostureAction(true, false, true, true), 'wake');
+  assert.equal(getMetaDevicePostureAction(true, false, false, true), null);
+  assert.equal(getMetaDevicePostureAction(true, false, true, true), null);
   assert.equal(getMetaDevicePostureAction(true, true, true, true), null);
   assert.equal(getMetaDevicePostureAction(false, false, false, true), null);
 });

@@ -82,15 +82,11 @@ export const formatProjectiveMatrix3d = (matrix: readonly number[]): string =>
 export type MetaDevicePostureAction = 'rest' | 'wake' | null;
 
 export const getMetaDevicePostureAction = (
-  metaViewActive: boolean,
-  interactionPending: boolean,
-  targetInsidePhone: boolean,
-  deviceResting: boolean,
-): MetaDevicePostureAction => {
-  if (!metaViewActive || interactionPending) return null;
-  if (deviceResting) return 'wake';
-  return targetInsidePhone ? null : 'rest';
-};
+  _metaViewActive: boolean,
+  _interactionPending: boolean,
+  _targetInsidePhone: boolean,
+  _deviceResting: boolean,
+): MetaDevicePostureAction => null;
 
 export const getMetaCameraPitch = (pointerY: number, sceneHeight: number): number => {
   if (!Number.isFinite(pointerY) || !Number.isFinite(sceneHeight) || sceneHeight <= 0) {
