@@ -53,17 +53,21 @@ const CoffeeCup: React.FC<{
   drip: boolean;
   spill: boolean;
   animateLayout: boolean;
-}> = ({ state, ring, steam, drip, spill, animateLayout }) => {
+  deviceResting: boolean;
+}> = ({ state, ring, steam, drip, spill, animateLayout, deviceResting }) => {
   if (state === 'none') return null;
   const pushedAway = state === 'pushed-away';
   const tipped = state === 'tipped-empty';
   const assetSource = COFFEE_ASSET_SOURCE[state];
+  const positionClass = deviceResting
+    ? (pushedAway ? 'right-[7%] top-[51%] scale-[2.1]' : tipped ? 'right-[14%] top-[53%] scale-[2.5]' : 'right-[12%] top-[48%] scale-[2.7]')
+    : (pushedAway ? 'right-[7%] top-[65%] scale-[2.1]' : tipped ? 'right-[14%] top-[67%] scale-[2.5]' : 'right-[12%] top-[62%] scale-[2.7]');
 
   return (
     <motion.div
       layout={animateLayout}
-      className={`absolute z-[3] h-[27%] w-[17%] min-w-36 origin-bottom-right ${pushedAway ? 'right-[7%] top-[51%] scale-[2.1]' : tipped ? 'right-[14%] top-[53%] scale-[2.5]' : 'right-[12%] top-[48%] scale-[2.7]'}`}
-      data-composition-offset="coffee-up-14"
+      className={`absolute z-[3] h-[27%] w-[17%] min-w-36 origin-bottom-right ${positionClass}`}
+      data-composition-offset={deviceResting ? 'resting-coffee-up-14' : 'upright-original'}
       data-coffee-state={state}
       data-coffee-asset-state={tipped ? 'tipped' : state === 'fresh' || state === 'sipped' ? 'full' : 'empty'}
       data-coffee-drip={drip || undefined}
@@ -292,7 +296,7 @@ export const ChapterEnvironment: React.FC<ChapterEnvironmentProps> = ({
             </>
           ) : (
             <>
-              <CoffeeCup state={environment.coffee} ring={environment.coffeeRing} steam={environment.coffeeSteam} drip={environment.coffeeDrip} spill={environment.coffeeSpill} animateLayout={!reducedMotion} />
+              <CoffeeCup state={environment.coffee} ring={environment.coffeeRing} steam={environment.coffeeSteam} drip={environment.coffeeDrip} spill={environment.coffeeSpill} animateLayout={!reducedMotion} deviceResting={deviceResting} />
               {environment.teaService && <TeaService />}
               {environment.paperBalls && <PaperBalls />}
               {environment.cable !== 'none' && <ChargingCable connected={environment.cable === 'connected'} animateLayout={!reducedMotion} part="body" />}

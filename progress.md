@@ -439,6 +439,14 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Applied the compiler-required `unknown` bridge to the concurrently added four-corner projection test without changing its geometry or runtime behavior.
 - Browser Preview remains intentionally omitted under the repository's static-analysis-only rule; 94 static tests, TypeScript lint, production build, and diff checks pass.
 
+## 2026-07-21 — Posture-specific coffee placement
+
+- Split coffee placement by device posture instead of applying the previous clearance adjustment globally.
+- Restored the upright handheld positions exactly to their prior values: normal 62%, tipped 67%, and pushed-away 65% scene top.
+- Retained the raised resting positions only for the desk-rest pose: normal 48%, tipped 53%, and pushed-away 51% scene top.
+- Kept the charging cable's three-percent right shift and all coffee artwork, scale, state, steam, drip, spill, and transition behavior unchanged.
+- Browser Preview remains intentionally omitted under the repository's static-analysis-only rule; 94 static tests, TypeScript lint, production build, and diff checks pass.
+
 ## 2026-07-21 — Coffee and charging-cable clearance
 
 - Raised every coffee-cup state by 14% of scene height: the normal cup moved from 62% to 48%, the tipped cup from 67% to 53%, and the pushed-away cup from 65% to 51%.
