@@ -217,6 +217,14 @@ test('home-screen launchers open on pointer release without waiting for the hand
   assert.equal((phoneSource.match(/onPointerUp=\{\(event\) => handleLauncherPointerUp/g) ?? []).length, 8);
 });
 
+test('home navigation completes before the Chapter 1 entry transition starts', () => {
+  const phoneSource = readFileSync(new URL('../src/components/PhoneSimulator.tsx', import.meta.url), 'utf8');
+  assert.match(
+    phoneSource,
+    /onClick=\{handleHomeButton\}\s+data-meta-immediate="true"[\s\S]{0,180}id="home-swipe-indicator"/,
+  );
+});
+
 test('meta camera uses layered anatomical hands instead of rounded placeholder blobs', () => {
   const sceneSource = readFileSync(
     new URL('../src/components/MetaInteractionScene.tsx', import.meta.url),

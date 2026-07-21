@@ -845,6 +845,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
       {!immersiveIntro && <div className="h-6 shrink-0 bg-[#0b0c0f] flex items-center justify-center" id="phone-footer">
         <button
           onClick={handleHomeButton}
+          data-meta-immediate="true"
           className="w-24 h-1 bg-slate-500/60 rounded-full hover:bg-slate-300 active:bg-slate-400 transition-colors"
           title="Home Screen"
           id="home-swipe-indicator"

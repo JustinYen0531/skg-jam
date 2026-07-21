@@ -511,3 +511,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Kept native click activation for keyboard users while filtering the follow-up mouse click, preventing duplicate launches and audio.
 - Retained the existing hand-animation relay for in-app interactions and limited the change to the home launcher path.
 - Browser verification remains intentionally omitted under the repository's static-analysis-only rule.
+
+## 2026-07-21 — Chapter 1 home-transition input release
+
+- Isolated the Chapter 1-only failure to the overlap between the delayed Meta hand tap on the home gesture bar and Chapter 1's first-home transition.
+- Made the home gesture bar an immediate Meta action so navigation finishes before the transition mounts, preventing a stale pending-interaction state from blocking the newly shown home screen.
+- Preserved the Chapter 1 transition and left later chapter navigation unchanged.
+- Browser verification remains intentionally omitted under the repository's static-analysis-only rule.
