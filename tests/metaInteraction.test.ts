@@ -205,14 +205,16 @@ test('virtual keyboard is embedded in the phone surface at sixty percent opacity
   assert.match(scene, /bottom-\[7%\]/);
 });
 
-test('home-screen launchers bypass the delayed hand relay so apps always open', () => {
+test('home-screen launchers open on pointer release without waiting for the hand click relay', () => {
   const phoneSource = readFileSync(new URL('../src/components/PhoneSimulator.tsx', import.meta.url), 'utf8');
   assert.match(
     phoneSource,
     /id="home-apps-grid"\s+data-meta-immediate="true"/,
   );
   assert.match(phoneSource, /id="launcher-viewtube"/);
-  assert.match(phoneSource, /onClick=\{\(\) => handleLaunchApp\('viewtube'\)\}/);
+  assert.match(phoneSource, /onPointerUp=\{\(event\) => handleLauncherPointerUp\(event, 'viewtube'\)\}/);
+  assert.match(phoneSource, /if \(event\.detail !== 0\) return;/);
+  assert.equal((phoneSource.match(/onPointerUp=\{\(event\) => handleLauncherPointerUp/g) ?? []).length, 8);
 });
 
 test('meta camera uses layered anatomical hands instead of rounded placeholder blobs', () => {

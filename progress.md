@@ -504,3 +504,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Removed the redundant ref guard inside the already-gated fullscreen close handler; the EXIT button remains disabled until Gate 41, but an unlocked click can no longer silently no-op because two unlock states drifted apart.
 - Exit now pauses the replay, scrolls the underlying ViewTube page directly to `#vt-comments`, and closes the fullscreen portal so the evidence discussion is immediately visible.
 - Added static regression coverage for the complete unlocked EXIT path while preserving the mandatory pre-Gate-41 lock.
+
+## 2026-07-21 — Home launcher pointer fallback
+
+- Removed the Chapter 1 home screen's dependency on the delayed synthetic click relay: all eight launchers now open directly on pointer release for mouse and touch.
+- Kept native click activation for keyboard users while filtering the follow-up mouse click, preventing duplicate launches and audio.
+- Retained the existing hand-animation relay for in-app interactions and limited the change to the home launcher path.
+- Browser verification remains intentionally omitted under the repository's static-analysis-only rule.

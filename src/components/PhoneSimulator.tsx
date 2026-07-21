@@ -157,6 +157,19 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
     }
   };
 
+  // The meta hand animation intercepts click events higher in the tree. Open
+  // launchers on pointer release so mouse and touch do not depend on that
+  // relay; native click remains available for keyboard activation.
+  const handleLauncherPointerUp = (event: React.PointerEvent<HTMLButtonElement>, app: ActiveApp) => {
+    event.stopPropagation();
+    handleLaunchApp(app);
+  };
+
+  const handleLauncherClick = (event: React.MouseEvent<HTMLButtonElement>, app: ActiveApp) => {
+    if (event.detail !== 0) return;
+    handleLaunchApp(app);
+  };
+
   const handleHomeButton = () => {
     audio.play('phone.home');
     setActiveApp('home');
@@ -495,7 +508,8 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                   data-meta-immediate="true"
                 >
                   <button
-                    onClick={() => handleLaunchApp('flappy')}
+                    onPointerUp={(event) => handleLauncherPointerUp(event, 'flappy')}
+                    onClick={(event) => handleLauncherClick(event, 'flappy')}
                     className="group flex flex-col items-center gap-1.5 min-w-0"
                     id="launcher-game"
                   >
@@ -516,7 +530,8 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                   </button>
 
                   <button
-                    onClick={() => handleLaunchApp('viewtube')}
+                    onPointerUp={(event) => handleLauncherPointerUp(event, 'viewtube')}
+                    onClick={(event) => handleLauncherClick(event, 'viewtube')}
                     className="group flex flex-col items-center gap-1.5 min-w-0"
                     id="launcher-viewtube"
                   >
@@ -528,7 +543,8 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                   </button>
 
                   <button
-                    onClick={() => handleLaunchApp('amazemart')}
+                    onPointerUp={(event) => handleLauncherPointerUp(event, 'amazemart')}
+                    onClick={(event) => handleLauncherClick(event, 'amazemart')}
                     className="group flex flex-col items-center gap-1.5 min-w-0"
                     id="launcher-amazemart"
                   >
@@ -540,7 +556,8 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                   </button>
 
                   <button
-                    onClick={() => handleLaunchApp('browser')}
+                    onPointerUp={(event) => handleLauncherPointerUp(event, 'browser')}
+                    onClick={(event) => handleLauncherClick(event, 'browser')}
                     className="group flex flex-col items-center gap-1.5 min-w-0"
                     id="launcher-browser"
                   >
@@ -552,7 +569,8 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                   </button>
 
                   <button
-                    onClick={() => handleLaunchApp('social')}
+                    onPointerUp={(event) => handleLauncherPointerUp(event, 'social')}
+                    onClick={(event) => handleLauncherClick(event, 'social')}
                     className="group flex flex-col items-center gap-1.5 min-w-0"
                     id="launcher-social"
                   >
@@ -564,7 +582,8 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                   </button>
 
                   <button
-                    onClick={() => handleLaunchApp('messages')}
+                    onPointerUp={(event) => handleLauncherPointerUp(event, 'messages')}
+                    onClick={(event) => handleLauncherClick(event, 'messages')}
                     className="group flex flex-col items-center gap-1.5 min-w-0"
                     id="launcher-messages"
                   >
@@ -577,7 +596,8 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
 
                   <button
                     disabled={!progress.deliveredPhone}
-                    onClick={() => handleLaunchApp('screenshots')}
+                    onPointerUp={(event) => handleLauncherPointerUp(event, 'screenshots')}
+                    onClick={(event) => handleLauncherClick(event, 'screenshots')}
                     className={`group flex flex-col items-center gap-1.5 min-w-0 ${
                       !progress.deliveredPhone ? 'opacity-35 saturate-50 cursor-not-allowed' : ''
                     }`}
@@ -595,7 +615,8 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                   </button>
 
                   <button
-                    onClick={() => handleLaunchApp('about')}
+                    onPointerUp={(event) => handleLauncherPointerUp(event, 'about')}
+                    onClick={(event) => handleLauncherClick(event, 'about')}
                     className="group flex flex-col items-center gap-1.5 min-w-0"
                     id="launcher-about"
                   >
