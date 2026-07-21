@@ -7,7 +7,9 @@ import { BrowserPortalNoise } from './BrowserPortalNoise';
 import { useMetaInteraction } from './MetaInteractionScene';
 import {
   CHAPTER_TWO_DIALOGUE,
+  getChapterTwoPortalDistractionDialogue,
   getChapterTwoSearchResponse,
+  type ChapterTwoPortalDistraction,
 } from '../lib/chapterTwoDialogue';
 import { Search, RotateCcw, Clock, Download, ArrowRight, ShieldCheck, HeartCrack, Bot } from 'lucide-react';
 
@@ -80,6 +82,7 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
   const [botReply, setBotReply] = useState('');
   const [botInput, setBotInput] = useState('');
   const chapterTwoSearchAttempt = useRef(0);
+  const portalDistractionAttempt = useRef(0);
   const chapterTwoLandingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => () => {
@@ -100,6 +103,15 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
 
   const speakChapterTwo = (lines: readonly string[]) => {
     if (progress.currentChapter === 2 && metaInteraction.active) metaInteraction.speak(lines);
+  };
+
+  const handlePortalDistraction = (kind: ChapterTwoPortalDistraction, elementId: string) => {
+    metaInteraction.tapElement(elementId, () => {
+      audio.play('ui.disabled');
+      if (progress.currentChapter !== 2) return;
+      speakChapterTwo(getChapterTwoPortalDistractionDialogue(kind, portalDistractionAttempt.current));
+      portalDistractionAttempt.current += 1;
+    });
   };
 
   const openSkgResult = () => {
@@ -273,19 +285,19 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
       <div className="flex-1 overflow-y-auto p-3 bg-[#0d0f14] font-sans" id="browser-viewport">
         {archiveFinderOpen ? (
           <div className="grid min-h-full grid-cols-[minmax(112px,0.72fr)_minmax(300px,1.7fr)_minmax(112px,0.72fr)] items-start gap-3" id="archive-portal-layout">
-            <BrowserPortalNoise surface="archive" side="left" />
+            <BrowserPortalNoise surface="archive" side="left" onDistraction={handlePortalDistraction} />
             <ChapterTwoArchiveFinder
               attempted={progress.archiveDownloaded}
               dialogueActive={progress.currentChapter === 2}
               onCompatibilityDiscovered={handleCompatibilityDiscovered}
             />
-            <BrowserPortalNoise surface="archive" side="right" />
+            <BrowserPortalNoise surface="archive" side="right" onDistraction={handlePortalDistraction} />
           </div>
         ) : searchedKeyword === null ? (
           /* Browser home: a SearchFinder-branded landing page. Nothing here
              names SKG — the player has to type and search it themselves. */
           <div className="grid min-h-full grid-cols-[minmax(112px,0.72fr)_minmax(300px,1.7fr)_minmax(112px,0.72fr)] items-start gap-3 pb-4" id="browser-landing">
-            <BrowserPortalNoise surface="search" side="left" />
+            <BrowserPortalNoise surface="search" side="left" onDistraction={handlePortalDistraction} />
             <main className="space-y-3" id="searchfinder-main-column">
               <header className="overflow-hidden rounded-lg border border-blue-400/10 bg-gradient-to-br from-blue-950/30 via-slate-900/60 to-slate-950/70 px-5 py-5 text-center shadow-[0_12px_40px_rgba(0,0,0,0.18)]">
                 <div className="flex items-center justify-center gap-1.5 text-2xl font-black tracking-tight">
@@ -312,9 +324,9 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
                     <button
                       key={topic}
                       type="button"
-                      onClick={topic === 'I want to find an old game file' ? openArchiveFinder : () => audio.play('ui.disabled')}
+                      onClick={topic === 'I want to find an old game file' ? openArchiveFinder : () => handlePortalDistraction('trending', `search-trending-${index}`)}
                       className="flex min-h-10 w-full items-center gap-2 rounded border border-slate-800/70 bg-slate-950/35 px-2.5 py-2 text-left text-[8px] leading-snug text-slate-400 hover:border-slate-700 hover:bg-slate-900/55"
-                      id={topic === 'I want to find an old game file' ? 'chapter-two-archive-entry' : undefined}
+                      id={topic === 'I want to find an old game file' ? 'chapter-two-archive-entry' : `search-trending-${index}`}
                     >
                       <span className="font-mono text-[7px] text-slate-700">0{index + 1}</span><span>{topic}</span>
                     </button>
@@ -347,7 +359,7 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
                 <span>About · Privacy · Advertise · Remove result</span><span>SearchFinder Portal 2026.7</span>
               </footer>
             </main>
-            <BrowserPortalNoise surface="search" side="right" />
+            <BrowserPortalNoise surface="search" side="right" onDistraction={handlePortalDistraction} />
           </div>
         ) : selectedYear === 2026 ? (
           /* Year 2026: Modern corporate slop */

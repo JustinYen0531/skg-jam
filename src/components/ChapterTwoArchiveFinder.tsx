@@ -170,7 +170,7 @@ export const ChapterTwoArchiveFinder: React.FC<ChapterTwoArchiveFinderProps> = (
         <div className="flex items-center justify-between"><h2 className="text-[7px] font-semibold uppercase tracking-[0.14em] text-slate-600">Browse package formats</h2><span className="font-mono text-[6px] text-slate-700">5 collections</span></div>
         <nav className="flex flex-wrap gap-1.5 border-b border-white/[0.07] pb-2" aria-label="Package formats" id="chapter-two-package-formats">
           {ARCHIVE_FORMATS.map((format) => (
-            <button key={format.id} type="button" onClick={() => chooseFormat(format.id)} className={`rounded-full border px-2.5 py-1 text-[9px] transition-colors ${selectedFormat === format.id ? 'border-slate-500 bg-slate-700/50 text-slate-100' : 'border-slate-800 bg-slate-900/40 text-slate-500 hover:border-slate-700 hover:text-slate-300'}`} data-package-format={format.id} title={format.label}>
+            <button key={format.id} type="button" onClick={() => metaInteraction.tapElement(`chapter-two-format-${format.id}`, () => chooseFormat(format.id))} className={`rounded-full border px-2.5 py-1 text-[9px] transition-colors ${selectedFormat === format.id ? 'border-slate-500 bg-slate-700/50 text-slate-100' : 'border-slate-800 bg-slate-900/40 text-slate-500 hover:border-slate-700 hover:text-slate-300'}`} data-package-format={format.id} id={`chapter-two-format-${format.id}`} title={format.label}>
               {format.extension}
             </button>
           ))}

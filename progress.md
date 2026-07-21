@@ -625,3 +625,11 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Enriched the archive's central catalog with index metrics, popular-search texture, collection counts, and volunteer/catalog notes while keeping the target IPA visually identical to other filename rows.
 - All added noise is non-progression texture: no `Recommended` badge, notification cue, or new chapter mutation was introduced.
 - Browser verification remains intentionally omitted under the repository rule; static UI tests, TypeScript lint, full tests, and production build are the acceptance boundary.
+
+## 2026-07-22 — SearchFinder distraction reactions and Meta tap feedback
+
+- Routed incorrect Trending Today choices and the commercial side-rail cards through the existing Meta finger tap animation before playing their response.
+- Grouped the protagonist's short Chapter 2 asides into trending, news, weather, market, community, sponsored, and archive-noise categories so related clutter can share writing without every click sounding identical.
+- Routed all five archive format tags through the same Meta tap path; ZIP, APK, JAR, and SIS retain their evidence-specific wrong-format lines, while IPA remains neutrally worded.
+- Kept every distraction non-progressing and visually secondary. No notification, recommendation marker, answer highlight, or chapter mutation was added.
+- Browser verification remains intentionally omitted under the repository rule; static interaction tests, TypeScript lint, full tests, and production build are the acceptance boundary.

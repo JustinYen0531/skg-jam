@@ -3,6 +3,15 @@ import type { DialogueLines } from './chapterOneDialogue';
 
 export type ChapterTwoArchiveFormat = 'ipa' | 'apk' | 'jar' | 'sis' | 'zip';
 
+export type ChapterTwoPortalDistraction =
+  | 'trending'
+  | 'news'
+  | 'weather'
+  | 'market'
+  | 'community'
+  | 'sponsored'
+  | 'archive_noise';
+
 export const CHAPTER_TWO_DIALOGUE = {
   entry: [
     'Lumen Arc. Recalled hardware, a dead operating system, and an impossible score.',
@@ -80,6 +89,37 @@ const COMPANION_DIALOGUE = [
   'The answer should look like a file, not a prophecy.',
 ] as const;
 
+const PORTAL_DISTRACTION_DIALOGUE: Readonly<Record<ChapterTwoPortalDistraction, readonly string[]>> = {
+  trending: [
+    'The browser has plenty of ideas. None of them are mine.',
+    'Interesting to somebody, probably. Not useful to me.',
+  ],
+  news: [
+    'The headlines can wait. Dead software usually cannot.',
+    'Another article explaining the present. I need something the present forgot.',
+  ],
+  weather: [
+    'Cold outside. Still not a filename.',
+    'The forecast is more certain than this archive trail.',
+  ],
+  market: [
+    'Numbers moving for reasons nobody can explain. Familiar, but irrelevant.',
+    'The market is alive. The platform I need is not.',
+  ],
+  community: [
+    'Everyone is posting. Nobody is preserving the useful part.',
+    'A lot of activity. Very little evidence.',
+  ],
+  sponsored: [
+    'A free trial is not a lead.',
+    'The advertisement found me before the file did.',
+  ],
+  archive_noise: [
+    'Useful to someone cataloguing the catalog. Not to me.',
+    'More preservation paperwork. I need the package itself.',
+  ],
+};
+
 const rotate = <T>(items: readonly T[], index: number): T =>
   items[Math.abs(Math.floor(index)) % items.length];
 
@@ -94,6 +134,11 @@ export const getChapterTwoWrongAppDialogue = (
 export const getChapterTwoCompanionDialogue = (attempt: number): DialogueLines => [
   rotate(COMPANION_DIALOGUE, attempt),
 ];
+
+export const getChapterTwoPortalDistractionDialogue = (
+  kind: ChapterTwoPortalDistraction,
+  attempt: number,
+): DialogueLines => [rotate(PORTAL_DISTRACTION_DIALOGUE[kind], attempt)];
 
 export type ChapterTwoSearchKind =
   | 'empty'

@@ -5,9 +5,11 @@ import {
   CHAPTER_TWO_DIALOGUE,
   getChapterTwoCompanionDialogue,
   getChapterTwoFormatDialogue,
+  getChapterTwoPortalDistractionDialogue,
   getChapterTwoSearchResponse,
   getChapterTwoWrongAppDialogue,
   type ChapterTwoArchiveFormat,
+  type ChapterTwoPortalDistraction,
 } from '../src/lib/chapterTwoDialogue';
 
 test('Chapter 2 uses the approved A maternal-memory ending', () => {
@@ -46,12 +48,30 @@ test('repeat Chapter 2 interactions retain companionship and wrong-app context',
   assert.match(getChapterTwoWrongAppDialogue('amazemart', 0)[0], /hardware/);
 });
 
+test('commercial portal distractions share categories without collapsing into one reaction', () => {
+  const kinds: readonly ChapterTwoPortalDistraction[] = [
+    'trending', 'news', 'weather', 'market', 'community', 'sponsored', 'archive_noise',
+  ];
+  const firstReactions = kinds.map((kind) => getChapterTwoPortalDistractionDialogue(kind, 0)[0]);
+  assert.equal(new Set(firstReactions).size, kinds.length);
+  assert.notDeepEqual(
+    getChapterTwoPortalDistractionDialogue('trending', 0),
+    getChapterTwoPortalDistractionDialogue('trending', 1),
+  );
+  assert.match(getChapterTwoPortalDistractionDialogue('weather', 0)[0], /Cold|forecast/);
+  assert.match(getChapterTwoPortalDistractionDialogue('sponsored', 0)[0], /trial|advertisement/);
+});
+
 test('all Chapter 2 protagonist dialogue is English-only', () => {
   const formats: readonly ChapterTwoArchiveFormat[] = ['zip', 'apk', 'jar', 'sis', 'ipa'];
+  const distractions: readonly ChapterTwoPortalDistraction[] = [
+    'trending', 'news', 'weather', 'market', 'community', 'sponsored', 'archive_noise',
+  ];
   const apps = ['flappy', 'viewtube', 'amazemart', 'social', 'messages', 'screenshots', 'about'] as const;
   const lines = [
     ...Object.values(CHAPTER_TWO_DIALOGUE).flat(),
     ...formats.flatMap((format) => getChapterTwoFormatDialogue(format)),
+    ...distractions.flatMap((kind, index) => getChapterTwoPortalDistractionDialogue(kind, index)),
     ...apps.flatMap((app, index) => getChapterTwoWrongAppDialogue(app, index)),
     ...Array.from({ length: 6 }, (_, index) => getChapterTwoCompanionDialogue(index)).flat(),
     ...[
@@ -79,7 +99,10 @@ test('Chapter 2 dialogue is wired through the transcript, phone, browser, and ar
   assert.match(browser, /getChapterTwoSearchResponse/);
   assert.match(browser, /CHAPTER_TWO_DIALOGUE\.searchFinderVisible/);
   assert.match(browser, /CHAPTER_TWO_DIALOGUE\.archiveLeadSelected/);
+  assert.match(browser, /getChapterTwoPortalDistractionDialogue/);
+  assert.match(browser, /metaInteraction\.tapElement\(elementId/);
   assert.match(finder, /getChapterTwoFormatDialogue/);
+  assert.match(finder, /metaInteraction\.tapElement\(`chapter-two-format-\$\{format\.id\}`/);
   assert.match(finder, /registerInput\('chapter-two-archive-search'/);
   assert.match(finder, /CHAPTER_TWO_DIALOGUE\.archiveSearchFocused/);
   assert.match(finder, /CHAPTER_TWO_DIALOGUE\.fileOpened/);
