@@ -1,5 +1,12 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-22 — Active desktop Chapter 3 synchronization
+
+- Confirmed from the user's screenshot that the running desktop worktree still contained the legacy direct-purchase AmazeMart card even though the new flow had already reached `origin/main`.
+- Integrated the Chapter 3 search-noise, suppressed-seller, risk-confirmation, relay, `184`, and signature flow into the active dirty desktop worktree without touching unrelated concurrent files.
+- Preserved the desktop worktree's four existing fake customer reviews by relocating them into the expanded unverified-seller details instead of discarding that local work.
+- Static verification in the actual desktop worktree passed: 141/141 tests, TypeScript lint, production build, and focused diff checks. Browser and Preview remained intentionally unused.
+
 ## 2026-07-22 — Chapter 3 suppressed seller and score check
 
 - Expanded AmazeMart Chapter 3 without bloating the North Star GDD: search noise, a scroll-gated suppressed seller, scam confirmation, an embedded seller relay, the simple score code `184`, and delivery signature are now the canonical beats.

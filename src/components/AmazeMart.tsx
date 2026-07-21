@@ -278,6 +278,13 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({ progress, updateProgress, 
                           <div className="rounded bg-slate-950 p-1.5">NO WARRANTY</div>
                           <div className="rounded bg-slate-950 p-1.5">NO COMMON SENSE</div>
                         </div>
+                        <div className="space-y-1.5 border-t border-red-500/15 pt-2.5" id="am-reviews">
+                          <div className="text-[10px] font-bold text-slate-400">Customer reviews (mostly bots)</div>
+                          <div className="text-[9px] text-slate-400"><span className="text-amber-400">★☆☆☆☆</span> nostalgia_hoarder — “arrived as a folder of screenshots.”</div>
+                          <div className="text-[9px] text-slate-400"><span className="text-amber-400">★★★★★</span> paperweight_enjoyer — “great paperweight. does not turn on.”</div>
+                          <div className="text-[9px] text-slate-400"><span className="text-amber-400">★★★☆☆</span> definitely_human_99 — “bot review, ignore.”</div>
+                          <div className="text-[9px] text-slate-400"><span className="text-amber-400">★☆☆☆☆</span> warm_to_the_touch — “recalled for a reason.”</div>
+                        </div>
                         {merchantPhase === 'browsing' && (
                           <button
                             type="button"
