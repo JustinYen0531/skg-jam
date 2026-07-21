@@ -1,4 +1,4 @@
-﻿import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion, useMotionValue, useSpring } from 'motion/react';
 import {
   applyVirtualKey,
@@ -20,9 +20,9 @@ import { CHAPTER_ONE_DIALOGUE, DialogueLines } from '../lib/chapterOneDialogue';
 import audio from '../lib/audio';
 import { getMetaFloorStage, getMetaWallStage, type EnvironmentChapter } from '../lib/chapterEnvironment';
 import { getChapterPhoneWidgetState } from '../lib/chapterPhoneWidgets';
-import { ChapterEnvironment } from './ChapterEnvironment';
 import { MetaWallClock } from './MetaWallClock';
 import { MetaWindowScene } from './MetaWindowScene';
+import { ChapterEnvironment } from './ChapterEnvironment';
 
 interface MetaInteractionSceneProps {
   active: boolean;
@@ -519,7 +519,6 @@ const DESK_SURFACE_QUAD: ProjectiveQuad = [
   { x: 28, y: 229 },
 ];
 
-const PROTAGONIST_LABEL = 'YOU';
 type BoxQuadProvider = HTMLElement & {
   getBoxQuads?: () => readonly [{
     p1: ProjectivePoint;
@@ -549,6 +548,8 @@ const getPhoneCollisionQuad = (phone: HTMLElement): ProjectiveQuad => {
     { x: rect.left, y: rect.bottom },
   ];
 };
+
+const PROTAGONIST_LABEL = 'YOU';
 
 /* --------------------------------------------------------------------------
    The protagonist's thought layer.
@@ -755,6 +756,17 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
       const tableRect = table.getBoundingClientRect();
       const phoneWidth = phone.offsetWidth;
       const phoneHeight = phone.offsetHeight;
+      // Bail on transitional frames where the layout has not settled — a
+      // zero-sized scene, table, or phone yields a skewed (non-symmetric)
+      // matrix that would then stick. This is exactly what produced the
+      // lopsided trapezoid after toggling dev tools or switching chapters.
+      if (
+        sceneRect.width === 0 || sceneRect.height === 0
+        || tableRect.width === 0 || tableRect.height === 0
+        || phoneWidth === 0 || phoneHeight === 0
+      ) {
+        return;
+      }
       const source: ProjectiveQuad = [
         { x: sceneRect.width / 2 - phoneWidth / 2, y: sceneRect.height / 2 - phoneHeight / 2 },
         { x: sceneRect.width / 2 + phoneWidth / 2, y: sceneRect.height / 2 - phoneHeight / 2 },
@@ -779,11 +791,25 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
 
     animationFrame = requestAnimationFrame(trackDeskTransition);
     window.addEventListener('resize', updateProjection);
+    // Dev-tools toggles and chapter switches reshape the layout without any
+    // window resize firing, which used to leave the previously baked matrix
+    // in place — the lopsided trapezoid the player kept seeing. Observing the
+    // scene and table directly recomputes the projection on every such shift,
+    // so the phone always re-settles into the correct symmetric trapezoid.
+    let observer: ResizeObserver | undefined;
+    if (typeof ResizeObserver !== 'undefined') {
+      observer = new ResizeObserver(() => updateProjection());
+      const scene = sceneRef.current;
+      const table = document.getElementById('meta-desk-table-art');
+      if (scene) observer.observe(scene);
+      if (table) observer.observe(table);
+    }
     return () => {
       cancelAnimationFrame(animationFrame);
       window.removeEventListener('resize', updateProjection);
+      observer?.disconnect();
     };
-  }, [active, deviceResting]);
+  }, [active, deviceResting, chapter]);
 
   useEffect(() => {
     if (!active) {
@@ -940,6 +966,38 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     setActiveKey(null);
   }, []);
 
+  const handlePointerDownCapture = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!active || event.button !== 0) return;
+    const source = event.target;
+    if (!(source instanceof Element) || source.closest('#home-dock button')) return;
+
+    // Chromium can route a point on the projected bottom edge to a later,
+    // transparent scene layer instead of the transformed dock button. Recover
+    // that dead zone from each button's actual on-screen rectangle.
+    const hitSlop = 12;
+    const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>('#home-dock button'));
+    const button = buttons
+      .map((candidate) => {
+        const rect = candidate.getBoundingClientRect();
+        const inside = event.clientX >= rect.left - hitSlop
+          && event.clientX <= rect.right + hitSlop
+          && event.clientY >= rect.top - hitSlop
+          && event.clientY <= rect.bottom + hitSlop;
+        const centerDistance = Math.hypot(
+          event.clientX - (rect.left + rect.right) / 2,
+          event.clientY - (rect.top + rect.bottom) / 2,
+        );
+        return { candidate, inside, centerDistance };
+      })
+      .filter(({ inside }) => inside)
+      .sort((a, b) => a.centerDistance - b.centerDistance)[0]?.candidate;
+
+    if (!button) return;
+    event.preventDefault();
+    event.stopPropagation();
+    button.click();
+  };
+
   const handleClickCapture = (event: React.MouseEvent<HTMLDivElement>) => {
     if (!active) return;
     const source = event.target;
@@ -1060,6 +1118,10 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
       scrollable = scrollable.parentElement;
     }
     if (scrollable && scrollable.id !== 'meta-interaction-scene') {
+      // The Meta layer owns this wheel event, so relay it to the phone list instead
+      // of leaving the gesture visible while the underlying list stays still.
+      event.preventDefault();
+      scrollable.scrollBy({ top: event.deltaY, behavior: 'auto' });
       const atTop = scrollable.scrollTop <= 1 && event.deltaY < 0;
       const atBottom = scrollable.scrollTop + scrollable.clientHeight >= scrollable.scrollHeight - 1 && event.deltaY > 0;
       if (atTop || atBottom) audio.play('phone.scrollLimit');
@@ -1141,6 +1203,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     <div
       ref={sceneRef}
       className={`relative h-full w-full overflow-hidden ${active ? 'bg-[#17130f]' : 'bg-transparent'}`}
+      onPointerDownCapture={handlePointerDownCapture}
       onClickCapture={handleClickCapture}
       onKeyDownCapture={handleKeyDownCapture}
       onWheelCapture={handleWheelCapture}
@@ -1167,6 +1230,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
             aria-hidden="true"
           >
             <div className="absolute inset-0 bg-black" />
+            {/* Weather behind the wall: the window cut-out is the only reveal */}
             <MetaWindowScene stage={wallStage} reducedMotion={reducedMotion} />
             {wallStage > 0 && (
               <div
@@ -1614,7 +1678,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: reducedMotion ? 0 : 1.05, duration: reducedMotion ? 0 : 0.7, ease: 'easeOut' }}
-              className="absolute bottom-[2.5%] left-1/2 z-[70] min-h-[19%] w-[92%] -translate-x-1/2 rounded-[6px] bg-[#0d131b]/[0.82] px-7 py-5 shadow-[0_18px_50px_rgba(0,0,0,0.5)] backdrop-blur-[3px]"
+              className="pointer-events-none absolute bottom-[2.5%] left-1/2 z-[70] min-h-[19%] w-[92%] -translate-x-1/2 rounded-[6px] bg-[#0d131b]/[0.82] px-7 py-5 shadow-[0_18px_50px_rgba(0,0,0,0.5)] backdrop-blur-[3px]"
               id="meta-terminal-dialogue"
             >
               <style>{`@keyframes thought-caret { 0%, 52% { opacity: 1; } 68%, 100% { opacity: 0.12; } }`}</style>
