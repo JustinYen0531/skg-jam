@@ -12,7 +12,7 @@ import {
 } from '../lib/metaInteraction';
 import { CHAPTER_ONE_DIALOGUE, DialogueLines } from '../lib/chapterOneDialogue';
 import audio from '../lib/audio';
-import { getMetaWallStage, type EnvironmentChapter } from '../lib/chapterEnvironment';
+import { getMetaFloorStage, getMetaWallStage, type EnvironmentChapter } from '../lib/chapterEnvironment';
 import { ChapterEnvironment } from './ChapterEnvironment';
 
 interface MetaInteractionSceneProps {
@@ -1012,6 +1012,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
     : 0;
   const devicePerspective = deviceResting ? PHONE_PERSPECTIVE.table : PHONE_PERSPECTIVE.upright;
   const wallStage = getMetaWallStage(chapter);
+  const floorStage = getMetaFloorStage(chapter);
 
   return (
     <MetaInteractionContext.Provider value={contextValue}>
@@ -1047,17 +1048,26 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
               <div
                 className="pointer-events-none absolute inset-0 z-[0] overflow-hidden"
                 data-wall-stage={wallStage}
-                data-floor-treatment="pending-replacement"
+                data-floor-treatment="dedicated-floor"
                 id="meta-wall-surface"
               >
                 <img
                   src={`/assets/meta-wall-stage-${wallStage}.png`}
                   alt=""
                   className="absolute left-[-10%] top-[-11.6%] h-[94.6%] w-[120%] max-w-none object-fill"
-                  data-source-floor="temporarily-visible"
+                  data-source-floor="covered-by-floor"
                   id="meta-wall-art"
                 />
               </div>
+            )}
+            {floorStage > 0 && (
+              <img
+                src={`/assets/meta-floor-stage-${floorStage}.png`}
+                alt=""
+                className="pointer-events-none absolute left-1/2 top-[28%] z-[1] h-full w-auto max-w-none -translate-x-1/2"
+                data-floor-stage={floorStage}
+                id="meta-floor-art"
+              />
             )}
             <div className="absolute inset-x-0 top-[59%] h-px bg-amber-100/15 shadow-[0_1px_18px_rgba(255,210,150,0.08)]" />
             <div className="absolute left-[7%] top-[8%] h-36 w-36 rounded-full bg-amber-100/12 blur-[70px]" />

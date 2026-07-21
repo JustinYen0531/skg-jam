@@ -2,6 +2,7 @@ import type { PuzzleChapter } from '../types';
 
 export type EnvironmentChapter = 0 | PuzzleChapter;
 export type MetaWallStage = 0 | 1 | 2 | 3 | 4 | 5;
+export type MetaFloorStage = MetaWallStage;
 export type DeskLighting = 'hidden' | 'cool' | 'focused' | 'still' | 'ready';
 export type CoffeeState = 'none' | 'fresh' | 'sipped' | 'half' | 'near-empty' | 'empty' | 'tipped-empty' | 'pushed-away';
 export type CableState = 'none' | 'loose' | 'connected';
@@ -236,3 +237,8 @@ export const getChapterEnvironment = (chapter: EnvironmentChapter): ChapterEnvir
  * deliberate steps without leaking the generated floor into the desk layer. */
 export const getMetaWallStage = (chapter: EnvironmentChapter): MetaWallStage =>
   chapter === 0 ? 0 : Math.ceil(chapter / 2) as MetaWallStage;
+
+/** Match each supplied floor state to the same two-chapter room-aging beat as
+ * its corresponding wall state. */
+export const getMetaFloorStage = (chapter: EnvironmentChapter): MetaFloorStage =>
+  chapter === 0 ? 0 : Math.ceil(chapter / 2) as MetaFloorStage;

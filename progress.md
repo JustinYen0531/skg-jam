@@ -402,3 +402,11 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Tightened the resting perspective to 1500 px so the phone's converging side edges follow the annotated desk-edge direction while preserving the 0.60 device scale.
 - Moved the resting phone upward from 16% to 8%, placing its raised far edge near the wooden desk's upper surface.
 - Used the explicitly requested Preview at 1289×530 to verify the table-rest silhouette and placement.
+
+## 2026-07-21 — Five-stage floor artwork integration
+
+- Imported `floor1.png` through `floor5.png` as `meta-floor-stage-1.png` through `meta-floor-stage-5.png`, preserving the original workspace files.
+- Mapped Chapters 1–2, 3–4, 5–6, 7–8, and 9–10 to the five increasingly worn floor states; Chapter 0 remains free of the Meta environment.
+- Positioned the transparent floor artwork at 28% scene height with full-scene height, making its measured visible top edge meet the wall/floor boundary near 58% while its widening trapezoid overscans the lower scene edges.
+- Layered the floor above the wall artwork and below the wooden desk, phone, hands, and chapter props; the floor now covers the temporary floor strip embedded in the wall source.
+- Browser Preview remains intentionally omitted under the repository's static-analysis-only rule; 93 static tests, TypeScript lint, production build, and diff checks pass.

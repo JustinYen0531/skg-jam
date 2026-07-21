@@ -1,7 +1,12 @@
 import { strict as assert } from 'node:assert';
 import { existsSync, readFileSync } from 'node:fs';
 import { test } from 'node:test';
-import { CHAPTER_ENVIRONMENTS, getChapterEnvironment, getMetaWallStage } from '../src/lib/chapterEnvironment';
+import {
+  CHAPTER_ENVIRONMENTS,
+  getChapterEnvironment,
+  getMetaFloorStage,
+  getMetaWallStage,
+} from '../src/lib/chapterEnvironment';
 
 test('defines one deterministic physical environment for Chapter 0 through 10', () => {
   assert.deepEqual(Object.keys(CHAPTER_ENVIRONMENTS).map(Number), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
@@ -88,8 +93,28 @@ test('the supplied wall artwork ages in five stages and keeps its complete lower
   assert.match(sceneSource, /absolute inset-0 z-\[0\] overflow-hidden/);
   assert.match(sceneSource, /src=\{`\/assets\/meta-wall-stage-\$\{wallStage\}\.png`\}/);
   assert.match(sceneSource, /left-\[-10%\] top-\[-11\.6%\] h-\[94\.6%\] w-\[120%\]/);
-  assert.match(sceneSource, /data-source-floor="temporarily-visible"/);
-  assert.match(sceneSource, /data-floor-treatment="pending-replacement"/);
+  assert.match(sceneSource, /data-source-floor="covered-by-floor"/);
+  assert.match(sceneSource, /data-floor-treatment="dedicated-floor"/);
+});
+
+test('the supplied floor artwork shares each state across two chapters and meets the wall edge', () => {
+  assert.deepEqual(
+    Array.from({ length: 11 }, (_, chapter) => getMetaFloorStage(chapter as keyof typeof CHAPTER_ENVIRONMENTS)),
+    [0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5],
+  );
+
+  for (let stage = 1; stage <= 5; stage += 1) {
+    assert.equal(
+      existsSync(new URL(`../public/assets/meta-floor-stage-${stage}.png`, import.meta.url)),
+      true,
+    );
+  }
+
+  const sceneSource = readFileSync(new URL('../src/components/MetaInteractionScene.tsx', import.meta.url), 'utf8');
+  assert.match(sceneSource, /id="meta-floor-art"/);
+  assert.match(sceneSource, /src=\{`\/assets\/meta-floor-stage-\$\{floorStage\}\.png`\}/);
+  assert.match(sceneSource, /left-1\/2 top-\[28%\] z-\[1\] h-full w-auto max-w-none -translate-x-1\/2/);
+  assert.match(sceneSource, /data-floor-stage=\{floorStage\}/);
 });
 
 test('the physical environment is display-only and does not mutate progress', () => {
