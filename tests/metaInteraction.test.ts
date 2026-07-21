@@ -115,7 +115,7 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   assert.match(sceneSource, /src="\/assets\/meta-desk-table\.png"/);
   assert.match(
     sceneSource,
-    /left-1\/2 top-\[-14%\] z-\[2\] h-\[212%\] w-auto max-w-none -translate-x-1\/2/,
+    /left-1\/2 top-\[-52%\] z-\[2\] h-\[212%\] w-auto max-w-none -translate-x-1\/2/,
   );
   assert.doesNotMatch(sceneSource, /object-contain object-bottom/);
   assert.match(sceneSource, /id="meta-desk-table-art"/);

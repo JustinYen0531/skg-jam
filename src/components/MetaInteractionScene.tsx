@@ -596,7 +596,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
             <img
               src="/assets/meta-desk-table.png"
               alt=""
-              className="pointer-events-none absolute left-1/2 top-[-14%] z-[2] h-[212%] w-auto max-w-none -translate-x-1/2"
+              className="pointer-events-none absolute left-1/2 top-[-52%] z-[2] h-[212%] w-auto max-w-none -translate-x-1/2"
               id="meta-desk-table-art"
             />
             <ChapterEnvironment chapter={chapter} reducedMotion={reducedMotion} layer="lighting" />
