@@ -1,5 +1,6 @@
 import React from 'react';
 import { BadgePercent, MapPin, PackageCheck, SlidersHorizontal } from 'lucide-react';
+import type { ChapterThreeStorefrontDistraction } from '../lib/chapterThreeDialogue';
 
 export type AmazeMartDepartment = 'all' | 'deals' | 'tech' | 'home' | 'trending';
 export type AmazeMartPriceFilter = 'all' | 'under-25' | 'rated-45';
@@ -10,6 +11,7 @@ interface AmazeMartSidebarProps {
   searchMode: boolean;
   onDepartmentChange: (department: AmazeMartDepartment) => void;
   onPriceFilterChange: (filter: AmazeMartPriceFilter) => void;
+  onDistraction: (kind: ChapterThreeStorefrontDistraction) => void;
 }
 
 const DEPARTMENTS: readonly { id: AmazeMartDepartment; label: string; count: string }[] = [
@@ -32,6 +34,7 @@ export const AmazeMartSidebar: React.FC<AmazeMartSidebarProps> = ({
   searchMode,
   onDepartmentChange,
   onPriceFilterChange,
+  onDistraction,
 }) => (
   <aside className="sticky top-0 space-y-2.5" aria-label="AmazeMart shopping filters" id="am-sidebar">
     <section className="overflow-hidden rounded-lg border border-slate-800 bg-slate-900/80" id="am-sidebar-departments">
@@ -74,16 +77,16 @@ export const AmazeMartSidebar: React.FC<AmazeMartSidebarProps> = ({
       </div>
     </section>
 
-    <section className="rounded-lg border border-slate-800 bg-slate-900/80 p-2.5" id="am-sidebar-delivery">
+    <button type="button" onClick={() => onDistraction('delivery')} className="w-full rounded-lg border border-slate-800 bg-slate-900/80 p-2.5 text-left" id="am-sidebar-delivery">
       <div className="flex items-center gap-1.5 text-[8px] font-bold text-slate-300"><MapPin className="h-3 w-3 text-amber-400" /> Deliver to Harborview</div>
       <p className="mt-1.5 text-[7px] leading-relaxed text-slate-500">Next estimated window<br /><span className="font-mono text-slate-300">08:00–11:00*</span></p>
       <div className="mt-2 flex items-center gap-1 border-t border-slate-800 pt-2 text-[6px] text-emerald-400/70"><PackageCheck className="h-3 w-3" /> 2,481 couriers nearby-ish</div>
-    </section>
+    </button>
 
-    <section className="rounded-lg border border-amber-400/15 bg-gradient-to-br from-amber-400/[0.08] to-slate-900/70 p-2.5" id="am-sidebar-sponsored">
+    <button type="button" onClick={() => onDistraction('member')} className="w-full rounded-lg border border-amber-400/15 bg-gradient-to-br from-amber-400/[0.08] to-slate-900/70 p-2.5 text-left" id="am-sidebar-sponsored">
       <div className="flex items-center gap-1 text-[6px] font-mono uppercase tracking-wider text-amber-300/70"><BadgePercent className="h-3 w-3" /> Member-ish</div>
       <p className="mt-1 text-[8px] font-bold leading-snug text-slate-300">Pay less shipping by buying considerably more.</p>
       <p className="mt-1.5 text-[5px] leading-relaxed text-slate-600">Terms, fees, minimums, and new terms may apply before checkout.</p>
-    </section>
+    </button>
   </aside>
 );

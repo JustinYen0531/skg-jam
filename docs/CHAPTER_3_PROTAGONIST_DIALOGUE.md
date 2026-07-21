@@ -1,6 +1,6 @@
-# Chapter 3 主角內心獨白規格（審核草稿）
+# Chapter 3 主角內心獨白（A 版正式規格）
 
-> 狀態：僅供審核，尚未接入遊戲。範圍從 Chapter 2 確認舊版只能由 Lumen Arc 開啟開始，到玩家簽收並收到一包尚未檢查的螢幕截圖、進入 Chapter 4 為止。
+> 狀態：已核准並接入遊戲。範圍從 Chapter 2 確認舊版只能由 Lumen Arc 開啟開始，到玩家簽收並收到一包尚未檢查的螢幕截圖、進入 Chapter 4 為止。
 
 ## 本章作用
 
@@ -169,16 +169,16 @@ Seller Relay 只會在玩家接受風險並實際讀到「What score belongs to 
 
 優點是直接碰到保存主題；缺點是比較像作者總結，主角此時可能顯得太快理解整個故事。
 
-## 建議審核的四個決定
+## 已核准決定
 
-1. Chapter 3 結尾採 A、B 或 C；目前草稿偏向 A。
+1. Chapter 3 結尾採 A。
 2. 主角是否應在看到 `$1.84` 時明確聯想到 ARC_184；目前只說價格「trying very hard to mean something」，把最後一步留給玩家。
 3. 正確輸入 `184` 後的 `The score was sitting in the name the whole time.` 是否太直接；它只在玩家已自行輸入答案後出現。
 4. 本章吐槽量是否合適；目前一般商品、分類、篩選與廣告採分組共用，不替每個按鈕增加獨立台詞。
 
-## 未來實作接線範圍
+## Runtime 接線範圍
 
-本文件核准後，正式 runtime 才應新增 Chapter 3 dialogue helper，並接入：
+本文件已核准，正式 runtime 新增 Chapter 3 dialogue helper，並接入：
 
 - Chapter 3 進入、首頁、AmazeMart 首次開啟與搜尋框。
 - 搜尋建議、正確與錯誤搜尋、一般商品與 sidebar 分組反應。

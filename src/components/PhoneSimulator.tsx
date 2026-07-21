@@ -28,6 +28,11 @@ import {
   getChapterTwoWrongAppDialogue,
 } from '../lib/chapterTwoDialogue';
 import {
+  CHAPTER_THREE_DIALOGUE,
+  getChapterThreeCompanionDialogue,
+  getChapterThreeWrongAppDialogue,
+} from '../lib/chapterThreeDialogue';
+import {
   getChapterPhoneSignals,
   type PhoneLauncherApp,
 } from '../lib/chapterPhoneSignals';
@@ -120,6 +125,8 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   const chapterOneHomeEntryShown = useRef(false);
   const chapterTwoAppAttempt = useRef(0);
   const chapterTwoHomeAttempt = useRef(0);
+  const chapterThreeAppAttempt = useRef(0);
+  const chapterThreeHomeAttempt = useRef(0);
   const reminderListRef = useRef<HTMLDivElement>(null);
 
   // Chapter-advance transition: an "evidence collected" banner the moment a
@@ -249,16 +256,27 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
     if (app === 'messages' && chapterThreeOrderPhase !== 'idle') {
       setSellerMessageUnread(false);
     }
-    if ((progress.currentChapter === 1 || progress.currentChapter === 2) && metaInteraction.active) {
+    if ((progress.currentChapter === 1 || progress.currentChapter === 2 || progress.currentChapter === 3) && metaInteraction.active) {
       const dialogue = progress.currentChapter === 1
         ? (app === 'viewtube'
         ? CHAPTER_ONE_DIALOGUE.viewTubeOpened
         : getChapterOneWrongAppDialogue(app, chapterOneAppAttempt.current))
-        : (app === 'browser'
+        : progress.currentChapter === 2
+          ? (app === 'browser'
           ? CHAPTER_TWO_DIALOGUE.browserOpened
-          : getChapterTwoWrongAppDialogue(app, chapterTwoAppAttempt.current));
+          : getChapterTwoWrongAppDialogue(app, chapterTwoAppAttempt.current))
+          : (app === 'amazemart'
+            ? (chapterThreeOrderPhase === 'verified'
+              ? CHAPTER_THREE_DIALOGUE.signatureAvailable
+              : [...CHAPTER_THREE_DIALOGUE.amazeMartOpened, ...CHAPTER_THREE_DIALOGUE.storefrontVisible])
+            : app === 'messages' && chapterThreeOrderPhase !== 'idle'
+              ? (chapterThreeOrderPhase === 'verified'
+                ? CHAPTER_THREE_DIALOGUE.sellerMatched
+                : CHAPTER_THREE_DIALOGUE.sellerRelayOpened)
+              : getChapterThreeWrongAppDialogue(app, chapterThreeAppAttempt.current));
       if (progress.currentChapter === 1 && app !== 'viewtube') chapterOneAppAttempt.current += 1;
       if (progress.currentChapter === 2 && app !== 'browser') chapterTwoAppAttempt.current += 1;
+      if (progress.currentChapter === 3 && app !== 'amazemart') chapterThreeAppAttempt.current += 1;
       if (chapterOneDialogueTimer.current) clearTimeout(chapterOneDialogueTimer.current);
       // Commit navigation first. Chapter 1 is the only chapter that also
       // updates the parent Meta dialogue on launch; separating those updates
@@ -328,6 +346,14 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
           : getChapterTwoCompanionDialogue(attempt - 1),
       );
       chapterTwoHomeAttempt.current += 1;
+    } else if (progress.currentChapter === 3 && metaInteraction.active) {
+      const attempt = chapterThreeHomeAttempt.current;
+      metaInteraction.speak(
+        attempt === 0
+          ? CHAPTER_THREE_DIALOGUE.homeReturned
+          : getChapterThreeCompanionDialogue(attempt - 1),
+      );
+      chapterThreeHomeAttempt.current += 1;
     }
   };
 

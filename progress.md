@@ -687,3 +687,11 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Kept the Chapter 3 knowledge boundary before screenshot inspection: the protagonist cannot name Silver Kite, interpret SKG, identify later people, or describe image contents.
 - Offered three ending strengths, with the restrained evidence-first version marked as the current draft preference pending user approval.
 - Browser verification remains intentionally omitted under the repository rule; document structure, English dialogue lines, source flow, and diff checks are the review boundary.
+
+## 2026-07-22 — Chapter 3 protagonist dialogue runtime (Ending A)
+
+- Promoted the reviewed Chapter 3 dialogue document to the approved A specification and added a dedicated dialogue helper with evidence-aware search, storefront, wrong-app, and seller-code responses.
+- Wired restrained protagonist reactions into Chapter 3 entry/home navigation, AmazeMart products and sidebar noise, the Lumen Arc search trail, suppressed seller, risk confirmation, Messages verification, signature, and screenshot-packet ending.
+- Preserved the knowledge boundary: pre-delivery dialogue cannot explain SKG, Silver Kite, later people, or the contents of the screenshot packet; only signing completes Chapter 3.
+- Added static tests for the A ending, English-only dialogue, evidence boundaries, grouped reactions, runtime connections, and the existing sign-only completion point.
+- Browser verification remains intentionally omitted under the repository rule; full tests, TypeScript lint, production build, and diff checks are the acceptance boundary.

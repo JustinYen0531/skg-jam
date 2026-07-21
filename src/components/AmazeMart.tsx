@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { GameProgress } from '../types';
 import audio from '../lib/audio';
 import { canUseProgressionAction, completePuzzleChapter } from '../lib/chapterProgress';
@@ -9,6 +9,12 @@ import {
   type AmazeMartOrderPhase,
 } from '../lib/amazemartPuzzle';
 import { useMetaInteraction } from './MetaInteractionScene';
+import {
+  CHAPTER_THREE_DIALOGUE,
+  getChapterThreeSearchResponse,
+  getChapterThreeStorefrontDistractionDialogue,
+  type ChapterThreeStorefrontDistraction,
+} from '../lib/chapterThreeDialogue';
 import {
   AmazeMartSidebar,
   type AmazeMartDepartment,
@@ -67,7 +73,7 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({
   onOpenMessages,
   onOpenScreenshots,
 }) => {
-  const { tapElement } = useMetaInteraction();
+  const metaInteraction = useMetaInteraction();
   const [searchQuery, setSearchQuery] = useState('');
   const [searched, setSearched] = useState(progress.deliveredPhone || orderPhase !== 'idle');
   const [searchError, setSearchError] = useState('');
@@ -78,6 +84,17 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({
   const [priceFilter, setPriceFilter] = useState<AmazeMartPriceFilter>('all');
   const [orderRequestPending, setOrderRequestPending] = useState(false);
   const [recommendedProducts] = useState(() => shuffleFeed(AMAZEMART_PRODUCTS, createFeedSeed('amazemart')));
+  const searchAttempt = useRef(0);
+  const distractionAttempt = useRef(0);
+
+  const speakChapterThree = (lines: readonly string[]) => {
+    if (progress.currentChapter === 3 && metaInteraction.active) metaInteraction.speak(lines);
+  };
+
+  const speakDistraction = (kind: ChapterThreeStorefrontDistraction) => {
+    speakChapterThree(getChapterThreeStorefrontDistractionDialogue(kind, distractionAttempt.current));
+    distractionAttempt.current += 1;
+  };
 
   const storefrontProducts = recommendedProducts.filter((product) => {
     const matchesDepartment = department === 'all' || AMAZEMART_DEPARTMENT_PRODUCTS[department].includes(product.id);
@@ -92,6 +109,9 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     audio.playTick();
+    const response = getChapterThreeSearchResponse(searchQuery, searchAttempt.current);
+    speakChapterThree(response.lines);
+    searchAttempt.current += 1;
     if (isLumenArcSearch(searchQuery)) {
       if (!canUseProgressionAction('amazemart-lumen-search', progress)) {
         audio.playGlitch();
@@ -114,15 +134,18 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({
     if (shouldRevealSuppressedSeller(event.currentTarget)) {
       setSellerRevealed(true);
       audio.playGlitch();
+      speakChapterThree(CHAPTER_THREE_DIALOGUE.sellerRevealed);
     }
   };
 
   const handleOrderRequest = () => {
     if (orderRequestPending) return;
     setOrderRequestPending(true);
-    tapElement('am-buy-button', () => {
+    speakChapterThree(CHAPTER_THREE_DIALOGUE.orderRequested);
+    metaInteraction.tapElement('am-buy-button', () => {
       setOrderRequestPending(false);
       setMerchantPhase('risk-confirm');
+      speakChapterThree(CHAPTER_THREE_DIALOGUE.riskVisible);
     });
   };
 
@@ -132,10 +155,12 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({
     audio.play('amazemart.purchase');
     setMerchantPhase('browsing');
     onRequestSellerVerification();
+    speakChapterThree([...CHAPTER_THREE_DIALOGUE.riskAccepted, ...CHAPTER_THREE_DIALOGUE.sellerNotification]);
   };
 
   const handleSignDelivery = () => {
     audio.playTick();
+    speakChapterThree(CHAPTER_THREE_DIALOGUE.approvedEndingA);
     updateProgress((prev) => completePuzzleChapter(prev, 3, {
       orderedPhone: true,
       deliveredPhone: true,
@@ -158,6 +183,7 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({
             placeholder="Search recalled phones..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            onFocus={() => speakChapterThree(CHAPTER_THREE_DIALOGUE.searchFocused)}
             className="w-full bg-amber-950/20 text-xs text-indigo-950 placeholder-amber-900/60 px-2.5 py-1.5 pr-8 rounded border border-amber-600 focus:outline-none font-medium"
             id="am-search-input"
           />
@@ -200,7 +226,7 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({
 
             <div className="grid grid-cols-2 gap-2" id="am-product-feed">
               {storefrontProducts.slice(0, 8).map((product, index) => (
-                <article key={product.id} className="rounded-lg overflow-hidden bg-slate-900 border border-slate-800">
+                <article key={product.id} onClick={() => speakDistraction('product')} className="cursor-pointer rounded-lg overflow-hidden bg-slate-900 border border-slate-800">
                   <div className={`h-20 bg-gradient-to-br ${product.gradient} relative flex items-center justify-center`}>
                     <span className="text-4xl text-white/90 drop-shadow-lg">{product.symbol}</span>
                     <span className={`absolute left-1.5 top-1.5 text-[7px] font-black px-1.5 py-0.5 rounded ${index % 3 === 0 ? 'bg-red-600 text-white' : 'bg-amber-300 text-slate-950'}`}>{product.badge}</span>
@@ -221,7 +247,7 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({
             </div>
 
             <button
-              onClick={() => { audio.playTick(); setSearchQuery('Lumen Arc'); }}
+              onClick={() => { audio.playTick(); setSearchQuery('Lumen Arc'); speakChapterThree(CHAPTER_THREE_DIALOGUE.recalledSuggestion); }}
               className="w-full rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 flex items-center gap-2 text-left"
               id="am-recalled-suggestion"
             >
@@ -249,7 +275,7 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({
 
                 <div className="grid grid-cols-2 gap-2" id="am-search-decoys">
                   {recommendedProducts.slice(0, 8).map((product) => (
-                    <article key={`search-${product.id}`} className="overflow-hidden rounded-lg border border-slate-800 bg-slate-900">
+                    <article key={`search-${product.id}`} onClick={() => speakChapterThree(CHAPTER_THREE_DIALOGUE.decoyResults)} className="cursor-pointer overflow-hidden rounded-lg border border-slate-800 bg-slate-900">
                       <div className={`relative flex h-16 items-center justify-center bg-gradient-to-br ${product.gradient}`}>
                         <span className="text-3xl text-white/90 drop-shadow-lg">{product.symbol}</span>
                         <span className="absolute left-1.5 top-1.5 rounded bg-slate-950/80 px-1.5 py-0.5 text-[7px] font-black text-white">SPONSORED</span>
@@ -266,14 +292,14 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({
                 </div>
 
                 {!sellerRevealed ? (
-                  <div className="rounded-lg border border-dashed border-slate-700 bg-slate-950/60 p-3 text-center" id="am-hidden-results-hint">
+                  <button type="button" onClick={() => speakChapterThree(CHAPTER_THREE_DIALOGUE.filteredRecords)} className="w-full rounded-lg border border-dashed border-slate-700 bg-slate-950/60 p-3 text-center" id="am-hidden-results-hint">
                     <div className="text-[9px] font-mono text-slate-500">KEEP SCROLLING · 3 MARKETPLACE RECORDS STILL FILTERED</div>
-                  </div>
+                  </button>
                 ) : (
                   <article className="overflow-hidden rounded-lg border border-red-500/45 bg-red-950/20 shadow-[0_0_24px_rgba(239,68,68,0.12)]" id="am-suppressed-seller">
                     <button
                       type="button"
-                      onClick={() => { audio.playTick(); setSellerExpanded((current) => !current); }}
+                      onClick={() => { audio.playTick(); setSellerExpanded((current) => !current); speakChapterThree(CHAPTER_THREE_DIALOGUE.sellerExpanded); }}
                       className="flex w-full items-center gap-3 p-3 text-left"
                       id="am-expand-seller"
                     >
@@ -298,7 +324,7 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({
                           <div className="rounded bg-slate-950 p-1.5">NO WARRANTY</div>
                           <div className="rounded bg-slate-950 p-1.5">NO COMMON SENSE</div>
                         </div>
-                        <div className="space-y-1.5 border-t border-red-500/15 pt-2.5" id="am-reviews">
+                        <div onClick={() => speakChapterThree(CHAPTER_THREE_DIALOGUE.reviewsSeen)} className="cursor-pointer space-y-1.5 border-t border-red-500/15 pt-2.5" id="am-reviews">
                           <div className="text-[10px] font-bold text-slate-400">Customer reviews (mostly bots)</div>
                           <div className="text-[9px] text-slate-400"><span className="text-amber-400">★☆☆☆☆</span> nostalgia_hoarder — “arrived as a folder of screenshots.”</div>
                           <div className="text-[9px] text-slate-400"><span className="text-amber-400">★★★★★</span> paperweight_enjoyer — “great paperweight. does not turn on.”</div>
@@ -399,8 +425,9 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({
             department={department}
             priceFilter={priceFilter}
             searchMode={searched}
-            onDepartmentChange={(nextDepartment) => { audio.playTick(); setDepartment(nextDepartment); }}
-            onPriceFilterChange={(nextFilter) => { audio.playTick(); setPriceFilter(nextFilter); }}
+            onDepartmentChange={(nextDepartment) => { audio.playTick(); setDepartment(nextDepartment); speakDistraction('department'); }}
+            onPriceFilterChange={(nextFilter) => { audio.playTick(); setPriceFilter(nextFilter); speakDistraction('price'); }}
+            onDistraction={speakDistraction}
           />
         </div>
       </div>
@@ -412,7 +439,7 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({
             <h2 className="mt-2 font-display text-base font-black text-white">ARE YOU SURE?</h2>
             <p className="mt-1 text-[10px] leading-relaxed text-slate-300">This seller is unverified. The listing may be fraudulent, unsafe, imaginary, or all three.</p>
             <div className="mt-4 grid grid-cols-2 gap-2">
-              <button type="button" onClick={() => setMerchantPhase('browsing')} className="rounded border border-slate-600 py-2 text-[10px] font-bold text-slate-300" id="am-risk-cancel">GO BACK</button>
+              <button type="button" onClick={() => { setMerchantPhase('browsing'); speakChapterThree(CHAPTER_THREE_DIALOGUE.riskCancelled); }} className="rounded border border-slate-600 py-2 text-[10px] font-bold text-slate-300" id="am-risk-cancel">GO BACK</button>
               <button type="button" onClick={handleAcceptRisk} className="rounded bg-red-500 py-2 text-[10px] font-black text-white hover:bg-red-400" id="am-risk-accept">I ACCEPT THE RISK</button>
             </div>
           </div>

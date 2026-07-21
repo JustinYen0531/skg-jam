@@ -4,6 +4,7 @@ import audio from '../lib/audio';
 import { canUseProgressionAction, completePuzzleChapter } from '../lib/chapterProgress';
 import { isSellerCodeAccepted, type AmazeMartOrderPhase } from '../lib/amazemartPuzzle';
 import { useMetaInteraction } from './MetaInteractionScene';
+import { CHAPTER_THREE_DIALOGUE, getChapterThreeSellerCodeResponse } from '../lib/chapterThreeDialogue';
 import { KeyRound, MessageCircle, PackageCheck, Send, ShieldAlert } from 'lucide-react';
 
 interface MessagesAppProps {
@@ -120,10 +121,15 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
   };
 
   const verifySellerCode = () => {
+    const response = getChapterThreeSellerCodeResponse(sellerCode);
+    if (progress.currentChapter === 3 && metaInteraction.active) metaInteraction.speak(response.lines);
     if (isSellerCodeAccepted(sellerCode)) {
       setSellerCodeError('');
       onSellerVerified();
       audio.play('amazemart.delivery');
+      if (progress.currentChapter === 3 && metaInteraction.active) {
+        metaInteraction.speak([...response.lines, ...CHAPTER_THREE_DIALOGUE.sellerMatched]);
+      }
       return;
     }
 
@@ -173,7 +179,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
           </button>
           {chapterThreeOrderPhase !== 'idle' && (
             <button
-              onClick={() => { audio.play('phone.tab'); setActiveTab('seller'); }}
+              onClick={() => { audio.play('phone.tab'); setActiveTab('seller'); if (progress.currentChapter === 3 && metaInteraction.active) metaInteraction.speak(CHAPTER_THREE_DIALOGUE.sellerRelayOpened); }}
               className={`relative flex-1 rounded-full py-1.5 text-[9.5px] font-medium transition-colors ${
                 activeTab === 'seller' ? 'bg-[#1f6f54] text-white' : 'text-slate-400 hover:text-slate-200'
               }`}
