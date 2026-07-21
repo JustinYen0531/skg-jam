@@ -85,11 +85,12 @@ export const getMetaDevicePostureAction = (
   metaViewActive: boolean,
   interactionPending: boolean,
   targetInsidePhone: boolean,
+  targetOnRestSurface: boolean,
   deviceResting: boolean,
 ): MetaDevicePostureAction => {
   if (!metaViewActive || interactionPending) return null;
   if (deviceResting) return targetInsidePhone ? 'wake' : null;
-  return targetInsidePhone ? null : 'rest';
+  return !targetInsidePhone && targetOnRestSurface ? 'rest' : null;
 };
 
 export const getMetaCameraPitch = (pointerY: number, sceneHeight: number): number => {

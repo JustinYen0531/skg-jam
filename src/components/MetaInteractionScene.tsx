@@ -896,11 +896,15 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
     if (!(source instanceof Element)) return;
 
     const targetInsidePhone = Boolean(source.closest('#phone-bezel'));
+    const targetOnRestSurface = Boolean(
+      source.closest('[data-meta-rest-surface="room-background"]'),
+    );
     const postureAction = getMetaDevicePostureAction(
       active,
       pendingRef.current,
       targetInsidePhone,
       deviceResting,
+      targetOnRestSurface,
     );
     if (postureAction) {
       const nextResting = postureAction === 'rest';
@@ -917,7 +921,8 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
 
       // A click on the resting screen lifts the device immediately, then keeps
       // travelling through the normal input path so the requested tap is not
-      // discarded. Desk clicks only change posture and have no second action.
+      // discarded. Whitelisted background clicks only change posture and have
+      // no second action.
       if (!targetInsidePhone) {
         event.preventDefault();
         event.stopPropagation();
@@ -1104,6 +1109,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
             transition={{ duration: reducedMotion ? 0 : 0.9 }}
             className="absolute inset-0"
             aria-hidden="true"
+            data-meta-rest-surface="room-background"
           >
             <div className="absolute inset-0 bg-black" />
             {wallStage > 0 && (

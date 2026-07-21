@@ -1,5 +1,12 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-21 — Strict Meta click-to-rest allowlist
+
+- Replaced the broad “anything outside `#phone-bezel` rests the device” rule with an explicit room-background allowlist.
+- Blank home-screen touches, device chrome, transparent visual layers, hands, and unknown targets can no longer trigger the resting posture.
+- Only the marked wall/floor/desk background layer can rest an upright device; only the device itself can wake it.
+- Browser validation remains intentionally omitted per project instruction; static tests, TypeScript, and production build are used for verification.
+
 ## 2026-07-21 — Phone-local Chapter 1 replay fullscreen
 
 - The Chapter 1 ARC_184 replay now fills only `#phone-bezel`, never the player's browser viewport or `document.body`.
