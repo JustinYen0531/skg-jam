@@ -1,5 +1,12 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-22 — Reliable Chapter 3 order interaction
+
+- Traced the hard-to-click `ORDER INSTANT` report to the Meta click relay: it consumed the native click, waited about 610 ms for the hand animation, and silently dropped repeated clicks while the first interaction was pending.
+- Kept the Meta hand animation but moved this button onto an explicit immediate-receipt path. Its first click now changes the label to `REACHING...`, disables duplicate input, and opens the risk confirmation when the hand reaches it.
+- Confirmed the coffee and foreground environment were already `pointer-events: none`; no physical-scene layer was intercepting the button.
+- Added source-level regression coverage for immediate receipt, pending feedback, and manual hand relay. Static verification passed: 141/141 tests, TypeScript lint, production build, and diff checks.
+
 ## 2026-07-22 — Active desktop Chapter 3 synchronization
 
 - Confirmed from the user's screenshot that the running desktop worktree still contained the legacy direct-purchase AmazeMart card even though the new flow had already reached `origin/main`.

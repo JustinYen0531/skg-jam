@@ -8,6 +8,7 @@ import {
   isSellerCodeAccepted,
   shouldRevealSuppressedSeller,
 } from '../lib/amazemartPuzzle';
+import { useMetaInteraction } from './MetaInteractionScene';
 import {
   AmazeMartSidebar,
   type AmazeMartDepartment,
@@ -57,6 +58,7 @@ interface AmazeMartProps {
 type MerchantPhase = 'browsing' | 'risk-confirm' | 'notification' | 'relay' | 'ready-to-sign';
 
 export const AmazeMart: React.FC<AmazeMartProps> = ({ progress, updateProgress, onOpenScreenshots }) => {
+  const { tapElement } = useMetaInteraction();
   const [searchQuery, setSearchQuery] = useState('');
   const [searched, setSearched] = useState(progress.deliveredPhone);
   const [searchError, setSearchError] = useState('');
@@ -67,6 +69,7 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({ progress, updateProgress, 
   const [sellerCodeError, setSellerCodeError] = useState('');
   const [department, setDepartment] = useState<AmazeMartDepartment>('all');
   const [priceFilter, setPriceFilter] = useState<AmazeMartPriceFilter>('all');
+  const [orderRequestPending, setOrderRequestPending] = useState(false);
   const [recommendedProducts] = useState(() => shuffleFeed(AMAZEMART_PRODUCTS, createFeedSeed('amazemart')));
 
   const storefrontProducts = recommendedProducts.filter((product) => {
@@ -107,6 +110,15 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({ progress, updateProgress, 
       setSellerRevealed(true);
       audio.playGlitch();
     }
+  };
+
+  const handleOrderRequest = () => {
+    if (orderRequestPending) return;
+    setOrderRequestPending(true);
+    tapElement('am-buy-button', () => {
+      setOrderRequestPending(false);
+      setMerchantPhase('risk-confirm');
+    });
   };
 
   const handleAcceptRisk = () => {
@@ -303,11 +315,13 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({ progress, updateProgress, 
                         {merchantPhase === 'browsing' && (
                           <button
                             type="button"
-                            onClick={() => setMerchantPhase('risk-confirm')}
-                            className="flex w-full items-center justify-center gap-1.5 rounded bg-amber-500 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400"
+                            disabled={orderRequestPending}
+                            onClick={handleOrderRequest}
+                            data-meta-immediate="true"
+                            className="flex w-full items-center justify-center gap-1.5 rounded bg-amber-500 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400 disabled:cursor-wait disabled:bg-amber-300"
                             id="am-buy-button"
                           >
-                            <Package className="h-4 w-4" /> ORDER INSTANT
+                            <Package className="h-4 w-4" /> {orderRequestPending ? 'REACHING...' : 'ORDER INSTANT'}
                           </button>
                         )}
                       </div>

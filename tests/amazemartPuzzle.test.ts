@@ -45,6 +45,10 @@ test('AmazeMart requires warning, relay verification, and signature before chapt
   assert.match(source, /id="am-seller-notification"/);
   assert.match(source, /id="am-seller-relay"/);
   assert.match(source, /id="am-sign-delivery"/);
+  assert.match(source, /data-meta-immediate="true"/);
+  assert.match(source, /setOrderRequestPending\(true\)/);
+  assert.match(source, /tapElement\('am-buy-button'/);
+  assert.match(source, /orderRequestPending \? 'REACHING\.\.\.' : 'ORDER INSTANT'/);
   assert.match(source, /onClick=\{handleSignDelivery\}/);
   assert.match(source, /const handleSignDelivery[\s\S]*completePuzzleChapter\(prev, 3/);
   assert.doesNotMatch(source, /setTimeout\([\s\S]{0,300}completePuzzleChapter\(prev, 3/);
