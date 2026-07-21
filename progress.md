@@ -1,9 +1,9 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
-## 2026-07-21 — Disable click-to-rest posture switching
+## 2026-07-21 — Restrict click-to-rest to the background
 
-- New request: clicking anywhere on the Meta screen must never put the phone down on the desk.
-- Disabled click-driven device posture actions at the pure interaction rule, while preserving phone buttons, inputs, wheel gestures, and hand-tap handling.
+- Clarified request: clicking the device screen must not put it down, while clicking the desk, wall, or other background must still enter the resting view.
+- Device-screen clicks preserve the upright posture; outside clicks rest it. Once resting, only clicking the device wakes it, while background clicks keep it resting.
 - Browser validation remains intentionally omitted per project instruction; static tests, TypeScript, and production build are used for verification.
 
 ## 2026-07-19
