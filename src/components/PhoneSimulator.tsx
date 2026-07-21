@@ -489,7 +489,11 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
               <div className="flex-1 min-w-0 flex items-center justify-center relative">
                 <div className="w-full max-w-[680px] flex flex-col gap-[clamp(14px,2.8cqh,30px)] px-1">
 
-                <div className="grid grid-cols-4 justify-items-center gap-y-[clamp(18px,3.4cqh,36px)]" id="home-apps-grid">
+                <div
+                  className="grid grid-cols-4 justify-items-center gap-y-[clamp(18px,3.4cqh,36px)]"
+                  id="home-apps-grid"
+                  data-meta-immediate="true"
+                >
                   <button
                     onClick={() => handleLaunchApp('flappy')}
                     className="group flex flex-col items-center gap-1.5 min-w-0"

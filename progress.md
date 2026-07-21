@@ -13,6 +13,12 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - The transition overlay only accepts pointer input while it is visibly on screen, preventing an invisible first-frame or fading overlay from blocking app launchers.
 - Browser validation remains intentionally omitted per project instruction; automated tests, type-checking, and production build are the verification boundary.
 
+## 2026-07-21 — Restore native home launcher clicks
+
+- The Meta hand relay was preventing the replayed launcher click from reaching ViewTube and the other home-screen apps in the reported Chapter 1 state.
+- The main home app grid now uses native immediate clicks; visual hand animation can no longer block navigation.
+- Added a source-level regression test for the ViewTube launcher and immediate grid boundary.
+
 ## 2026-07-21 — Strict Meta click-to-rest allowlist
 
 - Replaced the broad “anything outside `#phone-bezel` rests the device” rule with an explicit room-background allowlist.

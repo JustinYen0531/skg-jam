@@ -205,6 +205,16 @@ test('virtual keyboard is embedded in the phone surface at sixty percent opacity
   assert.match(scene, /bottom-\[7%\]/);
 });
 
+test('home-screen launchers bypass the delayed hand relay so apps always open', () => {
+  const phoneSource = readFileSync(new URL('../src/components/PhoneSimulator.tsx', import.meta.url), 'utf8');
+  assert.match(
+    phoneSource,
+    /id="home-apps-grid"\s+data-meta-immediate="true"/,
+  );
+  assert.match(phoneSource, /id="launcher-viewtube"/);
+  assert.match(phoneSource, /onClick=\{\(\) => handleLaunchApp\('viewtube'\)\}/);
+});
+
 test('meta camera uses layered anatomical hands instead of rounded placeholder blobs', () => {
   const sceneSource = readFileSync(
     new URL('../src/components/MetaInteractionScene.tsx', import.meta.url),
