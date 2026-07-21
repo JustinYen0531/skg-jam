@@ -2,11 +2,32 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   DEBUG_CHAPTERS,
+  getChapterAdvanceGuide,
   getChapterSnapshot,
   getChapterById,
   canUseProgressionAction,
   completePuzzleChapter,
 } from './chapterProgress';
+
+test('every chapter has an English-only guide for reaching the next stage', () => {
+  for (const chapter of DEBUG_CHAPTERS) {
+    const guide = getChapterAdvanceGuide(chapter.id);
+    const guideText = [guide.nextLabel, guide.objective, ...guide.steps, guide.completion].join(' ');
+
+    assert.equal(guide.chapter, chapter.id);
+    assert.equal(guide.steps.length, 3);
+    assert.doesNotMatch(guideText, /[\u3400-\u9fff]/u);
+  }
+});
+
+test('Chapter 1 guide describes the real ViewTube path into Chapter 2', () => {
+  const guide = getChapterAdvanceGuide(1);
+
+  assert.equal(guide.nextLabel, 'CHAPTER 02');
+  assert.match(guide.steps.join(' '), /ViewTube/);
+  assert.match(guide.steps.join(' '), /ARC_184/);
+  assert.match(guide.completion, /Lumen Arc/);
+});
 
 test('defines exactly ten ordered GDD puzzle chapters', () => {
   assert.equal(DEBUG_CHAPTERS.length, 10);

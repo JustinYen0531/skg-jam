@@ -15,6 +15,127 @@ export interface DebugChapter {
   targetApp: ActiveApp;
 }
 
+export interface ChapterAdvanceGuide {
+  chapter: PuzzleChapter;
+  nextLabel: string;
+  objective: string;
+  steps: readonly string[];
+  completion: string;
+}
+
+const CHAPTER_ADVANCE_GUIDES: Record<PuzzleChapter, ChapterAdvanceGuide> = {
+  1: {
+    chapter: 1,
+    nextLabel: 'CHAPTER 02',
+    objective: 'Identify how ARC_184 crossed Gate 40.',
+    steps: [
+      'Open ViewTube and search for ARC_184.',
+      'Open the controversial Gate 40 run and let the evidence clip play.',
+      'Select ARC_184\'s highlighted reply beneath the video.',
+    ],
+    completion: 'The Lumen Arc hardware lead is confirmed.',
+  },
+  2: {
+    chapter: 2,
+    nextLabel: 'CHAPTER 03',
+    objective: 'Recover the archived version built for the old device.',
+    steps: [
+      'Open Browser and locate the archived Skyline 256 download page.',
+      'Review the LAOS compatibility and native altitude sensor requirements.',
+      'Download Skyline256_LAOS_Final.ipa.',
+    ],
+    completion: 'The archived build is downloaded.',
+  },
+  3: {
+    chapter: 3,
+    nextLabel: 'CHAPTER 04',
+    objective: 'Obtain a Lumen Arc that can run the archived build.',
+    steps: [
+      'Open AmazeMart and search for Lumen Arc.',
+      'Open the recalled-device listing.',
+      'Buy the device and wait for the delivery to finish.',
+    ],
+    completion: 'The delivery arrives and unlocks the screenshot bundle.',
+  },
+  4: {
+    chapter: 4,
+    nextLabel: 'CHAPTER 05',
+    objective: 'Identify the original game and its developer.',
+    steps: [
+      'Open the newly unlocked Screenshots app.',
+      'Select and enlarge the first printed screenshot.',
+      'Read the old title and the SilverKite_Games account name.',
+    ],
+    completion: 'SKG: Skyline 256 is identified.',
+  },
+  5: {
+    chapter: 5,
+    nextLabel: 'CHAPTER 06',
+    objective: 'Trace SKG Automation back to the company it replaced.',
+    steps: [
+      'Open Browser and search for SKG.',
+      'Review the current SKG Automation page.',
+      'Switch the Snapshot control from 2026 to 2014.',
+    ],
+    completion: 'The Silver Kite Games archive and Noah Kade are revealed.',
+  },
+  6: {
+    chapter: 6,
+    nextLabel: 'CHAPTER 07',
+    objective: 'Find Noah Kade\'s earliest surviving posts.',
+    steps: [
+      'Open FaceSpace and search for Noah Kade.',
+      'Open his profile results.',
+      'Change the post order to Oldest First.',
+    ],
+    completion: 'Mara\'s old comment and the family connection are found.',
+  },
+  7: {
+    chapter: 7,
+    nextLabel: 'CHAPTER 08',
+    objective: 'Turn Noah\'s favorite numbers into an archive key.',
+    steps: [
+      'Open Noah Kade\'s About tab in FaceSpace.',
+      'Find the number sequence 184-40-256.',
+      'Open Messages, return to Mom, and select ASSEMBLE COORDINATE KEY.',
+    ],
+    completion: 'The Silver Kite archive login is unlocked.',
+  },
+  8: {
+    chapter: 8,
+    nextLabel: 'CHAPTER 09',
+    objective: 'Log in to Mara\'s preserved Silver Kite account.',
+    steps: [
+      'Open Messages and select SILVER_KITE_ARCHIVE.',
+      'Enter ALT184GATE40END256 as the coordinate password.',
+      'Submit the archive login form.',
+    ],
+    completion: 'The private 2014 message archive opens.',
+  },
+  9: {
+    chapter: 9,
+    nextLabel: 'CHAPTER 10',
+    objective: 'Recover the hidden flight route from Noah\'s messages.',
+    steps: [
+      'Read the private Mara and Noah archive conversation.',
+      'Scroll to the attachment beneath the final route message.',
+      'Select RECOVER ATTACHED FLIGHT SEQUENCE.',
+    ],
+    completion: 'The eight altitude targets are added to Flappy.',
+  },
+  10: {
+    chapter: 10,
+    nextLabel: 'ENDING',
+    objective: 'Use Noah\'s route to finish the game he left behind.',
+    steps: [
+      'Open Flappy and start a new run.',
+      'At Gates 40–47, match 184, 172, 149, 133, 121, 118, 126, and 143.',
+      'Continue through the restored game until Gate 256.',
+    ],
+    completion: 'Reaching the true ending unlocks the final choice.',
+  },
+};
+
 type ChapterEvidence = Partial<Pick<GameProgress,
   | 'viewTubeSearchedArc'
   | 'watchedVideo'
@@ -82,6 +203,10 @@ export function getChapterById(chapter: PuzzleChapter): DebugChapter {
   const result = DEBUG_CHAPTERS.find((entry) => entry.id === chapter);
   if (!result) throw new Error(`Unknown puzzle chapter: ${chapter}`);
   return result;
+}
+
+export function getChapterAdvanceGuide(chapter: PuzzleChapter): ChapterAdvanceGuide {
+  return CHAPTER_ADVANCE_GUIDES[chapter];
 }
 
 export function getChapterSnapshot(chapter: PuzzleChapter): GameProgress {

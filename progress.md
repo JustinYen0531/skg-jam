@@ -334,3 +334,11 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Kept the shared interaction path: button taps and both scroll directions still use `meta-tapping-finger.png`.
 - Preserved the existing `-90deg` transform so the new source artwork points toward the upper-left in every interaction.
 - Added a static asset fingerprint guard; browser validation remains intentionally omitted per project instruction.
+
+## 2026-07-21 — Developer chapter advance guide
+
+- Replaced the developer panel's evidence recordings and raw progress flags with a dynamic English chapter-advance guide.
+- Each Chapter 1–10 snapshot now shows its next destination, objective, three required player actions, and the exact completion condition.
+- Chapter 1 specifically guides ViewTube search, evidence playback, and the ARC_184 reply that advances into Chapter 2; Chapter 10 guides the altitude route into the ending.
+- Added static coverage for all-English guide copy, all ten chapter mappings, and removal of the obsolete evidence/flag panels.
+- Browser validation remains intentionally omitted per project instruction.

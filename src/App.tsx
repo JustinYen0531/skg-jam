@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { GameProgress, PuzzleChapter } from './types';
 import { PhoneSimulator } from './components/PhoneSimulator';
 import { MetaInteractionScene } from './components/MetaInteractionScene';
-import { DEBUG_CHAPTERS, getChapterById, getChapterSnapshot } from './lib/chapterProgress';
+import { DEBUG_CHAPTERS, getChapterAdvanceGuide, getChapterById, getChapterSnapshot } from './lib/chapterProgress';
 import { shouldRevealMetaView, shouldShowMetaScene } from './lib/metaInteraction';
 import audio from './lib/audio';
 import music, { getMusicPhase } from './lib/music';
 import { 
-  FileText, Shield, Award, Terminal, RefreshCw, Volume2, VolumeX,
-  Sparkles, CheckCircle, Database, HelpCircle, Archive, Globe, Cpu
+  Award, Terminal, RefreshCw, Volume2, VolumeX,
+  Sparkles, CheckCircle, Database, HelpCircle, Archive, Globe
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -146,22 +146,7 @@ export default function App() {
     }));
   };
 
-  const debugFlags = [
-    ['Gate 40 deaths', progress.deathsAt40],
-    ['Leaderboard seen', progress.seenLeaderboard],
-    ['ARC_184 searched', progress.viewTubeSearchedArc],
-    ['Replay watched', progress.watchedVideo],
-    ['Archive downloaded', progress.archiveDownloaded],
-    ['Phone delivered', progress.deliveredPhone],
-    ['Original title found', progress.discoveredOriginalTitle],
-    ['SKG history found', progress.discoveredSKGHistory],
-    ['Noah Q&A found', progress.discoveredNoahQA],
-    ['Admin login unlocked', progress.unlockedAdminLogin],
-    ['Admin logged in', progress.loggedIntoAdmin],
-    ['Code route unlocked', progress.unlockedCodeRoute],
-    ['Game completed', progress.completedGame],
-  ] as const;
-
+  const chapterAdvanceGuide = getChapterAdvanceGuide(progress.currentChapter);
   const metaSceneActive = shouldShowMetaScene(metaViewActive, debugMode);
 
   return (
@@ -243,103 +228,48 @@ export default function App() {
             </div>
           </div>
 
-          {/* Unlocked Clues list (Dynamic Bento feed) */}
-          <div className="space-y-3" id="clues-feed">
-            <h3 className="font-mono text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-              EVIDENCE RECORDINGS
-            </h3>
-
-            <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
-              
-              {/* Clue 1: The Discrepancy */}
-              <div className={`p-3 rounded-xl border text-xs transition-all flex gap-2.5 ${
-                progress.deathsAt40 >= 1
-                  ? 'bg-slate-900/80 border-slate-800 text-slate-200' 
-                  : 'bg-slate-950/20 border-slate-900/40 text-slate-600'
-              }`} id="evidence-discrepancy">
-                <Shield className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
-                <div className="space-y-1">
-                  <div className="font-bold">The Blocker Discrepancy</div>
-                  <p className="text-[10px] text-slate-400 leading-snug">
-                    {progress.deathsAt40 >= 1
-                      ? `Failed at Gate 40 (${progress.deathsAt40} times). Leaderboard tied perfectly at score 40. Suspicion: Real colliders bypassed.`
-                      : 'Investigation inactive. Play the mobile game to encounter the blocker.'}
-                  </p>
-                </div>
-              </div>
-
-              {/* Clue 2: Obsolete phone */}
-              <div className={`p-3 rounded-xl border text-xs transition-all flex gap-2.5 ${
-                progress.watchedVideo 
-                  ? 'bg-slate-900/80 border-slate-800 text-slate-200' 
-                  : 'bg-slate-950/20 border-slate-900/40 text-slate-600'
-              }`} id="evidence-recalled-device">
-                <Globe className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
-                <div className="space-y-1">
-                  <div className="font-bold">The Recalled Console</div>
-                  <p className="text-[10px] text-slate-400 leading-snug">
-                    {progress.watchedVideo 
-                      ? 'ARC_184 run video shows he bypassed 40 using "Lumen Arc" phone with native altitude sensor. Tapping frequency unlocks collision bounds!'
-                      : 'No hardware references discovered yet.'}
-                  </p>
-                </div>
-              </div>
-
-              {/* Clue 3: Original Identity */}
-              <div className={`p-3 rounded-xl border text-xs transition-all flex gap-2.5 ${
-                progress.discoveredOriginalTitle 
-                  ? 'bg-slate-900/80 border-slate-800 text-slate-200' 
-                  : 'bg-slate-950/20 border-slate-900/40 text-slate-600'
-              }`} id="evidence-original-title">
-                <FileText className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                <div className="space-y-1">
-                  <div className="font-bold">Identity: Skyline 256</div>
-                  <p className="text-[10px] text-slate-400 leading-snug">
-                    {progress.discoveredOriginalTitle 
-                      ? 'The slop game was originally named "SKG: Skyline 256" by "Silver Kite Games". It was built with a clear end at gate 256.' 
-                      : 'Original developers and brand identities remain obscured.'}
-                  </p>
-                </div>
-              </div>
-
-              {/* Clue 4: Decrypted path */}
-              <div className={`p-3 rounded-xl border text-xs transition-all flex gap-2.5 ${
-                progress.unlockedCodeRoute 
-                  ? 'bg-emerald-950/20 border-emerald-500/30 text-emerald-300' 
-                  : 'bg-slate-950/20 border-slate-900/40 text-slate-600'
-              }`} id="evidence-bypass-code">
-                <Cpu className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5 animate-pulse" />
-                <div className="space-y-1">
-                  <div className="font-bold">Collision Bypass Gained</div>
-                  <p className="text-[10px] text-slate-400 leading-snug">
-                    {progress.unlockedCodeRoute 
-                      ? 'Successfully logged in. Acquired flight heights near Gate 40: ALT 184, 172, 149, 133, 121, 118, 126, 143. Calibration sensor active!'
-                      : 'Developer coordinates locked.'}
-                  </p>
-                </div>
-              </div>
-
+          <section className="space-y-3" id="debug-chapter-guide">
+            <div className="flex items-center justify-between gap-3">
+              <h3 className="font-mono text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                Chapter advance guide
+              </h3>
+              <span className="font-mono text-[9px] text-emerald-400">
+                CHAPTER {progress.currentChapter.toString().padStart(2, '0')} → {chapterAdvanceGuide.nextLabel}
+              </span>
             </div>
-          </div>
 
-          <div className="space-y-2" id="debug-progress-flags">
-            <h3 className="font-mono text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-              Progress flags
-            </h3>
-            <div className="grid grid-cols-1 gap-1 rounded-xl border border-slate-800 bg-black/20 p-2 font-mono text-[9px]">
-              {debugFlags.map(([label, value]) => {
-                const active = typeof value === 'number' ? value > 0 : value;
-                return (
-                  <div key={label} className="flex items-center justify-between gap-3">
-                    <span className="truncate text-slate-500">{label}</span>
-                    <span className={active ? 'text-emerald-400' : 'text-slate-700'}>
-                      {typeof value === 'number' ? value : active ? 'TRUE' : 'FALSE'}
+            <div className="rounded-xl border border-emerald-500/25 bg-emerald-950/10 p-3.5" id="chapter-guide-card">
+              <p className="text-xs font-bold leading-snug text-slate-100" id="chapter-guide-objective">
+                {chapterAdvanceGuide.objective}
+              </p>
+
+              <div className="mt-3 font-mono text-[8px] font-bold uppercase tracking-[0.18em] text-slate-500">
+                Required steps
+              </div>
+              <ol className="mt-2 space-y-2" id="chapter-guide-steps">
+                {chapterAdvanceGuide.steps.map((step, index) => (
+                  <li key={step} className="flex gap-2.5 text-[10px] leading-snug text-slate-300">
+                    <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-emerald-500/35 bg-emerald-500/10 font-mono text-[8px] text-emerald-300">
+                      {index + 1}
                     </span>
+                    <span>{step}</span>
+                  </li>
+                ))}
+              </ol>
+
+              <div className="mt-3 flex gap-2 border-t border-slate-800 pt-3" id="chapter-guide-completion">
+                <CheckCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400" />
+                <div>
+                  <div className="font-mono text-[8px] font-bold uppercase tracking-[0.16em] text-emerald-400">
+                    Advances when
                   </div>
-                );
-              })}
+                  <p className="mt-1 text-[9px] leading-snug text-slate-400">
+                    {chapterAdvanceGuide.completion}
+                  </p>
+                </div>
+              </div>
             </div>
-          </div>
+          </section>
 
         </div>
 
