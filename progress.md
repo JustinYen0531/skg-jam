@@ -665,3 +665,11 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Disabled storefront filters during the broad Lumen Arc results mode so the full decoy feed and scroll-triggered suppressed seller remain reachable inside the original `am-body` scroll container.
 - Kept the sidebar visually secondary and free of notification, recommendation, or puzzle-answer cues.
 - Browser verification remains intentionally omitted under the repository rule; static layout tests, TypeScript lint, full tests, production build, and diff checks are the acceptance boundary.
+
+## 2026-07-22 — Chapter 3 protagonist dialogue review draft
+
+- Added `docs/CHAPTER_3_PROTAGONIST_DIALOGUE.md` as a review-only continuation of the Chapter 1 and Chapter 2 voice specifications; no runtime dialogue was wired.
+- Matched the current AmazeMart route exactly: storefront/search noise, filtered records, suppressed seller, Meta order reach, risk confirmation, seller relay, `184`, signature, and screenshot-packet delivery.
+- Kept the Chapter 3 knowledge boundary before screenshot inspection: the protagonist cannot name Silver Kite, interpret SKG, identify later people, or describe image contents.
+- Offered three ending strengths, with the restrained evidence-first version marked as the current draft preference pending user approval.
+- Browser verification remains intentionally omitted under the repository rule; document structure, English dialogue lines, source flow, and diff checks are the review boundary.
