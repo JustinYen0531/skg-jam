@@ -150,20 +150,35 @@ export const ChapterTwoArchiveFinder: React.FC<ChapterTwoArchiveFinderProps> = (
         <div className="mt-3 flex gap-4 border-t border-white/[0.06] pt-2 font-mono text-[8px] text-slate-600"><span>18,406 records</span><span>2004–2016</span><span>Mirrors checked monthly</span></div>
       </header>
 
-      <div className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-600" />
-        <input value={query} onChange={(event) => setQuery(event.target.value)} onFocus={() => speakChapterTwo(CHAPTER_TWO_DIALOGUE.archiveSearchFocused)} placeholder={`Search ${selectedFormat.toUpperCase()} filenames`} className="w-full rounded-md border border-white/[0.08] bg-black/20 py-2 pl-9 pr-3 text-[10px] text-slate-300 outline-none placeholder:text-slate-600 focus:border-slate-600" id="chapter-two-archive-search" />
-      </div>
+      <section className="grid grid-cols-3 gap-1.5" aria-label="Archive index overview" id="archive-index-overview">
+        <div className="rounded border border-white/[0.06] bg-slate-900/25 px-2.5 py-2"><div className="font-mono text-[10px] text-slate-300">2,914</div><div className="mt-0.5 text-[6px] uppercase tracking-wider text-slate-600">mobile builds</div></div>
+        <div className="rounded border border-white/[0.06] bg-slate-900/25 px-2.5 py-2"><div className="font-mono text-[10px] text-slate-300">638</div><div className="mt-0.5 text-[6px] uppercase tracking-wider text-slate-600">working mirrors</div></div>
+        <div className="rounded border border-white/[0.06] bg-slate-900/25 px-2.5 py-2"><div className="font-mono text-[10px] text-slate-300">03:40</div><div className="mt-0.5 text-[6px] uppercase tracking-wider text-slate-600">last index pass</div></div>
+      </section>
 
-      <nav className="flex flex-wrap gap-1.5 border-b border-white/[0.07] pb-2" aria-label="Package formats" id="chapter-two-package-formats">
-        {ARCHIVE_FORMATS.map((format) => (
-          <button key={format.id} type="button" onClick={() => chooseFormat(format.id)} className={`rounded-full border px-2.5 py-1 text-[9px] transition-colors ${selectedFormat === format.id ? 'border-slate-500 bg-slate-700/50 text-slate-100' : 'border-slate-800 bg-slate-900/40 text-slate-500 hover:border-slate-700 hover:text-slate-300'}`} data-package-format={format.id} title={format.label}>
-            {format.extension}
-          </button>
-        ))}
-      </nav>
+      <section className="space-y-1.5" aria-label="Search the archive catalog">
+        <div className="relative">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-600" />
+          <input value={query} onChange={(event) => setQuery(event.target.value)} onFocus={() => speakChapterTwo(CHAPTER_TWO_DIALOGUE.archiveSearchFocused)} placeholder={`Search ${selectedFormat.toUpperCase()} filenames`} className="w-full rounded-md border border-white/[0.08] bg-black/20 py-2 pl-9 pr-3 text-[10px] text-slate-300 outline-none placeholder:text-slate-600 focus:border-slate-600" id="chapter-two-archive-search" />
+        </div>
+        <div className="flex flex-wrap items-center gap-1.5 px-1 text-[6px] text-slate-700" id="archive-popular-searches">
+          <span className="uppercase tracking-wider">Popular:</span><span>carrier exclusives</span><span>·</span><span>touch games</span><span>·</span><span>unsigned demos</span><span>·</span><span>manual scans</span>
+        </div>
+      </section>
+
+      <section className="space-y-1.5">
+        <div className="flex items-center justify-between"><h2 className="text-[7px] font-semibold uppercase tracking-[0.14em] text-slate-600">Browse package formats</h2><span className="font-mono text-[6px] text-slate-700">5 collections</span></div>
+        <nav className="flex flex-wrap gap-1.5 border-b border-white/[0.07] pb-2" aria-label="Package formats" id="chapter-two-package-formats">
+          {ARCHIVE_FORMATS.map((format) => (
+            <button key={format.id} type="button" onClick={() => chooseFormat(format.id)} className={`rounded-full border px-2.5 py-1 text-[9px] transition-colors ${selectedFormat === format.id ? 'border-slate-500 bg-slate-700/50 text-slate-100' : 'border-slate-800 bg-slate-900/40 text-slate-500 hover:border-slate-700 hover:text-slate-300'}`} data-package-format={format.id} title={format.label}>
+              {format.extension}
+            </button>
+          ))}
+        </nav>
+      </section>
 
       <div className="overflow-hidden rounded-md border border-white/[0.07] bg-black/15" id={`chapter-two-${selectedFormat}-records`}>
+        <div className="flex items-center justify-between border-b border-white/[0.05] px-3 py-2 text-[7px] text-slate-600"><span>{ARCHIVE_FORMATS.find((format) => format.id === selectedFormat)?.label}</span><span className="font-mono">showing {visibleRecords.length} / {ARCHIVE_RECORDS[selectedFormat].length}</span></div>
         <div className="grid grid-cols-[minmax(0,1fr)_72px_42px_90px] gap-2 border-b border-white/[0.07] px-3 py-1.5 text-[7px] font-semibold uppercase tracking-wider text-slate-600">
           <span>Filename</span><span>Platform</span><span>Year</span><span>Status</span>
         </div>
@@ -175,6 +190,10 @@ export const ChapterTwoArchiveFinder: React.FC<ChapterTwoArchiveFinderProps> = (
           <div className="px-3 py-8 text-center text-[9px] text-slate-600">No filenames in this category match your search.</div>
         )}
       </div>
+      <section className="grid grid-cols-2 gap-2" id="archive-catalog-notes">
+        <article className="rounded border border-white/[0.06] bg-slate-900/20 p-2.5"><div className="text-[6px] uppercase tracking-wider text-slate-600">Catalog note</div><p className="mt-1 text-[7px] leading-relaxed text-slate-500">Package names are preserved exactly as submitted. Platform labels may reflect uploader notes rather than verified hardware.</p></article>
+        <article className="rounded border border-white/[0.06] bg-slate-900/20 p-2.5"><div className="text-[6px] uppercase tracking-wider text-slate-600">Volunteer queue</div><p className="mt-1 text-[7px] leading-relaxed text-slate-500">184 records await signature checks. Estimated review time: somewhere between tomorrow and never.</p></article>
+      </section>
       <p className="text-[8px] leading-relaxed text-slate-600">This index preserves catalog information. Some original mirrors are unavailable, incomplete, unsigned, or require discontinued hardware.</p>
     </section>
   );

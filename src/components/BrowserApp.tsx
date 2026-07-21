@@ -3,6 +3,7 @@ import { GameProgress } from '../types';
 import audio from '../lib/audio';
 import { canUseProgressionAction, completePuzzleChapter } from '../lib/chapterProgress';
 import { ChapterTwoArchiveFinder } from './ChapterTwoArchiveFinder';
+import { BrowserPortalNoise } from './BrowserPortalNoise';
 import { useMetaInteraction } from './MetaInteractionScene';
 import {
   CHAPTER_TWO_DIALOGUE,
@@ -271,39 +272,82 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
       {/* Main Browser Content area */}
       <div className="flex-1 overflow-y-auto p-3 bg-[#0d0f14] font-sans" id="browser-viewport">
         {archiveFinderOpen ? (
-          <ChapterTwoArchiveFinder
-            attempted={progress.archiveDownloaded}
-            dialogueActive={progress.currentChapter === 2}
-            onCompatibilityDiscovered={handleCompatibilityDiscovered}
-          />
+          <div className="grid min-h-full grid-cols-[minmax(112px,0.72fr)_minmax(300px,1.7fr)_minmax(112px,0.72fr)] items-start gap-3" id="archive-portal-layout">
+            <BrowserPortalNoise surface="archive" side="left" />
+            <ChapterTwoArchiveFinder
+              attempted={progress.archiveDownloaded}
+              dialogueActive={progress.currentChapter === 2}
+              onCompatibilityDiscovered={handleCompatibilityDiscovered}
+            />
+            <BrowserPortalNoise surface="archive" side="right" />
+          </div>
         ) : searchedKeyword === null ? (
           /* Browser home: a SearchFinder-branded landing page. Nothing here
              names SKG — the player has to type and search it themselves. */
-          <div className="flex h-full flex-col items-center justify-center gap-5 px-2 pb-10 pt-6 text-center" id="browser-landing">
-            <div className="space-y-1.5">
-              <div className="flex items-center justify-center gap-1.5 text-2xl font-black tracking-tight">
-                <span className="text-blue-400">Search</span><span className="text-slate-300">Finder</span>
-              </div>
-              <p className="text-[10px] text-slate-500">The web, exactly as advertisers want you to see it.</p>
-            </div>
-            <div className="text-[9px] font-mono text-slate-600">↑ type a search term or address above</div>
-            <div className="w-full max-w-[280px] space-y-1.5 pt-2" id="browser-landing-trending">
-              <div className="text-left text-[9px] font-bold uppercase tracking-wider text-slate-600">Trending Today</div>
-              {(progress.currentChapter === 2
-                ? [...BROWSER_LANDING_TRENDING.slice(0, 2), 'I want to find an old game file', BROWSER_LANDING_TRENDING[3]]
-                : BROWSER_LANDING_TRENDING
-              ).map((topic) => (
-                <button
-                  key={topic}
-                  type="button"
-                  onClick={topic === 'I want to find an old game file' ? openArchiveFinder : () => audio.play('ui.disabled')}
-                  className="block w-full rounded border border-slate-800/70 bg-slate-900/40 px-2.5 py-1.5 text-left text-[10px] text-slate-400 hover:border-slate-700"
-                  id={topic === 'I want to find an old game file' ? 'chapter-two-archive-entry' : undefined}
-                >
-                  {topic}
-                </button>
-              ))}
-            </div>
+          <div className="grid min-h-full grid-cols-[minmax(112px,0.72fr)_minmax(300px,1.7fr)_minmax(112px,0.72fr)] items-start gap-3 pb-4" id="browser-landing">
+            <BrowserPortalNoise surface="search" side="left" />
+            <main className="space-y-3" id="searchfinder-main-column">
+              <header className="overflow-hidden rounded-lg border border-blue-400/10 bg-gradient-to-br from-blue-950/30 via-slate-900/60 to-slate-950/70 px-5 py-5 text-center shadow-[0_12px_40px_rgba(0,0,0,0.18)]">
+                <div className="flex items-center justify-center gap-1.5 text-2xl font-black tracking-tight">
+                  <span className="text-blue-400">Search</span><span className="text-slate-300">Finder</span>
+                </div>
+                <p className="mt-1.5 text-[9px] text-slate-500">The web, exactly as advertisers want you to see it.</p>
+                <div className="mx-auto mt-4 flex max-w-[330px] items-center gap-2 rounded-full border border-white/[0.08] bg-black/20 px-3 py-2 text-left text-[8px] text-slate-600">
+                  <Search className="h-3.5 w-3.5 shrink-0" />
+                  <span className="flex-1">Search from the address bar above</span>
+                  <span className="font-mono text-[6px] text-slate-700">PRIVATE MODE: OFF</span>
+                </div>
+              </header>
+
+              <section className="rounded-md border border-white/[0.07] bg-slate-900/30 p-3" id="browser-landing-trending">
+                <div className="mb-2 flex items-center justify-between">
+                  <h2 className="text-[8px] font-bold uppercase tracking-[0.14em] text-slate-500">Trending Today</h2>
+                  <span className="font-mono text-[6px] text-slate-700">personalized for this device</span>
+                </div>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {(progress.currentChapter === 2
+                    ? [...BROWSER_LANDING_TRENDING.slice(0, 2), 'I want to find an old game file', BROWSER_LANDING_TRENDING[3]]
+                    : BROWSER_LANDING_TRENDING
+                  ).map((topic, index) => (
+                    <button
+                      key={topic}
+                      type="button"
+                      onClick={topic === 'I want to find an old game file' ? openArchiveFinder : () => audio.play('ui.disabled')}
+                      className="flex min-h-10 w-full items-center gap-2 rounded border border-slate-800/70 bg-slate-950/35 px-2.5 py-2 text-left text-[8px] leading-snug text-slate-400 hover:border-slate-700 hover:bg-slate-900/55"
+                      id={topic === 'I want to find an old game file' ? 'chapter-two-archive-entry' : undefined}
+                    >
+                      <span className="font-mono text-[7px] text-slate-700">0{index + 1}</span><span>{topic}</span>
+                    </button>
+                  ))}
+                </div>
+              </section>
+
+              <section className="grid grid-cols-[1.15fr_0.85fr] gap-2.5" id="searchfinder-editorial-feed">
+                <article className="rounded-md border border-white/[0.07] bg-slate-900/30 p-3">
+                  <div className="font-mono text-[6px] uppercase tracking-wider text-blue-300/50">Top story · Technology</div>
+                  <h2 className="mt-1.5 text-[11px] font-semibold leading-snug text-slate-200">The internet is getting easier to search and harder to remember</h2>
+                  <p className="mt-1.5 text-[8px] leading-relaxed text-slate-500">New recommendation systems promise instant answers while independent pages continue disappearing from public indexes.</p>
+                  <div className="mt-2 text-[6px] text-slate-700">6 min read · 1,842 reactions</div>
+                </article>
+                <div className="space-y-2">
+                  <article className="rounded-md border border-white/[0.07] bg-slate-900/30 p-2.5">
+                    <div className="text-[6px] uppercase tracking-wider text-slate-600">Quick read</div>
+                    <h3 className="mt-1 text-[8px] leading-snug text-slate-300">Subscription fatigue now has a subscription tracker</h3>
+                    <p className="mt-1 text-[6px] text-slate-700">Business · 3 min</p>
+                  </article>
+                  <article className="rounded-md border border-white/[0.07] bg-slate-900/30 p-2.5">
+                    <div className="text-[6px] uppercase tracking-wider text-slate-600">Most shared</div>
+                    <h3 className="mt-1 text-[8px] leading-snug text-slate-300">Seven household devices that no longer need accounts</h3>
+                    <p className="mt-1 text-[6px] text-slate-700">Lifestyle · 8 min</p>
+                  </article>
+                </div>
+              </section>
+
+              <footer className="flex items-center justify-between border-t border-white/[0.05] px-1 pt-2 font-mono text-[6px] text-slate-700">
+                <span>About · Privacy · Advertise · Remove result</span><span>SearchFinder Portal 2026.7</span>
+              </footer>
+            </main>
+            <BrowserPortalNoise surface="search" side="right" />
           </div>
         ) : selectedYear === 2026 ? (
           /* Year 2026: Modern corporate slop */
