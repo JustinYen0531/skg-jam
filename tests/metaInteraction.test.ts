@@ -100,7 +100,8 @@ test('rest posture lays down the phone and swaps the grip for desk-plane hands',
   assert.match(scene, /deviceResting \? 'locked-table' : 'mouse-y'/);
   assert.match(scene, /cameraPitchTarget\.set\(META_CAMERA_PITCH\.restDeg\)/);
   assert.match(scene, /deviceResting \? \{ scale: 1, y: '0%' \} : \{ scale: 0\.92, y: '-13%' \}/);
-  assert.match(scene, /const DESK_PHONE_SCALE = 0\.6/);
+  assert.match(scene, /const DESK_PHONE_SCALE = 0\.4/);
+  assert.match(scene, /const DESK_PHONE_VERTICAL_OFFSET = -0\.1/);
   assert.match(scene, /scaleProjectiveQuad\(tableQuad, DESK_PHONE_SCALE\)/);
   assert.match(scene, /formatProjectiveMatrix3d\(getProjectiveTransformMatrix\(source, target\)\)/);
   assert.match(scene, /id="meta-device-projective-plane"/);
@@ -128,7 +129,10 @@ test('desk projection maps the phone to a homothetic quad with parallel correspo
     { x: 678, y: 229 },
     { x: 28, y: 229 },
   ] as const;
-  const phone = scaleProjectiveQuad(desk, 0.6);
+  const phone = scaleProjectiveQuad(desk, 0.4).map((point) => ({
+    x: point.x,
+    y: point.y - 50,
+  })) as typeof desk;
   const source = [
     { x: 0, y: 0 },
     { x: 100, y: 0 },

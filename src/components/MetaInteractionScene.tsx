@@ -502,7 +502,8 @@ const PHONE_SURFACE_SIZE: React.CSSProperties = {
 };
 
 const PHONE_PERSPECTIVE = 1500;
-const DESK_PHONE_SCALE = 0.6;
+const DESK_PHONE_SCALE = 0.4;
+const DESK_PHONE_VERTICAL_OFFSET = -0.1;
 const DESK_IMAGE_SIZE = { width: 707, height: 353 } as const;
 const DESK_SURFACE_QUAD: ProjectiveQuad = [
   { x: 115, y: 136 },
@@ -714,7 +715,10 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
         x: tableRect.left - sceneRect.left + (point.x / DESK_IMAGE_SIZE.width) * tableRect.width,
         y: tableRect.top - sceneRect.top + (point.y / DESK_IMAGE_SIZE.height) * tableRect.height,
       })) as unknown as ProjectiveQuad;
-      const target = scaleProjectiveQuad(tableQuad, DESK_PHONE_SCALE);
+      const target = scaleProjectiveQuad(tableQuad, DESK_PHONE_SCALE).map((point) => ({
+        x: point.x,
+        y: point.y + sceneRect.height * DESK_PHONE_VERTICAL_OFFSET,
+      })) as unknown as ProjectiveQuad;
       plane.style.transform = formatProjectiveMatrix3d(getProjectiveTransformMatrix(source, target));
       plane.dataset.projectiveState = 'desk-quad';
     };

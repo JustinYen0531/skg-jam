@@ -424,3 +424,9 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Kept the floor at 28% scene top and 100% scene height; the viewport therefore retains approximately the upper 72% of the source artwork, closely matching the requested upper-two-thirds crop while keeping the rug visible.
 - Preserved the wall/floor seam, chapter mapping, floor height, and every foreground layer; only the floor's horizontal overscan changed.
 - Browser Preview remains intentionally omitted under the repository's static-analysis-only rule; 94 static tests, TypeScript lint, production build, and diff checks pass.
+
+## 2026-07-21 — Smaller, higher projected phone
+
+- Reduced the homothetic resting-phone quadrilateral from 60% to 40% of the rendered desk surface while preserving exact corresponding-edge parallelism.
+- Shifted all four projected phone corners upward by 10% of scene height, keeping the trapezoid unchanged while opening more foreground and right-side space for the coffee cup and chapter props.
+- Kept the existing desk, coffee, hands, and object-layer transforms unchanged.
