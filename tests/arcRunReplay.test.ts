@@ -2,8 +2,11 @@ import { strict as assert } from 'node:assert';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import {
+  ARC_RUN_EXIT_UNLOCK_MS,
   ARC_RUN_GATE_40_BARRAGE_MS,
   ARC_RUN_REPLAY_DURATION_MS,
+  canExitArcRunFullscreen,
+  getArcRunTimelineProgress,
   getArcRunReplayFrame,
 } from '../src/lib/arcRunReplay';
 
@@ -23,6 +26,14 @@ test('the comment barrage waits until the Gate 40 crossing', () => {
   assert.equal(crossing.score, 40);
   assert.equal(crossing.barrageActive, true);
   assert.equal(getArcRunReplayFrame(20_200).barrageActive, true);
+});
+
+test('fullscreen exit unlocks at the Gate 40 to Gate 41 transition near one third of the timeline', () => {
+  assert.equal(getArcRunReplayFrame(ARC_RUN_EXIT_UNLOCK_MS - 1).score, 40);
+  assert.equal(getArcRunReplayFrame(ARC_RUN_EXIT_UNLOCK_MS).score, 42);
+  assert.equal(canExitArcRunFullscreen(ARC_RUN_EXIT_UNLOCK_MS - 1), false);
+  assert.equal(canExitArcRunFullscreen(ARC_RUN_EXIT_UNLOCK_MS), true);
+  assert.equal(getArcRunTimelineProgress(ARC_RUN_EXIT_UNLOCK_MS), 1 / 3.2);
 });
 
 test('the replay visibly dives from Gate 39 into the impossible Gate 40 route', () => {
@@ -54,22 +65,33 @@ test('the replay loops deterministically', () => {
   );
 });
 
-test('ViewTube uses the real replay canvas and unmasked Gate 40 text', () => {
+test('ViewTube locks the real replay canvas fullscreen until Gate 41', () => {
   const viewTube = readFileSync(new URL('../src/components/ViewTube.tsx', import.meta.url), 'utf8');
   const replay = readFileSync(new URL('../src/components/ArcRunReplay.tsx', import.meta.url), 'utf8');
+  const startVideoStart = viewTube.indexOf('const startVideo = () =>');
+  const startVideoEnd = viewTube.indexOf('const revealReplayControls', startVideoStart);
+  const startVideoSource = viewTube.slice(startVideoStart, startVideoEnd);
   const barrageStart = viewTube.indexOf('id="vt-gate40-danmaku-barrage"');
-  const barrageEnd = viewTube.indexOf('{/* Controls Overlay */}', barrageStart);
+  const barrageEnd = viewTube.indexOf('{replayPaused && (', barrageStart);
   const barrageMarkup = viewTube.slice(barrageStart, barrageEnd);
 
   assert.match(viewTube, /<ArcRunReplay/);
   assert.match(viewTube, /id="vt-gate40-danmaku-barrage"/);
   assert.match(viewTube, /id="vt-ambient-danmaku"/);
-  assert.match(viewTube, /metaInteraction\.tapElement\('arc-run-replay-canvas'/);
-  assert.doesNotMatch(viewTube, /if \(replayPaused\) setReplayPaused\(false\)/);
-  assert.match(viewTube, /END OF EXAMINED CLIP/);
+  assert.match(viewTube, /createPortal\(renderReplayPlayer\(true\), document\.body\)/);
+  assert.match(viewTube, /data-fullscreen-lock=/);
+  assert.match(viewTube, /id="vt-fullscreen-exit"/);
+  assert.match(viewTube, /disabled=\{!replayExitUnlocked\}/);
+  assert.match(viewTube, /onMouseMove=\{revealReplayControls\}/);
+  assert.match(viewTube, /id="vt-replay-timeline-progress"/);
+  assert.match(viewTube, /bg-\[#ff1f1f\]/);
+  assert.match(viewTube, /onPausePoint=\{unlockReplayExit\}/);
+  assert.match(viewTube, /if \(!progress\.watchedVideo && !replayExitUnlocked\)/);
+  assert.doesNotMatch(startVideoSource, /watchedVideo/);
   assert.doesNotMatch(viewTube, /COLLISION_BYPASS_DETECTION/);
   assert.doesNotMatch(viewTube, /Math\.random/);
   assert.doesNotMatch(barrageMarkup, /bg-/);
   assert.match(replay, /const CAPTURE_FPS = 15/);
   assert.match(replay, /id="arc-run-replay-canvas"/);
+  assert.match(replay, /onProgress: \(elapsedMs: number\) => void/);
 });

@@ -2,7 +2,15 @@ import { GATE_40_INDEX, getFlappyNightMix, getGateHeights, SCORE_PER_PIPE } from
 
 export const ARC_RUN_REPLAY_DURATION_MS = 21_500;
 export const ARC_RUN_GATE_40_BARRAGE_MS = 18_550;
-export const ARC_RUN_AUTO_PAUSE_MS = 20_200;
+export const ARC_RUN_EXIT_UNLOCK_MS = 20_027;
+export const ARC_RUN_AUTO_PAUSE_MS = ARC_RUN_EXIT_UNLOCK_MS;
+export const ARC_RUN_TIMELINE_DURATION_MS = ARC_RUN_EXIT_UNLOCK_MS * 3.2;
+
+export const getArcRunTimelineProgress = (elapsedMs: number): number =>
+  Math.max(0, Math.min(1, elapsedMs / ARC_RUN_TIMELINE_DURATION_MS));
+
+export const canExitArcRunFullscreen = (elapsedMs: number): boolean =>
+  elapsedMs >= ARC_RUN_EXIT_UNLOCK_MS;
 
 export interface ArcRunReplayPipe {
   index: number;

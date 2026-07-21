@@ -1,9 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useCallback, useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { GameProgress } from '../types';
 import audio from '../lib/audio';
 import { canUseProgressionAction, completePuzzleChapter } from '../lib/chapterProgress';
 import { useMetaInteraction } from './MetaInteractionScene';
 import { ArcRunReplay } from './ArcRunReplay';
+import {
+  ARC_RUN_TIMELINE_DURATION_MS,
+  canExitArcRunFullscreen,
+  getArcRunTimelineProgress,
+} from '../lib/arcRunReplay';
 import { createFeedSeed, shuffleFeed } from '../lib/pseudoFeed';
 import {
   CHAPTER_ONE_DIALOGUE,
@@ -11,7 +17,7 @@ import {
   getChapterOneIrrelevantVideoDialogue,
   getChapterOneSearchResponse,
 } from '../lib/chapterOneDialogue';
-import { Search, Play, ThumbsUp, MessageSquare, Share2, AlertTriangle, Radio, TrendingUp } from 'lucide-react';
+import { Search, Play, Pause, ThumbsUp, MessageSquare, Share2, AlertTriangle, Radio, TrendingUp, Lock, X } from 'lucide-react';
 
 const VIEWTUBE_FEED = [
   { id: 'vt-1', title: 'I Let An Algorithm Plan My Entire Morning', channel: 'EverydayMax', views: '2.4M views', age: '6 hours ago', duration: '12:08', label: 'LIFE+', gradient: 'from-fuchsia-700 via-purple-700 to-cyan-600' },
@@ -62,6 +68,13 @@ const AMBIENT_DANMAKU = [
   { text: 'watch Gate 40', top: 22, size: 11, duration: 10.8, delay: -5.7 },
 ] as const;
 
+const formatReplayTime = (elapsedMs: number): string => {
+  const totalSeconds = Math.max(0, Math.floor(elapsedMs / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+};
+
 interface ViewTubeProps {
   progress: GameProgress;
   updateProgress: (updater: (prev: GameProgress) => GameProgress) => void;
@@ -73,12 +86,18 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
   const [hasSearched, setHasSearched] = useState(progress.viewTubeSearchedArc);
   const [isPlayingVideo, setIsPlayingVideo] = useState(false);
   const [replayPaused, setReplayPaused] = useState(false);
+  const [replayElapsedMs, setReplayElapsedMs] = useState(0);
+  const [replayFullscreenOpen, setReplayFullscreenOpen] = useState(false);
+  const [replayExitUnlocked, setReplayExitUnlocked] = useState(false);
+  const [replayControlsVisible, setReplayControlsVisible] = useState(true);
   const [searchError, setSearchError] = useState('');
   const [barrageActive, setBarrageActive] = useState(false);
   const [barrageCycle, setBarrageCycle] = useState(0);
   const [recommendedVideos] = useState(() => shuffleFeed(VIEWTUBE_FEED, createFeedSeed('viewtube')));
   const chapterOneSearchAttempt = useRef(0);
   const chapterOneVideoAttempt = useRef(0);
+  const replayExitUnlockedRef = useRef(false);
+  const replayControlsTimerRef = useRef<number | null>(null);
 
   const speakChapterOne = (lines: DialogueLines) => {
     if (progress.currentChapter === 1 && metaInteraction.active) {
@@ -142,9 +161,251 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
     audio.play('viewtube.videoStart');
     setIsPlayingVideo(true);
     setReplayPaused(false);
+    setReplayElapsedMs(0);
+    setReplayFullscreenOpen(true);
+    setReplayExitUnlocked(false);
+    replayExitUnlockedRef.current = false;
+    setReplayControlsVisible(true);
     speakChapterOne(CHAPTER_ONE_DIALOGUE.videoStarted);
-    updateProgress((prev) => ({ ...prev, watchedVideo: true }));
+  };
 
+  const revealReplayControls = useCallback(() => {
+    setReplayControlsVisible(true);
+    if (replayControlsTimerRef.current !== null) {
+      window.clearTimeout(replayControlsTimerRef.current);
+    }
+    replayControlsTimerRef.current = null;
+    if (!replayPaused) {
+      replayControlsTimerRef.current = window.setTimeout(() => {
+        setReplayControlsVisible(false);
+        replayControlsTimerRef.current = null;
+      }, 1800);
+    }
+  }, [replayPaused]);
+
+  const toggleReplayPaused = () => {
+    const nextPaused = !replayPaused;
+    audio.play('viewtube.pause');
+    setReplayPaused(nextPaused);
+    setReplayControlsVisible(true);
+    if (nextPaused) speakChapterOne(CHAPTER_ONE_DIALOGUE.videoPaused);
+  };
+
+  const unlockReplayExit = () => {
+    if (replayExitUnlockedRef.current) return;
+    replayExitUnlockedRef.current = true;
+    setReplayExitUnlocked(true);
+    setReplayPaused(true);
+    setReplayControlsVisible(true);
+    audio.play('viewtube.pause');
+    speakChapterOne(CHAPTER_ONE_DIALOGUE.videoEvidence);
+    updateProgress((prev) => ({ ...prev, watchedVideo: true }));
+  };
+
+  const closeReplayFullscreen = useCallback(() => {
+    if (!replayExitUnlockedRef.current) return;
+    audio.playTick();
+    setReplayFullscreenOpen(false);
+    setReplayControlsVisible(true);
+  }, []);
+
+  useEffect(() => {
+    if (!replayFullscreenOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [replayFullscreenOpen]);
+
+  useEffect(() => {
+    if (!replayFullscreenOpen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        if (replayExitUnlockedRef.current) closeReplayFullscreen();
+        else revealReplayControls();
+        return;
+      }
+      if (event.key === ' ' || event.key === 'Enter') {
+        event.preventDefault();
+        toggleReplayPaused();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [closeReplayFullscreen, replayFullscreenOpen, replayPaused, revealReplayControls]);
+
+  useEffect(() => () => {
+    if (replayControlsTimerRef.current !== null) {
+      window.clearTimeout(replayControlsTimerRef.current);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (replayFullscreenOpen) revealReplayControls();
+  }, [replayFullscreenOpen, replayPaused, revealReplayControls]);
+
+  const renderReplayPlayer = (fullscreen: boolean) => {
+    const hudVisible = replayControlsVisible || replayPaused;
+    const timelinePercent = getArcRunTimelineProgress(replayElapsedMs) * 100;
+    const displayElapsed = formatReplayTime(replayElapsedMs * 2);
+    const displayDuration = formatReplayTime(ARC_RUN_TIMELINE_DURATION_MS * 2);
+
+    return (
+      <div
+        className={`${fullscreen ? 'fixed inset-0 z-[2147483647] h-screen w-screen' : 'absolute inset-0'} flex flex-col justify-between overflow-hidden bg-black text-left text-white ${hudVisible ? 'cursor-default' : 'cursor-none'}`}
+        onClick={toggleReplayPaused}
+        onMouseMove={revealReplayControls}
+        onPointerMove={revealReplayControls}
+        role="button"
+        tabIndex={0}
+        data-fullscreen-lock={fullscreen ? (replayExitUnlocked ? 'unlocked' : 'locked') : 'released'}
+        id="vt-player-active"
+        aria-label={replayPaused ? 'Resume archived replay' : 'Pause archived replay'}
+      >
+        <div className="absolute inset-0 bg-black" id="vt-arc-replay-surface">
+          <ArcRunReplay
+            active={isPlayingVideo}
+            paused={replayPaused}
+            initialElapsedMs={replayElapsedMs}
+            onProgress={(elapsedMs) => {
+              setReplayElapsedMs(elapsedMs);
+              if (canExitArcRunFullscreen(elapsedMs)) unlockReplayExit();
+            }}
+            onBarrageChange={(isActive) => {
+              setBarrageActive(isActive);
+              if (isActive) {
+                setBarrageCycle((cycle) => cycle + 1);
+                audio.play('viewtube.barrage');
+              }
+            }}
+            onPausePoint={unlockReplayExit}
+          />
+          <div
+            className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(130,70,30,0.08),transparent_16%,transparent_82%,rgba(20,30,55,0.13))] mix-blend-color"
+            id="vt-aged-video-wash"
+          />
+        </div>
+
+        <div
+          className="pointer-events-none absolute inset-0 z-10 overflow-hidden"
+          id="vt-ambient-danmaku"
+          aria-hidden="true"
+        >
+          {AMBIENT_DANMAKU.map((dan, index) => (
+            <span
+              key={`${dan.text}-${index}`}
+              style={{
+                top: `${dan.top}%`,
+                fontSize: `${dan.size}px`,
+                animationName: 'danmaku-run',
+                animationDuration: `${dan.duration}s`,
+                animationDelay: `${dan.delay}s`,
+                animationIterationCount: 'infinite',
+                animationPlayState: replayPaused ? 'paused' : 'running',
+              }}
+              className="absolute left-0 whitespace-nowrap font-bold text-white/85 [animation-timing-function:linear] [text-shadow:1px_1px_1px_rgba(0,0,0,.85)]"
+            >
+              {dan.text}
+            </span>
+          ))}
+        </div>
+
+        {barrageActive && (
+          <div
+            key={barrageCycle}
+            className="pointer-events-none absolute inset-0 z-20 overflow-hidden"
+            id="vt-gate40-danmaku-barrage"
+            aria-hidden="true"
+          >
+            {GATE_40_DANMAKU.map((dan, index) => (
+              <span
+                key={`${dan.text}-${index}`}
+                style={{
+                  top: `${dan.top}%`,
+                  left: dan.mode === 'center' ? '50%' : '0',
+                  fontSize: `${dan.size}px`,
+                  animationName: dan.mode === 'center' ? 'danmaku-hold' : 'danmaku-run',
+                  animationDuration: `${dan.duration}s`,
+                  animationDelay: `${dan.delay}s`,
+                  animationPlayState: replayPaused ? 'paused' : 'running',
+                }}
+                className="absolute left-0 whitespace-nowrap font-black text-white [animation-fill-mode:both] [animation-timing-function:linear] [text-shadow:1px_1px_1px_rgba(0,0,0,.9)]"
+              >
+                {dan.text}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {replayPaused && (
+          <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center" id="vt-replay-paused">
+            <span className="font-mono text-[clamp(32px,7vw,76px)] font-black tracking-[0.18em] text-white [text-shadow:0_3px_6px_rgba(0,0,0,.9)]">Ⅱ</span>
+          </div>
+        )}
+
+        <div
+          className={`pointer-events-none absolute inset-x-0 top-0 z-40 flex items-start justify-between bg-gradient-to-b from-black/80 via-black/35 to-transparent px-5 pb-10 pt-4 transition-opacity duration-200 ${hudVisible ? 'opacity-100' : 'opacity-0'}`}
+          id="vt-fullscreen-top-hud"
+        >
+          <div className="min-w-0 pr-4 [text-shadow:0_2px_4px_rgba(0,0,0,.9)]">
+            <div className="truncate text-sm font-bold sm:text-base">ARC_184 — CONTROVERSIAL GATE 40 RUN</div>
+            <div className="mt-0.5 font-mono text-[10px] text-white/60">ARCHIVED MOBILE CAPTURE · 240p</div>
+          </div>
+          {fullscreen && (
+            <button
+              type="button"
+              disabled={!replayExitUnlocked}
+              onClick={(event) => {
+                event.stopPropagation();
+                closeReplayFullscreen();
+              }}
+              className={`pointer-events-auto flex h-10 items-center gap-2 rounded-full border px-3 text-xs font-bold backdrop-blur-md ${replayExitUnlocked ? 'border-white/45 bg-black/55 text-white hover:bg-white/15' : 'cursor-not-allowed border-white/15 bg-black/35 text-white/40'}`}
+              data-exit-unlocked={replayExitUnlocked ? 'true' : 'false'}
+              id="vt-fullscreen-exit"
+              aria-label={replayExitUnlocked ? 'Exit fullscreen replay' : 'Fullscreen exit locked until Gate 41'}
+            >
+              {replayExitUnlocked ? <X className="h-4 w-4" /> : <Lock className="h-3.5 w-3.5" />}
+              <span>{replayExitUnlocked ? 'EXIT' : 'LOCKED'}</span>
+            </button>
+          )}
+        </div>
+
+        <div
+          className={`absolute inset-x-0 bottom-0 z-40 bg-gradient-to-t from-black/95 via-black/65 to-transparent px-4 pb-4 pt-14 transition-opacity duration-200 ${hudVisible ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0'}`}
+          onClick={(event) => event.stopPropagation()}
+          id="vt-player-controls"
+        >
+          <div className="mb-3 h-1.5 w-full overflow-hidden rounded-full bg-white/25 shadow-[0_1px_5px_rgba(0,0,0,0.9)]" id="vt-replay-timeline">
+            <div
+              className="h-full rounded-full bg-[#ff1f1f] shadow-[0_0_8px_rgba(255,31,31,0.65)] transition-[width] duration-75"
+              style={{ width: `${timelinePercent}%` }}
+              data-timeline-progress={timelinePercent.toFixed(3)}
+              id="vt-replay-timeline-progress"
+            />
+          </div>
+          <div className="flex items-center gap-3 text-white">
+            <button
+              type="button"
+              onClick={toggleReplayPaused}
+              className="grid h-9 w-9 place-items-center rounded-full hover:bg-white/15"
+              id="vt-replay-play-pause"
+              aria-label={replayPaused ? 'Resume replay' : 'Pause replay'}
+            >
+              {replayPaused ? <Play className="h-5 w-5 fill-white" /> : <Pause className="h-5 w-5 fill-white" />}
+            </button>
+            <span className="font-mono text-xs [text-shadow:0_2px_4px_rgba(0,0,0,.9)]" id="vt-replay-timecode">
+              {displayElapsed} / {displayDuration}
+            </span>
+            <span className="ml-auto flex items-center gap-1.5 font-mono text-[10px] text-white/65">
+              {!replayExitUnlocked && <Lock className="h-3 w-3" />}
+              {replayExitUnlocked ? 'GATE 41 REACHED · EXIT AVAILABLE' : 'MANDATORY EVIDENCE PLAYBACK'}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -274,103 +535,11 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
               {/* Fake Player Viewport */}
               <div className="aspect-video bg-black relative flex items-center justify-center overflow-hidden" id="vt-player">
                 {isPlayingVideo ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      speakChapterOne(CHAPTER_ONE_DIALOGUE.videoEvidence);
-                    }}
-                    className="absolute inset-0 flex flex-col justify-between overflow-hidden text-left"
-                    id="vt-player-active"
-                  >
-                    <div className="absolute inset-0 bg-black" id="vt-arc-replay-surface">
-                      <ArcRunReplay
-                        active={isPlayingVideo}
-                        paused={replayPaused}
-                        onBarrageChange={(isActive) => {
-                          setBarrageActive(isActive);
-                          if (isActive) {
-                            setBarrageCycle((cycle) => cycle + 1);
-                            // One density-rising sizzle for the whole flood.
-                            audio.play('viewtube.barrage');
-                          }
-                        }}
-                        onPausePoint={() => {
-                          metaInteraction.tapElement('arc-run-replay-canvas', () => {
-                            audio.play('viewtube.pause');
-                            setReplayPaused(true);
-                            speakChapterOne(CHAPTER_ONE_DIALOGUE.videoPaused);
-                          });
-                        }}
-                      />
-                      <div
-                        className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(130,70,30,0.08),transparent_16%,transparent_82%,rgba(20,30,55,0.13))] mix-blend-color"
-                        id="vt-aged-video-wash"
-                      />
+                  replayFullscreenOpen ? (
+                    <div className="flex h-full w-full items-center justify-center bg-black font-mono text-[10px] tracking-[0.2em] text-white/45" id="vt-fullscreen-placeholder">
+                      FULLSCREEN EVIDENCE PLAYBACK ACTIVE
                     </div>
-
-                    <div
-                      className="pointer-events-none absolute inset-0 z-10 overflow-hidden"
-                      id="vt-ambient-danmaku"
-                      aria-hidden="true"
-                    >
-                      {AMBIENT_DANMAKU.map((dan, index) => (
-                        <span
-                          key={`${dan.text}-${index}`}
-                          style={{
-                            top: `${dan.top}%`,
-                            fontSize: `${dan.size}px`,
-                            animationName: 'danmaku-run',
-                            animationDuration: `${dan.duration}s`,
-                            animationDelay: `${dan.delay}s`,
-                            animationIterationCount: 'infinite',
-                            animationPlayState: replayPaused ? 'paused' : 'running',
-                          }}
-                          className="absolute left-0 whitespace-nowrap font-bold text-white/85 [animation-timing-function:linear] [text-shadow:1px_1px_1px_rgba(0,0,0,.85)]"
-                        >
-                          {dan.text}
-                        </span>
-                      ))}
-                    </div>
-
-                    {barrageActive && (
-                      <div
-                        key={barrageCycle}
-                        className="pointer-events-none absolute inset-0 z-20 overflow-hidden"
-                        id="vt-gate40-danmaku-barrage"
-                        aria-hidden="true"
-                      >
-                        {GATE_40_DANMAKU.map((dan, index) => (
-                          <span
-                            key={`${dan.text}-${index}`}
-                            style={{
-                              top: `${dan.top}%`,
-                              left: dan.mode === 'center' ? '50%' : '0',
-                              fontSize: `${dan.size}px`,
-                              animationName: dan.mode === 'center' ? 'danmaku-hold' : 'danmaku-run',
-                              animationDuration: `${dan.duration}s`,
-                              animationDelay: `${dan.delay}s`,
-                              animationPlayState: replayPaused ? 'paused' : 'running',
-                            }}
-                            className="absolute left-0 whitespace-nowrap font-black text-white [animation-fill-mode:both] [animation-timing-function:linear] [text-shadow:1px_1px_1px_rgba(0,0,0,.9)]"
-                          >
-                            {dan.text}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-
-                    {replayPaused && (
-                      <div className="pointer-events-none absolute inset-0 z-30 flex items-center justify-center" id="vt-replay-paused">
-                        <span className="font-mono text-3xl font-black tracking-[0.18em] text-white [text-shadow:0_2px_3px_rgba(0,0,0,.9)]">Ⅱ</span>
-                      </div>
-                    )}
-
-                    {/* Controls Overlay */}
-                    <div className="absolute inset-x-0 bottom-0 z-30 flex items-center justify-between bg-gradient-to-t from-black/90 to-transparent px-2 pb-1.5 pt-5 text-[9px] text-white/80">
-                      <span>{replayPaused ? '■ END OF EXAMINED CLIP' : '▶ ARCHIVED CLIP'}</span>
-                      <span>{replayPaused ? '0:42 / 1:12' : '0:38 / 1:12'} · 240p</span>
-                    </div>
-                  </button>
+                  ) : renderReplayPlayer(false)
                 ) : (
                   <button 
                     onClick={startVideo}
@@ -433,7 +602,7 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
                     id="vt-arc-reply"
                     onClick={() => {
                       audio.playTick();
-                      if (!isPlayingVideo) {
+                      if (!progress.watchedVideo && !replayExitUnlocked) {
                         speakChapterOne(CHAPTER_ONE_DIALOGUE.videoReady);
                         return;
                       }
@@ -472,6 +641,10 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
           </div>
         )}
       </div>
+
+      {isPlayingVideo && replayFullscreenOpen && typeof document !== 'undefined'
+        ? createPortal(renderReplayPlayer(true), document.body)
+        : null}
 
       {/* Embedded CSS for the Gate 40 comment flood. Text deliberately has no
           pill, panel, or grey mask: the unreadability is the narrative beat. */}

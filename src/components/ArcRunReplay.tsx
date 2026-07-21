@@ -10,7 +10,9 @@ import { GATE_40_INDEX } from '../lib/flappyPhysics';
 interface ArcRunReplayProps {
   active: boolean;
   paused: boolean;
+  initialElapsedMs?: number;
   onBarrageChange: (active: boolean) => void;
+  onProgress: (elapsedMs: number) => void;
   onPausePoint: () => void;
 }
 
@@ -160,15 +162,28 @@ const drawReplay = (ctx: CanvasRenderingContext2D, frame: ArcRunReplayFrame) => 
   ctx.fillText('ARC_184 · MOBILE CAPTURE', 10, HEIGHT - 12);
 };
 
-export const ArcRunReplay: React.FC<ArcRunReplayProps> = ({ active, paused, onBarrageChange, onPausePoint }) => {
+export const ArcRunReplay: React.FC<ArcRunReplayProps> = ({
+  active,
+  paused,
+  initialElapsedMs = 0,
+  onBarrageChange,
+  onProgress,
+  onPausePoint,
+}) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const barrageCallbackRef = useRef(onBarrageChange);
+  const progressCallbackRef = useRef(onProgress);
   const pausePointCallbackRef = useRef(onPausePoint);
   const pausedRef = useRef(paused);
+  const initialElapsedRef = useRef(initialElapsedMs);
 
   useEffect(() => {
     barrageCallbackRef.current = onBarrageChange;
   }, [onBarrageChange]);
+
+  useEffect(() => {
+    progressCallbackRef.current = onProgress;
+  }, [onProgress]);
 
   useEffect(() => {
     pausePointCallbackRef.current = onPausePoint;
@@ -188,7 +203,7 @@ export const ArcRunReplay: React.FC<ArcRunReplayProps> = ({ active, paused, onBa
     let lastCaptureFrame = -1;
     let previousBarrage = false;
     let pauseRequested = false;
-    let elapsed = 0;
+    let elapsed = Math.max(0, Math.min(ARC_RUN_REPLAY_DURATION_MS, initialElapsedRef.current));
     let previousNow = performance.now();
 
     const render = (now: number) => {
@@ -202,6 +217,7 @@ export const ArcRunReplay: React.FC<ArcRunReplayProps> = ({ active, paused, onBa
       if (captureFrame !== lastCaptureFrame) {
         const frame = getArcRunReplayFrame(elapsed);
         drawReplay(ctx, frame);
+        progressCallbackRef.current(elapsed);
         lastCaptureFrame = captureFrame;
         if (frame.barrageActive !== previousBarrage) {
           previousBarrage = frame.barrageActive;
@@ -215,7 +231,8 @@ export const ArcRunReplay: React.FC<ArcRunReplayProps> = ({ active, paused, onBa
       animationFrame = requestAnimationFrame(render);
     };
 
-    drawReplay(ctx, getArcRunReplayFrame(0));
+    drawReplay(ctx, getArcRunReplayFrame(elapsed));
+    progressCallbackRef.current(elapsed);
     barrageCallbackRef.current(false);
     animationFrame = requestAnimationFrame(render);
     return () => {
