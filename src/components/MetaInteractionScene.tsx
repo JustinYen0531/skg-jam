@@ -1087,7 +1087,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
       {active && (
         <motion.div
           animate={deviceResting
-            ? { opacity: 0.72, scaleX: 1.08, scaleY: 0.42, y: '18%' }
+            ? { opacity: 0.72, scaleX: 1.04, scaleY: 0.42, y: '8%' }
             : { opacity: 0.38, scaleX: 0.82, scaleY: 0.78, y: '-7%' }}
           transition={{ duration: reducedMotion ? 0 : 0.82, ease: [0.22, 1, 0.36, 1] }}
           className="pointer-events-none absolute left-[18%] top-[53%] z-[9] h-[18%] w-[64%] rounded-[50%] bg-black blur-2xl"
@@ -1152,7 +1152,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
       <motion.div
         className={`${active ? 'phone-stage' : ''} absolute inset-0 z-10 flex items-center justify-center [perspective:1500px]`}
         animate={active
-          ? (deviceResting ? { scale: 0.84, y: '12%' } : { scale: 0.92, y: '-13%' })
+          ? (deviceResting ? { scale: 0.8, y: '4%' } : { scale: 0.92, y: '-13%' })
           : { scale: 1, y: '0%' }}
         transition={{ duration: reducedMotion ? 0 : 1.05, ease: [0.22, 1, 0.36, 1] }}
         id="meta-phone-camera-frame"
@@ -1324,7 +1324,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
               animate={{
                 opacity: deviceResting ? 1 : 0,
                 x: deviceResting ? '-8%' : 0,
-                y: deviceResting ? '2%' : '12%',
+                y: deviceResting ? '10%' : '12%',
                 rotateX: deviceResting ? 4 : 18,
                 rotateZ: deviceResting ? -8 : 0,
                 scale: deviceResting ? 0.46 : 0.46,
@@ -1350,7 +1350,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
               animate={{
                 opacity: deviceResting && !interactionPending && !scrollGesture ? 1 : 0,
                 x: deviceResting ? '8%' : 0,
-                y: deviceResting ? '2%' : '12%',
+                y: deviceResting ? '10%' : '12%',
                 rotateX: deviceResting ? 4 : 18,
                 rotateZ: deviceResting ? 8 : 0,
                 scale: deviceResting ? 0.46 : 0.46,

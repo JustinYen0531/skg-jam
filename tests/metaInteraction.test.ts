@@ -81,7 +81,7 @@ test('mouse height maps to a clamped camera pitch from desk-flat to upright', ()
 });
 
 test('an idle desk click rests the phone and the next click anywhere wakes it', () => {
-  assert.equal(META_CAMERA_PITCH.tableDeg >= 50, true);
+  assert.equal(META_CAMERA_PITCH.tableDeg >= 40, true);
   assert.equal(getMetaDevicePostureAction(true, false, false, false), 'rest');
   assert.equal(getMetaDevicePostureAction(true, false, true, false), null);
   assert.equal(getMetaDevicePostureAction(true, false, false, true), 'wake');
@@ -98,11 +98,11 @@ test('rest posture lays down the phone and swaps the grip for desk-plane hands',
   assert.match(scene, /data-device-posture=\{deviceResting \? 'table-rest' : 'upright'\}/);
   assert.match(scene, /deviceResting \? 'locked-table' : 'mouse-y'/);
   assert.match(scene, /cameraPitchTarget\.set\(nextResting \? META_CAMERA_PITCH\.tableDeg : META_CAMERA_PITCH\.restDeg\)/);
-  assert.match(scene, /deviceResting \? \{ scale: 0\.84, y: '12%' \} : \{ scale: 0\.92, y: '-13%' \}/);
+  assert.match(scene, /deviceResting \? \{ scale: 0\.8, y: '4%' \} : \{ scale: 0\.92, y: '-13%' \}/);
   assert.match(scene, /deviceResting \? \{ rotateY: 0, rotateZ: 0 \} : \{ rotateY: -1\.4, rotateZ: -0\.35 \}/);
   assert.match(scene, /opacity: deviceResting \? 0 : 1,[\s\S]{0,100}x: deviceResting \? '-3%' : 0/);
   assert.match(scene, /opacity: deviceResting \|\| interactionPending \|\| scrollGesture \? 0 : 1/);
-  assert.match(scene, /opacity: deviceResting \? 1 : 0,[\s\S]{0,240}x: deviceResting \? '-8%' : 0,[\s\S]{0,100}y: deviceResting \? '2%' : '12%'/);
+  assert.match(scene, /opacity: deviceResting \? 1 : 0,[\s\S]{0,240}x: deviceResting \? '-8%' : 0,[\s\S]{0,100}y: deviceResting \? '10%' : '12%'/);
   assert.match(scene, /opacity: deviceResting && !interactionPending && !scrollGesture \? 1 : 0/);
   assert.equal((scene.match(/scale: deviceResting \? 0\.46 : 0\.46/g) ?? []).length, 2);
   assert.match(scene, /rotateZ: deviceResting \? -8 : 0/);
