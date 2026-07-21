@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+﻿import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion, useMotionValue, useSpring } from 'motion/react';
 import {
   applyVirtualKey,
@@ -27,6 +27,8 @@ import { MetaWindowScene } from './MetaWindowScene';
 interface MetaInteractionSceneProps {
   active: boolean;
   chapter: EnvironmentChapter;
+  cameraPitchEnabled?: boolean;
+  postureControlEnabled?: boolean;
   children: React.ReactNode;
 }
 
@@ -548,7 +550,6 @@ const getPhoneCollisionQuad = (phone: HTMLElement): ProjectiveQuad => {
   ];
 };
 
-
 /* --------------------------------------------------------------------------
    The protagonist's thought layer.
 
@@ -647,7 +648,13 @@ const TypewriterThoughts: React.FC<{ lines: DialogueLines; instant: boolean }> =
   );
 };
 
-export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ active, chapter, children }) => {
+export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
+  active,
+  chapter,
+  cameraPitchEnabled = true,
+  postureControlEnabled = true,
+  children,
+}) => {
   const sceneRef = useRef<HTMLDivElement | null>(null);
   const projectivePlaneRef = useRef<HTMLDivElement | null>(null);
   const pendingRef = useRef(false);
@@ -717,6 +724,14 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
     setDeviceResting(false);
     cameraPitchTarget.set(META_CAMERA_PITCH.restDeg);
   }, [active, cameraPitchTarget, reducedMotion]);
+
+  useEffect(() => {
+    if (!postureControlEnabled) setDeviceResting(false);
+  }, [postureControlEnabled]);
+
+  useEffect(() => {
+    if (!cameraPitchEnabled) cameraPitchTarget.set(META_CAMERA_PITCH.restDeg);
+  }, [cameraPitchEnabled, cameraPitchTarget]);
 
   useEffect(() => {
     const plane = projectivePlaneRef.current;
@@ -937,12 +952,14 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
         getPhoneCollisionQuad(phone),
       ),
     );
-    const postureAction = getMetaDevicePostureAction(
-      active,
-      pendingRef.current,
-      targetInsidePhone,
-      deviceResting,
-    );
+    const postureAction = postureControlEnabled
+      ? getMetaDevicePostureAction(
+          active,
+          pendingRef.current,
+          targetInsidePhone,
+          deviceResting,
+        )
+      : null;
     if (postureAction) {
       const nextResting = postureAction === 'rest';
       setDeviceResting(nextResting);
@@ -1062,11 +1079,11 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
   };
 
   const handlePointerMove = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
-    if (!active || deviceResting || reducedMotion || event.pointerType !== 'mouse') return;
+    if (!active || !cameraPitchEnabled || deviceResting || reducedMotion || event.pointerType !== 'mouse') return;
     const rect = sceneRef.current?.getBoundingClientRect();
     if (!rect) return;
     cameraPitchTarget.set(getMetaCameraPitch(event.clientY - rect.top, rect.height));
-  }, [active, cameraPitchTarget, deviceResting, reducedMotion]);
+  }, [active, cameraPitchEnabled, cameraPitchTarget, deviceResting, reducedMotion]);
 
   const handlePointerLeave = useCallback(() => {
     cameraPitchTarget.set(META_CAMERA_PITCH.restDeg);
@@ -1111,7 +1128,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
       };
 
   const cameraPitchStyle = active
-    ? (reducedMotion
+    ? (!cameraPitchEnabled || reducedMotion
         ? (deviceResting ? 0 : META_CAMERA_PITCH.restDeg)
         : (deviceResting ? 0 : cameraPitch))
     : 0;
@@ -1130,7 +1147,8 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
       data-meta-view={active ? 'revealed' : 'screen-capture'}
-      data-camera-pitch-control={active ? (deviceResting ? 'locked-table' : 'mouse-y') : 'inactive'}
+      data-camera-pitch-control={active ? (!cameraPitchEnabled ? 'disabled' : deviceResting ? 'locked-table' : 'mouse-y') : 'inactive'}
+      data-posture-control={postureControlEnabled ? 'enabled' : 'disabled'}
       data-device-posture={deviceResting ? 'table-rest' : 'upright'}
       data-meta-pending={interactionPending ? 'true' : 'false'}
       data-hand-pose={interactionPending ? 'reaching' : 'holding'}

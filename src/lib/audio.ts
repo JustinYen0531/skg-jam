@@ -135,6 +135,7 @@ class AudioManager {
   private ambientOsc: OscillatorNode | null = null;
   private ambientGain: GainNode | null = null;
   private isMuted = false;
+  private volume = 1;
   private counters: Record<string, number> = {};
   private lastPlayed: Record<string, number> = {};
   private voices: Record<string, Voice[]> = {};
@@ -150,7 +151,7 @@ class AudioManager {
     }
     if (this.ctx && !this.master) {
       this.master = this.ctx.createGain();
-      this.master.gain.value = this.isMuted ? 0 : MASTER_GAIN;
+      this.master.gain.value = this.isMuted ? 0 : MASTER_GAIN * this.volume;
 
       // The previous chain multiplied already-small event envelopes by
       // sub-unity bus and master gains. A limiter lets interaction sounds be
@@ -305,7 +306,7 @@ class AudioManager {
   setMute(muted: boolean) {
     this.isMuted = muted;
     if (this.master && this.ctx) {
-      this.master.gain.setTargetAtTime(muted ? 0 : MASTER_GAIN, this.ctx.currentTime, 0.02);
+      this.master.gain.setTargetAtTime(muted ? 0 : MASTER_GAIN * this.volume, this.ctx.currentTime, 0.02);
     }
     if (muted) {
       this.stopAmbientHum();
@@ -316,6 +317,17 @@ class AudioManager {
 
   getMuted() {
     return this.isMuted;
+  }
+
+  setVolume(volume: number) {
+    this.volume = Math.max(0, Math.min(1, volume));
+    if (this.master && this.ctx && !this.isMuted) {
+      this.master.gain.setTargetAtTime(MASTER_GAIN * this.volume, this.ctx.currentTime, 0.02);
+    }
+  }
+
+  getVolume() {
+    return this.volume;
   }
 
   /**

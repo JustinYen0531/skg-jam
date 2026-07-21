@@ -38,7 +38,7 @@ class MusicManager {
   private loopFading = false;
   private inLoopGap = false;
   private unlockArmed = false;
-  private readonly targetVolume = 0.28;
+  private targetVolume = 0.28;
 
   setPhase(phase: MusicPhase) {
     if (phase === this.currentPhase || typeof Audio === 'undefined') return;
@@ -73,6 +73,13 @@ class MusicManager {
     if (!this.current) return;
     this.current.muted = muted;
     if (!muted && !this.inLoopGap) this.tryPlay(this.current);
+  }
+
+  setVolume(volume: number) {
+    this.targetVolume = 0.28 * Math.max(0, Math.min(1, volume));
+    if (this.current && !this.loopFading && !this.inLoopGap) {
+      this.current.volume = this.targetVolume;
+    }
   }
 
   private tryPlay(track: HTMLAudioElement) {

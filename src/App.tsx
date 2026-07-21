@@ -41,6 +41,12 @@ const INITIAL_PROGRESS: GameProgress = {
 export default function App() {
   const [progress, setProgress] = useState<GameProgress>(INITIAL_PROGRESS);
   const [isMuted, setIsMuted] = useState(false);
+  const [soundVolume, setSoundVolume] = useState(1);
+  const [musicVolume, setMusicVolume] = useState(1);
+  const [screenBrightness, setScreenBrightness] = useState(1);
+  const [screenContrast, setScreenContrast] = useState(1);
+  const [cameraPitchEnabled, setCameraPitchEnabled] = useState(true);
+  const [postureControlEnabled, setPostureControlEnabled] = useState(true);
   const [deskLamp, setDeskLamp] = useState(true);
   const [metaViewActive, setMetaViewActive] = useState(() => {
     if (typeof window === 'undefined') return false;
@@ -106,6 +112,9 @@ export default function App() {
     music.setPhase(activeMusicPhase);
   }, [activeMusicPhase]);
 
+  useEffect(() => audio.setVolume(soundVolume), [soundVolume]);
+  useEffect(() => music.setVolume(musicVolume), [musicVolume]);
+
   const updateProgress = (updater: (prev: GameProgress) => GameProgress) => {
     setProgress((prev) => {
       const next = updater(prev);
@@ -134,6 +143,13 @@ export default function App() {
     setProgress(INITIAL_PROGRESS);
     setMetaViewActive(false);
     setDebugTargetApp(null);
+  };
+
+  const restartCurrentChapter = () => jumpToChapter(progress.currentChapter);
+
+  const openDeveloperTools = () => {
+    setDebugMode(true);
+    setMetaViewActive(true);
   };
 
   const selectEnding = (ending: 'submit' | 'publicize' | 'preserve') => {
@@ -314,7 +330,12 @@ export default function App() {
         {/* Faint cold spill from the screen onto the desk */}
         {metaSceneActive && <div className="absolute w-96 h-96 bg-[#41526e]/[0.08] blur-[130px] rounded-full top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none"></div>}
 
-        <MetaInteractionScene active={metaSceneActive} chapter={metaSceneActive ? progress.currentChapter : 0}>
+        <MetaInteractionScene
+          active={metaSceneActive}
+          chapter={metaSceneActive ? progress.currentChapter : 0}
+          cameraPitchEnabled={cameraPitchEnabled}
+          postureControlEnabled={postureControlEnabled}
+        >
           <PhoneSimulator
             progress={progress}
             updateProgress={updateProgress}
@@ -323,6 +344,22 @@ export default function App() {
             immersiveIntro={!metaSceneActive}
             debugTargetApp={debugTargetApp}
             onLeaderboardOpened={handleLeaderboardOpened}
+            soundVolume={soundVolume}
+            musicVolume={musicVolume}
+            screenBrightness={screenBrightness}
+            screenContrast={screenContrast}
+            cameraPitchEnabled={cameraPitchEnabled}
+            postureControlEnabled={postureControlEnabled}
+            developerToolsOpen={debugMode}
+            onSoundVolumeChange={setSoundVolume}
+            onMusicVolumeChange={setMusicVolume}
+            onScreenBrightnessChange={setScreenBrightness}
+            onScreenContrastChange={setScreenContrast}
+            onCameraPitchEnabledChange={setCameraPitchEnabled}
+            onPostureControlEnabledChange={setPostureControlEnabled}
+            onOpenDeveloperTools={openDeveloperTools}
+            onRestartCurrentChapter={restartCurrentChapter}
+            onRestartLoop={restartLoop}
           />
         </MetaInteractionScene>
 

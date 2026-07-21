@@ -129,7 +129,8 @@ test('rest posture lays down the phone and swaps the grip for desk-plane hands',
   assert.doesNotMatch(scene, /data-meta-rest-surface|targetOnRestSurface/);
   assert.match(scene, /if \(!targetInsidePhone\) \{[\s\S]{0,120}event\.preventDefault\(\)/);
   assert.match(scene, /data-device-posture=\{deviceResting \? 'table-rest' : 'upright'\}/);
-  assert.match(scene, /deviceResting \? 'locked-table' : 'mouse-y'/);
+  assert.match(scene, /!cameraPitchEnabled \? 'disabled' : deviceResting \? 'locked-table' : 'mouse-y'/);
+  assert.match(scene, /data-posture-control=\{postureControlEnabled \? 'enabled' : 'disabled'\}/);
   assert.match(scene, /cameraPitchTarget\.set\(META_CAMERA_PITCH\.restDeg\)/);
   assert.match(scene, /deviceResting \? \{ scale: 1, y: '0%' \} : \{ scale: 0\.92, y: '-13%' \}/);
   assert.match(scene, /const DESK_PHONE_SCALE = 0\.4/);
@@ -292,7 +293,7 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   assert.doesNotMatch(sceneSource, /bg-\[#292119\]/);
   assert.match(sceneSource, /id="meta-phone-depth"/);
   assert.match(sceneSource, /id="meta-glass-reflection"/);
-  assert.match(sceneSource, /data-camera-pitch-control=\{active \? \(deviceResting \? 'locked-table' : 'mouse-y'\) : 'inactive'\}/);
+  assert.match(sceneSource, /data-camera-pitch-control=\{active \? \(!cameraPitchEnabled \? 'disabled' : deviceResting \? 'locked-table' : 'mouse-y'\) : 'inactive'\}/);
   assert.match(sceneSource, /rotateX: cameraPitchStyle/);
   assert.equal((sceneSource.match(/rotateX: cameraPitchStyle/g) ?? []).length, 5);
   assert.match(sceneSource, /onPointerMove=\{handlePointerMove\}/);
@@ -315,7 +316,7 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   assert.match(appSource, /const metaSceneActive = shouldShowMetaScene\(metaViewActive, debugMode, progress\.phase\)/);
   assert.match(appSource, /immersiveIntro=\{!metaSceneActive\}/);
   assert.match(appSource, /metaSceneActive \? 'bg-slate-950\/40' : 'bg-black'/);
-  assert.match(appSource, /<MetaInteractionScene active=\{metaSceneActive\} chapter=\{metaSceneActive \? progress\.currentChapter : 0\}>/);
+  assert.match(appSource, /<MetaInteractionScene[\s\S]{0,220}active=\{metaSceneActive\}[\s\S]{0,220}chapter=\{metaSceneActive \? progress\.currentChapter : 0\}/);
   assert.match(sceneSource, /<ChapterEnvironment chapter=\{chapter\} reducedMotion=\{reducedMotion\} layer="lighting" \/>/);
   assert.match(sceneSource, /<ChapterEnvironment chapter=\{chapter\} reducedMotion=\{reducedMotion\} layer="underlay" deviceResting=\{deviceResting\} \/>/);
   assert.match(sceneSource, /<ChapterEnvironment chapter=\{chapter\} reducedMotion=\{reducedMotion\} layer="objects" deviceResting=\{deviceResting\} \/>/);

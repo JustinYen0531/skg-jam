@@ -11,7 +11,7 @@ import { SocialApp } from './SocialApp';
 import { MessagesApp } from './MessagesApp';
 import { useMetaInteraction } from './MetaInteractionScene';
 import { motion, AnimatePresence } from 'motion/react';
-import { Wifi, CheckCircle2 } from 'lucide-react';
+import { Wifi, CheckCircle2, X, Volume2, VolumeX, RotateCcw } from 'lucide-react';
 import {
   IconFlappy, IconViewTube, IconAmazeMart, IconWayback, IconFaceSpace,
   IconMessages, IconSchematics, IconConcept,
@@ -40,6 +40,9 @@ import { ChapterTransition, EvidenceNotification } from './ChapterTransition';
 const WIDGET_SHELL =
   'relative rounded-[22px] border border-white/[0.08] bg-white/[0.055] backdrop-blur-md overflow-hidden';
 
+type DockUtility = 'voicelog' | 'filebox' | 'gallery' | 'terminal' | 'controls';
+type ResetTarget = 'chapter' | 'loop';
+
 interface PhoneSimulatorProps {
   progress: GameProgress;
   updateProgress: (updater: (prev: GameProgress) => GameProgress) => void;
@@ -48,16 +51,56 @@ interface PhoneSimulatorProps {
   immersiveIntro?: boolean;
   debugTargetApp?: { app: ActiveApp; nonce: number } | null;
   onLeaderboardOpened: () => void;
+  soundVolume: number;
+  musicVolume: number;
+  screenBrightness: number;
+  screenContrast: number;
+  cameraPitchEnabled: boolean;
+  postureControlEnabled: boolean;
+  developerToolsOpen: boolean;
+  onSoundVolumeChange: (volume: number) => void;
+  onMusicVolumeChange: (volume: number) => void;
+  onScreenBrightnessChange: (brightness: number) => void;
+  onScreenContrastChange: (contrast: number) => void;
+  onCameraPitchEnabledChange: (enabled: boolean) => void;
+  onPostureControlEnabledChange: (enabled: boolean) => void;
+  onOpenDeveloperTools: () => void;
+  onRestartCurrentChapter: () => void;
+  onRestartLoop: () => void;
 }
 
 export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
-  progress, updateProgress, onMuteToggle, isMuted, immersiveIntro = false, debugTargetApp, onLeaderboardOpened
+  progress,
+  updateProgress,
+  onMuteToggle,
+  isMuted,
+  immersiveIntro = false,
+  debugTargetApp,
+  onLeaderboardOpened,
+  soundVolume,
+  musicVolume,
+  screenBrightness,
+  screenContrast,
+  cameraPitchEnabled,
+  postureControlEnabled,
+  developerToolsOpen,
+  onSoundVolumeChange,
+  onMusicVolumeChange,
+  onScreenBrightnessChange,
+  onScreenContrastChange,
+  onCameraPitchEnabledChange,
+  onPostureControlEnabledChange,
+  onOpenDeveloperTools,
+  onRestartCurrentChapter,
+  onRestartLoop,
 }) => {
   const metaInteraction = useMetaInteraction();
   const [activeApp, setActiveApp] = useState<ActiveApp>('flappy');
   // Restore flash: nonce re-keys the overlay so the CSS animation replays.
   const [restoreNonce, setRestoreNonce] = useState(0);
   const [restoreVisible, setRestoreVisible] = useState(false);
+  const [dockUtility, setDockUtility] = useState<DockUtility | null>(null);
+  const [resetConfirmation, setResetConfirmation] = useState<ResetTarget | null>(null);
   const restoreTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const chapterOneDialogueTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const chapterOneAppAttempt = useRef(0);
@@ -152,6 +195,25 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
     if (chapterOneDialogueTimer.current) clearTimeout(chapterOneDialogueTimer.current);
   }, []);
 
+  useEffect(() => {
+    if (activeApp !== 'home') {
+      setDockUtility(null);
+      setResetConfirmation(null);
+    }
+  }, [activeApp]);
+
+  useEffect(() => {
+    if (!dockUtility || typeof window === 'undefined') return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setDockUtility(null);
+        setResetConfirmation(null);
+      }
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [dockUtility]);
+
   const handleLaunchApp = (app: ActiveApp) => {
     audio.play('phone.appOpen');
     setActiveApp(app);
@@ -213,12 +275,192 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
     }
   };
 
+  const toggleDockUtility = (utility: DockUtility) => {
+    audio.play('phone.appOpen');
+    setResetConfirmation(null);
+    setDockUtility((current) => current === utility ? null : utility);
+  };
+
+  const handleResetRequest = (target: ResetTarget) => {
+    if (resetConfirmation !== target) {
+      audio.play('ui.toggle', { variant: 1 });
+      setResetConfirmation(target);
+      return;
+    }
+
+    setDockUtility(null);
+    setResetConfirmation(null);
+    if (target === 'chapter') onRestartCurrentChapter();
+    else onRestartLoop();
+  };
+
+  const closeDockUtility = () => {
+    audio.play('ui.toggle');
+    setDockUtility(null);
+    setResetConfirmation(null);
+  };
+
+  const openDeveloperTools = () => {
+    onOpenDeveloperTools();
+    setDockUtility(null);
+  };
+
   // At level 3 the old system re-renders the same chapter timeline in its own
   // language. Progress and scroll behavior remain unchanged.
   const remindersReclaimed = residue >= 3;
 
   const wallpaperCool =
     residue >= 3 ? 'residue-cool-3' : residue === 2 ? 'residue-cool-2' : residue === 1 ? 'residue-cool-1' : '';
+
+  const dockUtilityTitle: Record<DockUtility, { title: string; eyebrow: string }> = {
+    voicelog: { title: 'VoiceLog', eyebrow: 'AUDIO CONTROL' },
+    filebox: { title: 'FileBox', eyebrow: 'SESSION DATA' },
+    gallery: { title: 'Gallery', eyebrow: 'DISPLAY CONTROL' },
+    terminal: { title: 'Terminal', eyebrow: 'DEVELOPER ACCESS' },
+    controls: { title: 'Controls', eyebrow: 'CAMERA & POSTURE' },
+  };
+
+  const sliderClassName = 'h-1.5 w-full cursor-pointer accent-slate-200';
+  const actionButtonClassName = 'rounded-lg border border-white/10 bg-white/[0.06] px-3 py-2 text-[10px] font-medium text-slate-100 transition-colors hover:bg-white/[0.1]';
+  const dangerButtonClassName = 'rounded-lg border border-red-400/20 bg-red-400/[0.07] px-3 py-2 text-[10px] font-medium text-red-100 transition-colors hover:bg-red-400/[0.12]';
+
+  const renderDockUtilityContent = () => {
+    switch (dockUtility) {
+      case 'voicelog':
+        return (
+          <div className="space-y-3" id="dock-voicelog-controls">
+            <label className="block space-y-1.5 text-[10px] text-slate-300">
+              <span className="flex justify-between"><span>Music</span><span>{Math.round(musicVolume * 100)}%</span></span>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={Math.round(musicVolume * 100)}
+                onChange={(event) => onMusicVolumeChange(Number(event.target.value) / 100)}
+                className={sliderClassName}
+                id="dock-music-volume"
+              />
+            </label>
+            <label className="block space-y-1.5 text-[10px] text-slate-300">
+              <span className="flex justify-between"><span>Interface & room</span><span>{Math.round(soundVolume * 100)}%</span></span>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={Math.round(soundVolume * 100)}
+                onChange={(event) => onSoundVolumeChange(Number(event.target.value) / 100)}
+                className={sliderClassName}
+                id="dock-sound-volume"
+              />
+            </label>
+            <button type="button" onClick={onMuteToggle} className={`${actionButtonClassName} flex w-full items-center justify-center gap-2`} id="dock-master-mute">
+              {isMuted ? <VolumeX className="h-3.5 w-3.5" /> : <Volume2 className="h-3.5 w-3.5" />}
+              {isMuted ? 'Restore all audio' : 'Mute all audio'}
+            </button>
+          </div>
+        );
+      case 'filebox':
+        return (
+          <div className="space-y-3" id="dock-filebox-controls">
+            <div className="rounded-lg border border-white/[0.07] bg-black/20 px-3 py-2.5">
+              <div className="text-[9px] text-slate-500">CURRENT SESSION</div>
+              <div className="mt-1 font-mono text-[11px] text-slate-200">CHAPTER {progress.currentChapter.toString().padStart(2, '0')}</div>
+              <div className="mt-0.5 text-[9px] text-slate-500">Progress is held for this session.</div>
+            </div>
+            <button type="button" onClick={() => handleResetRequest('chapter')} className={`${actionButtonClassName} w-full`} id="dock-restart-chapter">
+              {resetConfirmation === 'chapter' ? 'Press again to restore chapter start' : 'Restore current chapter'}
+            </button>
+            <button type="button" onClick={() => handleResetRequest('loop')} className={`${dangerButtonClassName} w-full`} id="dock-restart-loop">
+              {resetConfirmation === 'loop' ? 'Press again to erase this run' : 'Restart the entire loop'}
+            </button>
+          </div>
+        );
+      case 'gallery':
+        return (
+          <div className="space-y-3" id="dock-gallery-controls">
+            <label className="block space-y-1.5 text-[10px] text-slate-300">
+              <span className="flex justify-between"><span>Screen brightness</span><span>{Math.round(screenBrightness * 100)}%</span></span>
+              <input
+                type="range"
+                min="65"
+                max="115"
+                value={Math.round(screenBrightness * 100)}
+                onChange={(event) => onScreenBrightnessChange(Number(event.target.value) / 100)}
+                className={sliderClassName}
+                id="dock-screen-brightness"
+              />
+            </label>
+            <label className="block space-y-1.5 text-[10px] text-slate-300">
+              <span className="flex justify-between"><span>Screen contrast</span><span>{Math.round(screenContrast * 100)}%</span></span>
+              <input
+                type="range"
+                min="90"
+                max="130"
+                value={Math.round(screenContrast * 100)}
+                onChange={(event) => onScreenContrastChange(Number(event.target.value) / 100)}
+                className={sliderClassName}
+                id="dock-screen-contrast"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={() => { onScreenBrightnessChange(1); onScreenContrastChange(1); }}
+              className={`${actionButtonClassName} flex w-full items-center justify-center gap-2`}
+              id="dock-display-reset"
+            >
+              <RotateCcw className="h-3.5 w-3.5" /> Reset display
+            </button>
+          </div>
+        );
+      case 'terminal':
+        return (
+          <div className="space-y-3" id="dock-terminal-controls">
+            <div className="rounded-lg border border-emerald-400/15 bg-emerald-400/[0.05] px-3 py-2.5 font-mono text-[9px] leading-relaxed text-emerald-200/75">
+              {developerToolsOpen
+                ? 'DEVELOPER PANEL: CONNECTED'
+                : 'Chapter snapshots and route controls are available outside the device.'}
+            </div>
+            <button
+              type="button"
+              onClick={openDeveloperTools}
+              disabled={developerToolsOpen}
+              className={`${actionButtonClassName} w-full disabled:cursor-default disabled:opacity-45`}
+              id="dock-open-developer-tools"
+            >
+              {developerToolsOpen ? 'Developer panel is open' : 'Open developer panel'}
+            </button>
+          </div>
+        );
+      case 'controls':
+        return (
+          <div className="space-y-2" id="dock-camera-controls">
+            <button
+              type="button"
+              role="switch"
+              aria-checked={cameraPitchEnabled}
+              onClick={() => onCameraPitchEnabledChange(!cameraPitchEnabled)}
+              className={`${actionButtonClassName} flex w-full items-center justify-between text-left`}
+              id="dock-camera-follow"
+            >
+              <span><span className="block">Camera follow</span><span className="mt-0.5 block text-[8px] text-slate-500">Mouse height tilts the held device</span></span>
+              <span className={cameraPitchEnabled ? 'text-emerald-300' : 'text-slate-500'}>{cameraPitchEnabled ? 'ON' : 'OFF'}</span>
+            </button>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={postureControlEnabled}
+              onClick={() => onPostureControlEnabledChange(!postureControlEnabled)}
+              className={`${actionButtonClassName} flex w-full items-center justify-between text-left`}
+              id="dock-desk-posture">
+              <span><span className="block">Desk posture</span><span className="mt-0.5 block text-[8px] text-slate-500">Background clicks can lay the device down</span></span>
+              <span className={postureControlEnabled ? 'text-emerald-300' : 'text-slate-500'}>{postureControlEnabled ? 'ON' : 'OFF'}</span>
+            </button>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <div
@@ -289,7 +531,11 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
       </div>}
 
       {/* Main Interactive Screen Area */}
-      <div className="flex-1 bg-[#0d0f14] relative overflow-hidden" id="phone-display">
+      <div
+        className="flex-1 bg-[#0d0f14] relative overflow-hidden transition-[filter] duration-150"
+        id="phone-display"
+        style={{ filter: `brightness(${screenBrightness}) contrast(${screenContrast})` }}
+      >
         <AnimatePresence mode="wait">
           {activeApp === 'home' && (
             /* HOME SCREEN — a normal modern phone. The residue does the talking. */
@@ -520,6 +766,34 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
 
               {/* RIGHT COLUMN: app grid + dock */}
               <div className="flex-1 min-w-0 flex items-center justify-center relative">
+                <AnimatePresence>
+                  {dockUtility && (
+                    <motion.section
+                      initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 5, scale: 0.98 }}
+                      transition={{ duration: 0.16, ease: 'easeOut' }}
+                      role="dialog"
+                      aria-modal="false"
+                      aria-labelledby="dock-utility-title"
+                      data-meta-immediate="true"
+                      className="absolute left-1/2 top-[43%] z-30 w-[min(88%,400px)] -translate-x-1/2 -translate-y-1/2 rounded-2xl border border-white/[0.12] bg-[#171c27]/95 p-4 shadow-[0_18px_50px_rgba(0,0,0,0.55)] backdrop-blur-xl"
+                      id="home-dock-utility-popover"
+                      data-dock-utility={dockUtility}
+                    >
+                      <div className="mb-3 flex items-start justify-between gap-3 border-b border-white/[0.07] pb-2.5">
+                        <div>
+                          <div className="font-mono text-[8px] tracking-[0.16em] text-slate-500">{dockUtilityTitle[dockUtility].eyebrow}</div>
+                          <h2 className="mt-0.5 text-[13px] font-semibold text-slate-100" id="dock-utility-title">{dockUtilityTitle[dockUtility].title}</h2>
+                        </div>
+                        <button type="button" onClick={closeDockUtility} className="rounded-full p-1 text-slate-500 hover:bg-white/[0.07] hover:text-slate-200" aria-label="Close utility panel" id="dock-utility-close">
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                      {renderDockUtilityContent()}
+                    </motion.section>
+                  )}
+                </AnimatePresence>
                 <div className="w-full max-w-[680px] flex flex-col gap-[clamp(14px,2.8cqh,30px)] px-1">
 
                 <div
@@ -664,16 +938,18 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                   id="home-dock"
                 >
                   {([
-                    ['VoiceLog', IconVoiceLog],
-                    ['FileBox', IconFileBox],
-                    ['Gallery', IconGallery],
-                    ['Terminal', IconTerminal],
-                    ['Controls', IconControls],
-                  ] as Array<[string, React.FC]>).map(([name, Icon]) => (
+                    ['VoiceLog', 'voicelog', IconVoiceLog],
+                    ['FileBox', 'filebox', IconFileBox],
+                    ['Gallery', 'gallery', IconGallery],
+                    ['Terminal', 'terminal', IconTerminal],
+                    ['Controls', 'controls', IconControls],
+                  ] as Array<[string, DockUtility, React.FC]>).map(([name, utility, Icon]) => (
                     <button
                       key={name}
-                      onClick={() => audio.playTick()}
-                      className="group flex flex-col items-center gap-1 min-w-0"
+                      onClick={() => toggleDockUtility(utility)}
+                      aria-expanded={dockUtility === utility}
+                      aria-controls="home-dock-utility-popover"
+                      className={`group flex flex-col items-center gap-1 min-w-0 ${dockUtility === utility ? 'text-white' : ''}`}
                       title={name}
                       id={`launcher-${name.toLowerCase()}`}
                     >
