@@ -62,7 +62,8 @@ const CoffeeCup: React.FC<{
   return (
     <motion.div
       layout={animateLayout}
-      className={`absolute z-[3] h-[27%] w-[17%] min-w-36 origin-bottom-right ${pushedAway ? 'right-[7%] top-[65%] scale-[2.1]' : tipped ? 'right-[14%] top-[67%] scale-[2.5]' : 'right-[12%] top-[62%] scale-[2.7]'}`}
+      className={`absolute z-[3] h-[27%] w-[17%] min-w-36 origin-bottom-right ${pushedAway ? 'right-[7%] top-[51%] scale-[2.1]' : tipped ? 'right-[14%] top-[53%] scale-[2.5]' : 'right-[12%] top-[48%] scale-[2.7]'}`}
+      data-composition-offset="coffee-up-14"
       data-coffee-state={state}
       data-coffee-asset-state={tipped ? 'tipped' : state === 'fresh' || state === 'sipped' ? 'full' : 'empty'}
       data-coffee-drip={drip || undefined}
@@ -106,7 +107,8 @@ const ChargingCable: React.FC<{ connected: boolean; animateLayout: boolean; part
   <motion.svg
     layout={animateLayout}
     viewBox="0 0 500 140"
-    className="absolute bottom-[15.5%] right-[-2%] z-[2] h-[12%] w-[39%] origin-bottom-right scale-[1.7] overflow-visible opacity-75 drop-shadow-[0_5px_4px_rgba(0,0,0,0.45)]"
+    className="absolute bottom-[15.5%] right-[-5%] z-[2] h-[12%] w-[39%] origin-bottom-right scale-[1.7] overflow-visible opacity-75 drop-shadow-[0_5px_4px_rgba(0,0,0,0.45)]"
+    data-composition-offset="cable-right-3"
     data-cable-state={connected ? 'connected' : 'loose'}
     data-cable-layer={part === 'insert' ? 'underlay' : 'foreground'}
     data-plug-target={connected && part === 'insert' ? 'phone-bottom-port' : undefined}

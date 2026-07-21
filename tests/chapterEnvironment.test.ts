@@ -124,6 +124,8 @@ test('the physical environment is display-only and does not mutate progress', ()
   const environmentSource = readFileSync(new URL('../src/components/ChapterEnvironment.tsx', import.meta.url), 'utf8');
   assert.doesNotMatch(environmentSource, /updateProgress|setProgress|GameProgress/);
   assert.match(environmentSource, /id="meta-desk-coffee"/);
+  assert.match(environmentSource, /pushedAway \? 'right-\[7%\] top-\[51%\] scale-\[2\.1\]' : tipped \? 'right-\[14%\] top-\[53%\] scale-\[2\.5\]' : 'right-\[12%\] top-\[48%\] scale-\[2\.7\]'/);
+  assert.match(environmentSource, /data-composition-offset="coffee-up-14"/);
   assert.match(environmentSource, /id="meta-desk-notebook"/);
   assert.match(environmentSource, /id=\{part === 'insert' \? 'meta-cable-insert-layer' : 'meta-desk-cable'\}/);
   assert.match(environmentSource, /id="meta-case-marker"/);
@@ -133,6 +135,8 @@ test('the physical environment is display-only and does not mutate progress', ()
   assert.match(environmentSource, /z-\[25\]/);
   assert.match(environmentSource, /scale-\[1\.35\]/);
   assert.match(environmentSource, /scale-\[1\.7\]/);
+  assert.match(environmentSource, /bottom-\[15\.5%\] right-\[-5%\]/);
+  assert.match(environmentSource, /data-composition-offset="cable-right-3"/);
   assert.match(environmentSource, /id="meta-coffee-steam"/);
   assert.match(environmentSource, /id="meta-coffee-png"/);
   assert.match(environmentSource, /coffee-full\.png/);

@@ -438,3 +438,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Kept the 180% centered floor overscan, upper-two-thirds crop, rug placement, wall dimensions, and all foreground transforms unchanged.
 - Applied the compiler-required `unknown` bridge to the concurrently added four-corner projection test without changing its geometry or runtime behavior.
 - Browser Preview remains intentionally omitted under the repository's static-analysis-only rule; 94 static tests, TypeScript lint, production build, and diff checks pass.
+
+## 2026-07-21 — Coffee and charging-cable clearance
+
+- Raised every coffee-cup state by 14% of scene height: the normal cup moved from 62% to 48%, the tipped cup from 67% to 53%, and the pushed-away cup from 65% to 51%.
+- Shifted both charging-cable layers three percent right by changing their shared right anchor from -2% to -5%, filling the empty right-side span without changing cable geometry or scale.
+- Preserved coffee size, state artwork, steam, spills, cable insertion logic, phone projection, hands, wall, floor, and desk transforms.
+- Browser Preview remains intentionally omitted under the repository's static-analysis-only rule; 94 static tests, TypeScript lint, production build, and diff checks pass.
