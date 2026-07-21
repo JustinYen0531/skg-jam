@@ -42,6 +42,7 @@ import {
 import { useReducedMotion } from '../lib/useReducedMotion';
 import { ChapterTransition, EvidenceNotification } from './ChapterTransition';
 import { MetaWindowScene } from './MetaWindowScene';
+import type { AmazeMartOrderPhase } from '../lib/amazemartPuzzle';
 
 /** Modern widget chassis: translucent, friendly, current-year. */
 const WIDGET_SHELL =
@@ -108,6 +109,10 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   const [restoreVisible, setRestoreVisible] = useState(false);
   const [dockUtility, setDockUtility] = useState<DockUtility | null>(null);
   const [resetConfirmation, setResetConfirmation] = useState<ResetTarget | null>(null);
+  const [chapterThreeOrderPhase, setChapterThreeOrderPhase] = useState<AmazeMartOrderPhase>(() => (
+    progress.deliveredPhone ? 'verified' : progress.orderedPhone ? 'verification-requested' : 'idle'
+  ));
+  const [sellerMessageUnread, setSellerMessageUnread] = useState(false);
   const restoreTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const chapterOneDialogueTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const chapterOneAppAttempt = useRef(0);
@@ -135,7 +140,9 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   const chapterReminderRows = getChapterReminderRows(progress);
   const completedReminderCount = chapterReminderRows.filter((row) => row.status === 'completed').length;
   const launcherSignals = (app: PhoneLauncherApp) => {
-    const notification = phoneSignals.notification?.app === app
+    const notification = app === 'messages' && sellerMessageUnread
+      ? { label: '1', accessibleLabel: 'New message from coldboot_17' }
+      : phoneSignals.notification?.app === app
       ? phoneSignals.notification
       : null;
     const recentlyUsed = phoneSignals.recentApp === app;
@@ -165,6 +172,18 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   useEffect(() => {
     if (debugTargetApp) setActiveApp(debugTargetApp.app);
   }, [debugTargetApp]);
+
+  useEffect(() => {
+    if (progress.deliveredPhone) {
+      setChapterThreeOrderPhase('verified');
+      setSellerMessageUnread(false);
+      return;
+    }
+    if (!progress.orderedPhone) {
+      setChapterThreeOrderPhase('idle');
+      setSellerMessageUnread(false);
+    }
+  }, [progress.currentChapter, progress.deliveredPhone, progress.orderedPhone]);
 
   useEffect(() => {
     if (activeApp !== 'home' || !reminderListRef.current) return;
@@ -227,6 +246,9 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   const handleLaunchApp = (app: ActiveApp) => {
     audio.play('phone.appOpen');
     setActiveApp(app);
+    if (app === 'messages' && chapterThreeOrderPhase !== 'idle') {
+      setSellerMessageUnread(false);
+    }
     if ((progress.currentChapter === 1 || progress.currentChapter === 2) && metaInteraction.active) {
       const dialogue = progress.currentChapter === 1
         ? (app === 'viewtube'
@@ -254,6 +276,17 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
       if (restoreTimer.current) clearTimeout(restoreTimer.current);
       restoreTimer.current = setTimeout(() => setRestoreVisible(false), 700);
     }
+  };
+
+  const handleRequestSellerVerification = () => {
+    updateProgress((prev) => ({ ...prev, orderedPhone: true }));
+    setChapterThreeOrderPhase('verification-requested');
+    setSellerMessageUnread(true);
+    audio.play('messages.incoming');
+  };
+
+  const handleSellerVerified = () => {
+    setChapterThreeOrderPhase('verified');
   };
 
   // The meta hand animation intercepts click events higher in the tree. Open
@@ -1069,6 +1102,9 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
               <AmazeMart
                 progress={progress}
                 updateProgress={updateProgress}
+                orderPhase={chapterThreeOrderPhase}
+                onRequestSellerVerification={handleRequestSellerVerification}
+                onOpenMessages={() => handleLaunchApp('messages')}
                 onOpenScreenshots={() => setActiveApp('screenshots')}
               />
             </motion.div>
@@ -1122,7 +1158,13 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
               transition={{ duration: isMigratedApp('messages', residue) ? 0.42 : 0.22, ease: 'easeOut' }}
               className="absolute inset-0"
             >
-              <MessagesApp progress={progress} updateProgress={updateProgress} />
+              <MessagesApp
+                progress={progress}
+                updateProgress={updateProgress}
+                chapterThreeOrderPhase={chapterThreeOrderPhase}
+                onSellerVerified={handleSellerVerified}
+                onOpenAmazeMart={() => handleLaunchApp('amazemart')}
+              />
             </motion.div>
           )}
 
@@ -1204,6 +1246,32 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
           id="home-swipe-indicator"
         />
       </div>}
+
+      <AnimatePresence>
+        {sellerMessageUnread && chapterThreeOrderPhase === 'verification-requested' && (
+          <motion.button
+            type="button"
+            initial={{ opacity: 0, y: -12, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.98 }}
+            transition={{ duration: reducedMotion ? 0 : 0.2 }}
+            onClick={() => handleLaunchApp('messages')}
+            data-meta-immediate="true"
+            className="absolute right-3 top-9 z-[70] flex w-[min(330px,calc(100%-24px))] items-center gap-2 rounded-2xl border border-white/10 bg-[#151920]/95 p-3 text-left shadow-2xl backdrop-blur-md"
+            id="messages-seller-notification"
+          >
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500 text-white">
+              <IconMessages />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-[8px] font-medium uppercase tracking-wide text-slate-400">Messages · now</div>
+              <div className="truncate text-[10px] font-semibold text-white">coldboot_17</div>
+              <div className="truncate text-[9px] text-slate-300">Buyer check. What score belongs to the impossible runner?</div>
+            </div>
+            <span className="text-[9px] font-semibold text-emerald-300">OPEN</span>
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       {/* Chapter-advance: "evidence collected" banner, then the cinematic once
           the player returns to the home screen. Both clip to the phone face. */}

@@ -1,5 +1,12 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-22 — Chapter 3 verification moved into Messages
+
+- Replaced AmazeMart's embedded seller relay with a cross-app flow: accepting the scam warning raises a real Messages notification and unread badge for `coldboot_17`.
+- Messages now owns the `184` reply, wrong-code response, Meta virtual-keyboard input, verified delivery reply, and return-to-AmazeMart action.
+- AmazeMart now owns only discovery, risk acceptance, and final signature. The chapter advances only after that signature, so the existing evidence-acquired notification remains the single chapter-completion signal.
+- Updated the concise North Star GDD beat, developer chapter guide, and cross-app regression coverage. Static verification passed in both the delivery worktree and active desktop: 145/145 tests, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.
+
 ## 2026-07-22 — Projected-edge recovery for Chapter 3 order
 
 - The prior pending-label fix was not sufficient because some projected bottom-edge presses never reached the button at all.

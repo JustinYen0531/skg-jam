@@ -1,5 +1,7 @@
 export const AMAZEMART_SELLER_CODE = '184';
 
+export type AmazeMartOrderPhase = 'idle' | 'verification-requested' | 'verified';
+
 export function normalizeAmazeMartSearch(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9]/g, '');
 }

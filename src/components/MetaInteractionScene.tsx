@@ -79,7 +79,11 @@ const KEYBOARD_ROWS = [
 
 const isMetaKeyboardInput = (element: Element): element is HTMLInputElement =>
   element instanceof HTMLInputElement
-  && (element.id === 'vt-search-input' || element.id === 'chapter-two-archive-search');
+  && (
+    element.id === 'vt-search-input'
+    || element.id === 'chapter-two-archive-search'
+    || element.id === 'messages-seller-code'
+  );
 
 /* ==========================================================================
    Hand anatomy kit.

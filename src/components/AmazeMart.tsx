@@ -5,8 +5,8 @@ import { canUseProgressionAction, completePuzzleChapter } from '../lib/chapterPr
 import { createFeedSeed, shuffleFeed } from '../lib/pseudoFeed';
 import {
   isLumenArcSearch,
-  isSellerCodeAccepted,
   shouldRevealSuppressedSeller,
+  type AmazeMartOrderPhase,
 } from '../lib/amazemartPuzzle';
 import { useMetaInteraction } from './MetaInteractionScene';
 import {
@@ -26,7 +26,6 @@ import {
   AlertTriangle,
   ChevronDown,
   MessageCircle,
-  Send,
   FileSignature,
 } from 'lucide-react';
 
@@ -52,21 +51,29 @@ const AMAZEMART_DEPARTMENT_PRODUCTS: Readonly<Record<Exclude<AmazeMartDepartment
 interface AmazeMartProps {
   progress: GameProgress;
   updateProgress: (updater: (prev: GameProgress) => GameProgress) => void;
+  orderPhase: AmazeMartOrderPhase;
+  onRequestSellerVerification: () => void;
+  onOpenMessages: () => void;
   onOpenScreenshots: () => void;
 }
 
-type MerchantPhase = 'browsing' | 'risk-confirm' | 'notification' | 'relay' | 'ready-to-sign';
+type MerchantPhase = 'browsing' | 'risk-confirm';
 
-export const AmazeMart: React.FC<AmazeMartProps> = ({ progress, updateProgress, onOpenScreenshots }) => {
+export const AmazeMart: React.FC<AmazeMartProps> = ({
+  progress,
+  updateProgress,
+  orderPhase,
+  onRequestSellerVerification,
+  onOpenMessages,
+  onOpenScreenshots,
+}) => {
   const { tapElement } = useMetaInteraction();
   const [searchQuery, setSearchQuery] = useState('');
-  const [searched, setSearched] = useState(progress.deliveredPhone);
+  const [searched, setSearched] = useState(progress.deliveredPhone || orderPhase !== 'idle');
   const [searchError, setSearchError] = useState('');
-  const [sellerRevealed, setSellerRevealed] = useState(false);
-  const [sellerExpanded, setSellerExpanded] = useState(false);
+  const [sellerRevealed, setSellerRevealed] = useState(orderPhase !== 'idle');
+  const [sellerExpanded, setSellerExpanded] = useState(orderPhase !== 'idle');
   const [merchantPhase, setMerchantPhase] = useState<MerchantPhase>('browsing');
-  const [sellerCode, setSellerCode] = useState('');
-  const [sellerCodeError, setSellerCodeError] = useState('');
   const [department, setDepartment] = useState<AmazeMartDepartment>('all');
   const [priceFilter, setPriceFilter] = useState<AmazeMartPriceFilter>('all');
   const [orderRequestPending, setOrderRequestPending] = useState(false);
@@ -96,8 +103,6 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({ progress, updateProgress, 
       setSellerRevealed(false);
       setSellerExpanded(false);
       setMerchantPhase('browsing');
-      setSellerCode('');
-      setSellerCodeError('');
       return;
     }
 
@@ -122,23 +127,11 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({ progress, updateProgress, 
   };
 
   const handleAcceptRisk = () => {
-    // The over-happy checkout jingle now stops at a suspicious seller relay
-    // instead of completing the chapter automatically.
+    // Checkout hands verification to the phone's real Messages app. The
+    // package cannot be signed for until that separate conversation succeeds.
     audio.play('amazemart.purchase');
-    setMerchantPhase('notification');
-  };
-
-  const handleSellerVerification = (event: React.FormEvent) => {
-    event.preventDefault();
-    if (isSellerCodeAccepted(sellerCode)) {
-      setSellerCodeError('');
-      setMerchantPhase('ready-to-sign');
-      audio.play('amazemart.delivery');
-      return;
-    }
-
-    audio.playGlitch();
-    setSellerCodeError('MISMATCH. USE THE SCORE ATTACHED TO THE IMPOSSIBLE RUN.');
+    setMerchantPhase('browsing');
+    onRequestSellerVerification();
   };
 
   const handleSignDelivery = () => {
@@ -312,7 +305,7 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({ progress, updateProgress, 
                           <div className="text-[9px] text-slate-400"><span className="text-amber-400">★★★☆☆</span> definitely_human_99 — “bot review, ignore.”</div>
                           <div className="text-[9px] text-slate-400"><span className="text-amber-400">★☆☆☆☆</span> warm_to_the_touch — “recalled for a reason.”</div>
                         </div>
-                        {merchantPhase === 'browsing' && (
+                        {merchantPhase === 'browsing' && orderPhase === 'idle' && (
                           <button
                             type="button"
                             disabled={orderRequestPending}
@@ -330,46 +323,41 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({ progress, updateProgress, 
                   </article>
                 )}
 
-                {(merchantPhase === 'relay' || merchantPhase === 'ready-to-sign') && (
-                  <section className="overflow-hidden rounded-lg border border-cyan-400/30 bg-slate-950" id="am-seller-relay">
+                {orderPhase === 'verification-requested' && (
+                  <section className="overflow-hidden rounded-lg border border-emerald-400/30 bg-slate-950" id="am-awaiting-message">
                     <div className="flex items-center justify-between border-b border-cyan-400/20 bg-cyan-400/10 px-3 py-2">
-                      <div className="flex items-center gap-1.5 text-[10px] font-bold text-cyan-200"><MessageCircle className="h-3.5 w-3.5" /> SELLER RELAY · coldboot_17</div>
+                      <div className="flex items-center gap-1.5 text-[10px] font-bold text-cyan-200"><MessageCircle className="h-3.5 w-3.5" /> VERIFICATION MOVED TO MESSAGES</div>
                       <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />
                     </div>
+                    <div className="space-y-2 p-3 text-[9px] text-slate-300">
+                      <p><span className="font-mono text-cyan-200">coldboot_17</span> sent a buyer check to the green Messages app.</p>
+                      <button
+                        type="button"
+                        onClick={onOpenMessages}
+                        className="flex w-full items-center justify-center gap-1.5 rounded bg-emerald-500 py-2 text-xs font-black text-slate-950 hover:bg-emerald-400"
+                        id="am-open-messages"
+                      >
+                        <MessageCircle className="h-4 w-4" /> OPEN MESSAGES
+                      </button>
+                    </div>
+                  </section>
+                )}
+
+                {orderPhase === 'verified' && (
+                  <section className="overflow-hidden rounded-lg border border-emerald-400/35 bg-slate-950" id="am-seller-delivery">
+                    <div className="border-b border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-[10px] font-bold text-emerald-200">
+                      DELIVERY WAITING FOR SIGNATURE
+                    </div>
                     <div className="space-y-2 p-3 font-mono text-[9px]">
-                      <div className="max-w-[85%] rounded bg-slate-800 p-2 text-slate-200">Buyer check. What score belongs to the impossible runner?</div>
-                      {merchantPhase === 'ready-to-sign' ? (
-                        <>
-                          <div className="ml-auto max-w-[70%] rounded bg-cyan-500/20 p-2 text-right text-cyan-100">184</div>
-                          <div className="max-w-[90%] rounded bg-emerald-500/10 p-2 text-emerald-200">MATCH. SCHEMATIC PACKET DELIVERED. SIGN TO RELEASE IMAGE SET.</div>
-                          <button
-                            type="button"
-                            onClick={handleSignDelivery}
-                            className="flex w-full items-center justify-center gap-1.5 rounded bg-emerald-400 py-2 font-sans text-xs font-black text-slate-950 hover:bg-emerald-300"
-                            id="am-sign-delivery"
-                          >
-                            <FileSignature className="h-4 w-4" /> SIGN FOR DELIVERY
-                          </button>
-                        </>
-                      ) : (
-                        <form onSubmit={handleSellerVerification} className="space-y-2" id="am-seller-code-form">
-                          <div className="flex gap-1.5">
-                            <input
-                              value={sellerCode}
-                              onChange={(event) => setSellerCode(event.target.value)}
-                              inputMode="numeric"
-                              autoComplete="off"
-                              placeholder="ENTER SCORE"
-                              className="min-w-0 flex-1 rounded border border-cyan-400/25 bg-slate-900 px-2 py-2 text-xs text-white outline-none focus:border-cyan-300"
-                              id="am-seller-code"
-                            />
-                            <button type="submit" className="rounded bg-cyan-400 px-3 text-slate-950 hover:bg-cyan-300" id="am-submit-code" aria-label="Send score">
-                              <Send className="h-4 w-4" />
-                            </button>
-                          </div>
-                          {sellerCodeError && <div className="text-[8px] text-red-300" id="am-seller-code-error">{sellerCodeError}</div>}
-                        </form>
-                      )}
+                      <div className="max-w-[90%] rounded bg-emerald-500/10 p-2 text-emerald-200">MATCH. SCHEMATIC PACKET DELIVERED. SIGN TO RELEASE IMAGE SET.</div>
+                      <button
+                        type="button"
+                        onClick={handleSignDelivery}
+                        className="flex w-full items-center justify-center gap-1.5 rounded bg-emerald-400 py-2 font-sans text-xs font-black text-slate-950 hover:bg-emerald-300"
+                        id="am-sign-delivery"
+                      >
+                        <FileSignature className="h-4 w-4" /> SIGN FOR DELIVERY
+                      </button>
                     </div>
                   </section>
                 )}
@@ -429,22 +417,6 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({ progress, updateProgress, 
             </div>
           </div>
         </div>
-      )}
-
-      {merchantPhase === 'notification' && (
-        <button
-          type="button"
-          onClick={() => { audio.playTick(); setMerchantPhase('relay'); }}
-          className="absolute right-3 top-14 z-20 flex w-[min(300px,calc(100%-24px))] items-center gap-2 rounded-lg border border-cyan-300/30 bg-slate-950/95 p-3 text-left shadow-2xl"
-          id="am-seller-notification"
-        >
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-cyan-400/15"><MessageCircle className="h-4 w-4 text-cyan-300" /></div>
-          <div className="min-w-0 flex-1">
-            <div className="text-[8px] font-mono text-cyan-300">AMAZEMART SELLER RELAY · NOW</div>
-            <div className="truncate text-[10px] font-bold text-white">coldboot_17 sent you a buyer check.</div>
-          </div>
-          <span className="text-xs text-cyan-300">OPEN</span>
-        </button>
       )}
 
     </div>

@@ -1,24 +1,40 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { GameProgress, ChatMessage } from '../types';
 import audio from '../lib/audio';
 import { canUseProgressionAction, completePuzzleChapter } from '../lib/chapterProgress';
-import { KeyRound } from 'lucide-react';
+import { isSellerCodeAccepted, type AmazeMartOrderPhase } from '../lib/amazemartPuzzle';
+import { useMetaInteraction } from './MetaInteractionScene';
+import { KeyRound, MessageCircle, PackageCheck, Send, ShieldAlert } from 'lucide-react';
 
 interface MessagesAppProps {
   progress: GameProgress;
   updateProgress: (updater: (prev: GameProgress) => GameProgress) => void;
+  chapterThreeOrderPhase: AmazeMartOrderPhase;
+  onSellerVerified: () => void;
+  onOpenAmazeMart: () => void;
 }
+
+type MessageTab = 'mom' | 'seller' | 'admin';
 
 /**
  * A perfectly ordinary modern messaging client — except for one tab that the
  * migration left behind. The Silver Kite archive renders in the old system's
  * language: cold, square, patient, slightly slow to answer.
  */
-export const MessagesApp: React.FC<MessagesAppProps> = ({ progress, updateProgress }) => {
-  const [activeTab, setActiveTab] = useState<'mom' | 'admin'>('mom');
+export const MessagesApp: React.FC<MessagesAppProps> = ({
+  progress,
+  updateProgress,
+  chapterThreeOrderPhase,
+  onSellerVerified,
+  onOpenAmazeMart,
+}) => {
+  const metaInteraction = useMetaInteraction();
+  const [activeTab, setActiveTab] = useState<MessageTab>(chapterThreeOrderPhase === 'idle' ? 'mom' : 'seller');
   const [passwordInput, setPasswordInput] = useState('');
   const [loginError, setLoginError] = useState('');
   const [failCount, setFailCount] = useState(0);
+  const [sellerCode, setSellerCode] = useState('');
+  const [sellerCodeError, setSellerCodeError] = useState('');
 
   // Modern chat messages with Mother (Mara)
   const momMessages: ChatMessage[] = [
@@ -103,6 +119,36 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({ progress, updateProgre
     updateProgress((prev) => completePuzzleChapter(prev, 9, { unlockedCodeRoute: true }));
   };
 
+  const verifySellerCode = () => {
+    if (isSellerCodeAccepted(sellerCode)) {
+      setSellerCodeError('');
+      onSellerVerified();
+      audio.play('amazemart.delivery');
+      return;
+    }
+
+    audio.playGlitch();
+    setSellerCodeError('MISMATCH. Use the score attached to the impossible run.');
+  };
+
+  const handleSellerVerification = (event: React.FormEvent) => {
+    event.preventDefault();
+    verifySellerCode();
+  };
+
+  useEffect(() => {
+    if (chapterThreeOrderPhase === 'idle') {
+      if (activeTab === 'seller') setActiveTab('mom');
+      return undefined;
+    }
+
+    return metaInteraction.registerInput('messages-seller-code', {
+      getValue: () => sellerCode,
+      onChange: setSellerCode,
+      onSubmit: verifySellerCode,
+    });
+  }, [activeTab, chapterThreeOrderPhase, metaInteraction.registerInput, onSellerVerified, sellerCode]);
+
   return (
     <div className="flex flex-col h-full bg-[#0e1015] text-slate-100 font-sans overflow-hidden" id="messages-root">
 
@@ -125,6 +171,20 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({ progress, updateProgre
           >
             Mom (Mara)
           </button>
+          {chapterThreeOrderPhase !== 'idle' && (
+            <button
+              onClick={() => { audio.play('phone.tab'); setActiveTab('seller'); }}
+              className={`relative flex-1 rounded-full py-1.5 text-[9.5px] font-medium transition-colors ${
+                activeTab === 'seller' ? 'bg-[#1f6f54] text-white' : 'text-slate-400 hover:text-slate-200'
+              }`}
+              id="tab-seller"
+            >
+              coldboot_17
+              {chapterThreeOrderPhase === 'verification-requested' && (
+                <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-emerald-300" aria-label="Unread seller message" />
+              )}
+            </button>
+          )}
           <button
             onClick={() => { audio.play('phone.tab'); setActiveTab('admin'); }}
             className={`flex-1 py-1.5 rounded-full font-laos text-[9.5px] tracking-[0.14em] laos-slow ${
@@ -141,7 +201,67 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({ progress, updateProgre
 
       {/* Message App Body Container */}
       <div className={`flex-1 overflow-y-auto ${activeTab === 'admin' ? 'bg-[var(--laos-bg)] p-3' : 'p-3'}`} id="messages-body">
-        {activeTab === 'mom' ? (
+        {activeTab === 'seller' && chapterThreeOrderPhase !== 'idle' ? (
+          <div className="flex min-h-full flex-col" id="chat-seller-panel">
+            <div className="mb-3 flex items-center gap-2 border-b border-white/[0.06] pb-3">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-300">
+                <MessageCircle className="h-4 w-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-xs font-semibold text-white">coldboot_17</div>
+                <div className="flex items-center gap-1 text-[8px] text-amber-300"><ShieldAlert className="h-2.5 w-2.5" /> Unknown sender · marketplace relay</div>
+              </div>
+            </div>
+
+            <div className="flex-1 space-y-3" id="messages-seller-thread">
+              <div className="text-center text-[8px] text-slate-600">Text Message · Now</div>
+              <div className="mr-auto max-w-[82%] rounded-2xl rounded-bl-md bg-[#1d212b] px-3 py-2 text-xs leading-relaxed text-slate-200">
+                Buyer check. What score belongs to the impossible runner?
+              </div>
+
+              {chapterThreeOrderPhase === 'verified' && (
+                <>
+                  <div className="ml-auto max-w-[70%] rounded-2xl rounded-br-md bg-[#2f7d60] px-3 py-2 text-right font-mono text-xs text-white">184</div>
+                  <div className="mr-auto max-w-[88%] rounded-2xl rounded-bl-md bg-[#1d212b] px-3 py-2 text-xs leading-relaxed text-slate-200">
+                    Match. The schematic packet has been delivered. Return to AmazeMart and sign for it.
+                  </div>
+                  <button
+                    type="button"
+                    onClick={onOpenAmazeMart}
+                    className="mx-auto flex items-center gap-1.5 rounded-full bg-emerald-500 px-4 py-2 text-[10px] font-bold text-slate-950 hover:bg-emerald-400"
+                    id="messages-return-amazemart"
+                  >
+                    <PackageCheck className="h-3.5 w-3.5" /> RETURN TO AMAZEMART
+                  </button>
+                </>
+              )}
+
+              {sellerCodeError && chapterThreeOrderPhase === 'verification-requested' && (
+                <div className="mr-auto max-w-[88%] rounded-2xl rounded-bl-md bg-red-950/60 px-3 py-2 text-xs leading-relaxed text-red-200" id="messages-seller-code-error">
+                  {sellerCodeError}
+                </div>
+              )}
+            </div>
+
+            {chapterThreeOrderPhase === 'verification-requested' && (
+              <form onSubmit={handleSellerVerification} className="mt-3 flex gap-2 border-t border-white/[0.06] pt-3" id="messages-seller-code-form">
+                <input
+                  value={sellerCode}
+                  onChange={(event) => setSellerCode(event.target.value)}
+                  inputMode="numeric"
+                  autoComplete="off"
+                  placeholder="Text Message"
+                  className="min-w-0 flex-1 rounded-full border border-white/[0.1] bg-[#171a21] px-3 py-2 text-xs text-white outline-none focus:border-emerald-400/70"
+                  id="messages-seller-code"
+                  aria-label="Reply to coldboot_17"
+                />
+                <button type="submit" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-slate-950 hover:bg-emerald-400" id="messages-submit-seller-code" aria-label="Send score">
+                  <Send className="h-4 w-4" />
+                </button>
+              </form>
+            )}
+          </div>
+        ) : activeTab === 'mom' ? (
           /* PART A: Chat logs with Mother — the modern layer at its most normal */
           <div className="space-y-3" id="chat-mom-panel">
             <div className="text-[9px] text-center text-slate-500 my-1">
