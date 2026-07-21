@@ -285,9 +285,9 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   };
 
   // Dock utilities are functional controls, not story-facing app launches.
-  // Give them the same immediate pointer path as the home launchers so Meta's
-  // hand relay cannot consume their click before the popover opens.
-  const handleDockUtilityPointerUp = (event: React.PointerEvent<HTMLButtonElement>, utility: DockUtility) => {
+  // Open on pointer-down while the transformed phone surface is still under
+  // the cursor; camera follow can move the right edge before pointer-up.
+  const handleDockUtilityPointerDown = (event: React.PointerEvent<HTMLButtonElement>, utility: DockUtility) => {
     event.stopPropagation();
     toggleDockUtility(utility);
   };
@@ -982,7 +982,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                   ] as Array<[string, DockUtility, React.FC]>).map(([name, utility, Icon]) => (
                     <button
                       key={name}
-                      onPointerUp={(event) => handleDockUtilityPointerUp(event, utility)}
+                      onPointerDown={(event) => handleDockUtilityPointerDown(event, utility)}
                       onClick={(event) => handleDockUtilityClick(event, utility)}
                       aria-expanded={dockUtility === utility}
                       aria-controls="home-dock-utility-popover"

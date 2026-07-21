@@ -17,7 +17,8 @@ test('dock utilities stay on the home screen in one small non-modal popover', ()
   assert.doesNotMatch(typesSource, /'voicelog'|'filebox'|'gallery'|'terminal'|'controls'/);
   assert.match(phoneSource, /toggleDockUtility\(utility\)/);
   assert.match(phoneSource, /id="home-dock"\s+data-meta-immediate="true"/);
-  assert.match(phoneSource, /onPointerUp=\{\(event\) => handleDockUtilityPointerUp\(event, utility\)\}/);
+  assert.match(phoneSource, /onPointerDown=\{\(event\) => handleDockUtilityPointerDown\(event, utility\)\}/);
+  assert.doesNotMatch(phoneSource, /handleDockUtilityPointerUp/);
   assert.match(phoneSource, /onClick=\{\(event\) => handleDockUtilityClick\(event, utility\)\}/);
 });
 

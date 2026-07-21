@@ -578,3 +578,9 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Restored immediate pointer activation for all five dock utilities, including Controls, because Meta's delayed hand relay was consuming their native click event.
 - Controls now reliably opens the existing Camera follow and Desk posture switches; keyboard activation remains available through the click handler.
 - Browser verification remains intentionally omitted under the repository rule; static tests, TypeScript lint, production build, and diff checks are required before delivery.
+
+## 2026-07-22 — Stable dock activation on a tilting phone
+
+- Moved dock utility activation from pointer-up to pointer-down so camera-follow transforms cannot move the rightmost Terminal and Controls buttons out from under the cursor before activation.
+- Retained the immediate Meta bypass and the keyboard-only click fallback.
+- Browser verification remains intentionally omitted under the repository rule; static tests, TypeScript lint, production build, and diff checks are required before delivery.
