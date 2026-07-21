@@ -118,6 +118,11 @@ export const shouldShowMetaScene = (
   phase: GameProgress['phase'],
 ): boolean => metaViewUnlocked || developerToolsOpen || phase !== 'intro_game';
 
+export const shouldPersistDeveloperMetaView = (
+  developerToolsOpen: boolean,
+  currentChapter: number,
+): boolean => developerToolsOpen && currentChapter >= 1;
+
 export const canStartMetaInteraction = (
   metaViewActive: boolean,
   interactionPending: boolean,

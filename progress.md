@@ -1,5 +1,12 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-21 — Persist the default Chapter 1 developer Meta view
+
+- Opening Developer Debug Mode while it displays Chapter 1–10 now permanently confirms the Meta presentation for that run.
+- Closing the panel with Ctrl+Shift+D hides only the developer interface; it no longer returns the already-entered Chapter 1 view to Chapter 0 fullscreen.
+- The formal non-developer Meta reveal rule remains unchanged.
+- Browser validation remains intentionally omitted per project instruction; static tests, TypeScript, and production build are used for verification.
+
 ## 2026-07-21 — Restrict click-to-rest to the background
 
 - Clarified request: clicking the device screen must not put it down, while clicking the desk, wall, or other background must still enter the resting view.

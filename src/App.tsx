@@ -3,7 +3,11 @@ import { GameProgress, PuzzleChapter } from './types';
 import { PhoneSimulator } from './components/PhoneSimulator';
 import { MetaInteractionScene } from './components/MetaInteractionScene';
 import { DEBUG_CHAPTERS, getChapterAdvanceGuide, getChapterById, getChapterSnapshot } from './lib/chapterProgress';
-import { shouldRevealMetaView, shouldShowMetaScene } from './lib/metaInteraction';
+import {
+  shouldPersistDeveloperMetaView,
+  shouldRevealMetaView,
+  shouldShowMetaScene,
+} from './lib/metaInteraction';
 import audio from './lib/audio';
 import music, { getMusicPhase } from './lib/music';
 import { 
@@ -62,6 +66,12 @@ export default function App() {
     window.addEventListener('keydown', handleDebugShortcut);
     return () => window.removeEventListener('keydown', handleDebugShortcut);
   }, []);
+
+  useEffect(() => {
+    if (shouldPersistDeveloperMetaView(debugMode, progress.currentChapter)) {
+      setMetaViewActive(true);
+    }
+  }, [debugMode, progress.currentChapter]);
 
   useEffect(() => audio.armUnlock(), []);
 

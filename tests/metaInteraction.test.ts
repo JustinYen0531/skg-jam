@@ -13,6 +13,7 @@ import {
   META_TAP_TIMING,
   normalizeVirtualKey,
   scaleProjectiveQuad,
+  shouldPersistDeveloperMetaView,
   shouldRevealMetaView,
   shouldShowMetaScene,
 } from '../src/lib/metaInteraction';
@@ -29,6 +30,19 @@ test('developer chapter tools preview the meta scene without changing the story 
   assert.equal(shouldShowMetaScene(false, true, 'intro_game'), true);
   assert.equal(shouldShowMetaScene(true, false, 'intro_game'), true);
   assert.equal(shouldShowMetaScene(true, true, 'intro_game'), true);
+});
+
+test('an open Chapter 1+ developer view persists Meta after the panel closes', () => {
+  assert.equal(shouldPersistDeveloperMetaView(true, 1), true);
+  assert.equal(shouldPersistDeveloperMetaView(true, 10), true);
+  assert.equal(shouldPersistDeveloperMetaView(false, 1), false);
+  assert.equal(shouldPersistDeveloperMetaView(true, 0), false);
+
+  const appSource = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
+  assert.match(
+    appSource,
+    /shouldPersistDeveloperMetaView\(debugMode, progress\.currentChapter\)[\s\S]{0,100}setMetaViewActive\(true\)/,
+  );
 });
 
 test('Chapter 1 and every later restored-phone phase keep the Meta scene active', () => {
