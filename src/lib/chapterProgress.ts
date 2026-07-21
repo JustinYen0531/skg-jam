@@ -51,11 +51,11 @@ const CHAPTER_ADVANCE_GUIDES: Record<PuzzleChapter, ChapterAdvanceGuide> = {
     nextLabel: 'CHAPTER 04',
     objective: 'Obtain a Lumen Arc that can run the archived build.',
     steps: [
-      'Open AmazeMart and search for Lumen Arc.',
-      'Open the recalled-device listing.',
-      'Buy the device and wait for the delivery to finish.',
+      'Search AmazeMart for Lumen Arc, then scroll to and expand the suppressed seller.',
+      'Accept the scam warning, open the seller relay, and enter ARC_184\'s impossible score: 184.',
+      'Sign for the delivered screenshot packet.',
     ],
-    completion: 'The delivery arrives and unlocks the screenshot bundle.',
+    completion: 'The signed delivery unlocks the screenshot bundle.',
   },
   4: {
     chapter: 4,

@@ -3,7 +3,26 @@ import { GameProgress } from '../types';
 import audio from '../lib/audio';
 import { canUseProgressionAction, completePuzzleChapter } from '../lib/chapterProgress';
 import { createFeedSeed, shuffleFeed } from '../lib/pseudoFeed';
-import { ShoppingBag, Search, Package, CheckCircle, Smartphone, Star, Truck, Flame } from 'lucide-react';
+import {
+  isLumenArcSearch,
+  isSellerCodeAccepted,
+  shouldRevealSuppressedSeller,
+} from '../lib/amazemartPuzzle';
+import {
+  ShoppingBag,
+  Search,
+  Package,
+  CheckCircle,
+  Smartphone,
+  Star,
+  Truck,
+  Flame,
+  AlertTriangle,
+  ChevronDown,
+  MessageCircle,
+  Send,
+  FileSignature,
+} from 'lucide-react';
 
 const AMAZEMART_PRODUCTS = [
   { id: 'am-1', name: 'Cloud-Shaped Bedside Humidifier', price: '$18.49', oldPrice: '$34.00', rating: '4.7', reviews: '8,421', badge: '42% OFF', symbol: '☁', gradient: 'from-sky-300 to-indigo-500' },
@@ -23,17 +42,23 @@ interface AmazeMartProps {
   onOpenScreenshots: () => void;
 }
 
+type MerchantPhase = 'browsing' | 'risk-confirm' | 'notification' | 'relay' | 'ready-to-sign';
+
 export const AmazeMart: React.FC<AmazeMartProps> = ({ progress, updateProgress, onOpenScreenshots }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [searched, setSearched] = useState(progress.orderedPhone);
-  const [ordering, setOrdering] = useState(false);
+  const [searched, setSearched] = useState(progress.deliveredPhone);
   const [searchError, setSearchError] = useState('');
+  const [sellerRevealed, setSellerRevealed] = useState(false);
+  const [sellerExpanded, setSellerExpanded] = useState(false);
+  const [merchantPhase, setMerchantPhase] = useState<MerchantPhase>('browsing');
+  const [sellerCode, setSellerCode] = useState('');
+  const [sellerCodeError, setSellerCodeError] = useState('');
   const [recommendedProducts] = useState(() => shuffleFeed(AMAZEMART_PRODUCTS, createFeedSeed('amazemart')));
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     audio.playTick();
-    if (searchQuery.toLowerCase().includes('lumen') || searchQuery.toLowerCase().includes('arc')) {
+    if (isLumenArcSearch(searchQuery)) {
       if (!canUseProgressionAction('amazemart-lumen-search', progress)) {
         audio.playGlitch();
         setSearchError('IMPRESSIVE GUESS. UNFORTUNATELY, THE STORY HAS NOT SHIPPED THAT CLUE YET.');
@@ -41,27 +66,56 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({ progress, updateProgress, 
       }
       setSearchError('');
       setSearched(true);
+      setSellerRevealed(false);
+      setSellerExpanded(false);
+      setMerchantPhase('browsing');
+      setSellerCode('');
+      setSellerCodeError('');
+      return;
+    }
+
+    setSearchError('NO CERTIFIED INVENTORY MATCHED THAT SEARCH. THE RECOMMENDATION ENGINE HAS IMPROVISED INSTEAD.');
+  };
+
+  const handleResultsScroll = (event: React.UIEvent<HTMLDivElement>) => {
+    if (!searched || sellerRevealed || progress.deliveredPhone) return;
+    if (shouldRevealSuppressedSeller(event.currentTarget)) {
+      setSellerRevealed(true);
+      audio.playGlitch();
     }
   };
 
-  const handleBuy = () => {
-    setOrdering(true);
-    // Over-happy checkout now; the jingle gets truncated into a file
-    // dropping when the "device" arrives as paper (§4.7).
+  const handleAcceptRisk = () => {
+    // The over-happy checkout jingle now stops at a suspicious seller relay
+    // instead of completing the chapter automatically.
     audio.play('amazemart.purchase');
+    setMerchantPhase('notification');
+  };
 
-    setTimeout(() => {
-      setOrdering(false);
+  const handleSellerVerification = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (isSellerCodeAccepted(sellerCode)) {
+      setSellerCodeError('');
+      setMerchantPhase('ready-to-sign');
       audio.play('amazemart.delivery');
-      updateProgress((prev) => completePuzzleChapter(prev, 3, {
-        orderedPhone: true,
-        deliveredPhone: true, // immediately delivered!
-      }));
-    }, 1500);
+      return;
+    }
+
+    audio.playGlitch();
+    setSellerCodeError('MISMATCH. USE THE SCORE ATTACHED TO THE IMPOSSIBLE RUN.');
+  };
+
+  const handleSignDelivery = () => {
+    audio.playTick();
+    updateProgress((prev) => completePuzzleChapter(prev, 3, {
+      orderedPhone: true,
+      deliveredPhone: true,
+    }));
+    onOpenScreenshots();
   };
 
   return (
-    <div className="flex flex-col h-full bg-indigo-950/20 text-slate-100 font-sans overflow-hidden" id="amazemart-root">
+    <div className="relative flex flex-col h-full bg-indigo-950/20 text-slate-100 font-sans overflow-hidden" id="amazemart-root">
       
       {/* AmazeMart Header */}
       <div className="bg-amber-500 p-3 flex items-center justify-between border-b border-amber-600/50" id="am-header">
@@ -90,7 +144,7 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({ progress, updateProgress, 
           ⚠ {searchError}
         </div>
       )}
-      <div className="flex-1 overflow-y-auto p-3" id="am-body">
+      <div className="flex-1 overflow-y-auto p-3" id="am-body" onScroll={handleResultsScroll}>
         {!searched ? (
           <div className="space-y-3" id="am-storefront">
             <section className="rounded-xl overflow-hidden bg-gradient-to-r from-amber-400 via-orange-400 to-rose-500 text-indigo-950 p-3 relative" id="am-deal-banner">
@@ -160,55 +214,129 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({ progress, updateProgress, 
           </div>
         ) : (
           <div className="space-y-4" id="am-results">
-            {/* If we have not ordered it yet */}
             {!progress.deliveredPhone ? (
-              <div className="bg-slate-900 border border-slate-800 rounded-lg p-3.5 space-y-3" id="am-item-card">
-                <div className="flex gap-3">
-                  <div className="w-20 h-20 bg-slate-950 rounded border border-slate-800 flex items-center justify-center relative">
-                    <Smartphone className="w-8 h-8 text-amber-500/70" />
-                    <span className="absolute bottom-1 right-1 bg-red-600 text-[7px] text-white px-1 py-0.2 rounded font-mono">RECALLED</span>
+              <>
+                <section className="rounded-lg border border-slate-800 bg-slate-900 p-3" id="am-search-summary">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="text-[8px] font-mono text-slate-500">SEARCH RESULTS FOR</div>
+                      <h2 className="text-sm font-black text-white">“Lumen Arc”</h2>
+                    </div>
+                    <span className="rounded bg-amber-500/10 px-2 py-1 text-[8px] font-bold text-amber-300">0 CERTIFIED MATCHES</span>
                   </div>
-                  <div className="flex-1 space-y-1">
-                    <div className="text-xs font-bold text-slate-400">Collector's Liquidation Stock</div>
-                    <h3 className="font-display font-bold text-sm text-white">
-                      Lumen Arc Mobile Console (Obsolete Package)
-                    </h3>
-                    <div className="text-xs text-amber-400 font-bold">$0.00 <span className="text-[9px] text-slate-500 line-through">$399.00</span></div>
-                    <div className="text-[10px] text-slate-400 font-mono">Seller: OldStockCollectibles (100% positive rating)</div>
-                  </div>
+                  <p className="mt-2 text-[9px] leading-relaxed text-slate-400">Results broadened automatically. Some marketplace records may be omitted by Trust &amp; Safety.</p>
+                </section>
+
+                <div className="grid grid-cols-2 gap-2" id="am-search-decoys">
+                  {recommendedProducts.slice(0, 8).map((product) => (
+                    <article key={`search-${product.id}`} className="overflow-hidden rounded-lg border border-slate-800 bg-slate-900">
+                      <div className={`relative flex h-16 items-center justify-center bg-gradient-to-br ${product.gradient}`}>
+                        <span className="text-3xl text-white/90 drop-shadow-lg">{product.symbol}</span>
+                        <span className="absolute left-1.5 top-1.5 rounded bg-slate-950/80 px-1.5 py-0.5 text-[7px] font-black text-white">SPONSORED</span>
+                      </div>
+                      <div className="p-2">
+                        <h3 className="line-clamp-2 min-h-6 text-[10px] font-bold leading-tight text-slate-100">{product.name}</h3>
+                        <div className="mt-1 flex items-center justify-between">
+                          <span className="text-xs font-black text-amber-400">{product.price}</span>
+                          <span className="text-[7px] text-slate-500">NOT A MATCH</span>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
                 </div>
 
-                <div className="text-[10px] bg-slate-950 p-2 rounded text-slate-400 leading-relaxed border border-slate-800">
-                  <span className="font-bold text-amber-400">⚠️ Item Warning Note:</span> Battery components fully deactivated. Due to strict government recall laws, we CANNOT ship the physical operational phone. Instead, you will receive the official **Lumen Arc Developer Kit & Captured Printed Screenshot Folder** containing full technical specification printouts of the legacy system interface.
-                </div>
+                {!sellerRevealed ? (
+                  <div className="rounded-lg border border-dashed border-slate-700 bg-slate-950/60 p-3 text-center" id="am-hidden-results-hint">
+                    <div className="text-[9px] font-mono text-slate-500">KEEP SCROLLING · 3 MARKETPLACE RECORDS STILL FILTERED</div>
+                  </div>
+                ) : (
+                  <article className="overflow-hidden rounded-lg border border-red-500/45 bg-red-950/20 shadow-[0_0_24px_rgba(239,68,68,0.12)]" id="am-suppressed-seller">
+                    <button
+                      type="button"
+                      onClick={() => { audio.playTick(); setSellerExpanded((current) => !current); }}
+                      className="flex w-full items-center gap-3 p-3 text-left"
+                      id="am-expand-seller"
+                    >
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded border border-red-500/30 bg-slate-950">
+                        <Smartphone className="h-6 w-6 text-red-300" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1 text-[8px] font-black tracking-wider text-red-300"><AlertTriangle className="h-3 w-3" /> DANGEROUS · UNVERIFIED SELLER</div>
+                        <h3 className="mt-0.5 text-xs font-bold text-white">Lumen Arc Recovery Lot — “Complete”</h3>
+                        <div className="mt-1 text-[9px] font-mono text-slate-400">coldboot_17 · rating unavailable · $1.84</div>
+                      </div>
+                      <ChevronDown className={`h-4 w-4 text-red-300 transition-transform ${sellerExpanded ? 'rotate-180' : ''}`} />
+                    </button>
 
-                {/* Fake reviews: mostly noise, one quiet foreshadow of what "delivery" means */}
-                <div className="space-y-1.5 border-t border-slate-800 pt-2.5" id="am-reviews">
-                  <div className="text-[10px] font-bold text-slate-400">Customer reviews (mostly bots)</div>
-                  <div className="text-[10px] text-slate-400 leading-snug">
-                    <span className="text-amber-400">★☆☆☆☆</span> <span className="text-slate-500">nostalgia_hoarder</span> — "arrived as a folder of screenshots. somehow still my favorite purchase."
-                  </div>
-                  <div className="text-[10px] text-slate-400 leading-snug">
-                    <span className="text-amber-400">★★★★★</span> <span className="text-slate-500">paperweight_enjoyer</span> — "great paperweight. does not turn on. as described (it was not described)."
-                  </div>
-                  <div className="text-[10px] text-slate-400 leading-snug">
-                    <span className="text-amber-400">★★★☆☆</span> <span className="text-slate-500">definitely_human_99</span> — "bot review, ignore" · verified by nobody
-                  </div>
-                  <div className="text-[10px] text-slate-400 leading-snug">
-                    <span className="text-amber-400">★☆☆☆☆</span> <span className="text-slate-500">warm_to_the_touch</span> — "recalled for a reason. mine got warm and so did my feelings."
-                  </div>
-                </div>
+                    {sellerExpanded && (
+                      <div className="space-y-3 border-t border-red-500/20 p-3" id="am-seller-details">
+                        <div className="rounded border border-red-500/25 bg-slate-950 p-2 text-[9px] leading-relaxed text-slate-300">
+                          Physical battery disabled. Seller claims the surviving developer packet can reconstruct the original interface. AmazeMart cannot verify the item, seller, delivery, or meaning of “reconstruct.”
+                        </div>
+                        <div className="grid grid-cols-3 gap-1.5 text-center text-[8px] text-slate-400">
+                          <div className="rounded bg-slate-950 p-1.5">NO REFUNDS</div>
+                          <div className="rounded bg-slate-950 p-1.5">NO WARRANTY</div>
+                          <div className="rounded bg-slate-950 p-1.5">NO COMMON SENSE</div>
+                        </div>
+                        {merchantPhase === 'browsing' && (
+                          <button
+                            type="button"
+                            onClick={() => setMerchantPhase('risk-confirm')}
+                            className="flex w-full items-center justify-center gap-1.5 rounded bg-amber-500 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400"
+                            id="am-buy-button"
+                          >
+                            <Package className="h-4 w-4" /> ORDER INSTANT
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </article>
+                )}
 
-                <button
-                  disabled={ordering}
-                  onClick={handleBuy}
-                  className="w-full py-2 bg-amber-500 hover:bg-amber-400 disabled:bg-slate-800 disabled:text-slate-500 text-slate-950 font-bold rounded text-xs transition-colors flex items-center justify-center gap-1.5"
-                  id="am-buy-button"
-                >
-                  <Package className="w-4 h-4" />
-                  {ordering ? 'INITIATING TRANSIT SECURE...' : 'ORDER INSTANT SCHEMATICS DELIVERY'}
-                </button>
-              </div>
+                {(merchantPhase === 'relay' || merchantPhase === 'ready-to-sign') && (
+                  <section className="overflow-hidden rounded-lg border border-cyan-400/30 bg-slate-950" id="am-seller-relay">
+                    <div className="flex items-center justify-between border-b border-cyan-400/20 bg-cyan-400/10 px-3 py-2">
+                      <div className="flex items-center gap-1.5 text-[10px] font-bold text-cyan-200"><MessageCircle className="h-3.5 w-3.5" /> SELLER RELAY · coldboot_17</div>
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399]" />
+                    </div>
+                    <div className="space-y-2 p-3 font-mono text-[9px]">
+                      <div className="max-w-[85%] rounded bg-slate-800 p-2 text-slate-200">Buyer check. What score belongs to the impossible runner?</div>
+                      {merchantPhase === 'ready-to-sign' ? (
+                        <>
+                          <div className="ml-auto max-w-[70%] rounded bg-cyan-500/20 p-2 text-right text-cyan-100">184</div>
+                          <div className="max-w-[90%] rounded bg-emerald-500/10 p-2 text-emerald-200">MATCH. SCHEMATIC PACKET DELIVERED. SIGN TO RELEASE IMAGE SET.</div>
+                          <button
+                            type="button"
+                            onClick={handleSignDelivery}
+                            className="flex w-full items-center justify-center gap-1.5 rounded bg-emerald-400 py-2 font-sans text-xs font-black text-slate-950 hover:bg-emerald-300"
+                            id="am-sign-delivery"
+                          >
+                            <FileSignature className="h-4 w-4" /> SIGN FOR DELIVERY
+                          </button>
+                        </>
+                      ) : (
+                        <form onSubmit={handleSellerVerification} className="space-y-2" id="am-seller-code-form">
+                          <div className="flex gap-1.5">
+                            <input
+                              value={sellerCode}
+                              onChange={(event) => setSellerCode(event.target.value)}
+                              inputMode="numeric"
+                              autoComplete="off"
+                              placeholder="ENTER SCORE"
+                              className="min-w-0 flex-1 rounded border border-cyan-400/25 bg-slate-900 px-2 py-2 text-xs text-white outline-none focus:border-cyan-300"
+                              id="am-seller-code"
+                            />
+                            <button type="submit" className="rounded bg-cyan-400 px-3 text-slate-950 hover:bg-cyan-300" id="am-submit-code" aria-label="Send score">
+                              <Send className="h-4 w-4" />
+                            </button>
+                          </div>
+                          {sellerCodeError && <div className="text-[8px] text-red-300" id="am-seller-code-error">{sellerCodeError}</div>}
+                        </form>
+                      )}
+                    </div>
+                  </section>
+                )}
+              </>
             ) : (
               /* Already ordered and delivered! */
               <div className="bg-slate-900/90 border border-emerald-500/30 rounded-lg p-4 text-center space-y-3 shadow-lg" id="am-delivery-success">
@@ -241,6 +369,36 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({ progress, updateProgress, 
           </div>
         )}
       </div>
+
+      {merchantPhase === 'risk-confirm' && (
+        <div className="absolute inset-0 z-30 flex items-center justify-center bg-slate-950/80 p-5 backdrop-blur-sm" id="am-risk-confirmation">
+          <div className="w-full max-w-sm rounded-xl border border-red-400/40 bg-slate-900 p-4 text-center shadow-2xl">
+            <AlertTriangle className="mx-auto h-9 w-9 text-red-400" />
+            <h2 className="mt-2 font-display text-base font-black text-white">ARE YOU SURE?</h2>
+            <p className="mt-1 text-[10px] leading-relaxed text-slate-300">This seller is unverified. The listing may be fraudulent, unsafe, imaginary, or all three.</p>
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <button type="button" onClick={() => setMerchantPhase('browsing')} className="rounded border border-slate-600 py-2 text-[10px] font-bold text-slate-300" id="am-risk-cancel">GO BACK</button>
+              <button type="button" onClick={handleAcceptRisk} className="rounded bg-red-500 py-2 text-[10px] font-black text-white hover:bg-red-400" id="am-risk-accept">I ACCEPT THE RISK</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {merchantPhase === 'notification' && (
+        <button
+          type="button"
+          onClick={() => { audio.playTick(); setMerchantPhase('relay'); }}
+          className="absolute right-3 top-14 z-20 flex w-[min(300px,calc(100%-24px))] items-center gap-2 rounded-lg border border-cyan-300/30 bg-slate-950/95 p-3 text-left shadow-2xl"
+          id="am-seller-notification"
+        >
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-cyan-400/15"><MessageCircle className="h-4 w-4 text-cyan-300" /></div>
+          <div className="min-w-0 flex-1">
+            <div className="text-[8px] font-mono text-cyan-300">AMAZEMART SELLER RELAY · NOW</div>
+            <div className="truncate text-[10px] font-bold text-white">coldboot_17 sent you a buyer check.</div>
+          </div>
+          <span className="text-xs text-cyan-300">OPEN</span>
+        </button>
+      )}
 
     </div>
   );
