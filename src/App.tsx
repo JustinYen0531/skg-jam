@@ -147,7 +147,7 @@ export default function App() {
   };
 
   const chapterAdvanceGuide = getChapterAdvanceGuide(progress.currentChapter);
-  const metaSceneActive = shouldShowMetaScene(metaViewActive, debugMode);
+  const metaSceneActive = shouldShowMetaScene(metaViewActive, debugMode, progress.phase);
 
   return (
     <div className={`h-screen w-full flex flex-col md:flex-row relative overflow-hidden transition-all duration-700 ${

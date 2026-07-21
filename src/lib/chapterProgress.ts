@@ -235,7 +235,10 @@ export function completePuzzleChapter(
 
 export function canUseProgressionAction(action: ProgressionAction, progress: GameProgress): boolean {
   const requirements: Record<ProgressionAction, boolean> = {
-    'viewtube-arc-search': progress.seenLeaderboard,
+    // Chapter 1 begins once the intro run has handed control to the restored
+    // phone. Developer snapshots enter at the same phase, so they must not be
+    // mistaken for an intro player trying to guess ARC_184 early.
+    'viewtube-arc-search': progress.seenLeaderboard || progress.phase !== 'intro_game',
     'amazemart-lumen-search': progress.watchedVideo,
     'browser-skg-history': progress.discoveredOriginalTitle,
     'social-noah-search': progress.discoveredSKGHistory,

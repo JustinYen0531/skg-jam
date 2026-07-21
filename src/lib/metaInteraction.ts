@@ -13,11 +13,18 @@ export const META_CAMERA_PITCH = {
   tableDeg: 68,
 } as const;
 
-export const shouldToggleMetaDeviceRest = (
+export type MetaDevicePostureAction = 'rest' | 'wake' | null;
+
+export const getMetaDevicePostureAction = (
   metaViewActive: boolean,
   interactionPending: boolean,
   targetInsidePhone: boolean,
-): boolean => metaViewActive && !interactionPending && !targetInsidePhone;
+  deviceResting: boolean,
+): MetaDevicePostureAction => {
+  if (!metaViewActive || interactionPending) return null;
+  if (deviceResting) return 'wake';
+  return targetInsidePhone ? null : 'rest';
+};
 
 export const getMetaCameraPitch = (pointerY: number, sceneHeight: number): number => {
   if (!Number.isFinite(pointerY) || !Number.isFinite(sceneHeight) || sceneHeight <= 0) {
@@ -42,7 +49,8 @@ export const shouldRevealMetaView = (
 export const shouldShowMetaScene = (
   metaViewUnlocked: boolean,
   developerToolsOpen: boolean,
-): boolean => metaViewUnlocked || developerToolsOpen;
+  phase: GameProgress['phase'],
+): boolean => metaViewUnlocked || developerToolsOpen || phase !== 'intro_game';
 
 export const canStartMetaInteraction = (
   metaViewActive: boolean,
@@ -75,3 +83,4 @@ export const getScrollFingerTravel = (deltaY: number): number => {
   if (deltaY === 0) return 0;
   return deltaY > 0 ? -58 : 58;
 };
+import type { GameProgress } from '../types';

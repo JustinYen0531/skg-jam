@@ -4,12 +4,12 @@ import { Terminal } from 'lucide-react';
 import {
   applyVirtualKey,
   canStartMetaInteraction,
+  getMetaDevicePostureAction,
   getMetaCameraPitch,
   getScrollFingerTravel,
   META_CAMERA_PITCH,
   META_TAP_TIMING,
   normalizeVirtualKey,
-  shouldToggleMetaDeviceRest,
 } from '../lib/metaInteraction';
 import { CHAPTER_ONE_DIALOGUE, DialogueLines } from '../lib/chapterOneDialogue';
 import audio from '../lib/audio';
@@ -478,10 +478,14 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
     if (!(source instanceof Element)) return;
 
     const targetInsidePhone = Boolean(source.closest('#phone-bezel'));
-    if (shouldToggleMetaDeviceRest(active, pendingRef.current, targetInsidePhone)) {
-      event.preventDefault();
-      event.stopPropagation();
-      const nextResting = !deviceResting;
+    const postureAction = getMetaDevicePostureAction(
+      active,
+      pendingRef.current,
+      targetInsidePhone,
+      deviceResting,
+    );
+    if (postureAction) {
+      const nextResting = postureAction === 'rest';
       setDeviceResting(nextResting);
       setScrollGesture(null);
       closeKeyboard();
@@ -492,7 +496,15 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
       } else {
         audio.play('meta.regrip');
       }
-      return;
+
+      // A click on the resting screen lifts the device immediately, then keeps
+      // travelling through the normal input path so the requested tap is not
+      // discarded. Desk clicks only change posture and have no second action.
+      if (!targetInsidePhone) {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
     }
 
     if (source.closest('[data-meta-immediate="true"]')) return;

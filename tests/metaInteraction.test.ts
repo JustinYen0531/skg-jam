@@ -5,6 +5,7 @@ import { test } from 'node:test';
 import {
   applyVirtualKey,
   canStartMetaInteraction,
+  getMetaDevicePostureAction,
   getMetaCameraPitch,
   getScrollFingerTravel,
   META_CAMERA_PITCH,
@@ -12,7 +13,6 @@ import {
   normalizeVirtualKey,
   shouldRevealMetaView,
   shouldShowMetaScene,
-  shouldToggleMetaDeviceRest,
 } from '../src/lib/metaInteraction';
 
 test('meta camera reveal requires both a second Gate 40 death and an opened leaderboard', () => {
@@ -23,10 +23,17 @@ test('meta camera reveal requires both a second Gate 40 death and an opened lead
 });
 
 test('developer chapter tools preview the meta scene without changing the story unlock rule', () => {
-  assert.equal(shouldShowMetaScene(false, false), false);
-  assert.equal(shouldShowMetaScene(false, true), true);
-  assert.equal(shouldShowMetaScene(true, false), true);
-  assert.equal(shouldShowMetaScene(true, true), true);
+  assert.equal(shouldShowMetaScene(false, false, 'intro_game'), false);
+  assert.equal(shouldShowMetaScene(false, true, 'intro_game'), true);
+  assert.equal(shouldShowMetaScene(true, false, 'intro_game'), true);
+  assert.equal(shouldShowMetaScene(true, true, 'intro_game'), true);
+});
+
+test('Chapter 1 and every later restored-phone phase keep the Meta scene active', () => {
+  assert.equal(shouldShowMetaScene(false, false, 'os_unlocked'), true);
+  assert.equal(shouldShowMetaScene(false, false, 'passed_40'), true);
+  assert.equal(shouldShowMetaScene(false, false, 'credits'), true);
+  assert.equal(shouldShowMetaScene(false, false, 'ending_choice'), true);
 });
 
 test('only one animated meta interaction can run at a time', () => {
@@ -73,18 +80,21 @@ test('mouse height maps to a clamped camera pitch from desk-flat to upright', ()
   assert.equal(getMetaCameraPitch(20, 0), META_CAMERA_PITCH.restDeg);
 });
 
-test('only an idle click outside the phone toggles the table-rest posture', () => {
+test('an idle desk click rests the phone and the next click anywhere wakes it', () => {
   assert.equal(META_CAMERA_PITCH.tableDeg >= 60, true);
-  assert.equal(shouldToggleMetaDeviceRest(true, false, false), true);
-  assert.equal(shouldToggleMetaDeviceRest(true, false, true), false);
-  assert.equal(shouldToggleMetaDeviceRest(true, true, false), false);
-  assert.equal(shouldToggleMetaDeviceRest(false, false, false), false);
+  assert.equal(getMetaDevicePostureAction(true, false, false, false), 'rest');
+  assert.equal(getMetaDevicePostureAction(true, false, true, false), null);
+  assert.equal(getMetaDevicePostureAction(true, false, false, true), 'wake');
+  assert.equal(getMetaDevicePostureAction(true, false, true, true), 'wake');
+  assert.equal(getMetaDevicePostureAction(true, true, true, true), null);
+  assert.equal(getMetaDevicePostureAction(false, false, false, true), null);
 });
 
 test('rest posture lays down the phone and swaps the grip for desk-plane hands', () => {
   const scene = readFileSync(new URL('../src/components/MetaInteractionScene.tsx', import.meta.url), 'utf8');
 
-  assert.match(scene, /source\.closest\('#phone-bezel'\)/);
+  assert.match(scene, /getMetaDevicePostureAction\([\s\S]{0,180}deviceResting/);
+  assert.match(scene, /if \(!targetInsidePhone\) \{[\s\S]{0,120}event\.preventDefault\(\)/);
   assert.match(scene, /data-device-posture=\{deviceResting \? 'table-rest' : 'upright'\}/);
   assert.match(scene, /deviceResting \? 'locked-table' : 'mouse-y'/);
   assert.match(scene, /cameraPitchTarget\.set\(nextResting \? META_CAMERA_PITCH\.tableDeg : META_CAMERA_PITCH\.restDeg\)/);
@@ -196,7 +206,7 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   assert.match(sceneSource, /id="meta-scroll-finger"/);
   assert.match(sceneSource, /data-scroll-direction=\{scrollGesture\.travelY < 0 \? 'finger-up' : 'finger-down'\}/);
   assert.match(appSource, /setMetaViewActive\(true\);[\s\S]{0,180}setDebugTargetApp/);
-  assert.match(appSource, /const metaSceneActive = shouldShowMetaScene\(metaViewActive, debugMode\)/);
+  assert.match(appSource, /const metaSceneActive = shouldShowMetaScene\(metaViewActive, debugMode, progress\.phase\)/);
   assert.match(appSource, /immersiveIntro=\{!metaSceneActive\}/);
   assert.match(appSource, /metaSceneActive \? 'phone-stage bg-slate-950\/40' : 'bg-black'/);
   assert.match(appSource, /<MetaInteractionScene active=\{metaSceneActive\} chapter=\{metaSceneActive \? progress\.currentChapter : 0\}>/);

@@ -103,3 +103,16 @@ test('normal player gates guessed searches while debug snapshots can unlock them
   assert.equal(canUseProgressionAction('social-noah-search', getChapterSnapshot(4)), false);
   assert.equal(canUseProgressionAction('social-noah-search', getChapterSnapshot(6)), true);
 });
+
+test('ARC_184 search follows the Chapter 1 phase instead of a stale leaderboard flag', () => {
+  const chapterOne = getChapterSnapshot(1);
+  assert.equal(canUseProgressionAction('viewtube-arc-search', {
+    ...chapterOne,
+    seenLeaderboard: false,
+  }), true);
+  assert.equal(canUseProgressionAction('viewtube-arc-search', {
+    ...chapterOne,
+    phase: 'intro_game',
+    seenLeaderboard: false,
+  }), false);
+});

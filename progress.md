@@ -374,3 +374,11 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Split the resting artwork exactly at its center, mirrored the final tilt, and moved the abbreviated wrists below the scene edge so their cropped ends remain hidden.
 - The right resting hand still yields to tapping and scrolling gestures, then settles back onto the desk.
 - Browser validation remains intentionally omitted per project instruction; static tests, TypeScript lint, and production build are required before upload.
+
+## 2026-07-21 — Chapter 1 Meta-state consistency
+
+- Reworked the desk-rest posture into explicit `rest` and `wake` actions: an upright desk click rests the phone, while the next click anywhere wakes it.
+- A wake click inside the phone now raises the device immediately and continues through the normal input route, so the requested button, field, canvas, or screen action is not discarded.
+- Kept the initial `intro_game` presentation bare, but made every restored-phone phase from Chapter 1 onward retain the Meta scene even if the transient reveal flag is absent.
+- Made ARC_184 searching available after either the real leaderboard evidence or entry into the Chapter 1 restored-phone phase, fixing developer snapshots with stale leaderboard state without allowing intro guessing.
+- Browser validation remains intentionally omitted per project instruction; 90 tests, TypeScript lint, production build, and diff checks pass.
