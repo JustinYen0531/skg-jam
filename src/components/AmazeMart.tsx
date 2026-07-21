@@ -182,6 +182,23 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({ progress, updateProgress, 
                   <span className="font-bold text-amber-400">⚠️ Item Warning Note:</span> Battery components fully deactivated. Due to strict government recall laws, we CANNOT ship the physical operational phone. Instead, you will receive the official **Lumen Arc Developer Kit & Captured Printed Screenshot Folder** containing full technical specification printouts of the legacy system interface.
                 </div>
 
+                {/* Fake reviews: mostly noise, one quiet foreshadow of what "delivery" means */}
+                <div className="space-y-1.5 border-t border-slate-800 pt-2.5" id="am-reviews">
+                  <div className="text-[10px] font-bold text-slate-400">Customer reviews (mostly bots)</div>
+                  <div className="text-[10px] text-slate-400 leading-snug">
+                    <span className="text-amber-400">★☆☆☆☆</span> <span className="text-slate-500">nostalgia_hoarder</span> — "arrived as a folder of screenshots. somehow still my favorite purchase."
+                  </div>
+                  <div className="text-[10px] text-slate-400 leading-snug">
+                    <span className="text-amber-400">★★★★★</span> <span className="text-slate-500">paperweight_enjoyer</span> — "great paperweight. does not turn on. as described (it was not described)."
+                  </div>
+                  <div className="text-[10px] text-slate-400 leading-snug">
+                    <span className="text-amber-400">★★★☆☆</span> <span className="text-slate-500">definitely_human_99</span> — "bot review, ignore" · verified by nobody
+                  </div>
+                  <div className="text-[10px] text-slate-400 leading-snug">
+                    <span className="text-amber-400">★☆☆☆☆</span> <span className="text-slate-500">warm_to_the_touch</span> — "recalled for a reason. mine got warm and so did my feelings."
+                  </div>
+                </div>
+
                 <button
                   disabled={ordering}
                   onClick={handleBuy}

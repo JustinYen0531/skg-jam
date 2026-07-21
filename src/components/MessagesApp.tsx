@@ -18,6 +18,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({ progress, updateProgre
   const [activeTab, setActiveTab] = useState<'mom' | 'admin'>('mom');
   const [passwordInput, setPasswordInput] = useState('');
   const [loginError, setLoginError] = useState('');
+  const [failCount, setFailCount] = useState(0);
 
   // Modern chat messages with Mother (Mara)
   const momMessages: ChatMessage[] = [
@@ -65,6 +66,12 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({ progress, updateProgre
 
     const formattedInput = passwordInput.toUpperCase().replace(/\s+/g, '');
 
+    if (!formattedInput) {
+      audio.play('auth.wrong');
+      setLoginError('COORDINATE STRING REQUIRED. THE NODE HAS WAITED TWELVE YEARS. IT CAN WAIT LONGER.');
+      return;
+    }
+
     if (formattedInput === 'ALT184GATE40END256' && !canUseProgressionAction('admin-login', progress)) {
       audio.play('auth.wrong');
       setLoginError('NICE TRY, TIME TRAVELER. FIND THE CLUES BEFORE THE PASSWORD FINDS YOU.');
@@ -74,10 +81,15 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({ progress, updateProgre
     if (formattedInput === 'ALT184GATE40END256') {
       audio.play('auth.correct');
       setLoginError('');
+      setFailCount(0);
       updateProgress((prev) => completePuzzleChapter(prev, 8, { loggedIntoAdmin: true }));
     } else {
       audio.play('auth.wrong');
-      setLoginError('CREDENTIALS REJECTED. ENSURE ALTITUDE, GATE, AND END VALUES ARE PROPERLY SEQUENCE-PAIRED.');
+      const nextFails = failCount + 1;
+      setFailCount(nextFails);
+      setLoginError(nextFails >= 3
+        ? 'HINT WITHHELD. HE LEFT THIS FOR SOMEONE WHO WALKS THE PATH, NOT SOMEONE WHO GUESSES IT.'
+        : 'CREDENTIALS REJECTED. ENSURE ALTITUDE, GATE, AND END VALUES ARE PROPERLY SEQUENCE-PAIRED.');
     }
   };
 
@@ -177,6 +189,20 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({ progress, updateProgre
                 Message unavailable · expired from carrier archive
               </div>
               <span className="text-[8px] text-slate-600 mt-0.5 px-1">--:--</span>
+            </div>
+
+            <div className="flex flex-col max-w-[80%] mr-auto items-start">
+              <div className="px-3 py-2 rounded-2xl rounded-bl-md text-[10px] italic text-slate-500 border border-dashed border-slate-700/70 bg-transparent">
+                [voice message · 0:04 · could not be restored]
+              </div>
+              <span className="text-[8px] text-slate-600 mt-0.5 px-1">--:--</span>
+            </div>
+
+            <div className="flex flex-col max-w-[80%] mr-auto items-start">
+              <div className="px-3 py-2 rounded-2xl rounded-bl-md text-xs text-slate-300 bg-[#1d212b]">
+                sweetheart did you eat
+              </div>
+              <span className="text-[8px] text-slate-600 mt-0.5 px-1">sent 4 years ago · delivered today</span>
             </div>
 
             {/* Mara keeps typing, and never quite finishes */}
