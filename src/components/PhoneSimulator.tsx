@@ -535,7 +535,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
 
       {/* Main Interactive Screen Area */}
       <div
-        className="flex-1 bg-[#0d0f14] relative overflow-hidden transition-[filter] duration-150"
+        className="min-h-0 flex-1 bg-[#0d0f14] relative overflow-hidden transition-[filter] duration-150"
         id="phone-display"
         style={{ filter: `brightness(${screenBrightness}) contrast(${screenContrast})` }}
       >

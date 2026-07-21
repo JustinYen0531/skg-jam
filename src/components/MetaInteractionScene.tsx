@@ -1060,6 +1060,10 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
       scrollable = scrollable.parentElement;
     }
     if (scrollable && scrollable.id !== 'meta-interaction-scene') {
+      // The Meta layer owns this wheel event, so relay it to the phone list instead
+      // of leaving the gesture visible while the underlying list stays still.
+      event.preventDefault();
+      scrollable.scrollBy({ top: event.deltaY, behavior: 'auto' });
       const atTop = scrollable.scrollTop <= 1 && event.deltaY < 0;
       const atBottom = scrollable.scrollTop + scrollable.clientHeight >= scrollable.scrollHeight - 1 && event.deltaY > 0;
       if (atTop || atBottom) audio.play('phone.scrollLimit');

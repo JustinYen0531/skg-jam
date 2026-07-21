@@ -528,7 +528,7 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-950 text-slate-100 font-sans overflow-hidden" id="viewtube-root">
+    <div className="min-h-0 flex flex-col h-full bg-slate-950 text-slate-100 font-sans overflow-hidden" id="viewtube-root">
       
       {/* ViewTube Header */}
       <div className="bg-red-700 p-3 flex items-center justify-between" id="vt-header">
@@ -559,7 +559,7 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
           ⚠ {searchError}
         </div>
       )}
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 space-y-4" id="vt-body">
+      <div className="h-0 min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 space-y-4" id="vt-body">
         {!hasSearched ? (
           <div className="space-y-3" id="vt-home-feed">
             <div className="flex gap-1.5 overflow-x-auto pb-1 text-[9px] font-bold whitespace-nowrap" id="vt-topic-chips">

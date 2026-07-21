@@ -566,3 +566,9 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Replaced the inactive “View 114 more comments” control with deterministic batches of twelve archive comments until all 114 are visible.
 - Kept the three load-bearing Chapter 1 comments in their established positions; archive rows are deliberately non-progression crowd texture.
 - Browser verification remains intentionally omitted under the repository rule; 122 static tests, TypeScript lint, production build, and diff checks pass.
+
+## 2026-07-22 — Meta wheel relay for in-phone lists
+
+- Relayed Meta-layer wheel input directly to the detected scrollable phone list, so the finger gesture and the ViewTube discussion now move as one action.
+- Hardened the phone display and ViewTube flex hierarchy with explicit minimum-height and zero-basis constraints, preventing the comment pane from expanding instead of scrolling.
+- Browser verification remains intentionally omitted under the repository rule; static tests, TypeScript lint, production build, and diff checks are required before delivery.
