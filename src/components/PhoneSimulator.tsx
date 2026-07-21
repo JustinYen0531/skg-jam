@@ -27,6 +27,7 @@ import {
   type PhoneLauncherApp,
 } from '../lib/chapterPhoneSignals';
 import { getChapterPhoneWidgetState } from '../lib/chapterPhoneWidgets';
+import { getChapterReminderRows } from '../lib/chapterReminders';
 import {
   getAdvancedChapterTransition,
   getChapterEntryTransition,
@@ -62,6 +63,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   const chapterOneAppAttempt = useRef(0);
   const chapterOneHomeAttempt = useRef(0);
   const chapterOneHomeEntryShown = useRef(false);
+  const reminderListRef = useRef<HTMLDivElement>(null);
 
   // Chapter-advance transition: an "evidence collected" banner the moment a
   // chapter's evidence is obtained, then a cinematic when the player next
@@ -77,6 +79,8 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   const residue = getResidueLevel(progress);
   const phoneSignals = getChapterPhoneSignals(progress.currentChapter);
   const phoneWidgets = getChapterPhoneWidgetState(progress.currentChapter);
+  const chapterReminderRows = getChapterReminderRows(progress);
+  const completedReminderCount = chapterReminderRows.filter((row) => row.status === 'completed').length;
   const launcherSignals = (app: PhoneLauncherApp) => {
     const notification = phoneSignals.notification?.app === app
       ? phoneSignals.notification
@@ -108,6 +112,16 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   useEffect(() => {
     if (debugTargetApp) setActiveApp(debugTargetApp.app);
   }, [debugTargetApp]);
+
+  useEffect(() => {
+    if (activeApp !== 'home' || !reminderListRef.current) return;
+    const activeIndex = chapterReminderRows.findIndex((row) => row.status === 'current');
+    if (activeIndex < 0) return;
+    reminderListRef.current.scrollTo({
+      top: Math.max(0, (activeIndex - 1) * 44),
+      behavior: reducedMotion ? 'auto' : 'smooth',
+    });
+  }, [activeApp, progress.currentChapter, progress.completedGame, reducedMotion]);
 
   // Obtaining a chapter's evidence steps currentChapter forward by one. Queue
   // the banner + a pending cinematic; the cinematic itself waits for home.
@@ -199,18 +213,8 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
     }
   };
 
-  // Investigation checklist — the labels are clue text, do not reword them.
-  const missionSteps = [
-    { done: progress.deathsAt40 >= 1, label: 'Die at pipe 40 to trigger the discrepancy' },
-    { done: progress.watchedVideo, label: "Examine ARC_184's run video in ViewTube" },
-    { done: progress.deliveredPhone, label: 'Buy the obsolete schematics folder in AmazeMart' },
-    { done: progress.unlockedCodeRoute, label: "Decrypt Mother's Silver Kite Messenger login" },
-  ];
-  const nextStep = missionSteps.findIndex((step) => !step.done);
-  const solvedCount = missionSteps.filter((step) => step.done).length;
-
-  // At level 3 the old system re-renders the reminders list in its own
-  // language. Same items, same order — only the presentation changes hands.
+  // At level 3 the old system re-renders the same chapter timeline in its own
+  // language. Progress and scroll behavior remain unchanged.
   const remindersReclaimed = residue >= 3;
 
   const wallpaperCool =
@@ -314,110 +318,118 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
               {/* LEFT COLUMN: everyday widgets */}
               <div className="w-[44%] min-w-[220px] max-w-[420px] shrink-0 flex flex-col gap-3 relative">
 
-                {/* Reminders — an ordinary list widget holding the case */}
-                {!remindersReclaimed ? (
-                  <div className={`${WIDGET_SHELL} flex-1 min-h-0 flex flex-col p-3.5`} id="home-widget">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
-                        <span className="w-4 h-4 rounded-md bg-[#e8a33d] flex items-center justify-center">
-                          <span className="w-1.5 h-1.5 rounded-full bg-white/90"></span>
+                {/* Chapter reminder — four visible rows from a scrollable 00–10 timeline. */}
+                <div
+                  className={`${remindersReclaimed ? 'laos-panel laos-slow' : WIDGET_SHELL} flex-1 min-h-0 flex flex-col p-3.5`}
+                  id="home-widget"
+                  data-reminder-current={progress.currentChapter}
+                >
+                  <div className={`flex items-center justify-between ${remindersReclaimed ? 'border-b border-[var(--laos-line-dim)] pb-2' : ''}`}>
+                    <div className="flex items-center gap-1.5">
+                      {!remindersReclaimed && (
+                        <span className="flex h-4 w-4 items-center justify-center rounded-md bg-[#e8a33d]">
+                          <span className="h-1.5 w-1.5 rounded-full bg-white/90"></span>
                         </span>
-                        <span className="text-[11px] font-semibold text-slate-100">Reminders</span>
-                      </div>
-                      <span className="text-[9px] text-slate-400">{solvedCount}/{missionSteps.length} done</span>
+                      )}
+                      <span className={remindersReclaimed ? 'laos-label text-[8px]' : 'text-[11px] font-semibold text-slate-100'}>
+                        {remindersReclaimed ? 'TASK LEDGER' : 'Reminders'}
+                      </span>
                     </div>
+                    <span className={remindersReclaimed
+                      ? 'font-laos text-[8px] tracking-[0.12em] text-[var(--laos-faint)]'
+                      : 'text-[9px] text-slate-400'}
+                    >
+                      {completedReminderCount}/11 {remindersReclaimed ? 'RESOLVED' : 'done'}
+                    </span>
+                  </div>
 
-                    <div className="text-[9.5px] text-slate-400 mt-0.5 mb-1.5">The game again — what I still need to check</div>
+                  {!remindersReclaimed && (
+                    <div className="mb-1.5 mt-0.5 text-[9.5px] text-slate-400">
+                      Investigation sequence · Chapter {progress.currentChapter.toString().padStart(2, '0')}
+                    </div>
+                  )}
 
-                    <div className="flex-1 min-h-0 overflow-y-auto space-y-0.5 pr-1">
-                      {missionSteps.map((step, i) => (
+                  <div
+                    ref={reminderListRef}
+                    className={`${remindersReclaimed ? 'mt-2 space-y-px' : 'space-y-0.5'} h-[174px] min-h-0 shrink-0 overflow-y-auto overscroll-contain pr-1`}
+                    data-reminder-window="four-rows"
+                    aria-label="Chapter reminders, scroll for Chapters 00 through 10"
+                  >
+                    {chapterReminderRows.map((row) => {
+                      const futureDistance = Math.max(0, row.chapter - progress.currentChapter);
+                      const futureOpacity = Math.max(0.28, 0.72 - futureDistance * 0.09);
+                      const isCurrent = row.status === 'current';
+                      const isCompleted = row.status === 'completed';
+
+                      return (
                         <div
-                          key={step.label}
-                          className={`flex items-start gap-2 rounded-xl px-2 py-1.5 ${
-                            !step.done && i === nextStep ? 'bg-white/[0.05]' : ''
+                          key={row.chapter}
+                          className={`flex h-[42px] items-center gap-2 px-2 ${remindersReclaimed ? 'border-l-2' : 'rounded-xl'} ${
+                            isCurrent
+                              ? remindersReclaimed
+                                ? 'border-[var(--laos-warm)] bg-[var(--laos-surface-2)]'
+                                : 'bg-white/[0.06]'
+                              : remindersReclaimed
+                                ? 'border-transparent'
+                                : ''
                           }`}
+                          data-reminder-chapter={row.chapter}
+                          data-reminder-status={row.status}
+                          aria-current={isCurrent ? 'step' : undefined}
                         >
-                          {step.done ? (
-                            <svg viewBox="0 0 12 12" className="w-3.5 h-3.5 mt-px shrink-0" aria-hidden="true">
-                              <circle cx="6" cy="6" r="5.2" fill="#e8a33d" />
+                          <span className={`w-7 shrink-0 font-mono text-[8px] tracking-[0.08em] ${
+                            isCurrent
+                              ? remindersReclaimed ? 'text-[var(--laos-warm)]' : 'text-[#e8a33d]'
+                              : isCompleted
+                                ? remindersReclaimed ? 'text-[var(--laos-faint)]' : 'text-slate-500'
+                                : remindersReclaimed ? 'text-[var(--laos-dim)]' : 'text-slate-500'
+                          }`}>
+                            {row.chapter.toString().padStart(2, '0')}
+                          </span>
+
+                          {isCompleted ? (
+                            <svg viewBox="0 0 12 12" className="h-3.5 w-3.5 shrink-0" aria-label="Completed">
+                              <circle cx="6" cy="6" r="5.2" fill={remindersReclaimed ? 'var(--laos-dim)' : '#e8a33d'} />
                               <path d="M3.6 6.2 L5.3 7.9 L8.6 4.4" fill="none" stroke="#14161c" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                             </svg>
                           ) : (
-                            <span
-                              className={`w-3.5 h-3.5 mt-px shrink-0 rounded-full border-[1.5px] ${
-                                i === nextStep ? 'border-[#e8a33d]' : 'border-slate-500/60'
-                              }`}
-                            ></span>
+                            <span className={`h-3.5 w-3.5 shrink-0 rounded-full border-[1.5px] ${
+                              isCurrent
+                                ? remindersReclaimed ? 'border-[var(--laos-warm)]' : 'border-[#e8a33d]'
+                                : remindersReclaimed ? 'border-[var(--laos-line)]' : 'border-slate-500/60'
+                            }`}></span>
                           )}
+
                           <span
-                            className={`block text-[10px] leading-snug ${
-                              step.done
-                                ? 'text-slate-500 line-through decoration-slate-600'
-                                : i === nextStep
-                                  ? 'text-slate-100'
-                                  : 'text-slate-300'
+                            className={`min-w-0 text-[10px] leading-snug ${remindersReclaimed ? 'font-laos' : ''} ${
+                              isCompleted
+                                ? remindersReclaimed ? 'text-[var(--laos-faint)] line-through' : 'text-slate-500 line-through decoration-slate-600'
+                                : isCurrent
+                                  ? remindersReclaimed ? 'text-[var(--laos-text)]' : 'text-slate-100'
+                                  : remindersReclaimed ? 'text-[var(--laos-dim)]' : 'text-slate-300'
                             }`}
+                            style={row.status === 'future' ? {
+                              filter: `blur(${row.blurPx}px)`,
+                              opacity: futureOpacity,
+                              userSelect: 'none',
+                            } : undefined}
                           >
-                            {step.label}
+                            {row.label}
                           </span>
                         </div>
-                      ))}
-                    </div>
-
-                    <div className="pt-1.5 mt-1 border-t border-white/[0.06] flex items-center justify-between text-[8.5px] text-slate-500">
-                      <span>Today</span>
-                      <span>{missionSteps.length - solvedCount} remaining</span>
-                    </div>
+                      );
+                    })}
                   </div>
-                ) : (
-                  /* Level 3: the old system has reclaimed this surface. Same
-                     items, same order — rendered by something much older. */
-                  <div className="laos-panel laos-slow flex-1 min-h-0 flex flex-col p-3.5" id="home-widget">
-                    <div className="flex items-center justify-between border-b border-[var(--laos-line-dim)] pb-2">
-                      <span className="laos-label text-[8px]">TASK LEDGER</span>
-                      <span className="font-laos text-[8px] tracking-[0.12em] text-[var(--laos-faint)]">
-                        {solvedCount}/{missionSteps.length} RESOLVED
-                      </span>
-                    </div>
 
-                    <div className="flex-1 min-h-0 overflow-y-auto mt-2 space-y-px pr-1">
-                      {missionSteps.map((step, i) => (
-                        <div
-                          key={step.label}
-                          className={`flex items-start gap-2 px-2 py-2 border-l-2 ${
-                            !step.done && i === nextStep
-                              ? 'border-[var(--laos-warm)] bg-[var(--laos-surface-2)]'
-                              : 'border-transparent'
-                          }`}
-                        >
-                          <span
-                            className={`w-2.5 h-2.5 mt-0.5 shrink-0 border ${
-                              step.done
-                                ? 'bg-[var(--laos-dim)] border-[var(--laos-dim)]'
-                                : 'border-[var(--laos-line)]'
-                            }`}
-                          ></span>
-                          <span
-                            className={`block font-laos text-[10px] leading-snug ${
-                              step.done
-                                ? 'text-[var(--laos-faint)] line-through'
-                                : i === nextStep
-                                  ? 'text-[var(--laos-text)]'
-                                  : 'text-[var(--laos-dim)]'
-                            }`}
-                          >
-                            {step.label}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="pt-2 mt-1 border-t border-[var(--laos-line-dim)] flex items-center justify-between font-laos text-[7.5px] tracking-[0.14em] text-[var(--laos-faint)]">
-                      <span>PRESERVED BY LAOS_V12.1</span>
-                      <span>READ-ONLY</span>
-                    </div>
+                  <div className={`mt-1 flex items-center justify-between border-t pt-1.5 ${
+                    remindersReclaimed
+                      ? 'border-[var(--laos-line-dim)] font-laos text-[7.5px] tracking-[0.14em] text-[var(--laos-faint)]'
+                      : 'border-white/[0.06] text-[8.5px] text-slate-500'
+                  }`}>
+                    <span>{remindersReclaimed ? 'PRESERVED BY LAOS_V12.1' : '00—10'}</span>
+                    <span>{progress.completedGame ? 'COMPLETE' : 'SCROLL FOR MORE'}</span>
                   </div>
-                )}
+                </div>
 
                 {/* Ambient widgets: weather + calendar */}
                 <div className="grid grid-cols-2 gap-3 h-[36%] min-h-[118px] shrink-0">
