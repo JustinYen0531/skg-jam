@@ -356,3 +356,11 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Animated the existing trapezoid table artwork from the raised-front composition into a horizontally contained, vertically flattened desk plane while resting, exposing its upper edge and both corners.
 - Kept the hand, table, phone, and contact-shadow transitions synchronized without replacing or redrawing the supplied PNG assets.
 - Browser validation remains intentionally omitted per project instruction; static tests, TypeScript lint, and production build are required before upload.
+
+## 2026-07-21 — Chapter wall artwork integration
+
+- Imported the five user-supplied transparent wall states as `meta-wall-stage-1.png` through `meta-wall-stage-5.png`.
+- Mapped Chapters 1–2, 3–4, 5–6, 7–8, and 9–10 to the five increasingly damaged room states; Chapter 0 remains free of the Meta environment.
+- Confined the artwork to the existing wall region above the 58% wall/desk boundary. The source images are scaled from their measured transparent bounds so their generated floor strips are cropped out rather than replacing the existing desk or any future floor asset.
+- Kept the wall behind the desk, hands, phone, chapter props, and existing light overlays.
+- Browser validation remains intentionally omitted per project instruction; 91 tests, TypeScript lint, production build, and diff checks pass.

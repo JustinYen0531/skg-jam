@@ -1,6 +1,7 @@
 import type { PuzzleChapter } from '../types';
 
 export type EnvironmentChapter = 0 | PuzzleChapter;
+export type MetaWallStage = 0 | 1 | 2 | 3 | 4 | 5;
 export type DeskLighting = 'hidden' | 'cool' | 'focused' | 'still' | 'ready';
 export type CoffeeState = 'none' | 'fresh' | 'sipped' | 'half' | 'near-empty' | 'empty' | 'tipped-empty' | 'pushed-away';
 export type CableState = 'none' | 'loose' | 'connected';
@@ -230,3 +231,8 @@ export const CHAPTER_ENVIRONMENTS: Readonly<Record<EnvironmentChapter, ChapterEn
 
 export const getChapterEnvironment = (chapter: EnvironmentChapter): ChapterEnvironmentState =>
   CHAPTER_ENVIRONMENTS[chapter];
+
+/** Two chapters share each supplied wall state so the room ages in five
+ * deliberate steps without leaking the generated floor into the desk layer. */
+export const getMetaWallStage = (chapter: EnvironmentChapter): MetaWallStage =>
+  chapter === 0 ? 0 : Math.ceil(chapter / 2) as MetaWallStage;

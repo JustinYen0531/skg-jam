@@ -12,7 +12,7 @@ import {
 } from '../lib/metaInteraction';
 import { CHAPTER_ONE_DIALOGUE, DialogueLines } from '../lib/chapterOneDialogue';
 import audio from '../lib/audio';
-import type { EnvironmentChapter } from '../lib/chapterEnvironment';
+import { getMetaWallStage, type EnvironmentChapter } from '../lib/chapterEnvironment';
 import { ChapterEnvironment } from './ChapterEnvironment';
 
 interface MetaInteractionSceneProps {
@@ -1005,6 +1005,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
         ? (deviceResting ? META_CAMERA_PITCH.tableDeg : META_CAMERA_PITCH.restDeg)
         : cameraPitch)
     : 0;
+  const wallStage = getMetaWallStage(chapter);
 
   return (
     <MetaInteractionContext.Provider value={contextValue}>
@@ -1036,6 +1037,22 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
             aria-hidden="true"
           >
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_47%_28%,#5b4b3b_0%,#292119_42%,#0c0a08_100%)]" />
+            {wallStage > 0 && (
+              <div
+                className="pointer-events-none absolute inset-x-0 top-0 bottom-[42%] z-[0] overflow-hidden"
+                data-wall-stage={wallStage}
+                data-floor-treatment="existing-only"
+                id="meta-wall-surface"
+              >
+                <img
+                  src={`/assets/meta-wall-stage-${wallStage}.png`}
+                  alt=""
+                  className="absolute left-[-4%] top-[-20%] h-[163%] w-[108%] max-w-none object-fill"
+                  data-source-floor="cropped"
+                  id="meta-wall-art"
+                />
+              </div>
+            )}
             <div className="absolute inset-x-0 top-[59%] h-px bg-amber-100/15 shadow-[0_1px_18px_rgba(255,210,150,0.08)]" />
             <div className="absolute left-[7%] top-[8%] h-36 w-36 rounded-full bg-amber-100/12 blur-[70px]" />
             <div className="absolute right-[9%] top-[12%] h-28 w-28 rounded-full bg-sky-200/5 blur-[65px]" />

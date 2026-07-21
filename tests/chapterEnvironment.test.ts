@@ -1,7 +1,7 @@
 import { strict as assert } from 'node:assert';
 import { existsSync, readFileSync } from 'node:fs';
 import { test } from 'node:test';
-import { CHAPTER_ENVIRONMENTS, getChapterEnvironment } from '../src/lib/chapterEnvironment';
+import { CHAPTER_ENVIRONMENTS, getChapterEnvironment, getMetaWallStage } from '../src/lib/chapterEnvironment';
 
 test('defines one deterministic physical environment for Chapter 0 through 10', () => {
   assert.deepEqual(Object.keys(CHAPTER_ENVIRONMENTS).map(Number), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
@@ -68,6 +68,28 @@ test('the desk progresses from gathering to clutter, quiet, and organized', () =
   assert.equal(getChapterEnvironment(9).deskOrder, 'quiet');
   assert.equal(getChapterEnvironment(10).deskOrder, 'organized');
   assert.equal(getChapterEnvironment(10).pen, 'route');
+});
+
+test('the supplied wall artwork ages in five stages without replacing the floor', () => {
+  assert.deepEqual(
+    Array.from({ length: 11 }, (_, chapter) => getMetaWallStage(chapter as keyof typeof CHAPTER_ENVIRONMENTS)),
+    [0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5],
+  );
+
+  for (let stage = 1; stage <= 5; stage += 1) {
+    assert.equal(
+      existsSync(new URL(`../public/assets/meta-wall-stage-${stage}.png`, import.meta.url)),
+      true,
+    );
+  }
+
+  const sceneSource = readFileSync(new URL('../src/components/MetaInteractionScene.tsx', import.meta.url), 'utf8');
+  assert.match(sceneSource, /id="meta-wall-surface"/);
+  assert.match(sceneSource, /bottom-\[42%\]/);
+  assert.match(sceneSource, /src=\{`\/assets\/meta-wall-stage-\$\{wallStage\}\.png`\}/);
+  assert.match(sceneSource, /left-\[-4%\] top-\[-20%\] h-\[163%\] w-\[108%\]/);
+  assert.match(sceneSource, /data-source-floor="cropped"/);
+  assert.match(sceneSource, /data-floor-treatment="existing-only"/);
 });
 
 test('the physical environment is display-only and does not mutate progress', () => {
