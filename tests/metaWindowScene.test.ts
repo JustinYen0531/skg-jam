@@ -54,4 +54,5 @@ test('meta room wires the window and wall clock to chapter-owned state', () => {
   assert.match(source, /getChapterPhoneWidgetState\(chapter\)\.clock/);
   assert.match(source, /<MetaWallClock time=\{chapterClock\} \/>/);
   assert.match(clockSource, /data-meta-clock-source="chapter-phone-widget"/);
+  assert.match(clockSource, /left-\[30\.8%\] top-\[20\.5%\]/);
 });
