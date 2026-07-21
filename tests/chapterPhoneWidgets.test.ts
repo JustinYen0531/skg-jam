@@ -21,16 +21,19 @@ test('phone clock advances through one fixed overnight timeline', () => {
   assert.equal(getChapterPhoneWidgetState(10).clock, '03:40');
 });
 
-test('agenda drops its oldest item, moves two entries up, and appends one new entry', () => {
+test('agenda permanently drops elapsed items and its scroll range shrinks toward the end', () => {
   for (let index = 1; index < chapters.length; index += 1) {
     const previous = getChapterPhoneWidgetState(chapters[index - 1]).agenda.entries;
     const current = getChapterPhoneWidgetState(chapters[index]).agenda.entries;
 
-    assert.equal(current.length, 3);
+    assert.equal(current.length, previous.length - 1);
     assert.equal(current[0], previous[1]);
-    assert.equal(current[1], previous[2]);
-    assert.notEqual(current[2], previous[2]);
+    assert.ok(!current.includes(previous[0]));
   }
+
+  assert.equal(getChapterPhoneWidgetState(1).agenda.entries.length, 12);
+  assert.equal(getChapterPhoneWidgetState(9).agenda.entries.length, 4);
+  assert.equal(getChapterPhoneWidgetState(10).agenda.entries.length, 3);
 });
 
 test('weather cools through the night and every chapter receives distinct widget color', () => {
@@ -51,7 +54,7 @@ test('weather cools through the night and every chapter receives distinct widget
   assert.equal(getChapterPhoneWidgetState(6).agenda.dayLabel, 'THU 13');
   assert.equal(getChapterPhoneWidgetState(9).weather.condition, 'Gale warning');
   assert.equal(getChapterPhoneWidgetState(10).weather.condition, 'Violent storm');
-  assert.equal(getChapterPhoneWidgetState(10).agenda.footer, 'DEEP NIGHT · SILENT');
+  assert.equal(getChapterPhoneWidgetState(10).agenda.footer, '3 LEFT · DEEP NIGHT');
 });
 
 test('phone screen consumes chapter widget state and never reads the computer clock', () => {
@@ -61,5 +64,7 @@ test('phone screen consumes chapter widget state and never reads the computer cl
   assert.match(source, /data-fixed-time=/);
   assert.match(source, /data-weather-chapter=/);
   assert.match(source, /data-agenda-chapter=/);
+  assert.match(source, /data-agenda-remaining=/);
+  assert.match(source, /id="widget-agenda-scroll"/);
   assert.doesNotMatch(source, /new Date\(\)|setInterval\(updateClock/);
 });

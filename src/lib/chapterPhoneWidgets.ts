@@ -43,8 +43,8 @@ const AGENDA_TIMELINE: readonly AgendaEntry[] = [
   { time: '06:30', title: 'Coffee timer', place: 'Kitchen' },
 ];
 
-const agendaWindow = (start: number): readonly AgendaEntry[] =>
-  AGENDA_TIMELINE.slice(start, start + 3);
+const remainingAgenda = (start: number): readonly AgendaEntry[] =>
+  AGENDA_TIMELINE.slice(start);
 
 const CHAPTER_WIDGETS: Record<PuzzleChapter, ChapterPhoneWidgetState> = {
   1: {
@@ -55,7 +55,7 @@ const CHAPTER_WIDGETS: Record<PuzzleChapter, ChapterPhoneWidgetState> = {
       temperatureColor: '#f2f5fb', moonColor: '#ddd5ad', moonMask: '#222b40',
     },
     agenda: {
-      dayLabel: 'WED 12', entries: agendaWindow(0), footer: '3 TODAY · SILENT',
+      dayLabel: 'WED 12', entries: remainingAgenda(0), footer: '12 QUEUED · SILENT',
       background: 'linear-gradient(150deg, rgba(51,54,73,0.94), rgba(27,30,43,0.98))',
       accent: 'rgba(125,145,184,0.46)',
     },
@@ -68,7 +68,7 @@ const CHAPTER_WIDGETS: Record<PuzzleChapter, ChapterPhoneWidgetState> = {
       temperatureColor: '#edf8f7', moonColor: '#d8d7b3', moonMask: '#203d49',
     },
     agenda: {
-      dayLabel: 'WED 12', entries: agendaWindow(1), footer: '2 TODAY · SILENT',
+      dayLabel: 'WED 12', entries: remainingAgenda(1), footer: '11 QUEUED · SILENT',
       background: 'linear-gradient(150deg, rgba(42,65,72,0.94), rgba(24,35,42,0.98))',
       accent: 'rgba(105,161,168,0.46)',
     },
@@ -81,7 +81,7 @@ const CHAPTER_WIDGETS: Record<PuzzleChapter, ChapterPhoneWidgetState> = {
       temperatureColor: '#eef3fb', moonColor: '#d8d9c5', moonMask: '#313e57',
     },
     agenda: {
-      dayLabel: 'WED 12', entries: agendaWindow(2), footer: '2 TODAY · SILENT',
+      dayLabel: 'WED 12', entries: remainingAgenda(2), footer: '10 QUEUED · SILENT',
       background: 'linear-gradient(150deg, rgba(55,61,82,0.94), rgba(28,32,47,0.98))',
       accent: 'rgba(129,145,190,0.46)',
     },
@@ -94,7 +94,7 @@ const CHAPTER_WIDGETS: Record<PuzzleChapter, ChapterPhoneWidgetState> = {
       temperatureColor: '#f1f0fb', moonColor: '#d8d3c2', moonMask: '#2d3250',
     },
     agenda: {
-      dayLabel: 'WED 12', entries: agendaWindow(3), footer: '1 TODAY · SILENT',
+      dayLabel: 'WED 12', entries: remainingAgenda(3), footer: '9 QUEUED · SILENT',
       background: 'linear-gradient(150deg, rgba(57,51,77,0.94), rgba(30,27,43,0.98))',
       accent: 'rgba(157,132,188,0.46)',
     },
@@ -107,7 +107,7 @@ const CHAPTER_WIDGETS: Record<PuzzleChapter, ChapterPhoneWidgetState> = {
       temperatureColor: '#edeefa', moonColor: '#d7cfbb', moonMask: '#292d47',
     },
     agenda: {
-      dayLabel: 'WED 12', entries: agendaWindow(4), footer: 'LAST HOUR · SILENT',
+      dayLabel: 'WED 12', entries: remainingAgenda(4), footer: '8 QUEUED · SILENT',
       background: 'linear-gradient(150deg, rgba(64,51,70,0.94), rgba(32,26,39,0.98))',
       accent: 'rgba(175,126,161,0.44)',
     },
@@ -120,7 +120,7 @@ const CHAPTER_WIDGETS: Record<PuzzleChapter, ChapterPhoneWidgetState> = {
       temperatureColor: '#f0ebf6', moonColor: '#d9c8bd', moonMask: '#2d2943',
     },
     agenda: {
-      dayLabel: 'THU 13', entries: agendaWindow(5), footer: 'NEXT DAY · SILENT',
+      dayLabel: 'THU 13', entries: remainingAgenda(5), footer: '7 QUEUED · SILENT',
       background: 'linear-gradient(150deg, rgba(58,45,66,0.94), rgba(29,24,38,0.98))',
       accent: 'rgba(167,123,168,0.46)',
     },
@@ -133,7 +133,7 @@ const CHAPTER_WIDGETS: Record<PuzzleChapter, ChapterPhoneWidgetState> = {
       temperatureColor: '#ebeff9', moonColor: '#d7d2c6', moonMask: '#272b48',
     },
     agenda: {
-      dayLabel: 'THU 13', entries: agendaWindow(6), footer: 'NIGHT QUEUE · SILENT',
+      dayLabel: 'THU 13', entries: remainingAgenda(6), footer: '6 QUEUED · SILENT',
       background: 'linear-gradient(150deg, rgba(44,46,72,0.94), rgba(24,25,40,0.98))',
       accent: 'rgba(125,132,186,0.46)',
     },
@@ -146,7 +146,7 @@ const CHAPTER_WIDGETS: Record<PuzzleChapter, ChapterPhoneWidgetState> = {
       temperatureColor: '#e8f4f8', moonColor: '#d7dde0', moonMask: '#203647',
     },
     agenda: {
-      dayLabel: 'THU 13', entries: agendaWindow(7), footer: 'AUTOMATIONS · SILENT',
+      dayLabel: 'THU 13', entries: remainingAgenda(7), footer: '5 QUEUED · SILENT',
       background: 'linear-gradient(150deg, rgba(37,55,65,0.94), rgba(21,31,39,0.98))',
       accent: 'rgba(101,155,174,0.46)',
     },
@@ -159,7 +159,7 @@ const CHAPTER_WIDGETS: Record<PuzzleChapter, ChapterPhoneWidgetState> = {
       temperatureColor: '#edf1f5', moonColor: '#e0d5ca', moonMask: '#253142',
     },
     agenda: {
-      dayLabel: 'THU 13', entries: agendaWindow(8), footer: 'QUIET HOURS · SILENT',
+      dayLabel: 'THU 13', entries: remainingAgenda(8), footer: '4 QUEUED · SILENT',
       background: 'linear-gradient(150deg, rgba(46,50,61,0.94), rgba(27,29,37,0.98))',
       accent: 'rgba(145,151,171,0.42)',
     },
@@ -172,7 +172,7 @@ const CHAPTER_WIDGETS: Record<PuzzleChapter, ChapterPhoneWidgetState> = {
       temperatureColor: '#e8eef7', moonColor: '#8d98a8', moonMask: '#111a28',
     },
     agenda: {
-      dayLabel: 'THU 13', entries: agendaWindow(9), footer: 'DEEP NIGHT · SILENT',
+      dayLabel: 'THU 13', entries: remainingAgenda(9), footer: '3 LEFT · DEEP NIGHT',
       background: 'linear-gradient(150deg, rgba(28,34,49,0.97), rgba(12,16,25,0.995))',
       accent: 'rgba(103,129,166,0.42)',
     },

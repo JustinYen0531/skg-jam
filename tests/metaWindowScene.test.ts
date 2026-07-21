@@ -24,14 +24,27 @@ test('window weather becomes darker, cloudier, wetter, and windier across five s
 test('window scene is authored entirely from SVG and CSS with restrained blur', () => {
   const source = readFileSync('src/components/MetaWindowScene.tsx', 'utf8');
 
-  assert.match(source, /id="meta-window-scene"/);
-  assert.match(source, /id="meta-window-rain"/);
-  assert.match(source, /id="meta-window-branch"/);
+  assert.match(source, /const sceneId = isWidget \? 'widget-weather-scene' : 'meta-window-scene'/);
+  assert.match(source, /id=\{sceneId\}/);
+  assert.match(source, /id=\{`\$\{sceneId\}-rain`\}/);
+  assert.match(source, /id=\{`\$\{sceneId\}-branch`\}/);
   assert.match(source, /filter: 'blur\(1\.5px\)'/);
+  assert.match(source, /filter: 'blur\(1\.1px\) saturate\(0\.82\)'/);
+  assert.match(source, /maskImage: 'radial-gradient/);
   assert.match(source, /shadow-\[inset_0_0_9px_rgba\(0,0,0,0\.45\)\]/);
   assert.match(source, /const animate = !reducedMotion/);
   assert.doesNotMatch(source, /<img|url\(/);
   assert.doesNotMatch(source, /blur\(6px\)|inset 0 0 22px/);
+});
+
+test('Harborview reuses the room weather with a soft widget mask and reduced-motion support', () => {
+  const source = readFileSync('src/components/PhoneSimulator.tsx', 'utf8');
+
+  assert.match(source, /const widgetWeatherStage = getMetaWallStage\(progress\.currentChapter\)/);
+  assert.match(source, /<MetaWindowScene[\s\S]{0,180}context="widget"/);
+  assert.match(source, /reducedMotion=\{reducedMotion\}/);
+  assert.match(source, /data-weather-haze="soft-mask"/);
+  assert.match(source, /data-weather-motion=\{reducedMotion \? 'reduced' : 'animated'\}/);
 });
 
 test('the runtime stage-one wall uses the corrected transparent-pane source', () => {

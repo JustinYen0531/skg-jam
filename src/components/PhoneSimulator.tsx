@@ -28,6 +28,7 @@ import {
 } from '../lib/chapterPhoneSignals';
 import { getChapterPhoneWidgetState } from '../lib/chapterPhoneWidgets';
 import { getChapterReminderRows } from '../lib/chapterReminders';
+import { getMetaWallStage } from '../lib/chapterEnvironment';
 import {
   getAdvancedChapterTransition,
   getChapterEntryTransition,
@@ -35,6 +36,7 @@ import {
 } from '../lib/chapterTransition';
 import { useReducedMotion } from '../lib/useReducedMotion';
 import { ChapterTransition, EvidenceNotification } from './ChapterTransition';
+import { MetaWindowScene } from './MetaWindowScene';
 
 /** Modern widget chassis: translucent, friendly, current-year. */
 const WIDGET_SHELL =
@@ -122,6 +124,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   const residue = getResidueLevel(progress);
   const phoneSignals = getChapterPhoneSignals(progress.currentChapter);
   const phoneWidgets = getChapterPhoneWidgetState(progress.currentChapter);
+  const widgetWeatherStage = getMetaWallStage(progress.currentChapter);
   const chapterReminderRows = getChapterReminderRows(progress);
   const completedReminderCount = chapterReminderRows.filter((row) => row.status === 'completed').length;
   const launcherSignals = (app: PhoneLauncherApp) => {
@@ -680,13 +683,26 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                 {/* Ambient widgets: weather + calendar */}
                 <div className="grid grid-cols-2 gap-3 h-[36%] min-h-[118px] shrink-0">
                   <div
-                    className={`${WIDGET_SHELL} p-3 flex flex-col`}
+                    className={`${WIDGET_SHELL} isolate p-3 flex flex-col`}
                     id="widget-weather"
                     data-weather-chapter={progress.currentChapter}
                     data-temperature={phoneWidgets.weather.temperature}
+                    data-weather-motion={reducedMotion ? 'reduced' : 'animated'}
                     style={{ background: phoneWidgets.weather.background }}
                   >
-                    <div className="flex items-center justify-between">
+                    <MetaWindowScene
+                      stage={widgetWeatherStage}
+                      reducedMotion={reducedMotion}
+                      context="widget"
+                    />
+                    <div
+                      className="pointer-events-none absolute inset-0 z-[1] backdrop-blur-[0.7px]"
+                      style={{
+                        background: 'linear-gradient(105deg, rgba(10,15,24,0.88) 0%, rgba(12,18,28,0.67) 48%, rgba(11,16,25,0.42) 100%)',
+                      }}
+                      data-weather-haze="soft-mask"
+                    ></div>
+                    <div className="relative z-10 flex items-center justify-between">
                       <span className="text-[10px] font-medium text-slate-200">Harborview</span>
                       <svg viewBox="0 0 20 20" className="w-5 h-5" aria-hidden="true">
                         <circle cx="9" cy="10" r="6.5" fill={phoneWidgets.weather.moonColor} />
@@ -694,15 +710,15 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                       </svg>
                     </div>
                     <span
-                      className="font-semibold text-[30px] leading-none mt-1.5"
+                      className="relative z-10 font-semibold text-[30px] leading-none mt-1.5"
                       style={{ color: phoneWidgets.weather.temperatureColor }}
                     >
                       {phoneWidgets.weather.temperature}°
                     </span>
-                    <span className="text-[9.5px] text-slate-300/75 mt-0.5">
+                    <span className="relative z-10 text-[9.5px] text-slate-300/75 mt-0.5">
                       {phoneWidgets.weather.condition}
                     </span>
-                    <div className="mt-auto pt-1.5 flex items-center justify-between text-[8.5px] text-slate-400/70">
+                    <div className="relative z-10 mt-auto pt-1.5 flex items-center justify-between text-[8.5px] text-slate-400/70">
                       <span>H:{phoneWidgets.weather.high}° L:{phoneWidgets.weather.low}°</span>
                       {/* A data source that should not still be reporting */}
                       {residue >= 2 ? (
@@ -721,6 +737,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                     className={`${WIDGET_SHELL} p-3 flex flex-col`}
                     id="widget-agenda"
                     data-agenda-chapter={progress.currentChapter}
+                    data-agenda-remaining={phoneWidgets.agenda.entries.length}
                     style={{ background: phoneWidgets.agenda.background }}
                   >
                     <div className="flex items-center justify-between">
@@ -732,7 +749,12 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                         {phoneWidgets.agenda.dayLabel}
                       </span>
                     </div>
-                    <div className="mt-2 space-y-2 flex-1 overflow-hidden">
+                    <div
+                      className="mt-2 flex-1 space-y-2 overflow-y-auto overscroll-contain pr-1"
+                      id="widget-agenda-scroll"
+                      tabIndex={0}
+                      aria-label={`${phoneWidgets.agenda.entries.length} upcoming agenda items`}
+                    >
                       {phoneWidgets.agenda.entries.map((entry) => (
                         <div
                           key={`${entry.time}-${entry.title}`}

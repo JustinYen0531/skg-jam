@@ -551,3 +551,11 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Recomputed the clock-face center from the source wall artwork and its scene transform: the rendered center is approximately 30.69% / 20.51%, so the overlay keeps left 30.8% and moves from top 26.2% to top 20.5%.
 - Kept hand angles, shared phone-time source, five weather stages, wall artwork, and every phone/desk transform unchanged.
 - Browser Preview remains intentionally omitted under the repository's static-analysis-only rule; 103 static tests, TypeScript lint, production build, and diff checks pass after rebasing the concurrent Chapter 1 navigation fix.
+
+## 2026-07-21 — Exhausting Agenda and ambient Harborview weather
+
+- Changed Agenda from a rolling three-row sample into a scrollable remainder of the fixed overnight timeline: Chapter 1 exposes 12 future rows, one elapsed row is permanently removed per chapter, and Chapters 9–10 end with four and three rows.
+- Past Agenda entries are absent from the chapter state rather than merely scrolled out of view, so the player cannot return to an elapsed time.
+- Reused the room window's five deterministic cloud/rain/wind stages inside Harborview, keeping both surfaces synchronized to the same chapter-owned weather stage.
+- Added a widget-only 1.1px soft focus, reduced saturation, radial mask, translucent haze, and a separate sharp text layer; reduced-motion freezes both room and widget weather.
+- Browser verification remains intentionally omitted under the repository rule; 120 static tests, TypeScript lint, production build, and diff checks pass.
