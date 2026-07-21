@@ -850,12 +850,12 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
               draggable={false}
               initial={{ opacity: 0, x: -24 }}
               animate={{
-                opacity: deviceResting ? 0.9 : 1,
-                x: deviceResting ? '-7%' : 0,
-                y: deviceResting ? '13%' : 0,
-                scale: deviceResting ? 0.94 : 1,
+                opacity: deviceResting ? 0 : 1,
+                x: deviceResting ? '-3%' : 0,
+                y: deviceResting ? '5%' : 0,
+                scale: deviceResting ? 0.98 : 1,
               }}
-              transition={{ delay: reducedMotion ? 0 : 0.5, duration: reducedMotion ? 0 : 0.82, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: reducedMotion ? 0 : 0.62, ease: [0.22, 1, 0.36, 1] }}
               className="pointer-events-none absolute left-[-3%] top-0 z-[22] h-full w-full select-none object-fill drop-shadow-[0_16px_14px_rgba(0,0,0,0.28)]"
               style={{
                 clipPath: 'inset(0 50% 0 0)',
@@ -873,10 +873,10 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
               alt=""
               draggable={false}
               animate={{
-                opacity: interactionPending || scrollGesture ? 0 : 1,
-                x: interactionPending ? 18 : deviceResting ? '7%' : 0,
-                y: deviceResting ? '13%' : 0,
-                scale: deviceResting ? 0.94 : 1,
+                opacity: deviceResting || interactionPending || scrollGesture ? 0 : 1,
+                x: interactionPending ? 18 : deviceResting ? '3%' : 0,
+                y: deviceResting ? '5%' : 0,
+                scale: deviceResting ? 0.98 : 1,
               }}
               initial={false}
               transition={{ duration: reducedMotion ? 0 : deviceResting ? 0.82 : 0.42, ease: [0.22, 1, 0.36, 1] }}
@@ -890,6 +890,58 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
               data-hand-edge-offset="3%"
               aria-hidden="true"
               id="meta-right-hand-asset"
+            />
+
+            <motion.img
+              src="/assets/meta-resting-hands.png"
+              alt=""
+              draggable={false}
+              initial={false}
+              animate={{
+                opacity: deviceResting ? 1 : 0,
+                x: deviceResting ? '-3%' : '-1%',
+                y: deviceResting ? '22%' : '10%',
+                rotateX: deviceResting ? 8 : 18,
+                rotateZ: deviceResting ? -1.5 : 0,
+                scale: deviceResting ? 1 : 0.96,
+              }}
+              transition={{ duration: reducedMotion ? 0 : 0.62, ease: [0.22, 1, 0.36, 1] }}
+              className="pointer-events-none absolute left-0 top-0 z-[22] h-full w-full select-none object-fill drop-shadow-[0_12px_10px_rgba(0,0,0,0.24)]"
+              style={{
+                clipPath: 'inset(0 50% 0 0)',
+                transformOrigin: '50% 100%',
+                transformPerspective: 1500,
+              }}
+              data-resting-hand-perspective="desk-plane"
+              data-wrist-crop="below-scene-edge"
+              aria-hidden="true"
+              id="meta-left-resting-hand"
+            />
+
+            <motion.img
+              src="/assets/meta-resting-hands.png"
+              alt=""
+              draggable={false}
+              initial={false}
+              animate={{
+                opacity: deviceResting && !interactionPending && !scrollGesture ? 1 : 0,
+                x: deviceResting ? '3%' : '1%',
+                y: deviceResting ? '22%' : '10%',
+                rotateX: deviceResting ? 8 : 18,
+                rotateZ: deviceResting ? 1.5 : 0,
+                scale: deviceResting ? 1 : 0.96,
+              }}
+              transition={{ duration: reducedMotion ? 0 : 0.62, ease: [0.22, 1, 0.36, 1] }}
+              className="pointer-events-none absolute left-0 top-0 z-[22] h-full w-full select-none object-fill drop-shadow-[0_12px_10px_rgba(0,0,0,0.24)]"
+              style={{
+                clipPath: 'inset(0 0 0 50%)',
+                transformOrigin: '50% 100%',
+                transformPerspective: 1500,
+              }}
+              data-resting-hand-perspective="desk-plane"
+              data-wrist-crop="below-scene-edge"
+              aria-hidden="true"
+              id="meta-right-resting-hand"
             />
 
             <AnimatePresence>

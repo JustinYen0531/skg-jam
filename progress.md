@@ -366,3 +366,11 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Mouse movement reveals a shadowed ViewTube-style HUD with a red timeline; the Gate 40-to-41 evidence pause is mapped to exactly `1 / 3.2` (`31.25%`) of the displayed timeline.
 - Reaching the evidence frame automatically pauses playback, records `watchedVideo`, and unlocks the fullscreen exit. The ARC_184 reply cannot advance Chapter 1 before that point.
 - Browser validation remains intentionally omitted per project instruction; 88 tests, TypeScript lint, production build, and diff checks pass after integration with the latest remote main.
+
+## 2026-07-21 — Flat resting-hand perspective swap
+
+- Added the user-supplied split resting-hand artwork as a dedicated table-rest pose while retaining the existing grip artwork for the upright phone.
+- Crossfaded both hand pairs over the phone posture transition; the resting pair uses a fixed shallow desk-plane perspective instead of inheriting the phone's 68-degree pitch.
+- Split the resting artwork exactly at its center, mirrored the final tilt, and moved the abbreviated wrists below the scene edge so their cropped ends remain hidden.
+- The right resting hand still yields to tapping and scrolling gestures, then settles back onto the desk.
+- Browser validation remains intentionally omitted per project instruction; static tests, TypeScript lint, and production build are required before upload.

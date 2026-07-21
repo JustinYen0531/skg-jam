@@ -81,7 +81,7 @@ test('only an idle click outside the phone toggles the table-rest posture', () =
   assert.equal(shouldToggleMetaDeviceRest(false, false, false), false);
 });
 
-test('rest posture lays down the phone and relaxes both grip hands as one perspective group', () => {
+test('rest posture lays down the phone and swaps the grip for desk-plane hands', () => {
   const scene = readFileSync(new URL('../src/components/MetaInteractionScene.tsx', import.meta.url), 'utf8');
 
   assert.match(scene, /source\.closest\('#phone-bezel'\)/);
@@ -90,8 +90,12 @@ test('rest posture lays down the phone and relaxes both grip hands as one perspe
   assert.match(scene, /cameraPitchTarget\.set\(nextResting \? META_CAMERA_PITCH\.tableDeg : META_CAMERA_PITCH\.restDeg\)/);
   assert.match(scene, /deviceResting \? \{ scale: 0\.88, y: '9%' \} : \{ scale: 0\.92, y: '-13%' \}/);
   assert.match(scene, /deviceResting \? \{ rotateY: 0, rotateZ: 0 \} : \{ rotateY: -1\.4, rotateZ: -0\.35 \}/);
-  assert.match(scene, /x: deviceResting \? '-7%' : 0,[\s\S]{0,100}y: deviceResting \? '13%' : 0/);
-  assert.match(scene, /x: interactionPending \? 18 : deviceResting \? '7%' : 0,[\s\S]{0,100}y: deviceResting \? '13%' : 0/);
+  assert.match(scene, /opacity: deviceResting \? 0 : 1,[\s\S]{0,100}x: deviceResting \? '-3%' : 0/);
+  assert.match(scene, /opacity: deviceResting \|\| interactionPending \|\| scrollGesture \? 0 : 1/);
+  assert.match(scene, /opacity: deviceResting \? 1 : 0,[\s\S]{0,250}y: deviceResting \? '22%' : '10%'/);
+  assert.match(scene, /opacity: deviceResting && !interactionPending && !scrollGesture \? 1 : 0/);
+  assert.equal((scene.match(/data-resting-hand-perspective="desk-plane"/g) ?? []).length, 2);
+  assert.equal((scene.match(/data-wrist-crop="below-scene-edge"/g) ?? []).length, 2);
   assert.match(scene, /id="meta-device-contact-shadow"/);
 });
 
@@ -114,11 +118,18 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   );
   const appSource = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
   const gripAsset = new URL('../public/assets/meta-hand-grip.png', import.meta.url);
+  const restingHandsAsset = new URL('../public/assets/meta-resting-hands.png', import.meta.url);
   const tappingFingerAsset = new URL('../public/assets/meta-tapping-finger.png', import.meta.url);
+  const restingHandsBytes = readFileSync(restingHandsAsset);
   const tappingFingerBytes = readFileSync(tappingFingerAsset);
 
   assert.equal(existsSync(gripAsset), true);
+  assert.equal(existsSync(restingHandsAsset), true);
   assert.equal(existsSync(tappingFingerAsset), true);
+  assert.equal(
+    createHash('sha256').update(restingHandsBytes).digest('hex'),
+    '140c856eb270ebc250b2a049666f5b66dea1767c562ea5b8c60e3c7464bfe3cf',
+  );
   assert.equal(
     createHash('sha256').update(tappingFingerBytes).digest('hex'),
     '24c713bfd019da0cb679072a70179397923868d2a2ff67f048424dd6383edc7c',
@@ -126,11 +137,20 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   assert.equal((sceneSource.match(/src="\/assets\/meta-hand-grip\.png"/g) ?? []).length, 2);
   assert.match(sceneSource, /id="meta-left-hand-asset"/);
   assert.match(sceneSource, /id="meta-right-hand-asset"/);
+  assert.equal((sceneSource.match(/src="\/assets\/meta-resting-hands\.png"/g) ?? []).length, 2);
+  assert.match(sceneSource, /id="meta-left-resting-hand"/);
+  assert.match(sceneSource, /id="meta-right-resting-hand"/);
+  assert.equal((sceneSource.match(/data-resting-hand-perspective="desk-plane"/g) ?? []).length, 2);
+  assert.equal((sceneSource.match(/data-wrist-crop="below-scene-edge"/g) ?? []).length, 2);
   assert.match(sceneSource, /left-\[-3%\][\s\S]{0,700}data-hand-edge-offset="-3%"/);
   assert.match(sceneSource, /right-\[-3%\][\s\S]{0,700}data-hand-edge-offset="3%"/);
   assert.match(sceneSource, /clipPath: 'inset\(0 50% 0 0\)'/);
   assert.match(sceneSource, /clipPath: 'inset\(0 0 0 50%\)'/);
-  assert.match(sceneSource, /opacity: interactionPending \|\| scrollGesture \? 0 : 1[\s\S]{0,900}id="meta-right-hand-asset"/);
+  assert.match(sceneSource, /opacity: deviceResting \? 0 : 1[\s\S]{0,900}id="meta-left-hand-asset"/);
+  assert.match(sceneSource, /opacity: deviceResting \|\| interactionPending \|\| scrollGesture \? 0 : 1[\s\S]{0,900}id="meta-right-hand-asset"/);
+  assert.match(sceneSource, /opacity: deviceResting \? 1 : 0[\s\S]{0,1000}id="meta-left-resting-hand"/);
+  assert.match(sceneSource, /opacity: deviceResting && !interactionPending && !scrollGesture \? 1 : 0[\s\S]{0,1000}id="meta-right-resting-hand"/);
+  assert.equal((sceneSource.match(/rotateX: deviceResting \? 8 : 18/g) ?? []).length, 2);
   assert.match(sceneSource, /id="meta-left-grip-back"/);
   assert.match(sceneSource, /id="meta-left-thumb"/);
   assert.match(sceneSource, /id="meta-right-hold-back"/);
