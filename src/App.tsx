@@ -296,8 +296,9 @@ export default function App() {
 
       {/* CENTER STAGE: Simulated Bezel Phone in Interactive Light Panel */}
       <div
-        className={`${metaSceneActive ? 'phone-stage bg-slate-950/40' : 'bg-black'} flex-1 flex items-center justify-center relative z-10 min-h-[300px]`}
+        className={`${metaSceneActive ? 'bg-slate-950/40' : 'bg-black'} flex-1 flex items-center justify-center relative z-10 min-h-[300px]`}
         id="phone-container"
+        data-scene-frame={metaSceneActive ? 'edge-to-edge' : 'fullscreen-game'}
       >
         
         {/* Faint cold spill from the screen onto the desk */}
