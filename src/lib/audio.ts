@@ -1018,6 +1018,102 @@ class AudioManager {
   }
 
   /* ---------------------------------------------------------------- */
+  /* Chapter transition cinematic (evidence-collected → next chapter)  */
+  /* ---------------------------------------------------------------- */
+
+  /**
+   * The bed for the chapter-advance transition: a badly-tuned radio static
+   * that swells and then clears, typewriter keys hammering the title into
+   * focus, a margin bell as the line lands, and a warm settle as the scene
+   * resolves. Everything is scheduled on the audio clock in one call so it
+   * stays in sync with the visual resolve without JS timers. `reduced` plays a
+   * short, soft version for reduced motion. Muted output is silenced through
+   * the master bus like every other event.
+   */
+  playChapterTransition(options: { reduced?: boolean; delay?: number } = {}) {
+    if (this.isMuted) return;
+    this.initCtx();
+    if (!this.ctx || !this.master) return;
+    if (this.ctx.state === 'suspended') {
+      const ctx = this.ctx;
+      void ctx.resume().then(() => {
+        if (ctx.state === 'running' && !this.isMuted) this.playChapterTransition(options);
+      }).catch(() => {
+        // A capture-phase gesture listener will retry on the next input.
+      });
+      return;
+    }
+    const reduced = !!options.reduced;
+    const t = this.ctx.currentTime + Math.max(0, options.delay ?? 0);
+    const resolveEnd = reduced ? 0.7 : 2.15; // when the static has fully cleared
+
+    // A low cinematic drop as the screen darkens.
+    this.tone({ bus: 'metaFoley', type: 'sine', f0: 82, f1: 55, t, dur: reduced ? 0.22 : 0.34, g: 0.06, attack: 0.006 });
+
+    // Radio static bed: looping noise through a filter that wobbles like a
+    // dial being tuned, with an envelope that rises, holds, then clears.
+    const staticLayer = (freq: number, q: number, peak: number, highpass: boolean, wobble: boolean) => {
+      const src = this.ctx!.createBufferSource();
+      src.buffer = this.getNoiseBuffer();
+      src.loop = true;
+      const filter = this.ctx!.createBiquadFilter();
+      filter.type = highpass ? 'highpass' : 'bandpass';
+      filter.frequency.setValueAtTime(freq, t);
+      if (!highpass) filter.Q.setValueAtTime(q, t);
+      const g = this.ctx!.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(peak, t + (reduced ? 0.1 : 0.22));
+      g.gain.setValueAtTime(peak, t + (reduced ? 0.22 : 1.35));
+      g.gain.exponentialRampToValueAtTime(0.0006, t + resolveEnd);
+      src.connect(filter);
+      filter.connect(g);
+      g.connect(this.bus('narrative'));
+      if (wobble) {
+        const lfo = this.ctx!.createOscillator();
+        const lfoGain = this.ctx!.createGain();
+        lfo.type = 'sine';
+        lfo.frequency.setValueAtTime(5.5, t);
+        lfoGain.gain.setValueAtTime(700, t);
+        lfo.connect(lfoGain);
+        lfoGain.connect(filter.frequency);
+        lfo.start(t);
+        lfo.stop(t + resolveEnd + 0.1);
+      }
+      src.start(t);
+      src.stop(t + resolveEnd + 0.12);
+    };
+    staticLayer(1300, 0.7, reduced ? 0.05 : 0.085, false, !reduced);
+    if (!reduced) staticLayer(3200, 1, 0.03, true, false);
+
+    // Crackle pops — the detail that reads as "bad reception".
+    const crackles = reduced ? [0.12, 0.34] : [0.35, 0.7, 1.05, 1.5, 1.8];
+    crackles.forEach((o) =>
+      this.noise({ bus: 'narrative', t: t + o, dur: 0.02, g: 0.045, filterType: 'bandpass', filterFreq: 1500, filterQ: 3 }),
+    );
+
+    // Typewriter strikes: the title being hammered into focus. The cadence
+    // accelerates like someone typing a line, then the margin bell rings.
+    const strikes = reduced
+      ? [0.12, 0.3, 0.48]
+      : [0.28, 0.52, 0.72, 0.9, 1.06, 1.2, 1.33, 1.45, 1.57, 1.72, 1.9];
+    strikes.forEach((o) => {
+      const tt = t + o;
+      this.noise({ bus: 'metaFoley', t: tt, dur: 0.018, g: 0.05, filterType: 'highpass', filterFreq: 2600 });
+      this.tone({ bus: 'metaFoley', type: 'square', f0: 178, f1: 120, t: tt + 0.004, dur: 0.032, g: 0.05, filterType: 'lowpass', filterFreq: 1200 });
+    });
+
+    const bellAt = t + (reduced ? 0.6 : 1.98);
+    this.tone({ bus: 'metaFoley', type: 'triangle', f0: 1568, t: bellAt, dur: 0.18, g: 0.05 });
+    this.tone({ bus: 'metaFoley', type: 'sine', f0: 3136, t: bellAt + 0.01, dur: 0.08, g: 0.012 });
+    this.noise({ bus: 'metaFoley', t: bellAt + 0.06, dur: 0.05, g: 0.03, filterType: 'lowpass', filterFreq: 900 });
+
+    // Warm settle as the noise clears and the scene resolves into focus.
+    const settleAt = t + resolveEnd - 0.2;
+    this.tone({ bus: 'narrative', type: 'sine', f0: 196, t: settleAt, dur: 0.5, g: 0.05, attack: 0.15 });
+    this.tone({ bus: 'narrative', type: 'sine', f0: 294, t: settleAt + 0.04, dur: 0.42, g: 0.02, attack: 0.15 });
+  }
+
+  /* ---------------------------------------------------------------- */
   /* Legacy method names (§7 migration): kept so existing call sites   */
   /* keep working; each maps onto a single new identity.               */
   /* ---------------------------------------------------------------- */

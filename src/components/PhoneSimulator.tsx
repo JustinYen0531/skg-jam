@@ -27,6 +27,13 @@ import {
   type PhoneLauncherApp,
 } from '../lib/chapterPhoneSignals';
 import { getChapterPhoneWidgetState } from '../lib/chapterPhoneWidgets';
+import {
+  getAdvancedChapterTransition,
+  getChapterEntryTransition,
+  type ChapterTransitionData,
+} from '../lib/chapterTransition';
+import { useReducedMotion } from '../lib/useReducedMotion';
+import { ChapterTransition, EvidenceNotification } from './ChapterTransition';
 
 /** Modern widget chassis: translucent, friendly, current-year. */
 const WIDGET_SHELL =
@@ -53,6 +60,18 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   const restoreTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const chapterOneAppAttempt = useRef(0);
   const chapterOneHomeAttempt = useRef(0);
+  const chapterOneHomeEntryShown = useRef(false);
+
+  // Chapter-advance transition: an "evidence collected" banner the moment a
+  // chapter's evidence is obtained, then a cinematic when the player next
+  // reaches the home screen.
+  const reducedMotion = useReducedMotion();
+  const prevChapterRef = useRef(progress.currentChapter);
+  // A queue so a climax that advances several chapters without visiting home
+  // (e.g. the Messages archive run, 7→8→9) still shows every evidence card.
+  const [pendingTransitions, setPendingTransitions] = useState<ChapterTransitionData[]>([]);
+  const [activeTransition, setActiveTransition] = useState<ChapterTransitionData | null>(null);
+  const [evidenceBanner, setEvidenceBanner] = useState<ChapterTransitionData | null>(null);
 
   const residue = getResidueLevel(progress);
   const phoneSignals = getChapterPhoneSignals(progress.currentChapter);
@@ -89,6 +108,30 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
     if (debugTargetApp) setActiveApp(debugTargetApp.app);
   }, [debugTargetApp]);
 
+  // Obtaining a chapter's evidence steps currentChapter forward by one. Queue
+  // the banner + a pending cinematic; the cinematic itself waits for home.
+  useEffect(() => {
+    const previous = prevChapterRef.current;
+    const next = progress.currentChapter;
+    if (next === previous) return;
+    prevChapterRef.current = next;
+    const data = getAdvancedChapterTransition(previous, next);
+    if (data) {
+      setPendingTransitions((queue) => [...queue, data]);
+      setEvidenceBanner(data);
+    }
+  }, [progress.currentChapter]);
+
+  // Play queued transitions one at a time while the home screen is showing.
+  useEffect(() => {
+    if (activeTransition || activeApp !== 'home' || pendingTransitions.length === 0) return;
+    const [next, ...rest] = pendingTransitions;
+    setPendingTransitions(rest);
+    setActiveTransition(next);
+    setEvidenceBanner(null);
+    audio.playChapterTransition({ reduced: reducedMotion });
+  }, [pendingTransitions, activeApp, activeTransition, reducedMotion]);
+
   useEffect(() => () => {
     if (restoreTimer.current) clearTimeout(restoreTimer.current);
   }, []);
@@ -117,6 +160,13 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   const handleHomeButton = () => {
     audio.play('phone.home');
     setActiveApp('home');
+    // Chapter 1 begins inside Flappy, so no progress increment exists when
+    // the player first reaches the real home screen. Queue its case hand-off
+    // explicitly; later returns remain ordinary home navigation.
+    if (progress.currentChapter === 1 && !chapterOneHomeEntryShown.current) {
+      chapterOneHomeEntryShown.current = true;
+      setPendingTransitions((queue) => [...queue, getChapterEntryTransition(1)]);
+    }
     if (progress.currentChapter === 1 && metaInteraction.active) {
       const attempt = chapterOneHomeAttempt.current;
       metaInteraction.speak(
@@ -775,6 +825,27 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
           id="home-swipe-indicator"
         />
       </div>}
+
+      {/* Chapter-advance: "evidence collected" banner, then the cinematic once
+          the player returns to the home screen. Both clip to the phone face. */}
+      <AnimatePresence>
+        {evidenceBanner && !activeTransition && (
+          <EvidenceNotification
+            key="evidence-banner"
+            data={evidenceBanner}
+            reducedMotion={reducedMotion}
+            onOpen={handleHomeButton}
+            onDismiss={() => setEvidenceBanner(null)}
+          />
+        )}
+      </AnimatePresence>
+      {activeTransition && (
+        <ChapterTransition
+          data={activeTransition}
+          reducedMotion={reducedMotion}
+          onDone={() => setActiveTransition(null)}
+        />
+      )}
 
     </div>
   );

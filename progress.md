@@ -7,6 +7,12 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Uses the browser's transformed box quad when available and a matching trapezoid fallback otherwise.
 - Browser validation remains intentionally omitted per project instruction; the user-supplied red collision outline and static geometry tests define the acceptance boundary.
 
+## 2026-07-21 — Chapter 1 home transition and input release
+
+- The first Chapter 1 return to the home screen now queues a `CASE 01` hand-off even though Chapter 1 has not yet advanced; it is not mislabeled as collected evidence.
+- The transition overlay only accepts pointer input while it is visibly on screen, preventing an invisible first-frame or fading overlay from blocking app launchers.
+- Browser validation remains intentionally omitted per project instruction; automated tests, type-checking, and production build are the verification boundary.
+
 ## 2026-07-21 — Strict Meta click-to-rest allowlist
 
 - Replaced the broad “anything outside `#phone-bezel` rests the device” rule with an explicit room-background allowlist.
