@@ -544,3 +544,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Completed chapters receive checkmarks, and chapter changes automatically align the current row without changing the launcher notification/underline signals.
 - Preserved the later LAOS visual takeover while keeping the reminder data, progress states, blur treatment, and scrolling behavior consistent.
 - Browser verification remains intentionally omitted under the repository rule; 119 static tests, TypeScript lint, production build, and diff checks pass.
+
+## 2026-07-21 — Wall-clock face alignment
+
+- Corrected the SVG hand pivot in the flat desk view after the supplied screenshot showed it sitting on the clock frame's lower edge.
+- Recomputed the clock-face center from the source wall artwork and its scene transform: the rendered center is approximately 30.69% / 20.51%, so the overlay keeps left 30.8% and moves from top 26.2% to top 20.5%.
+- Kept hand angles, shared phone-time source, five weather stages, wall artwork, and every phone/desk transform unchanged.
+- Browser Preview remains intentionally omitted under the repository's static-analysis-only rule; 103 static tests, TypeScript lint, production build, and diff checks pass after rebasing the concurrent Chapter 1 navigation fix.

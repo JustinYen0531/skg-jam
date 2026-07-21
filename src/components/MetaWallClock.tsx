@@ -23,7 +23,7 @@ export const MetaWallClock: React.FC<{ time: string }> = ({ time }) => {
 
   return (
     <svg
-      className="pointer-events-none absolute left-[30.8%] top-[26.2%] z-[2] h-[10.2%] w-[9.6%] -translate-x-1/2 -translate-y-1/2"
+      className="pointer-events-none absolute left-[30.8%] top-[20.5%] z-[2] h-[10.2%] w-[9.6%] -translate-x-1/2 -translate-y-1/2"
       viewBox="0 0 100 100"
       preserveAspectRatio="none"
       data-clock-time={time}
