@@ -68,6 +68,103 @@ const AMBIENT_DANMAKU = [
   { text: 'watch Gate 40', top: 22, size: 11, duration: 10.8, delay: -5.7 },
 ] as const;
 
+// Chapter 1 comment section. Only the three load-bearing comments (rendered
+// inline below with #vt-arc-reply) advance the puzzle. Everything here is pure
+// texture: FORESHADOW rows imply later beats without ever printing a usable
+// answer; NOISE rows are the crowd that isn't here to help you. See
+// docs/CONTENT_EXPANSION_HANDOFF.md §3 for the non-spoiler boundary.
+// tier drives the visual weight: 'foreshadow' rows are legible-but-muted with a
+// hairline margin; 'noise' rows are the faintest, single-thought crowd chatter.
+// The three load-bearing comments (inline below) always sit above both.
+type FeedComment = { handle: string; age: string; text: string; tier: 'foreshadow' | 'noise' };
+
+// Rendered above SkyFlapMaster (load-bearing #1): pure crowd, no signal.
+const VT_COMMENTS_TOP: readonly FeedComment[] = [
+  { handle: '_gg_', age: '5y ago', text: 'first', tier: 'noise' },
+  { handle: 'algorithm_victim', age: '3 weeks ago', text: "who's here in 2026 💀 the algorithm really said “remember this?”", tier: 'noise' },
+  { handle: 'passing_through', age: '1 month ago', text: 'why is this in my recommended twelve years later', tier: 'noise' },
+] as const;
+
+// Rendered between SkyFlapMaster (#1) and LumenHacker (load-bearing #2).
+const VT_COMMENTS_MID: readonly FeedComment[] = [
+  { handle: 'quietframes', age: '11y ago', text: 'whatever happened to the person who actually made the original? one final update, then just... gone. nobody ever talks about them.', tier: 'foreshadow' },
+  { handle: 'pixel_grief', age: '9y ago', text: 'the compression on this is a war crime, i genuinely cannot see anything', tier: 'noise' },
+  { handle: 'warranty_void', age: '10y ago', text: 'fun fact these things got recalled for overheating lol. government made them collect every unit. rip my childhood brick.', tier: 'foreshadow' },
+  { handle: 'uncle_of_the_year', age: '8y ago', text: 'my nephew could clear 40 in his sleep, 184 is just sweaty', tier: 'noise' },
+  { handle: 'former_QA_maybe', age: '12y ago', text: "he's not tapping randomly. watch the rhythm. it's like he's reading a map only he can see.", tier: 'foreshadow' },
+] as const;
+
+// Rendered between LumenHacker (#2) and WaybackLover (load-bearing #3).
+const VT_COMMENTS_LOW: readonly FeedComment[] = [
+  { handle: 'ratio_enjoyer', age: '7y ago', text: "L + ratio + it's fake + didn't watch", tier: 'noise' },
+  { handle: 'mall_ghost_2011', age: '10y ago', text: 'old heads know this used to be a game you could FINISH. like it had an ending. an actual one. not this infinite ad slop.', tier: 'foreshadow' },
+  { handle: 'sticky_screen', age: '6y ago', text: "tapped so hard my screen has ARC_184's fingerprints on it now", tier: 'noise' },
+  { handle: 'not_a_bot_i_swear', age: '9y ago', text: 'has anyone scrolled the leaderboard all the way to the BOTTOM? it does something weird down there. like the sort just gives up.', tier: 'foreshadow' },
+  { handle: 'three_g_summary', age: '5y ago', text: 'gatekept, gaslit, girlbossed his way past gate 40', tier: 'noise' },
+] as const;
+
+// Rendered after WaybackLover, trailing off into the crowd.
+const VT_COMMENTS_TAIL: readonly FeedComment[] = [
+  { handle: 'keeps_receipts', age: '12y ago', text: "my mum had one of these devices. bought a whole stack of them once, wouldn't say why. she's not really... around to ask anymore.", tier: 'foreshadow' },
+  { handle: 'taking_notes', age: '8y ago', text: 'downloading an entire dead operating system to beat a bird game is certified insane behavior and i am taking notes', tier: 'noise' },
+  { handle: 'dead_link_collector', age: '8y ago', text: 'this got swallowed by some "automation" company. they gut old apps, staple ads on the corpse, call it a business model. classic.', tier: 'foreshadow' },
+  { handle: 'here_for_replies', age: '6y ago', text: 'this comment section is genuinely more entertaining than the run', tier: 'noise' },
+  { handle: 'FreeC0ins_Daily', age: '3y ago', text: '🔥 WANT UNLIMITED COINS?? check my profile for the mod 🔥', tier: 'noise' },
+  { handle: 'cardboardbox_archive', age: '7y ago', text: 'the original store page listed it under a totally different name. three letters. i forget which. someone renamed the whole thing.', tier: 'foreshadow' },
+  { handle: 'streambrain_2026', age: '2 weeks ago', text: 'chat is this real', tier: 'noise' },
+  { handle: 'soft_reset', age: '9y ago', text: "i don't think 184 was even the point for this guy. feels like he was trying to show us the score isn't the score.", tier: 'foreshadow' },
+  { handle: 'wholesome_100', age: '5y ago', text: 'the real world record is the friends we ratioed along the way', tier: 'noise' },
+  { handle: 'latekeeper', age: '6y ago', text: "if you have to ask how he did it, the answer won't help you yet. you find the device first. everything else is downstream.", tier: 'foreshadow' },
+  { handle: 'above_it_all', age: '4y ago', text: 'imagine caring this much about a flappy clone', tier: 'noise' },
+] as const;
+
+const ARCHIVE_COMMENT_TEXT = [
+  'the autoplay thumbnail made this look like a cooking video somehow',
+  'came for the bird, stayed for everyone arguing about one pipe',
+  'why does this upload have more lore than most games',
+  'my old phone would have melted before score ten',
+  'the comment timestamp rabbit hole is wild',
+  'this is exactly the kind of video the algorithm resurfaces at 3am',
+  'not convinced, but i did replay that gate six times',
+  'someone please make a normal tutorial for this game',
+  'the UI on that old device looks strangely clean',
+  'i miss when comments were just people being confused together',
+  'the bird had better posture than i do',
+  'watching this at work with the sound off feels illegal',
+] as const;
+
+// The visible discussion starts with authored context, then opens into a long
+// but deliberately non-progression archive. Every row is deterministic: the
+// player can browse it without receiving future puzzle answers.
+const VT_COMMENT_ARCHIVE: readonly FeedComment[] = Array.from({ length: 114 }, (_, index) => ({
+  handle: `archive_viewer_${(index + 1).toString().padStart(3, '0')}`,
+  age: `${2 + ((index * 7) % 11)}y ago`,
+  text: ARCHIVE_COMMENT_TEXT[index % ARCHIVE_COMMENT_TEXT.length],
+  tier: 'noise' as const,
+}));
+
+const COMMENT_LOAD_BATCH_SIZE = 12;
+
+const VtCommentRow: React.FC<{ comment: FeedComment }> = ({ comment }) => {
+  if (comment.tier === 'foreshadow') {
+    return (
+      <div className="pl-2.5 border-l border-slate-800/70 space-y-0.5">
+        <div className="flex justify-between items-center text-[9px] font-mono text-slate-500">
+          <span className="font-bold text-slate-400">{comment.handle}</span>
+          <span>{comment.age}</span>
+        </div>
+        <p className="text-[11px] leading-snug text-slate-400">{comment.text}</p>
+      </div>
+    );
+  }
+  return (
+    <div className="flex gap-1.5 text-[10px] leading-snug text-slate-500">
+      <span className="font-mono font-bold text-slate-600 shrink-0">{comment.handle}</span>
+      <span className="min-w-0">{comment.text}</span>
+    </div>
+  );
+};
+
 const formatReplayTime = (elapsedMs: number): string => {
   const totalSeconds = Math.max(0, Math.floor(elapsedMs / 1000));
   const minutes = Math.floor(totalSeconds / 60);
@@ -94,11 +191,21 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
   const [searchError, setSearchError] = useState('');
   const [barrageActive, setBarrageActive] = useState(false);
   const [barrageCycle, setBarrageCycle] = useState(0);
+  const [visibleArchiveComments, setVisibleArchiveComments] = useState(0);
   const [recommendedVideos] = useState(() => shuffleFeed(VIEWTUBE_FEED, createFeedSeed('viewtube')));
   const chapterOneSearchAttempt = useRef(0);
   const chapterOneVideoAttempt = useRef(0);
   const replayExitUnlockedRef = useRef(false);
   const replayControlsTimerRef = useRef<number | null>(null);
+  const remainingArchiveComments = VT_COMMENT_ARCHIVE.length - visibleArchiveComments;
+
+  const loadMoreComments = () => {
+    audio.playTick();
+    setVisibleArchiveComments((visible) => Math.min(
+      VT_COMMENT_ARCHIVE.length,
+      visible + COMMENT_LOAD_BATCH_SIZE,
+    ));
+  };
 
   const speakChapterOne = (lines: DialogueLines) => {
     if (progress.currentChapter === 1 && metaInteraction.active) {
@@ -452,7 +559,7 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
           ⚠ {searchError}
         </div>
       )}
-      <div className="flex-1 overflow-y-auto p-3 space-y-4" id="vt-body">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 space-y-4" id="vt-body">
         {!hasSearched ? (
           <div className="space-y-3" id="vt-home-feed">
             <div className="flex gap-1.5 overflow-x-auto pb-1 text-[9px] font-bold whitespace-nowrap" id="vt-topic-chips">
@@ -598,8 +705,13 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
             <div className="space-y-3" id="vt-comments">
               <h3 className="text-xs font-bold text-slate-300 border-b border-slate-800 pb-1">Discussion (142)</h3>
               
-              <div className="space-y-3.5 text-xs">
-                {/* Comment 1 */}
+              <div className="space-y-3.5 text-xs" id="vt-comment-list">
+                {/* Crowd noise above the first real lead */}
+                {VT_COMMENTS_TOP.map((comment) => (
+                  <VtCommentRow key={comment.handle} comment={comment} />
+                ))}
+
+                {/* Comment 1 — load-bearing: ARC_184 reply advances the puzzle */}
                 <div className="bg-slate-900/50 p-2.5 rounded border border-slate-800/40 space-y-1">
                   <div className="flex justify-between items-center text-[10px] font-mono text-slate-400">
                     <span className="font-bold text-purple-400">SkyFlapMaster</span>
@@ -626,7 +738,12 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
                   </button>
                 </div>
 
-                {/* Comment 2 */}
+                {/* Foreshadow + noise between the first two leads */}
+                {VT_COMMENTS_MID.map((comment) => (
+                  <VtCommentRow key={comment.handle} comment={comment} />
+                ))}
+
+                {/* Comment 2 — load-bearing */}
                 <div className="bg-slate-900/50 p-2.5 rounded border border-slate-800/40 space-y-1">
                   <div className="flex justify-between items-center text-[10px] font-mono text-slate-400">
                     <span className="font-bold text-amber-400">LumenHacker</span>
@@ -637,7 +754,12 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
                   </p>
                 </div>
 
-                {/* Comment 3 */}
+                {/* Foreshadow + noise before the archive tip */}
+                {VT_COMMENTS_LOW.map((comment) => (
+                  <VtCommentRow key={comment.handle} comment={comment} />
+                ))}
+
+                {/* Comment 3 — load-bearing */}
                 <div className="bg-slate-900/50 p-2.5 rounded border border-slate-800/40 space-y-1">
                   <div className="flex justify-between items-center text-[10px] font-mono text-slate-400">
                     <span className="font-bold text-blue-400">WaybackLover</span>
@@ -647,7 +769,34 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
                     If anyone has the old original IPA file, it is preserved on Internet Archive. It is titled <span className="font-mono text-cyan-400">Skyline256_LAOS_Final.ipa</span>. Download it there if you have a device that supports it.
                   </p>
                 </div>
+
+                {/* The crowd trails off */}
+                {VT_COMMENTS_TAIL.map((comment) => (
+                  <VtCommentRow key={comment.handle} comment={comment} />
+                ))}
+
+                {VT_COMMENT_ARCHIVE.slice(0, visibleArchiveComments).map((comment) => (
+                  <VtCommentRow key={comment.handle} comment={comment} />
+                ))}
               </div>
+
+              {remainingArchiveComments > 0 ? (
+                <button
+                  type="button"
+                  onClick={loadMoreComments}
+                  className="w-full border-t border-slate-800/50 py-2 text-[10px] font-mono text-slate-500 hover:text-slate-300"
+                  id="vt-comments-load-more"
+                  data-comments-remaining={remainingArchiveComments}
+                >
+                  {visibleArchiveComments === 0
+                    ? `View ${remainingArchiveComments} more comments`
+                    : `View ${Math.min(COMMENT_LOAD_BATCH_SIZE, remainingArchiveComments)} more · ${remainingArchiveComments} remaining`}
+                </button>
+              ) : (
+                <div className="border-t border-slate-800/50 py-2 text-center text-[10px] font-mono text-slate-600" id="vt-comments-complete">
+                  All archived comments loaded
+                </div>
+              )}
             </div>
 
           </div>
