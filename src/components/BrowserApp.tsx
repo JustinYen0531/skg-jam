@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { GameProgress } from '../types';
 import audio from '../lib/audio';
-import { completePuzzleChapter } from '../lib/chapterProgress';
+import { canUseProgressionAction, completePuzzleChapter } from '../lib/chapterProgress';
+import { ChapterTwoArchiveFinder } from './ChapterTwoArchiveFinder';
 import { Search, RotateCcw, Clock, Download, ArrowRight, ShieldCheck, HeartCrack, Bot } from 'lucide-react';
 
 // SearchFinder disambiguation for "SKG" (puzzle 4). Seven decoys plus one real
@@ -31,9 +32,8 @@ const OFFTOPIC_RESULTS: readonly { title: string; url: string; blurb: string }[]
 
 const isSkgRelated = (query: string) => query.includes('skg') || query.includes('silver') || query.includes('kite');
 
-// Decorative "trending" chips on the browser's landing page. Pure 2026-slop
-// flavor, every one a dead end — the point is a search engine home page that
-// looks lived-in, not a menu of hints. The player must type "SKG" themselves.
+// Decorative trending chips keep SearchFinder lived-in. Chapter 2 replaces one
+// chip with a quiet archive lead; it is not a task card or a different layout.
 const BROWSER_LANDING_TRENDING: readonly string[] = [
   'why did my fridge unsubscribe me',
   'is a recalled device still technically mine',
@@ -68,6 +68,7 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
   // literal word "skg" into the search box can't skip the puzzle by
   // accidentally matching the same sentinel.
   const [viewingSkgSite, setViewingSkgSite] = useState(false);
+  const [archiveFinderOpen, setArchiveFinderOpen] = useState(false);
   const [botOpen, setBotOpen] = useState(false);
   const [botReply, setBotReply] = useState('');
   const [botInput, setBotInput] = useState('');
@@ -78,6 +79,14 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
     setSearchedKeyword('skg');
     setSelectedYear(2026);
     setAddressBar('http://www.skg-automation.com');
+  };
+
+  const openArchiveFinder = () => {
+    audio.playTick();
+    setViewingSkgSite(false);
+    setSearchedKeyword(null);
+    setArchiveFinderOpen(true);
+    setAddressBar('archivefinder://legacy-game-packages');
   };
 
   const askBot = (reply: string) => {
@@ -96,11 +105,19 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
     e.preventDefault();
     const query = addressBar.toLowerCase().trim();
     if (!query) return;
+    if (isSkgRelated(query) && !canUseProgressionAction('browser-skg-history', progress)) {
+      audio.play('search.noResult');
+      setViewingSkgSite(false);
+      setArchiveFinderOpen(false);
+      setSearchedKeyword('skg-locked');
+      return;
+    }
     // Every submitted query lands on the SearchFinder results page, "SKG"
     // included — there is no shortcut. Reaching SKG Automation always means
     // spotting and clicking the bridge result below.
     audio.playTick();
     setViewingSkgSite(false);
+    setArchiveFinderOpen(false);
     setSearchedKeyword(query);
     setAddressBar(`https://www.searchfinder.com?q=${encodeURIComponent(query)}`);
   };
@@ -203,7 +220,7 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
             />
             <button
               type="button"
-              onClick={() => { audio.playTick(); setAddressBar(''); setSearchedKeyword(null); setViewingSkgSite(false); }}
+              onClick={() => { audio.playTick(); setAddressBar(''); setSearchedKeyword(null); setViewingSkgSite(false); setArchiveFinderOpen(false); }}
               className="absolute right-2.5 text-slate-500 hover:text-white"
               id="url-reset"
               aria-label="Return to browser home"
@@ -216,7 +233,9 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
 
       {/* Main Browser Content area */}
       <div className="flex-1 overflow-y-auto p-3 bg-[#0d0f14] font-sans" id="browser-viewport">
-        {searchedKeyword === null ? (
+        {archiveFinderOpen ? (
+          <ChapterTwoArchiveFinder downloaded={progress.archiveDownloaded} onDownload={handleDownload} />
+        ) : searchedKeyword === null ? (
           /* Browser home: a SearchFinder-branded landing page. Nothing here
              names SKG — the player has to type and search it themselves. */
           <div className="flex h-full flex-col items-center justify-center gap-5 px-2 pb-10 pt-6 text-center" id="browser-landing">
@@ -229,12 +248,16 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
             <div className="text-[9px] font-mono text-slate-600">↑ type a search term or address above</div>
             <div className="w-full max-w-[280px] space-y-1.5 pt-2" id="browser-landing-trending">
               <div className="text-left text-[9px] font-bold uppercase tracking-wider text-slate-600">Trending Today</div>
-              {BROWSER_LANDING_TRENDING.map((topic) => (
+              {(progress.currentChapter === 2
+                ? [...BROWSER_LANDING_TRENDING.slice(0, 2), 'I want to find an old game file', BROWSER_LANDING_TRENDING[3]]
+                : BROWSER_LANDING_TRENDING
+              ).map((topic) => (
                 <button
                   key={topic}
                   type="button"
-                  onClick={() => audio.play('ui.disabled')}
+                  onClick={topic === 'I want to find an old game file' ? openArchiveFinder : () => audio.play('ui.disabled')}
                   className="block w-full rounded border border-slate-800/70 bg-slate-900/40 px-2.5 py-1.5 text-left text-[10px] text-slate-400 hover:border-slate-700"
+                  id={topic === 'I want to find an old game file' ? 'chapter-two-archive-entry' : undefined}
                 >
                   {topic}
                 </button>
@@ -354,10 +377,12 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
                 <span className="text-blue-400">Search</span><span className="text-slate-300">Finder</span>
               </div>
               <div className="text-[9px] font-mono text-slate-500 border-b border-slate-800 pb-2">
-                No exact match for "{searchedKeyword}". About 47,300,000 related results (0.38 seconds)
+                {searchedKeyword === 'skg-locked'
+                  ? 'No useful company identifier has been recovered yet.'
+                  : `No exact match for "${searchedKeyword}". About 47,300,000 related results (0.38 seconds)`}
               </div>
               <div className="space-y-3">
-                {(isSkgRelated(searchedKeyword ?? '') ? SEARCHFINDER_RESULTS : OFFTOPIC_RESULTS).map((result) => (
+                {(searchedKeyword !== 'skg-locked' && isSkgRelated(searchedKeyword ?? '') ? SEARCHFINDER_RESULTS : OFFTOPIC_RESULTS).map((result) => (
                   <button
                     key={result.title}
                     type="button"

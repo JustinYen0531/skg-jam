@@ -591,3 +591,9 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Marked the narrative panel explicitly pointer-transparent and added a scene-level pointer-down proxy that resolves dock buttons from their transformed screen rectangles with a small hit allowance.
 - The nearest matching dock button wins when allowances overlap, preserving all five utilities without moving their icons.
 - Browser verification remains intentionally omitted under the repository rule; static tests, TypeScript lint, production build, and diff checks are required before delivery.
+
+## 2026-07-22 — Chapter 2 archive investigation restored
+
+- SearchFinder now replaces one existing Trending Today row only during Chapter 2 with a quiet old-game-file lead; the layout and the other decoy rows stay unchanged.
+- The lead opens Archive Finder, where plausible package types conceal the preserved build until the player selects `.ipa`, then identifies `Skyline256_LAOS_Final.ipa`, LAOS 4.1, the Lumen Arc, and its native barometric altitude sensor requirement.
+- SKG, Silver Kite, and related direct searches remain intentionally unhelpful until the Chapter 5 company-history action has been earned.
