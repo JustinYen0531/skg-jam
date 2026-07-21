@@ -584,3 +584,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Moved dock utility activation from pointer-up to pointer-down so camera-follow transforms cannot move the rightmost Terminal and Controls buttons out from under the cursor before activation.
 - Retained the immediate Meta bypass and the keyboard-only click fallback.
 - Browser verification remains intentionally omitted under the repository rule; static tests, TypeScript lint, production build, and diff checks are required before delivery.
+
+## 2026-07-22 — Projected dock hitbox recovery
+
+- Diagnosed the remaining Terminal/Controls dead zone as projected hit testing beneath the later z-70 narrative overlay, not another click-timing failure.
+- Marked the narrative panel explicitly pointer-transparent and added a scene-level pointer-down proxy that resolves dock buttons from their transformed screen rectangles with a small hit allowance.
+- The nearest matching dock button wins when allowances overlap, preserving all five utilities without moving their icons.
+- Browser verification remains intentionally omitted under the repository rule; static tests, TypeScript lint, production build, and diff checks are required before delivery.

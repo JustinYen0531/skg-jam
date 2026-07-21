@@ -940,6 +940,38 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     setActiveKey(null);
   }, []);
 
+  const handlePointerDownCapture = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!active || event.button !== 0) return;
+    const source = event.target;
+    if (!(source instanceof Element) || source.closest('#home-dock button')) return;
+
+    // Chromium can route a point on the projected bottom edge to a later,
+    // transparent scene layer instead of the transformed dock button. Recover
+    // that dead zone from each button's actual on-screen rectangle.
+    const hitSlop = 12;
+    const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>('#home-dock button'));
+    const button = buttons
+      .map((candidate) => {
+        const rect = candidate.getBoundingClientRect();
+        const inside = event.clientX >= rect.left - hitSlop
+          && event.clientX <= rect.right + hitSlop
+          && event.clientY >= rect.top - hitSlop
+          && event.clientY <= rect.bottom + hitSlop;
+        const centerDistance = Math.hypot(
+          event.clientX - (rect.left + rect.right) / 2,
+          event.clientY - (rect.top + rect.bottom) / 2,
+        );
+        return { candidate, inside, centerDistance };
+      })
+      .filter(({ inside }) => inside)
+      .sort((a, b) => a.centerDistance - b.centerDistance)[0]?.candidate;
+
+    if (!button) return;
+    event.preventDefault();
+    event.stopPropagation();
+    button.click();
+  };
+
   const handleClickCapture = (event: React.MouseEvent<HTMLDivElement>) => {
     if (!active) return;
     const source = event.target;
@@ -1145,6 +1177,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     <div
       ref={sceneRef}
       className={`relative h-full w-full overflow-hidden ${active ? 'bg-[#17130f]' : 'bg-transparent'}`}
+      onPointerDownCapture={handlePointerDownCapture}
       onClickCapture={handleClickCapture}
       onKeyDownCapture={handleKeyDownCapture}
       onWheelCapture={handleWheelCapture}
@@ -1618,7 +1651,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: reducedMotion ? 0 : 1.05, duration: reducedMotion ? 0 : 0.7, ease: 'easeOut' }}
-              className="absolute bottom-[2.5%] left-1/2 z-[70] min-h-[19%] w-[92%] -translate-x-1/2 rounded-[6px] bg-[#0d131b]/[0.82] px-7 py-5 shadow-[0_18px_50px_rgba(0,0,0,0.5)] backdrop-blur-[3px]"
+              className="pointer-events-none absolute bottom-[2.5%] left-1/2 z-[70] min-h-[19%] w-[92%] -translate-x-1/2 rounded-[6px] bg-[#0d131b]/[0.82] px-7 py-5 shadow-[0_18px_50px_rgba(0,0,0,0.5)] backdrop-blur-[3px]"
               id="meta-terminal-dialogue"
             >
               <style>{`@keyframes thought-caret { 0%, 52% { opacity: 1; } 68%, 100% { opacity: 0.12; } }`}</style>
