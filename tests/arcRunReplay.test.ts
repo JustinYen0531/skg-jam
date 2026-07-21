@@ -65,7 +65,7 @@ test('the replay loops deterministically', () => {
   );
 });
 
-test('ViewTube locks the real replay canvas fullscreen until Gate 41', () => {
+test('ViewTube locks the real replay canvas inside the phone until Gate 41', () => {
   const viewTube = readFileSync(new URL('../src/components/ViewTube.tsx', import.meta.url), 'utf8');
   const replay = readFileSync(new URL('../src/components/ArcRunReplay.tsx', import.meta.url), 'utf8');
   const startVideoStart = viewTube.indexOf('const startVideo = () =>');
@@ -81,7 +81,11 @@ test('ViewTube locks the real replay canvas fullscreen until Gate 41', () => {
   assert.match(viewTube, /<ArcRunReplay/);
   assert.match(viewTube, /id="vt-gate40-danmaku-barrage"/);
   assert.match(viewTube, /id="vt-ambient-danmaku"/);
-  assert.match(viewTube, /createPortal\(renderReplayPlayer\(true\), document\.body\)/);
+  assert.match(viewTube, /getElementById\('phone-bezel'\)/);
+  assert.match(viewTube, /createPortal\(renderReplayPlayer\(true\), phoneSurface\)/);
+  assert.doesNotMatch(viewTube, /createPortal\(renderReplayPlayer\(true\), document\.body\)/);
+  assert.doesNotMatch(viewTube, /fixed inset-0|h-screen w-screen|document\.body\.style\.overflow/);
+  assert.match(viewTube, /absolute inset-0 z-\[80\] h-full w-full/);
   assert.match(viewTube, /data-fullscreen-lock=/);
   assert.match(viewTube, /id="vt-fullscreen-exit"/);
   assert.match(viewTube, /disabled=\{!replayExitUnlocked\}/);
@@ -93,6 +97,9 @@ test('ViewTube locks the real replay canvas fullscreen until Gate 41', () => {
   assert.match(viewTube, /id="vt-replay-timeline-progress"/);
   assert.match(viewTube, /bg-\[#ff1f1f\]/);
   assert.match(viewTube, /onPausePoint=\{unlockReplayExit\}/);
+  assert.match(viewTube, /key=\{replayCycle\}/);
+  assert.match(viewTube, /if \(replayPaused && replayExitUnlocked\)[\s\S]{0,100}replayFromStart\(\)/);
+  assert.match(viewTube, /setReplayElapsedMs\(0\)[\s\S]{0,160}setReplayCycle\(\(cycle\) => cycle \+ 1\)/);
   assert.match(viewTube, /if \(!progress\.watchedVideo && !replayExitUnlocked\)/);
   assert.doesNotMatch(startVideoSource, /watchedVideo/);
   assert.doesNotMatch(viewTube, /COLLISION_BYPASS_DETECTION/);

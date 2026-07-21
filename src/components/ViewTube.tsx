@@ -90,6 +90,7 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
   const [replayFullscreenOpen, setReplayFullscreenOpen] = useState(false);
   const [replayExitUnlocked, setReplayExitUnlocked] = useState(false);
   const [replayControlsVisible, setReplayControlsVisible] = useState(true);
+  const [replayCycle, setReplayCycle] = useState(0);
   const [searchError, setSearchError] = useState('');
   const [barrageActive, setBarrageActive] = useState(false);
   const [barrageCycle, setBarrageCycle] = useState(0);
@@ -166,6 +167,7 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
     setReplayExitUnlocked(false);
     replayExitUnlockedRef.current = false;
     setReplayControlsVisible(true);
+    setReplayCycle((cycle) => cycle + 1);
     speakChapterOne(CHAPTER_ONE_DIALOGUE.videoStarted);
   };
 
@@ -191,12 +193,29 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
     if (nextPaused) speakChapterOne(CHAPTER_ONE_DIALOGUE.videoPaused);
   };
 
+  const replayFromStart = () => {
+    audio.play('viewtube.videoStart');
+    setReplayPaused(false);
+    setReplayElapsedMs(0);
+    setReplayControlsVisible(true);
+    setBarrageActive(false);
+    setReplayCycle((cycle) => cycle + 1);
+  };
+
+  const activateReplay = () => {
+    if (replayPaused && replayExitUnlocked) {
+      replayFromStart();
+      return;
+    }
+    toggleReplayPaused();
+  };
+
   const unlockReplayExit = () => {
+    setReplayPaused(true);
+    setReplayControlsVisible(true);
     if (replayExitUnlockedRef.current) return;
     replayExitUnlockedRef.current = true;
     setReplayExitUnlocked(true);
-    setReplayPaused(true);
-    setReplayControlsVisible(true);
     audio.play('viewtube.pause');
     speakChapterOne(CHAPTER_ONE_DIALOGUE.videoEvidence);
     updateProgress((prev) => ({ ...prev, watchedVideo: true }));
@@ -212,15 +231,6 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
 
   useEffect(() => {
     if (!replayFullscreenOpen) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [replayFullscreenOpen]);
-
-  useEffect(() => {
-    if (!replayFullscreenOpen) return;
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.preventDefault();
@@ -230,7 +240,7 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
       }
       if (event.key === ' ' || event.key === 'Enter') {
         event.preventDefault();
-        toggleReplayPaused();
+        activateReplay();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -255,18 +265,19 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
 
     return (
       <div
-        className={`${fullscreen ? 'fixed inset-0 z-[2147483647] h-screen w-screen' : 'absolute inset-0'} flex flex-col justify-between overflow-hidden bg-black text-left text-white ${hudVisible ? 'cursor-default' : 'cursor-none'}`}
-        onClick={toggleReplayPaused}
+        className={`${fullscreen ? 'absolute inset-0 z-[80] h-full w-full' : 'absolute inset-0'} flex flex-col justify-between overflow-hidden bg-black text-left text-white ${hudVisible ? 'cursor-default' : 'cursor-none'}`}
+        onClick={activateReplay}
         onMouseMove={revealReplayControls}
         onPointerMove={revealReplayControls}
         role="button"
         tabIndex={0}
         data-fullscreen-lock={fullscreen ? (replayExitUnlocked ? 'unlocked' : 'locked') : 'released'}
         id="vt-player-active"
-        aria-label={replayPaused ? 'Resume archived replay' : 'Pause archived replay'}
+        aria-label={replayPaused && replayExitUnlocked ? 'Replay archived replay' : replayPaused ? 'Resume archived replay' : 'Pause archived replay'}
       >
         <div className="absolute inset-0 bg-black" id="vt-arc-replay-surface">
           <ArcRunReplay
+            key={replayCycle}
             active={isPlayingVideo}
             paused={replayPaused}
             initialElapsedMs={replayElapsedMs}
@@ -389,10 +400,10 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
           <div className="flex items-center gap-3 text-white">
             <button
               type="button"
-              onClick={toggleReplayPaused}
+              onClick={activateReplay}
               className="grid h-9 w-9 place-items-center rounded-full hover:bg-white/15"
               id="vt-replay-play-pause"
-              aria-label={replayPaused ? 'Resume replay' : 'Pause replay'}
+              aria-label={replayPaused && replayExitUnlocked ? 'Replay from beginning' : replayPaused ? 'Resume replay' : 'Pause replay'}
             >
               {replayPaused ? <Play className="h-5 w-5 fill-white" /> : <Pause className="h-5 w-5 fill-white" />}
             </button>
@@ -644,7 +655,10 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
       </div>
 
       {isPlayingVideo && replayFullscreenOpen && typeof document !== 'undefined'
-        ? createPortal(renderReplayPlayer(true), document.body)
+        ? (() => {
+            const phoneSurface = document.getElementById('phone-bezel');
+            return phoneSurface ? createPortal(renderReplayPlayer(true), phoneSurface) : null;
+          })()
         : null}
 
       {/* Embedded CSS for the Gate 40 comment flood. Text deliberately has no
