@@ -1,10 +1,12 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, motion, useMotionValue, useSpring } from 'motion/react';
 import { Terminal } from 'lucide-react';
 import {
   applyVirtualKey,
   canStartMetaInteraction,
+  getMetaCameraPitch,
   getScrollFingerTravel,
+  META_CAMERA_PITCH,
   META_TAP_TIMING,
   normalizeVirtualKey,
 } from '../lib/metaInteraction';
@@ -274,6 +276,12 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
   const inputControllersRef = useRef(new Map<string, MetaInputController>());
   const scrollGestureTimerRef = useRef<number | null>(null);
   const lastScrollGestureAtRef = useRef(0);
+  const cameraPitchTarget = useMotionValue<number>(META_CAMERA_PITCH.restDeg);
+  const cameraPitch = useSpring(cameraPitchTarget, {
+    stiffness: 105,
+    damping: 24,
+    mass: 0.58,
+  });
   const [pointer, setPointer] = useState<PointerPosition>({ x: 0, y: 0 });
   const [pressed, setPressed] = useState(false);
   const [interactionPending, setInteractionPending] = useState(false);
@@ -320,6 +328,10 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
   useEffect(() => {
     if (active) setDialogueLines(CHAPTER_ONE_DIALOGUE.entry);
   }, [active]);
+
+  useEffect(() => {
+    cameraPitchTarget.set(META_CAMERA_PITCH.restDeg);
+  }, [active, cameraPitchTarget, reducedMotion]);
 
   useEffect(() => {
     if (!active) {
@@ -552,12 +564,27 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
     }, 560);
   };
 
+  const handlePointerMove = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
+    if (!active || reducedMotion || event.pointerType !== 'mouse') return;
+    const rect = sceneRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    cameraPitchTarget.set(getMetaCameraPitch(event.clientY - rect.top, rect.height));
+  }, [active, cameraPitchTarget, reducedMotion]);
+
+  const handlePointerLeave = useCallback(() => {
+    cameraPitchTarget.set(META_CAMERA_PITCH.restDeg);
+  }, [cameraPitchTarget]);
+
   const contextValue = useMemo<MetaInteractionContextValue>(() => ({
     active,
     registerInput,
     speak,
     tapElement,
   }), [active, registerInput, speak, tapElement]);
+
+  const cameraPitchStyle = active
+    ? (reducedMotion ? META_CAMERA_PITCH.restDeg : cameraPitch)
+    : 0;
 
   return (
     <MetaInteractionContext.Provider value={contextValue}>
@@ -567,7 +594,10 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
       onClickCapture={handleClickCapture}
       onKeyDownCapture={handleKeyDownCapture}
       onWheelCapture={handleWheelCapture}
+      onPointerMove={handlePointerMove}
+      onPointerLeave={handlePointerLeave}
       data-meta-view={active ? 'revealed' : 'screen-capture'}
+      data-camera-pitch-control={active ? 'mouse-y' : 'inactive'}
       data-meta-pending={interactionPending ? 'true' : 'false'}
       data-hand-pose={interactionPending ? 'reaching' : 'holding'}
       data-environment-chapter={chapter}
@@ -667,8 +697,13 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
         <motion.div
           className="absolute inset-0 flex items-center justify-center [transform-style:preserve-3d]"
           animate={active
-            ? { rotateX: 5.5, rotateY: -1.4, rotateZ: -0.35 }
-            : { rotateX: 0, rotateY: 0, rotateZ: 0 }}
+            ? { rotateY: -1.4, rotateZ: -0.35 }
+            : { rotateY: 0, rotateZ: 0 }}
+          style={{
+            rotateX: cameraPitchStyle,
+            transformOrigin: '50% 72%',
+            transformPerspective: 1500,
+          }}
           transition={{ duration: reducedMotion ? 0 : 1.05, ease: [0.22, 1, 0.36, 1] }}
           id="meta-device-tilt"
         >
@@ -778,7 +813,12 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: reducedMotion ? 0 : 0.5, duration: reducedMotion ? 0 : 0.55 }}
               className="pointer-events-none absolute left-[-3%] top-0 z-[22] h-full w-full select-none object-fill drop-shadow-[0_16px_14px_rgba(0,0,0,0.28)]"
-              style={{ clipPath: 'inset(0 50% 0 0)' }}
+              style={{
+                clipPath: 'inset(0 50% 0 0)',
+                rotateX: cameraPitchStyle,
+                transformOrigin: '50% 72%',
+                transformPerspective: 1500,
+              }}
               data-hand-edge-offset="-3%"
               aria-hidden="true"
               id="meta-left-hand-asset"
@@ -795,7 +835,12 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
               initial={false}
               transition={{ duration: reducedMotion ? 0 : 0.24, ease: 'easeOut' }}
               className="pointer-events-none absolute right-[-3%] top-0 z-[22] h-full w-full select-none object-fill drop-shadow-[0_16px_14px_rgba(0,0,0,0.28)]"
-              style={{ clipPath: 'inset(0 0 0 50%)' }}
+              style={{
+                clipPath: 'inset(0 0 0 50%)',
+                rotateX: cameraPitchStyle,
+                transformOrigin: '50% 72%',
+                transformPerspective: 1500,
+              }}
               data-hand-edge-offset="3%"
               aria-hidden="true"
               id="meta-right-hand-asset"
@@ -813,6 +858,11 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.52, times: [0, 0.16, 1], ease: 'easeOut' }}
                   className="pointer-events-none absolute left-[76%] top-[39%] z-[60] h-0 w-0"
+                  style={{
+                    rotateX: cameraPitchStyle,
+                    transformOrigin: '0 0',
+                    transformPerspective: 1500,
+                  }}
                   data-scroll-direction={scrollGesture.travelY < 0 ? 'finger-up' : 'finger-down'}
                   aria-hidden="true"
                   id="meta-scroll-finger"
@@ -865,6 +915,11 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
               initial={false}
               transition={{ duration: reducedMotion ? 0 : 0.32, ease: [0.22, 1, 0.36, 1] }}
               className="pointer-events-none absolute left-0 top-0 z-[60] h-0 w-0"
+              style={{
+                rotateX: cameraPitchStyle,
+                transformOrigin: '0 0',
+                transformPerspective: 1500,
+              }}
               aria-hidden="true"
               id="meta-pointer-hand"
             >

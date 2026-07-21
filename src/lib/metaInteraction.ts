@@ -6,6 +6,22 @@ export const META_TAP_TIMING = {
   settleMs: 260,
 } as const;
 
+export const META_CAMERA_PITCH = {
+  topDeg: 14,
+  bottomDeg: 2,
+  restDeg: 5.5,
+} as const;
+
+export const getMetaCameraPitch = (pointerY: number, sceneHeight: number): number => {
+  if (!Number.isFinite(pointerY) || !Number.isFinite(sceneHeight) || sceneHeight <= 0) {
+    return META_CAMERA_PITCH.restDeg;
+  }
+
+  const normalizedY = Math.min(1, Math.max(0, pointerY / sceneHeight));
+  return META_CAMERA_PITCH.topDeg
+    + (META_CAMERA_PITCH.bottomDeg - META_CAMERA_PITCH.topDeg) * normalizedY;
+};
+
 export interface VirtualKeyResult {
   value: string;
   submit: boolean;

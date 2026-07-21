@@ -5,7 +5,9 @@ import { test } from 'node:test';
 import {
   applyVirtualKey,
   canStartMetaInteraction,
+  getMetaCameraPitch,
   getScrollFingerTravel,
+  META_CAMERA_PITCH,
   META_TAP_TIMING,
   normalizeVirtualKey,
   shouldRevealMetaView,
@@ -61,6 +63,15 @@ test('mouse wheel direction maps to the opposite touchscreen finger swipe', () =
   assert.equal(getScrollFingerTravel(0), 0);
 });
 
+test('mouse height maps to a clamped camera pitch from desk-flat to upright', () => {
+  assert.equal(getMetaCameraPitch(0, 1000), META_CAMERA_PITCH.topDeg);
+  assert.equal(getMetaCameraPitch(500, 1000), 8);
+  assert.equal(getMetaCameraPitch(1000, 1000), META_CAMERA_PITCH.bottomDeg);
+  assert.equal(getMetaCameraPitch(-200, 1000), META_CAMERA_PITCH.topDeg);
+  assert.equal(getMetaCameraPitch(1200, 1000), META_CAMERA_PITCH.bottomDeg);
+  assert.equal(getMetaCameraPitch(20, 0), META_CAMERA_PITCH.restDeg);
+});
+
 test('virtual keyboard is embedded in the phone surface at sixty percent opacity', () => {
   const scene = readFileSync(new URL('../src/components/MetaInteractionScene.tsx', import.meta.url), 'utf8');
   const deviceTilt = scene.indexOf('id="meta-device-tilt"');
@@ -92,8 +103,8 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   assert.equal((sceneSource.match(/src="\/assets\/meta-hand-grip\.png"/g) ?? []).length, 2);
   assert.match(sceneSource, /id="meta-left-hand-asset"/);
   assert.match(sceneSource, /id="meta-right-hand-asset"/);
-  assert.match(sceneSource, /left-\[-3%\][\s\S]{0,300}data-hand-edge-offset="-3%"/);
-  assert.match(sceneSource, /right-\[-3%\][\s\S]{0,300}data-hand-edge-offset="3%"/);
+  assert.match(sceneSource, /left-\[-3%\][\s\S]{0,700}data-hand-edge-offset="-3%"/);
+  assert.match(sceneSource, /right-\[-3%\][\s\S]{0,700}data-hand-edge-offset="3%"/);
   assert.match(sceneSource, /clipPath: 'inset\(0 50% 0 0\)'/);
   assert.match(sceneSource, /clipPath: 'inset\(0 0 0 50%\)'/);
   assert.match(sceneSource, /opacity: interactionPending \|\| scrollGesture \? 0 : 1[\s\S]{0,900}id="meta-right-hand-asset"/);
@@ -122,11 +133,15 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   assert.doesNotMatch(sceneSource, /repeating-linear-gradient\(4deg, #2d1f16/);
   assert.match(sceneSource, /id="meta-phone-depth"/);
   assert.match(sceneSource, /id="meta-glass-reflection"/);
-  assert.match(sceneSource, /rotateX: 5\.5/);
+  assert.match(sceneSource, /data-camera-pitch-control=\{active \? 'mouse-y' : 'inactive'\}/);
+  assert.match(sceneSource, /rotateX: cameraPitchStyle/);
+  assert.equal((sceneSource.match(/rotateX: cameraPitchStyle/g) ?? []).length, 5);
+  assert.match(sceneSource, /onPointerMove=\{handlePointerMove\}/);
+  assert.match(sceneSource, /onPointerLeave=\{handlePointerLeave\}/);
   assert.match(sceneSource, /data-hand-pose=\{interactionPending \? 'reaching' : 'holding'\}/);
   assert.match(sceneSource, /opacity: interactionPending && pointer\.x > 0 \? 1 : 0/);
   assert.match(sceneSource, /className="[^"]*z-\[8\][^"]*"[\s\S]{0,180}id="meta-tapping-hand-back"/);
-  assert.match(sceneSource, /className="[^"]*z-\[60\][^"]*"[\s\S]{0,180}id="meta-pointer-hand"/);
+  assert.match(sceneSource, /className="[^"]*z-\[60\][^"]*"[\s\S]{0,500}id="meta-pointer-hand"/);
   assert.equal((sceneSource.match(/src="\/assets\/meta-tapping-finger\.png"/g) ?? []).length, 2);
   assert.equal((sceneSource.match(/data-finger-orientation="upper-left"/g) ?? []).length, 2);
   assert.equal((sceneSource.match(/rotate: '-90deg'/g) ?? []).length, 2);
