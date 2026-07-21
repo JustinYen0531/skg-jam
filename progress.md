@@ -364,3 +364,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Confined the artwork to the existing wall region above the 58% wall/desk boundary. The source images are scaled from their measured transparent bounds so their generated floor strips are cropped out rather than replacing the existing desk or any future floor asset.
 - Kept the wall behind the desk, hands, phone, chapter props, and existing light overlays.
 - Browser validation remains intentionally omitted per project instruction; 91 tests, TypeScript lint, production build, and diff checks pass.
+
+## 2026-07-21 — Wall edge overscan and temporary floor removal
+
+- Increased every chapter wall state from 108% to 120% width with symmetrical 10% horizontal overscan, removing the exposed side strips without changing the wall/desk boundary.
+- Removed the separate dark-brown `meta-desk-surface` floor block and replaced the underlying room fallback with black until the supplied floor artwork is integrated; the existing wooden desk artwork remains unchanged.
+- Previewed Chapter 1 in both upright and desk-rest poses at 1365×910 and 1024×768. The wall extends beyond both scene edges by about 132px and 98px respectively, with no exposed side color blocks and no failed page resources.
+- 91 static tests, TypeScript lint, production build, diff checks, and the requested Preview pass after the change.

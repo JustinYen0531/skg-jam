@@ -180,7 +180,8 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   assert.doesNotMatch(sceneSource, /meta-(?:left|right)-visible-rear-fingers/);
   assert.match(sceneSource, /bottom-\[30%\] left-\[-7%\]/);
   assert.match(sceneSource, /left-\[-10%\] top-\[20%\]/);
-  assert.match(sceneSource, /id="meta-desk-surface"/);
+  assert.doesNotMatch(sceneSource, /id="meta-desk-surface"/);
+  assert.doesNotMatch(sceneSource, /bg-\[#292119\]/);
   assert.match(sceneSource, /id="meta-phone-depth"/);
   assert.match(sceneSource, /id="meta-glass-reflection"/);
   assert.match(sceneSource, /data-camera-pitch-control=\{active \? \(deviceResting \? 'locked-table' : 'mouse-y'\) : 'inactive'\}/);

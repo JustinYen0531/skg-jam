@@ -87,7 +87,7 @@ test('the supplied wall artwork ages in five stages without replacing the floor'
   assert.match(sceneSource, /id="meta-wall-surface"/);
   assert.match(sceneSource, /bottom-\[42%\]/);
   assert.match(sceneSource, /src=\{`\/assets\/meta-wall-stage-\$\{wallStage\}\.png`\}/);
-  assert.match(sceneSource, /left-\[-4%\] top-\[-20%\] h-\[163%\] w-\[108%\]/);
+  assert.match(sceneSource, /left-\[-10%\] top-\[-20%\] h-\[163%\] w-\[120%\]/);
   assert.match(sceneSource, /data-source-floor="cropped"/);
   assert.match(sceneSource, /data-floor-treatment="existing-only"/);
 });

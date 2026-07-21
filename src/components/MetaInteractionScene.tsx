@@ -1036,7 +1036,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
             className="absolute inset-0"
             aria-hidden="true"
           >
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_47%_28%,#5b4b3b_0%,#292119_42%,#0c0a08_100%)]" />
+            <div className="absolute inset-0 bg-black" />
             {wallStage > 0 && (
               <div
                 className="pointer-events-none absolute inset-x-0 top-0 bottom-[42%] z-[0] overflow-hidden"
@@ -1047,7 +1047,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
                 <img
                   src={`/assets/meta-wall-stage-${wallStage}.png`}
                   alt=""
-                  className="absolute left-[-4%] top-[-20%] h-[163%] w-[108%] max-w-none object-fill"
+                  className="absolute left-[-10%] top-[-20%] h-[163%] w-[120%] max-w-none object-fill"
                   data-source-floor="cropped"
                   id="meta-wall-art"
                 />
@@ -1057,10 +1057,6 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
             <div className="absolute left-[7%] top-[8%] h-36 w-36 rounded-full bg-amber-100/12 blur-[70px]" />
             <div className="absolute right-[9%] top-[12%] h-28 w-28 rounded-full bg-sky-200/5 blur-[65px]" />
 
-            <div
-              className="pointer-events-none absolute inset-x-0 bottom-[-4%] top-[58%] z-[1] bg-[#292119]"
-              id="meta-desk-surface"
-            />
             <motion.img
               src="/assets/meta-desk-table.png"
               alt=""
