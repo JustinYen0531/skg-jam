@@ -70,7 +70,7 @@ test('the desk progresses from gathering to clutter, quiet, and organized', () =
   assert.equal(getChapterEnvironment(10).pen, 'route');
 });
 
-test('the supplied wall artwork ages in five stages without replacing the floor', () => {
+test('the supplied wall artwork ages in five stages and keeps its complete lower edge', () => {
   assert.deepEqual(
     Array.from({ length: 11 }, (_, chapter) => getMetaWallStage(chapter as keyof typeof CHAPTER_ENVIRONMENTS)),
     [0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5],
@@ -85,11 +85,11 @@ test('the supplied wall artwork ages in five stages without replacing the floor'
 
   const sceneSource = readFileSync(new URL('../src/components/MetaInteractionScene.tsx', import.meta.url), 'utf8');
   assert.match(sceneSource, /id="meta-wall-surface"/);
-  assert.match(sceneSource, /bottom-\[42%\]/);
+  assert.match(sceneSource, /absolute inset-0 z-\[0\] overflow-hidden/);
   assert.match(sceneSource, /src=\{`\/assets\/meta-wall-stage-\$\{wallStage\}\.png`\}/);
-  assert.match(sceneSource, /left-\[-10%\] top-\[-20%\] h-\[163%\] w-\[120%\]/);
-  assert.match(sceneSource, /data-source-floor="cropped"/);
-  assert.match(sceneSource, /data-floor-treatment="existing-only"/);
+  assert.match(sceneSource, /left-\[-10%\] top-\[-11\.6%\] h-\[94\.6%\] w-\[120%\]/);
+  assert.match(sceneSource, /data-source-floor="temporarily-visible"/);
+  assert.match(sceneSource, /data-floor-treatment="pending-replacement"/);
 });
 
 test('the physical environment is display-only and does not mutate progress', () => {

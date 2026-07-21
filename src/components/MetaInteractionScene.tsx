@@ -1045,16 +1045,16 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
             <div className="absolute inset-0 bg-black" />
             {wallStage > 0 && (
               <div
-                className="pointer-events-none absolute inset-x-0 top-0 bottom-[42%] z-[0] overflow-hidden"
+                className="pointer-events-none absolute inset-0 z-[0] overflow-hidden"
                 data-wall-stage={wallStage}
-                data-floor-treatment="existing-only"
+                data-floor-treatment="pending-replacement"
                 id="meta-wall-surface"
               >
                 <img
                   src={`/assets/meta-wall-stage-${wallStage}.png`}
                   alt=""
-                  className="absolute left-[-10%] top-[-20%] h-[163%] w-[120%] max-w-none object-fill"
-                  data-source-floor="cropped"
+                  className="absolute left-[-10%] top-[-11.6%] h-[94.6%] w-[120%] max-w-none object-fill"
+                  data-source-floor="temporarily-visible"
                   id="meta-wall-art"
                 />
               </div>

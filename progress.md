@@ -387,3 +387,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Measured the table PNG alpha silhouette: its surface is approximately 477 px across the top and 644 px across the bottom, giving a target top/bottom ratio near 0.74.
 - Solved both visible constraints instead of adjusting pitch alone: a 55-degree resting pitch restores the table-like trapezoid height, while a 2370 px perspective distance targets the measured 0.74 top/bottom ratio at the existing 0.60 scale.
 - Shifted both chapter-object layers four percent right as one group, moving coffee and every supporting desk prop consistently.
+
+## 2026-07-21 — Complete wall lower edge
+
+- Removed the 58%-height wall clipping boundary that cut through the supplied wall artwork above its baseboard and furniture feet.
+- Converted the wall layer to a full-scene clipping surface while preserving the previous rendered scale mathematically: `-20% × 58% = -11.6%` top offset and `163% × 58% = 94.54%` image height.
+- The complete source artwork now reaches about 83% of the scene behind the wooden desk; its included floor strip is marked temporary and can be covered by the upcoming dedicated floor asset.
+- Browser Preview remains intentionally omitted under the repository's static-analysis-only rule; 92 static tests, TypeScript lint, production build, and diff checks pass.
