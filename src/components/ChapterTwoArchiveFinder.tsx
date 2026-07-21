@@ -1,6 +1,12 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Archive, ChevronLeft, FileArchive, Search, TriangleAlert } from 'lucide-react';
 import audio from '../lib/audio';
+import {
+  CHAPTER_TWO_DIALOGUE,
+  getChapterTwoFormatDialogue,
+  getChapterTwoSearchResponse,
+} from '../lib/chapterTwoDialogue';
+import { useMetaInteraction } from './MetaInteractionScene';
 
 type ArchiveFormat = 'ipa' | 'apk' | 'jar' | 'sis' | 'zip';
 
@@ -57,13 +63,30 @@ const ARCHIVE_RECORDS: Readonly<Record<ArchiveFormat, readonly ArchiveRecord[]>>
 
 interface ChapterTwoArchiveFinderProps {
   attempted: boolean;
+  dialogueActive: boolean;
   onCompatibilityDiscovered: () => void;
 }
 
-export const ChapterTwoArchiveFinder: React.FC<ChapterTwoArchiveFinderProps> = ({ attempted, onCompatibilityDiscovered }) => {
+export const ChapterTwoArchiveFinder: React.FC<ChapterTwoArchiveFinderProps> = ({ attempted, dialogueActive, onCompatibilityDiscovered }) => {
+  const metaInteraction = useMetaInteraction();
   const [selectedFormat, setSelectedFormat] = useState<ArchiveFormat>('zip');
   const [query, setQuery] = useState('');
   const [selectedFile, setSelectedFile] = useState(false);
+  const searchAttempt = useRef(0);
+
+  const speakChapterTwo = (lines: readonly string[]) => {
+    if (dialogueActive && metaInteraction.active) metaInteraction.speak(lines);
+  };
+
+  useEffect(() => metaInteraction.registerInput('chapter-two-archive-search', {
+    getValue: () => query,
+    onChange: setQuery,
+    onSubmit: () => {
+      if (!dialogueActive || !metaInteraction.active) return;
+      metaInteraction.speak(getChapterTwoSearchResponse(query, searchAttempt.current).lines);
+      searchAttempt.current += 1;
+    },
+  }), [dialogueActive, metaInteraction.active, metaInteraction.registerInput, metaInteraction.speak, query]);
 
   const visibleRecords = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -76,10 +99,12 @@ export const ChapterTwoArchiveFinder: React.FC<ChapterTwoArchiveFinderProps> = (
     setSelectedFormat(format);
     setQuery('');
     setSelectedFile(false);
+    speakChapterTwo(getChapterTwoFormatDialogue(format));
   };
 
   const attemptToOpen = () => {
     audio.play('ui.disabled');
+    speakChapterTwo(CHAPTER_TWO_DIALOGUE.compatibilityBlocked);
     if (!attempted) onCompatibilityDiscovered();
   };
 
@@ -127,7 +152,7 @@ export const ChapterTwoArchiveFinder: React.FC<ChapterTwoArchiveFinderProps> = (
 
       <div className="relative">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-slate-600" />
-        <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={`Search ${selectedFormat.toUpperCase()} filenames`} className="w-full rounded-md border border-white/[0.08] bg-black/20 py-2 pl-9 pr-3 text-[10px] text-slate-300 outline-none placeholder:text-slate-600 focus:border-slate-600" id="chapter-two-archive-search" />
+        <input value={query} onChange={(event) => setQuery(event.target.value)} onFocus={() => speakChapterTwo(CHAPTER_TWO_DIALOGUE.archiveSearchFocused)} placeholder={`Search ${selectedFormat.toUpperCase()} filenames`} className="w-full rounded-md border border-white/[0.08] bg-black/20 py-2 pl-9 pr-3 text-[10px] text-slate-300 outline-none placeholder:text-slate-600 focus:border-slate-600" id="chapter-two-archive-search" />
       </div>
 
       <nav className="flex flex-wrap gap-1.5 border-b border-white/[0.07] pb-2" aria-label="Package formats" id="chapter-two-package-formats">
@@ -143,7 +168,7 @@ export const ChapterTwoArchiveFinder: React.FC<ChapterTwoArchiveFinderProps> = (
           <span>Filename</span><span>Platform</span><span>Year</span><span>Status</span>
         </div>
         {visibleRecords.length > 0 ? visibleRecords.map((record) => (
-          <button key={record.name} type="button" disabled={!record.target} onClick={() => { audio.playTick(); setSelectedFile(true); }} className="grid w-full grid-cols-[minmax(0,1fr)_72px_42px_90px] gap-2 border-b border-white/[0.05] px-3 py-2 text-left text-[8px] last:border-b-0 enabled:hover:bg-white/[0.035] disabled:cursor-default" data-archive-file={record.name}>
+          <button key={record.name} type="button" disabled={!record.target} onClick={() => { audio.playTick(); setSelectedFile(true); speakChapterTwo(CHAPTER_TWO_DIALOGUE.fileOpened); }} className="grid w-full grid-cols-[minmax(0,1fr)_72px_42px_90px] gap-2 border-b border-white/[0.05] px-3 py-2 text-left text-[8px] last:border-b-0 enabled:hover:bg-white/[0.035] disabled:cursor-default" data-archive-file={record.name}>
             <span className="truncate font-mono text-slate-300">{record.name}</span><span className="truncate text-slate-500">{record.platform}</span><span className="text-slate-500">{record.year}</span><span className="truncate text-slate-600">{record.status}</span>
           </button>
         )) : (

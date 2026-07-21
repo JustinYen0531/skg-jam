@@ -1,8 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { GameProgress } from '../types';
 import audio from '../lib/audio';
 import { canUseProgressionAction, completePuzzleChapter } from '../lib/chapterProgress';
 import { ChapterTwoArchiveFinder } from './ChapterTwoArchiveFinder';
+import { useMetaInteraction } from './MetaInteractionScene';
+import {
+  CHAPTER_TWO_DIALOGUE,
+  getChapterTwoSearchResponse,
+} from '../lib/chapterTwoDialogue';
 import { Search, RotateCcw, Clock, Download, ArrowRight, ShieldCheck, HeartCrack, Bot } from 'lucide-react';
 
 // SearchFinder disambiguation for "SKG" (puzzle 4). Seven decoys plus one real
@@ -56,6 +61,7 @@ interface BrowserAppProps {
 }
 
 export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress }) => {
+  const metaInteraction = useMetaInteraction();
   // No search performed yet: the app opens on a SearchFinder-branded home
   // page, not the SKG Automation destination. The player must type and
   // submit "SKG" themselves before the disambiguation results ever appear.
@@ -72,6 +78,28 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
   const [botOpen, setBotOpen] = useState(false);
   const [botReply, setBotReply] = useState('');
   const [botInput, setBotInput] = useState('');
+  const chapterTwoSearchAttempt = useRef(0);
+  const chapterTwoLandingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => {
+    if (chapterTwoLandingTimer.current) clearTimeout(chapterTwoLandingTimer.current);
+  }, []);
+
+  useEffect(() => {
+    if (progress.currentChapter !== 2 || !metaInteraction.active || searchedKeyword !== null || archiveFinderOpen) return;
+    chapterTwoLandingTimer.current = setTimeout(() => {
+      metaInteraction.speak(CHAPTER_TWO_DIALOGUE.searchFinderVisible);
+      chapterTwoLandingTimer.current = null;
+    }, 650);
+    return () => {
+      if (chapterTwoLandingTimer.current) clearTimeout(chapterTwoLandingTimer.current);
+      chapterTwoLandingTimer.current = null;
+    };
+  }, [archiveFinderOpen, metaInteraction.active, metaInteraction.speak, progress.currentChapter, searchedKeyword]);
+
+  const speakChapterTwo = (lines: readonly string[]) => {
+    if (progress.currentChapter === 2 && metaInteraction.active) metaInteraction.speak(lines);
+  };
 
   const openSkgResult = () => {
     audio.playTick();
@@ -87,6 +115,7 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
     setSearchedKeyword(null);
     setArchiveFinderOpen(true);
     setAddressBar('archivefinder://legacy-game-packages');
+    speakChapterTwo(CHAPTER_TWO_DIALOGUE.archiveLeadSelected);
   };
 
   const askBot = (reply: string) => {
@@ -104,6 +133,10 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const query = addressBar.toLowerCase().trim();
+    if (progress.currentChapter === 2 && metaInteraction.active) {
+      metaInteraction.speak(getChapterTwoSearchResponse(addressBar, chapterTwoSearchAttempt.current).lines);
+      chapterTwoSearchAttempt.current += 1;
+    }
     if (!query) return;
     if (isSkgRelated(query) && !canUseProgressionAction('browser-skg-history', progress)) {
       audio.play('search.noResult');
@@ -238,7 +271,11 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
       {/* Main Browser Content area */}
       <div className="flex-1 overflow-y-auto p-3 bg-[#0d0f14] font-sans" id="browser-viewport">
         {archiveFinderOpen ? (
-          <ChapterTwoArchiveFinder attempted={progress.archiveDownloaded} onCompatibilityDiscovered={handleCompatibilityDiscovered} />
+          <ChapterTwoArchiveFinder
+            attempted={progress.archiveDownloaded}
+            dialogueActive={progress.currentChapter === 2}
+            onCompatibilityDiscovered={handleCompatibilityDiscovered}
+          />
         ) : searchedKeyword === null ? (
           /* Browser home: a SearchFinder-branded landing page. Nothing here
              names SKG — the player has to type and search it themselves. */

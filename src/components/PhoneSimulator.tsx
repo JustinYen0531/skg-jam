@@ -23,6 +23,11 @@ import {
   getChapterOneWrongAppDialogue,
 } from '../lib/chapterOneDialogue';
 import {
+  CHAPTER_TWO_DIALOGUE,
+  getChapterTwoCompanionDialogue,
+  getChapterTwoWrongAppDialogue,
+} from '../lib/chapterTwoDialogue';
+import {
   getChapterPhoneSignals,
   type PhoneLauncherApp,
 } from '../lib/chapterPhoneSignals';
@@ -108,6 +113,8 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   const chapterOneAppAttempt = useRef(0);
   const chapterOneHomeAttempt = useRef(0);
   const chapterOneHomeEntryShown = useRef(false);
+  const chapterTwoAppAttempt = useRef(0);
+  const chapterTwoHomeAttempt = useRef(0);
   const reminderListRef = useRef<HTMLDivElement>(null);
 
   // Chapter-advance transition: an "evidence collected" banner the moment a
@@ -220,11 +227,16 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   const handleLaunchApp = (app: ActiveApp) => {
     audio.play('phone.appOpen');
     setActiveApp(app);
-    if (progress.currentChapter === 1 && metaInteraction.active) {
-      const dialogue = app === 'viewtube'
+    if ((progress.currentChapter === 1 || progress.currentChapter === 2) && metaInteraction.active) {
+      const dialogue = progress.currentChapter === 1
+        ? (app === 'viewtube'
         ? CHAPTER_ONE_DIALOGUE.viewTubeOpened
-        : getChapterOneWrongAppDialogue(app, chapterOneAppAttempt.current);
-      if (app !== 'viewtube') chapterOneAppAttempt.current += 1;
+        : getChapterOneWrongAppDialogue(app, chapterOneAppAttempt.current))
+        : (app === 'browser'
+          ? CHAPTER_TWO_DIALOGUE.browserOpened
+          : getChapterTwoWrongAppDialogue(app, chapterTwoAppAttempt.current));
+      if (progress.currentChapter === 1 && app !== 'viewtube') chapterOneAppAttempt.current += 1;
+      if (progress.currentChapter === 2 && app !== 'browser') chapterTwoAppAttempt.current += 1;
       if (chapterOneDialogueTimer.current) clearTimeout(chapterOneDialogueTimer.current);
       // Commit navigation first. Chapter 1 is the only chapter that also
       // updates the parent Meta dialogue on launch; separating those updates
@@ -275,6 +287,14 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
           : getChapterOneCompanionDialogue(attempt - 1),
       );
       chapterOneHomeAttempt.current += 1;
+    } else if (progress.currentChapter === 2 && metaInteraction.active) {
+      const attempt = chapterTwoHomeAttempt.current;
+      metaInteraction.speak(
+        attempt === 0
+          ? CHAPTER_TWO_DIALOGUE.homeReturned
+          : getChapterTwoCompanionDialogue(attempt - 1),
+      );
+      chapterTwoHomeAttempt.current += 1;
     }
   };
 

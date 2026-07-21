@@ -17,6 +17,7 @@ import {
   type ProjectiveQuad,
 } from '../lib/metaInteraction';
 import { CHAPTER_ONE_DIALOGUE, DialogueLines } from '../lib/chapterOneDialogue';
+import { CHAPTER_TWO_DIALOGUE } from '../lib/chapterTwoDialogue';
 import audio from '../lib/audio';
 import { getMetaFloorStage, getMetaWallStage, type EnvironmentChapter } from '../lib/chapterEnvironment';
 import { getChapterPhoneWidgetState } from '../lib/chapterPhoneWidgets';
@@ -76,8 +77,9 @@ const KEYBOARD_ROWS = [
   ['Backspace', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'Enter'],
 ] as const;
 
-const isViewTubeSearch = (element: Element): element is HTMLInputElement =>
-  element instanceof HTMLInputElement && element.id === 'vt-search-input';
+const isMetaKeyboardInput = (element: Element): element is HTMLInputElement =>
+  element instanceof HTMLInputElement
+  && (element.id === 'vt-search-input' || element.id === 'chapter-two-archive-search');
 
 /* ==========================================================================
    Hand anatomy kit.
@@ -679,6 +681,8 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [dialogueLines, setDialogueLines] = useState<DialogueLines>(CHAPTER_ONE_DIALOGUE.entry);
+  const previousDialogueChapterRef = useRef(chapter);
+  const chapterDialogueTimerRef = useRef<number | null>(null);
   const [scrollGesture, setScrollGesture] = useState<ScrollGesture | null>(null);
   const [deviceResting, setDeviceResting] = useState(false);
 
@@ -717,8 +721,28 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   }, []);
 
   useEffect(() => {
-    if (active) setDialogueLines(CHAPTER_ONE_DIALOGUE.entry);
-  }, [active]);
+    const previousChapter = previousDialogueChapterRef.current;
+    previousDialogueChapterRef.current = chapter;
+    if (chapterDialogueTimerRef.current !== null) {
+      window.clearTimeout(chapterDialogueTimerRef.current);
+      chapterDialogueTimerRef.current = null;
+    }
+    if (!active) return undefined;
+    if (chapter === 1) setDialogueLines(CHAPTER_ONE_DIALOGUE.entry);
+    if (chapter === 2) setDialogueLines(CHAPTER_TWO_DIALOGUE.entry);
+    if (previousChapter === 2 && chapter === 3) {
+      chapterDialogueTimerRef.current = window.setTimeout(() => {
+        setDialogueLines(CHAPTER_TWO_DIALOGUE.maternalMemory);
+        chapterDialogueTimerRef.current = null;
+      }, 1150);
+    }
+    return () => {
+      if (chapterDialogueTimerRef.current !== null) {
+        window.clearTimeout(chapterDialogueTimerRef.current);
+        chapterDialogueTimerRef.current = null;
+      }
+    };
+  }, [active, chapter]);
 
   useEffect(() => {
     setDeviceResting(false);
@@ -1029,7 +1053,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     }
 
     if (reducedMotion) {
-      if (isViewTubeSearch(target)) setKeyboardTarget(target);
+      if (isMetaKeyboardInput(target)) setKeyboardTarget(target);
       return;
     }
 
@@ -1037,7 +1061,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     event.stopPropagation();
     if (!canStartMetaInteraction(active, pendingRef.current, reducedMotion)) return;
 
-    if (isViewTubeSearch(target)) {
+    if (isMetaKeyboardInput(target)) {
       void animateTap(target, () => {
         target.focus();
         setKeyboardTarget(target);
@@ -1057,7 +1081,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   const handleKeyDownCapture = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (!active || !event.nativeEvent.isTrusted) return;
     const input = event.target;
-    if (!isViewTubeSearch(input)) return;
+    if (!isMetaKeyboardInput(input)) return;
     const key = normalizeVirtualKey(event.key);
     if (!key || event.ctrlKey || event.altKey || event.metaKey) return;
 

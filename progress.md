@@ -610,3 +610,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Added a review-only Chapter 2 dialogue document modeled on the complete Chapter 1 specification; no runtime dialogue was wired yet.
 - Defined the protagonist's knowledge boundary, archive-format reactions, wrong-app companionship, premature-search responses, and the compatibility-error completion beat.
 - Offered three strengths for the first maternal-memory line, with the restrained concrete version marked as the current recommendation pending user review.
+
+## 2026-07-22 — Chapter 2 protagonist dialogue implementation
+
+- Promoted the Chapter 2 draft into a runtime dialogue helper after the user approved ending A: the silver Lumen Arc edge beside the kitchen sink.
+- Wired Chapter 2 entry, home returns, wrong apps, Browser/SearchFinder, the archive lead, archive filename input, all five real format tags, the target IPA record, the compatibility failure, and the delayed maternal-memory finish into `LIVE TRANSCRIPT`.
+- Extended the Meta virtual keyboard path to the Archive Finder filename input and added evidence-bound search responses that recognize the filename already shown in ViewTube without revealing SKG, Silver Kite, or future people.
+- Browser verification remains intentionally omitted under the repository rule; static dialogue tests, TypeScript lint, full tests, and production build are the acceptance boundary.
