@@ -559,3 +559,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Reused the room window's five deterministic cloud/rain/wind stages inside Harborview, keeping both surfaces synchronized to the same chapter-owned weather stage.
 - Added a widget-only 1.1px soft focus, reduced saturation, radial mask, translucent haze, and a separate sharp text layer; reduced-motion freezes both room and widget weather.
 - Browser verification remains intentionally omitted under the repository rule; 120 static tests, TypeScript lint, production build, and diff checks pass.
+
+## 2026-07-22 — ViewTube comment scrolling and archive loading
+
+- Added `min-h-0` and overscroll containment to the in-phone ViewTube body so its flex child remains a real vertical scroll container.
+- Replaced the inactive “View 114 more comments” control with deterministic batches of twelve archive comments until all 114 are visible.
+- Kept the three load-bearing Chapter 1 comments in their established positions; archive rows are deliberately non-progression crowd texture.
+- Browser verification remains intentionally omitted under the repository rule; 122 static tests, TypeScript lint, production build, and diff checks pass.
