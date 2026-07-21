@@ -58,6 +58,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   const [restoreNonce, setRestoreNonce] = useState(0);
   const [restoreVisible, setRestoreVisible] = useState(false);
   const restoreTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const chapterOneDialogueTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const chapterOneAppAttempt = useRef(0);
   const chapterOneHomeAttempt = useRef(0);
   const chapterOneHomeEntryShown = useRef(false);
@@ -134,18 +135,25 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
 
   useEffect(() => () => {
     if (restoreTimer.current) clearTimeout(restoreTimer.current);
+    if (chapterOneDialogueTimer.current) clearTimeout(chapterOneDialogueTimer.current);
   }, []);
 
   const handleLaunchApp = (app: ActiveApp) => {
     audio.play('phone.appOpen');
     setActiveApp(app);
     if (progress.currentChapter === 1 && metaInteraction.active) {
-      if (app === 'viewtube') {
-        metaInteraction.speak(CHAPTER_ONE_DIALOGUE.viewTubeOpened);
-      } else {
-        metaInteraction.speak(getChapterOneWrongAppDialogue(app, chapterOneAppAttempt.current));
-        chapterOneAppAttempt.current += 1;
-      }
+      const dialogue = app === 'viewtube'
+        ? CHAPTER_ONE_DIALOGUE.viewTubeOpened
+        : getChapterOneWrongAppDialogue(app, chapterOneAppAttempt.current);
+      if (app !== 'viewtube') chapterOneAppAttempt.current += 1;
+      if (chapterOneDialogueTimer.current) clearTimeout(chapterOneDialogueTimer.current);
+      // Commit navigation first. Chapter 1 is the only chapter that also
+      // updates the parent Meta dialogue on launch; separating those updates
+      // prevents that parent render from leaving the home screen in place.
+      chapterOneDialogueTimer.current = setTimeout(() => {
+        metaInteraction.speak(dialogue);
+        chapterOneDialogueTimer.current = null;
+      }, 0);
     }
     // Migrated apps briefly hand the display to the old runtime. Decorative
     // only: the overlay ignores pointer events and clears itself.

@@ -97,6 +97,12 @@ body {
     inset 0 0 0 1px rgba(255, 255, 255, 0.045);
 }
 
+/* Narrative text is display-only. It must never become an invisible shield
+   over the phone while Chapter 1 replaces its lines. */
+#meta-terminal-dialogue {
+  pointer-events: none;
+}
+
 /* Custom scrollbars */
 ::-webkit-scrollbar {
   width: 4px;

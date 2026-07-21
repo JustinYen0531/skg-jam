@@ -519,6 +519,14 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Preserved the Chapter 1 transition and left later chapter navigation unchanged.
 - Browser verification remains intentionally omitted under the repository's static-analysis-only rule.
 
+## 2026-07-21 — Chapter 1 navigation/dialogue separation
+
+- Used the visible Chapter 1 wrong-app dialogue as evidence that launcher input arrived even though the app view remained on Home.
+- Split Chapter 1 app navigation from its parent Meta dialogue update: the app state now commits first and dialogue updates in the next task.
+- Made the bottom narrative panel explicitly display-only so its visible and transparent regions cannot intercept phone input.
+- Left other chapter launch behavior and the Chapter 1 transition unchanged.
+- Browser verification remains intentionally omitted under the repository's static-analysis-only rule.
+
 ## 2026-07-21 — Five-stage storm window and synchronized wall clock
 
 - Added a code-authored SVG/CSS window scene behind the supplied transparent wall panes: sparse clear-night cloud, gathering cloud, sealed overcast with first rain, deep-night downpour, and a darkest violent-storm stage.
