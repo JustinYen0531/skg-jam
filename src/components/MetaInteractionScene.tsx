@@ -5,10 +5,14 @@ import {
   canStartMetaInteraction,
   getMetaDevicePostureAction,
   getMetaCameraPitch,
+  getProjectiveTransformMatrix,
   getScrollFingerTravel,
+  formatProjectiveMatrix3d,
   META_CAMERA_PITCH,
   META_TAP_TIMING,
   normalizeVirtualKey,
+  scaleProjectiveQuad,
+  type ProjectiveQuad,
 } from '../lib/metaInteraction';
 import { CHAPTER_ONE_DIALOGUE, DialogueLines } from '../lib/chapterOneDialogue';
 import audio from '../lib/audio';
@@ -497,10 +501,15 @@ const PHONE_SURFACE_SIZE: React.CSSProperties = {
   maxHeight: '760px',
 };
 
-const PHONE_PERSPECTIVE = {
-  upright: 1500,
-  table: 1500,
-} as const;
+const PHONE_PERSPECTIVE = 1500;
+const DESK_PHONE_SCALE = 0.6;
+const DESK_IMAGE_SIZE = { width: 707, height: 353 } as const;
+const DESK_SURFACE_QUAD: ProjectiveQuad = [
+  { x: 115, y: 136 },
+  { x: 592, y: 136 },
+  { x: 678, y: 229 },
+  { x: 28, y: 229 },
+];
 
 const PROTAGONIST_LABEL = 'YOU';
 
@@ -604,6 +613,7 @@ const TypewriterThoughts: React.FC<{ lines: DialogueLines; instant: boolean }> =
 
 export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ active, chapter, children }) => {
   const sceneRef = useRef<HTMLDivElement | null>(null);
+  const projectivePlaneRef = useRef<HTMLDivElement | null>(null);
   const pendingRef = useRef(false);
   const keyQueueRef = useRef<QueuedKey[]>([]);
   const queueRunningRef = useRef(false);
@@ -671,6 +681,55 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
     setDeviceResting(false);
     cameraPitchTarget.set(META_CAMERA_PITCH.restDeg);
   }, [active, cameraPitchTarget, reducedMotion]);
+
+  useEffect(() => {
+    const plane = projectivePlaneRef.current;
+    if (!plane || !active || !deviceResting) {
+      if (plane) {
+        plane.style.transform = 'none';
+        plane.dataset.projectiveState = 'upright';
+      }
+      return;
+    }
+
+    let animationFrame = 0;
+    const startedAt = performance.now();
+    const updateProjection = () => {
+      const scene = sceneRef.current;
+      const table = document.getElementById('meta-desk-table-art');
+      const phone = document.getElementById('phone-bezel');
+      if (!scene || !table || !phone) return;
+
+      const sceneRect = scene.getBoundingClientRect();
+      const tableRect = table.getBoundingClientRect();
+      const phoneWidth = phone.offsetWidth;
+      const phoneHeight = phone.offsetHeight;
+      const source: ProjectiveQuad = [
+        { x: sceneRect.width / 2 - phoneWidth / 2, y: sceneRect.height / 2 - phoneHeight / 2 },
+        { x: sceneRect.width / 2 + phoneWidth / 2, y: sceneRect.height / 2 - phoneHeight / 2 },
+        { x: sceneRect.width / 2 + phoneWidth / 2, y: sceneRect.height / 2 + phoneHeight / 2 },
+        { x: sceneRect.width / 2 - phoneWidth / 2, y: sceneRect.height / 2 + phoneHeight / 2 },
+      ];
+      const tableQuad = DESK_SURFACE_QUAD.map((point) => ({
+        x: tableRect.left - sceneRect.left + (point.x / DESK_IMAGE_SIZE.width) * tableRect.width,
+        y: tableRect.top - sceneRect.top + (point.y / DESK_IMAGE_SIZE.height) * tableRect.height,
+      })) as unknown as ProjectiveQuad;
+      const target = scaleProjectiveQuad(tableQuad, DESK_PHONE_SCALE);
+      plane.style.transform = formatProjectiveMatrix3d(getProjectiveTransformMatrix(source, target));
+      plane.dataset.projectiveState = 'desk-quad';
+    };
+    const trackDeskTransition = (now: number) => {
+      updateProjection();
+      if (now - startedAt < 1400) animationFrame = requestAnimationFrame(trackDeskTransition);
+    };
+
+    animationFrame = requestAnimationFrame(trackDeskTransition);
+    window.addEventListener('resize', updateProjection);
+    return () => {
+      cancelAnimationFrame(animationFrame);
+      window.removeEventListener('resize', updateProjection);
+    };
+  }, [active, deviceResting]);
 
   useEffect(() => {
     if (!active) {
@@ -844,7 +903,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
       setDeviceResting(nextResting);
       setScrollGesture(null);
       closeKeyboard();
-      cameraPitchTarget.set(nextResting ? META_CAMERA_PITCH.tableDeg : META_CAMERA_PITCH.restDeg);
+      cameraPitchTarget.set(META_CAMERA_PITCH.restDeg);
       if (nextResting) {
         audio.play('meta.handDepart');
         audio.play('meta.deskContact', { delay: 0.48 });
@@ -964,7 +1023,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
   }, [active, cameraPitchTarget, deviceResting, reducedMotion]);
 
   const handlePointerLeave = useCallback(() => {
-    cameraPitchTarget.set(deviceResting ? META_CAMERA_PITCH.tableDeg : META_CAMERA_PITCH.restDeg);
+    cameraPitchTarget.set(META_CAMERA_PITCH.restDeg);
   }, [cameraPitchTarget, deviceResting]);
 
   const contextValue = useMemo<MetaInteractionContextValue>(() => ({
@@ -1007,10 +1066,9 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
 
   const cameraPitchStyle = active
     ? (reducedMotion
-        ? (deviceResting ? META_CAMERA_PITCH.tableDeg : META_CAMERA_PITCH.restDeg)
-        : cameraPitch)
+        ? (deviceResting ? 0 : META_CAMERA_PITCH.restDeg)
+        : (deviceResting ? 0 : cameraPitch))
     : 0;
-  const devicePerspective = deviceResting ? PHONE_PERSPECTIVE.table : PHONE_PERSPECTIVE.upright;
   const wallStage = getMetaWallStage(chapter);
   const floorStage = getMetaFloorStage(chapter);
 
@@ -1164,12 +1222,18 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
       <motion.div
         className={`${active ? 'phone-stage' : ''} absolute inset-0 z-10 flex items-center justify-center`}
         animate={active
-          ? (deviceResting ? { scale: 0.6, y: '8%' } : { scale: 0.92, y: '-13%' })
+          ? (deviceResting ? { scale: 1, y: '0%' } : { scale: 0.92, y: '-13%' })
           : { scale: 1, y: '0%' }}
-        style={{ perspective: devicePerspective }}
+        style={{ perspective: PHONE_PERSPECTIVE }}
         transition={{ duration: reducedMotion ? 0 : 1.05, ease: [0.22, 1, 0.36, 1] }}
         id="meta-phone-camera-frame"
       >
+        <div
+          ref={projectivePlaneRef}
+          className="absolute inset-0 [transform-origin:0_0] [transform-style:preserve-3d]"
+          data-projective-state="upright"
+          id="meta-device-projective-plane"
+        >
         <motion.div
           className="absolute inset-0 flex items-center justify-center [transform-style:preserve-3d]"
           animate={active
@@ -1178,7 +1242,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
           style={{
             rotateX: cameraPitchStyle,
             transformOrigin: '50% 72%',
-            transformPerspective: devicePerspective,
+            transformPerspective: PHONE_PERSPECTIVE,
           }}
           transition={{ duration: reducedMotion ? 0 : 1.05, ease: [0.22, 1, 0.36, 1] }}
           id="meta-device-tilt"
@@ -1274,6 +1338,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
             </>
           )}
         </motion.div>
+        </div>
       </motion.div>
 
       {active && <ChapterEnvironment chapter={chapter} reducedMotion={reducedMotion} layer="objects" deviceResting={deviceResting} />}

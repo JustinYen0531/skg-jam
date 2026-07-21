@@ -403,6 +403,13 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Moved the resting phone upward from 16% to 8%, placing its raised far edge near the wooden desk's upper surface.
 - Used the explicitly requested Preview at 1289×530 to verify the table-rest silhouette and placement.
 
+## 2026-07-21 — Exact four-corner desk projection
+
+- Replaced the resting phone's guessed `rotateX` perspective with a four-point projective matrix derived from the desk artwork's measured surface corners: TL(115,136), TR(592,136), BR(678,229), and BL(28,229) in the 707×353 source image.
+- Built the phone target as a 0.60 homothetic copy of the rendered desk quadrilateral, which guarantees every corresponding edge is parallel rather than merely visually close.
+- Added a projective-matrix solver and regression test that maps all four source corners to their targets and verifies parallelism with edge-vector cross products.
+- Previewed the final table-rest state at the user's 1128×549 reference size. Both phone side vectors measured exactly 0.60 of the corresponding desk vectors, with floating-point cross-product error below 1.1e-11.
+
 ## 2026-07-21 — Five-stage floor artwork integration
 
 - Imported `floor1.png` through `floor5.png` as `meta-floor-stage-1.png` through `meta-floor-stage-5.png`, preserving the original workspace files.

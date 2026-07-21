@@ -7,10 +7,12 @@ import {
   canStartMetaInteraction,
   getMetaDevicePostureAction,
   getMetaCameraPitch,
+  getProjectiveTransformMatrix,
   getScrollFingerTravel,
   META_CAMERA_PITCH,
   META_TAP_TIMING,
   normalizeVirtualKey,
+  scaleProjectiveQuad,
   shouldRevealMetaView,
   shouldShowMetaScene,
 } from '../src/lib/metaInteraction';
@@ -81,7 +83,6 @@ test('mouse height maps to a clamped camera pitch from desk-flat to upright', ()
 });
 
 test('an idle desk click rests the phone and the next click anywhere wakes it', () => {
-  assert.equal(META_CAMERA_PITCH.tableDeg >= 40, true);
   assert.equal(getMetaDevicePostureAction(true, false, false, false), 'rest');
   assert.equal(getMetaDevicePostureAction(true, false, true, false), null);
   assert.equal(getMetaDevicePostureAction(true, false, false, true), 'wake');
@@ -97,10 +98,12 @@ test('rest posture lays down the phone and swaps the grip for desk-plane hands',
   assert.match(scene, /if \(!targetInsidePhone\) \{[\s\S]{0,120}event\.preventDefault\(\)/);
   assert.match(scene, /data-device-posture=\{deviceResting \? 'table-rest' : 'upright'\}/);
   assert.match(scene, /deviceResting \? 'locked-table' : 'mouse-y'/);
-  assert.match(scene, /cameraPitchTarget\.set\(nextResting \? META_CAMERA_PITCH\.tableDeg : META_CAMERA_PITCH\.restDeg\)/);
-  assert.match(scene, /deviceResting \? \{ scale: 0\.6, y: '8%' \} : \{ scale: 0\.92, y: '-13%' \}/);
-  assert.match(scene, /const devicePerspective = deviceResting \? PHONE_PERSPECTIVE\.table : PHONE_PERSPECTIVE\.upright/);
-  assert.match(scene, /table: 1500/);
+  assert.match(scene, /cameraPitchTarget\.set\(META_CAMERA_PITCH\.restDeg\)/);
+  assert.match(scene, /deviceResting \? \{ scale: 1, y: '0%' \} : \{ scale: 0\.92, y: '-13%' \}/);
+  assert.match(scene, /const DESK_PHONE_SCALE = 0\.6/);
+  assert.match(scene, /scaleProjectiveQuad\(tableQuad, DESK_PHONE_SCALE\)/);
+  assert.match(scene, /formatProjectiveMatrix3d\(getProjectiveTransformMatrix\(source, target\)\)/);
+  assert.match(scene, /id="meta-device-projective-plane"/);
   assert.match(scene, /deviceResting \? \{ rotateY: 0, rotateZ: 0 \} : \{ rotateY: -1\.4, rotateZ: -0\.35 \}/);
   assert.match(scene, /opacity: deviceResting \? 0 : 1,[\s\S]{0,100}x: deviceResting \? '-3%' : 0/);
   assert.match(scene, /opacity: deviceResting \|\| interactionPending \|\| scrollGesture \? 0 : 1/);
@@ -116,6 +119,42 @@ test('rest posture lays down the phone and swaps the grip for desk-plane hands',
   assert.equal((scene.match(/data-resting-hand-perspective="desk-plane"/g) ?? []).length, 2);
   assert.equal((scene.match(/data-wrist-crop="below-scene-edge"/g) ?? []).length, 2);
   assert.match(scene, /id="meta-device-contact-shadow"/);
+});
+
+test('desk projection maps the phone to a homothetic quad with parallel corresponding edges', () => {
+  const desk = [
+    { x: 115, y: 136 },
+    { x: 592, y: 136 },
+    { x: 678, y: 229 },
+    { x: 28, y: 229 },
+  ] as const;
+  const phone = scaleProjectiveQuad(desk, 0.6);
+  const source = [
+    { x: 0, y: 0 },
+    { x: 100, y: 0 },
+    { x: 100, y: 50 },
+    { x: 0, y: 50 },
+  ] as const;
+  const matrix = getProjectiveTransformMatrix(source, phone);
+  const project = ({ x, y }: { x: number; y: number }) => {
+    const w = matrix[3] * x + matrix[7] * y + matrix[15];
+    return {
+      x: (matrix[0] * x + matrix[4] * y + matrix[12]) / w,
+      y: (matrix[1] * x + matrix[5] * y + matrix[13]) / w,
+    };
+  };
+
+  source.forEach((point, index) => {
+    const mapped = project(point);
+    assert.ok(Math.abs(mapped.x - phone[index].x) < 1e-6);
+    assert.ok(Math.abs(mapped.y - phone[index].y) < 1e-6);
+  });
+  for (let index = 0; index < 4; index += 1) {
+    const next = (index + 1) % 4;
+    const deskEdge = { x: desk[next].x - desk[index].x, y: desk[next].y - desk[index].y };
+    const phoneEdge = { x: phone[next].x - phone[index].x, y: phone[next].y - phone[index].y };
+    assert.ok(Math.abs(deskEdge.x * phoneEdge.y - deskEdge.y * phoneEdge.x) < 1e-6);
+  }
 });
 
 test('virtual keyboard is embedded in the phone surface at sixty percent opacity', () => {

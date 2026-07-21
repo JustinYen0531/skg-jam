@@ -10,9 +10,74 @@ export const META_CAMERA_PITCH = {
   topDeg: 14,
   bottomDeg: 2,
   restDeg: 5.5,
-  // Lift the far edge enough to follow the desk's visible receding plane.
-  tableDeg: 48,
 } as const;
+
+export interface ProjectivePoint {
+  x: number;
+  y: number;
+}
+
+export type ProjectiveQuad = readonly [ProjectivePoint, ProjectivePoint, ProjectivePoint, ProjectivePoint];
+
+export const scaleProjectiveQuad = (quad: ProjectiveQuad, scale: number): ProjectiveQuad => {
+  const center = quad.reduce(
+    (sum, point) => ({ x: sum.x + point.x / quad.length, y: sum.y + point.y / quad.length }),
+    { x: 0, y: 0 },
+  );
+
+  return quad.map((point) => ({
+    x: center.x + (point.x - center.x) * scale,
+    y: center.y + (point.y - center.y) * scale,
+  })) as unknown as ProjectiveQuad;
+};
+
+export const getProjectiveTransformMatrix = (
+  source: ProjectiveQuad,
+  target: ProjectiveQuad,
+): readonly number[] => {
+  const rows: number[][] = [];
+
+  source.forEach((point, index) => {
+    const destination = target[index];
+    rows.push([
+      point.x, 0, point.y, 0, 1, 0,
+      -destination.x * point.x, -destination.x * point.y,
+      destination.x,
+    ]);
+    rows.push([
+      0, point.x, 0, point.y, 0, 1,
+      -destination.y * point.x, -destination.y * point.y,
+      destination.y,
+    ]);
+  });
+
+  for (let column = 0; column < 8; column += 1) {
+    let pivot = column;
+    for (let row = column + 1; row < 8; row += 1) {
+      if (Math.abs(rows[row][column]) > Math.abs(rows[pivot][column])) pivot = row;
+    }
+    [rows[column], rows[pivot]] = [rows[pivot], rows[column]];
+    const divisor = rows[column][column];
+    if (Math.abs(divisor) < 1e-9) throw new Error('Projective quad is degenerate.');
+    for (let cell = column; cell < 9; cell += 1) rows[column][cell] /= divisor;
+    for (let row = 0; row < 8; row += 1) {
+      if (row === column) continue;
+      const factor = rows[row][column];
+      for (let cell = column; cell < 9; cell += 1) rows[row][cell] -= factor * rows[column][cell];
+    }
+  }
+
+  const [a, b, c, d, e, f, g, h] = rows.map((row) => row[8]);
+  return [
+    a, b, 0, g,
+    c, d, 0, h,
+    0, 0, 1, 0,
+    e, f, 0, 1,
+  ];
+};
+
+export const formatProjectiveMatrix3d = (matrix: readonly number[]): string =>
+  `matrix3d(${matrix.map((value) => Number(value.toFixed(10))).join(',')})`;
 
 export type MetaDevicePostureAction = 'rest' | 'wake' | null;
 
