@@ -1122,8 +1122,9 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({ acti
               <img
                 src={`/assets/meta-floor-stage-${floorStage}.png`}
                 alt=""
-                className="pointer-events-none absolute left-1/2 top-[28%] z-[1] h-full w-auto max-w-none -translate-x-1/2"
+                className="pointer-events-none absolute left-1/2 top-[28%] z-[1] h-full w-[180%] max-w-none -translate-x-1/2 object-fill"
                 data-floor-stage={floorStage}
+                data-visible-crop="upper-two-thirds"
                 id="meta-floor-art"
               />
             )}

@@ -113,8 +113,9 @@ test('the supplied floor artwork shares each state across two chapters and meets
   const sceneSource = readFileSync(new URL('../src/components/MetaInteractionScene.tsx', import.meta.url), 'utf8');
   assert.match(sceneSource, /id="meta-floor-art"/);
   assert.match(sceneSource, /src=\{`\/assets\/meta-floor-stage-\$\{floorStage\}\.png`\}/);
-  assert.match(sceneSource, /left-1\/2 top-\[28%\] z-\[1\] h-full w-auto max-w-none -translate-x-1\/2/);
+  assert.match(sceneSource, /left-1\/2 top-\[28%\] z-\[1\] h-full w-\[180%\] max-w-none -translate-x-1\/2 object-fill/);
   assert.match(sceneSource, /data-floor-stage=\{floorStage\}/);
+  assert.match(sceneSource, /data-visible-crop="upper-two-thirds"/);
 });
 
 test('the physical environment is display-only and does not mutate progress', () => {

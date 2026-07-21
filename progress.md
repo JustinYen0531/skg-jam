@@ -417,3 +417,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Positioned the transparent floor artwork at 28% scene height with full-scene height, making its measured visible top edge meet the wall/floor boundary near 58% while its widening trapezoid overscans the lower scene edges.
 - Layered the floor above the wall artwork and below the wooden desk, phone, hands, and chapter props; the floor now covers the temporary floor strip embedded in the wall source.
 - Browser Preview remains intentionally omitted under the repository's static-analysis-only rule; 93 static tests, TypeScript lint, production build, and diff checks pass.
+
+## 2026-07-21 — Floor overscan and upper crop
+
+- Replaced the floor's natural-width rendering with a centered 180%-wide crop so the narrow far edge of the transparent trapezoid extends beyond both scene edges instead of exposing black wedges beside the desk.
+- Kept the floor at 28% scene top and 100% scene height; the viewport therefore retains approximately the upper 72% of the source artwork, closely matching the requested upper-two-thirds crop while keeping the rug visible.
+- Preserved the wall/floor seam, chapter mapping, floor height, and every foreground layer; only the floor's horizontal overscan changed.
+- Browser Preview remains intentionally omitted under the repository's static-analysis-only rule; 94 static tests, TypeScript lint, production build, and diff checks pass.
