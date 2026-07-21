@@ -318,7 +318,8 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({ progress, updateProgress, 
                             disabled={orderRequestPending}
                             onClick={handleOrderRequest}
                             data-meta-immediate="true"
-                            className="flex w-full items-center justify-center gap-1.5 rounded bg-amber-500 py-2 text-xs font-bold text-slate-950 hover:bg-amber-400 disabled:cursor-wait disabled:bg-amber-300"
+                            data-meta-hit-recovery="true"
+                            className="mx-2 mb-3 flex min-h-11 w-[calc(100%-1rem)] items-center justify-center gap-1.5 rounded bg-amber-500 py-3 text-xs font-bold text-slate-950 hover:bg-amber-400 disabled:cursor-wait disabled:bg-amber-300"
                             id="am-buy-button"
                           >
                             <Package className="h-4 w-4" /> {orderRequestPending ? 'REACHING...' : 'ORDER INSTANT'}

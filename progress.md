@@ -1,5 +1,12 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-22 — Projected-edge recovery for Chapter 3 order
+
+- The prior pending-label fix was not sufficient because some projected bottom-edge presses never reached the button at all.
+- Extended the existing rectangle-based Home Dock recovery to explicitly marked edge controls, then marked `ORDER INSTANT` for that recovery path.
+- Increased the recovery hit slop from 12 to 16 pixels and enlarged/inset the visible order button so presses near the transformed phone bezel still resolve to the intended control.
+- Updated both the Chapter 3 and shared Dock regression contracts. Static verification passed: 145/145 tests, TypeScript lint, production build, and diff checks; no browser or Preview was used.
+
 ## 2026-07-22 — Reliable Chapter 3 order interaction
 
 - Traced the hard-to-click `ORDER INSTANT` report to the Meta click relay: it consumed the native click, waited about 610 ms for the hand animation, and silently dropped repeated clicks while the first interaction was pending.

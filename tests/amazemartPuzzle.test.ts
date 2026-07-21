@@ -37,6 +37,7 @@ test('suppressed seller remains hidden until the player scrolls into the feed', 
 
 test('AmazeMart requires warning, relay verification, and signature before chapter completion', () => {
   const source = readFileSync(new URL('../src/components/AmazeMart.tsx', import.meta.url), 'utf8');
+  const metaSource = readFileSync(new URL('../src/components/MetaInteractionScene.tsx', import.meta.url), 'utf8');
 
   assert.match(source, /id="am-search-decoys"/);
   assert.match(source, /shouldRevealSuppressedSeller\(event\.currentTarget\)/);
@@ -46,9 +47,12 @@ test('AmazeMart requires warning, relay verification, and signature before chapt
   assert.match(source, /id="am-seller-relay"/);
   assert.match(source, /id="am-sign-delivery"/);
   assert.match(source, /data-meta-immediate="true"/);
+  assert.match(source, /data-meta-hit-recovery="true"/);
   assert.match(source, /setOrderRequestPending\(true\)/);
   assert.match(source, /tapElement\('am-buy-button'/);
   assert.match(source, /orderRequestPending \? 'REACHING\.\.\.' : 'ORDER INSTANT'/);
+  assert.match(metaSource, /#home-dock button, button\[data-meta-hit-recovery="true"\]/);
+  assert.match(metaSource, /const hitSlop = 16/);
   assert.match(source, /onClick=\{handleSignDelivery\}/);
   assert.match(source, /const handleSignDelivery[\s\S]*completePuzzleChapter\(prev, 3/);
   assert.doesNotMatch(source, /setTimeout\([\s\S]{0,300}completePuzzleChapter\(prev, 3/);

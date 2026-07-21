@@ -967,13 +967,15 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   const handlePointerDownCapture = (event: React.PointerEvent<HTMLDivElement>) => {
     if (!active || event.button !== 0) return;
     const source = event.target;
-    if (!(source instanceof Element) || source.closest('#home-dock button')) return;
+    if (!(source instanceof Element) || source.closest('button')) return;
 
     // Chromium can route a point on the projected bottom edge to a later,
-    // transparent scene layer instead of the transformed dock button. Recover
-    // that dead zone from each button's actual on-screen rectangle.
-    const hitSlop = 12;
-    const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>('#home-dock button'));
+    // transparent scene layer instead of the transformed button. Recover the
+    // home dock and explicitly marked edge controls from their real rectangles.
+    const hitSlop = 16;
+    const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>(
+      '#home-dock button, button[data-meta-hit-recovery="true"]',
+    ));
     const button = buttons
       .map((candidate) => {
         const rect = candidate.getBoundingClientRect();
