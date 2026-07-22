@@ -806,3 +806,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Kept the upper mouse-height view unchanged and capped the lower endpoint at exactly two-thirds of the scene height.
 - Moving the pointer below that line no longer raises or enlarges the desk, preserving the requested lowest composition instead of the former extreme foreground view.
 - Static verification passed on the latest main: focused tests 38/38, full tests 178/178, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.
+
+## 2026-07-22 — Active desktop Chapter 5 dialogue synchronization
+
+- Confirmed the reported silence was not an interaction bug: the active desktop worktree did not contain `chapterFiveDialogue.ts` or any Chapter 5 dialogue imports, although the feature had already been pushed to remote `main`.
+- Synchronized the Chapter 5 dialogue module and tests into the actual desktop runtime, then added only the missing Browser, Phone, and Meta wiring while preserving the desktop worktree's later camera and Controls changes.
+- Chapter 5 now reacts on direct debug entry, Browser launch, search focus/submission, seven decoy results, portal noise, corporate details, support bot replies, empty snapshot years, archived-page fragments, wrong apps, and all three Noah Kade references.
+- Static verification in the active desktop worktree passed: 177/177 tests, TypeScript lint, production build, and focused wiring checks. Browser and Preview remain intentionally unused.
