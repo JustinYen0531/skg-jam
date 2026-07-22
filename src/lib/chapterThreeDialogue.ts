@@ -23,8 +23,8 @@ export const CHAPTER_THREE_DIALOGUE = {
   sellerNotification: ['That was fast.', 'Too fast.'],
   sellerRelayOpened: ['A buyer check. Not money—a score.', 'They know why someone would want this device.'],
   correctScore: ['ARC_184.', 'The score was sitting in the name the whole time.'],
-  sellerMatched: ['Match.', 'The packet is already here. No signature, no device—just the evidence.'],
-  approvedEndingA: ['No device. Just a packet of screenshots.', "Someone preserved the surface. Let's see what they left visible."],
+  sellerMatched: ['Match.', 'The delivery archive just updated.'],
+  approvedEndingA: ['The seller sent something.', 'Whatever it is, it is waiting in Deliveries.'],
 } as const satisfies Record<string, DialogueLines>;
 
 const WRONG_APP_DIALOGUE: Partial<Record<ActiveApp, DialogueLines>> = {

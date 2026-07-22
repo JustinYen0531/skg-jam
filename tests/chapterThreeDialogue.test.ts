@@ -11,11 +11,12 @@ import {
   type ChapterThreeStorefrontDistraction,
 } from '../src/lib/chapterThreeDialogue';
 
-test('Chapter 3 uses the approved A screenshot-packet ending', () => {
+test('Chapter 3 hands off to Deliveries without spoiling the Chapter 4 contents', () => {
   assert.deepEqual(CHAPTER_THREE_DIALOGUE.approvedEndingA, [
-    'No device. Just a packet of screenshots.',
-    "Someone preserved the surface. Let's see what they left visible.",
+    'The seller sent something.',
+    'Whatever it is, it is waiting in Deliveries.',
   ]);
+  assert.doesNotMatch(CHAPTER_THREE_DIALOGUE.sellerMatched.join(' '), /no device|screenshots?|image packet/i);
 });
 
 test('search and seller replies separate known evidence from future answers', () => {

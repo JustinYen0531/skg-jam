@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { GameProgress } from '../types';
 import audio from '../lib/audio';
 import { completePuzzleChapter } from '../lib/chapterProgress';
@@ -7,6 +7,18 @@ import {
   REQUIRED_CLUE_IDS,
   type LumenArcClueId,
 } from '../lib/lumenArcClues';
+import {
+  CHAPTER_FOUR_DIALOGUE,
+  getChapterFourClueDialogue,
+  getChapterFourDecoyDialogue,
+  getChapterFourStalledDialogue,
+  getChapterFourWrongDeliveryDialogue,
+  type ChapterFourDecoySheetId,
+  type ChapterFourDeliveryId,
+  type ChapterFourSheetId,
+  type ChapterFourWrongDeliveryId,
+} from '../lib/chapterFourDialogue';
+import { useMetaInteraction } from './MetaInteractionScene';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowRight, Check, FolderOpen, ImageIcon, PackageCheck, PackageOpen, Truck, X, ZoomIn } from 'lucide-react';
 
@@ -20,7 +32,7 @@ interface SavedScreenshotsProps {
 type ClueRenderer = ((label: React.ReactNode) => React.ReactNode) | null;
 
 interface Sheet {
-  id: string;
+  id: ChapterFourSheetId;
   file: string;
   title: string;
   subtitle: string;
@@ -31,14 +43,16 @@ interface Sheet {
   content: (clue: ClueRenderer) => React.ReactNode;
 }
 
-interface DeliveryRecord {
-  id: string;
+interface DeliveryRecordBase {
   item: string;
   detail: string;
   date: string;
   status: string;
-  target?: boolean;
 }
+
+type DeliveryRecord =
+  | (DeliveryRecordBase & { id: 'lumen-arc'; target: true })
+  | (DeliveryRecordBase & { id: ChapterFourWrongDeliveryId; target?: false });
 
 // This is a delivery archive, not a hand-authored evidence browser. The
 // Lumen Arc parcel sits among ordinary orders the protagonist has actually
@@ -46,7 +60,7 @@ interface DeliveryRecord {
 const DELIVERY_RECORDS: readonly DeliveryRecord[] = [
   { id: 'tea', item: 'Cedar mint tea refills', detail: 'Kitchen supplies · 2 items', date: 'Today · 08:14', status: 'DELIVERED' },
   { id: 'bulb', item: 'Warm filament bulbs', detail: 'Home lighting · 4 pack', date: 'Yesterday · 18:42', status: 'DELIVERED' },
-  { id: 'lumen-arc', item: 'Lumen Arc Recovery Lot', detail: 'coldboot_17 · signed image packet attached', date: 'Yesterday · 17:03', status: 'SIGNED', target: true },
+  { id: 'lumen-arc', item: 'Lumen Arc Recovery Lot', detail: 'coldboot_17 · recovery lot contents indexed', date: 'Yesterday · 17:03', status: 'SIGNED', target: true },
   { id: 'notebook', item: 'Grid notebook, charcoal', detail: 'Stationery · 1 item', date: 'Mon · 13:19', status: 'DELIVERED' },
   { id: 'cable', item: 'Braided charging cable', detail: 'Electronics · 2 m', date: 'Sun · 11:06', status: 'DELIVERED' },
   { id: 'filters', item: 'Coffee filters, cone 02', detail: 'Kitchen supplies · 100 count', date: 'Fri · 09:51', status: 'DELIVERED' },
@@ -276,6 +290,7 @@ const SHEETS: readonly Sheet[] = [
 const CLUE_SHEET_COUNT = SHEETS.filter((sheet) => sheet.clueId).length;
 
 export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, updateProgress }) => {
+  const metaInteraction = useMetaInteraction();
   const [activeSheet, setActiveSheet] = useState<number | null>(null);
   const [activeDeliveryId, setActiveDeliveryId] = useState<string | null>(null);
   // If the chapter is already complete (a later snapshot, or a re-visit), every
@@ -283,21 +298,79 @@ export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, up
   const [found, setFound] = useState<Set<LumenArcClueId>>(
     () => (progress.discoveredOriginalTitle ? new Set(REQUIRED_CLUE_IDS) : new Set()),
   );
+  const wrongDeliveryAttempts = useRef(new Map<ChapterFourDeliveryId, number>());
+  const decoyAttempts = useRef(new Map<ChapterFourDecoySheetId, number>());
+  const clueRepeatAttempts = useRef(new Map<LumenArcClueId, number>());
+  const decoysSinceClue = useRef(0);
+  const stalledAttempts = useRef(0);
+  const packageOpenCount = useRef(0);
+  const completedRevisitSpoken = useRef(false);
+  const completedHere = useRef(false);
+  const caseDialogueTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const assembled = hasAssembledCase(found);
   const activeDelivery = DELIVERY_RECORDS.find((record) => record.id === activeDeliveryId) ?? null;
+  const chapterFourActive = progress.currentChapter === 4 && metaInteraction.active;
+
+  useEffect(() => () => {
+    if (caseDialogueTimer.current) clearTimeout(caseDialogueTimer.current);
+  }, []);
+
+  useEffect(() => {
+    if (
+      progress.currentChapter === 5
+      && progress.discoveredOriginalTitle
+      && metaInteraction.active
+      && !completedHere.current
+      && !completedRevisitSpoken.current
+    ) {
+      completedRevisitSpoken.current = true;
+      metaInteraction.speak(CHAPTER_FOUR_DIALOGUE.completedRevisit);
+    }
+  }, [metaInteraction.active, metaInteraction.speak, progress.currentChapter, progress.discoveredOriginalTitle]);
 
   const openDelivery = (record: DeliveryRecord) => {
     audio.play(record.target ? 'ui.primaryTap' : 'ui.secondaryTap');
+    if (chapterFourActive) {
+      if (record.id === 'lumen-arc') {
+        metaInteraction.speak(
+          packageOpenCount.current === 0
+            ? CHAPTER_FOUR_DIALOGUE.packageOpened
+            : CHAPTER_FOUR_DIALOGUE.packetReentered,
+        );
+        packageOpenCount.current += 1;
+      } else {
+        const attempt = wrongDeliveryAttempts.current.get(record.id) ?? 0;
+        metaInteraction.speak(getChapterFourWrongDeliveryDialogue(record.id, attempt));
+        wrongDeliveryAttempts.current.set(record.id, attempt + 1);
+      }
+    }
     setActiveDeliveryId(record.id);
   };
 
   const findClue = (clueId: LumenArcClueId) => {
     if (found.has(clueId)) {
       audio.play('ui.secondaryTap');
+      if (chapterFourActive) {
+        const attempt = clueRepeatAttempts.current.get(clueId) ?? 0;
+        metaInteraction.speak(getChapterFourClueDialogue(clueId, attempt));
+        clueRepeatAttempts.current.set(clueId, attempt + 1);
+      }
       return;
     }
     audio.play('story.clueUnlock');
+    const willAssemble = REQUIRED_CLUE_IDS.every((id) => id === clueId || found.has(id));
+    if (chapterFourActive) {
+      metaInteraction.speak(getChapterFourClueDialogue(clueId));
+      decoysSinceClue.current = 0;
+      if (willAssemble) {
+        if (caseDialogueTimer.current) clearTimeout(caseDialogueTimer.current);
+        caseDialogueTimer.current = setTimeout(() => {
+          metaInteraction.speak(CHAPTER_FOUR_DIALOGUE.caseAssembled);
+          caseDialogueTimer.current = null;
+        }, 850);
+      }
+    }
     setFound((prev) => {
       const next = new Set(prev);
       next.add(clueId);
@@ -337,11 +410,34 @@ export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, up
   const handleContinue = () => {
     audio.play('ui.primaryTap');
     audio.play('story.clueUnlock', { delay: 0.16 });
+    if (caseDialogueTimer.current) {
+      clearTimeout(caseDialogueTimer.current);
+      caseDialogueTimer.current = null;
+    }
+    completedHere.current = true;
+    if (chapterFourActive) metaInteraction.speak(CHAPTER_FOUR_DIALOGUE.completed);
     updateProgress((prev) => completePuzzleChapter(prev, 4, { discoveredOriginalTitle: true }));
   };
 
   const openSheet = (index: number) => {
     audio.play('screenshot.zoom');
+    const sheet = SHEETS[index];
+    if (chapterFourActive && !sheet.clueId) {
+      const decoyId = sheet.id as ChapterFourDecoySheetId;
+      const attempt = decoyAttempts.current.get(decoyId) ?? 0;
+      const observation = getChapterFourDecoyDialogue(decoyId, attempt);
+      decoyAttempts.current.set(decoyId, attempt + 1);
+      decoysSinceClue.current += 1;
+      if (decoysSinceClue.current % 3 === 0) {
+        metaInteraction.speak([
+          ...observation,
+          ...getChapterFourStalledDialogue(stalledAttempts.current),
+        ]);
+        stalledAttempts.current += 1;
+      } else {
+        metaInteraction.speak(observation);
+      }
+    }
     setActiveSheet(index);
   };
 

@@ -1,5 +1,13 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-22 — Complete Chapter 4 protagonist dialogue coverage
+
+- Added the Chapter 4 dialogue module in the same data/function pattern as Chapters 1–3, with restrained English-only lines and explicit future-knowledge boundaries.
+- Wired direct chapter entry, Deliveries launch, home return, wrong apps, all six wrong parcels, all seven decoy screenshots, all three clue phrases, case assembly, completion, packet re-entry, and the immediate Chapter 5 revisit.
+- Wrong parcels, decoys, and already-found clues respond only twice before becoming silent; every third decoy without progress provides one rotating low-pressure hint.
+- Removed Chapter 3 and seller-relay wording that revealed the missing physical phone or screenshot packet before the Chapter 4 package is opened.
+- Added regression coverage for completeness, anti-spam behavior, reveal ownership, runtime wiring, English-only text, and chapter knowledge boundaries. Static verification passed: 162/162 active-desktop tests, 162/162 clean-delivery tests, TypeScript, production builds, and diff checks; Browser and Preview remain intentionally unused.
+
 ## 2026-07-22 — Shared projected-bottom input recovery
 
 - Traced the unresponsive Messages composer to the shared Meta click relay: it delayed input focus until after a hand/posture animation, while the projected bottom edge could move away from the browser's original target.

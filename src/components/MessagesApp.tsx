@@ -227,7 +227,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                 <>
                   <div className="ml-auto max-w-[70%] rounded-2xl rounded-br-md bg-[#2f7d60] px-3 py-2 text-right font-mono text-xs text-white">184</div>
                   <div className="mr-auto max-w-[88%] rounded-2xl rounded-bl-md bg-[#1d212b] px-3 py-2 text-xs leading-relaxed text-slate-200">
-                    Match. The schematic packet has been delivered and indexed. No signature required.
+                    Match. Delivery confirmed and indexed. No signature required.
                   </div>
                 </>
               )}
