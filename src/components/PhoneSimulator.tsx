@@ -302,6 +302,17 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
     audio.play('messages.incoming');
   };
 
+  const handleSellerMessagePointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    handleLaunchApp('messages');
+  };
+
+  const handleSellerMessageClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    if (event.detail !== 0) return;
+    handleLaunchApp('messages');
+  };
+
   const handleSellerVerified = () => {
     setChapterThreeOrderPhase('verified');
     updateProgress((prev) => completePuzzleChapter(prev, 3, {
@@ -1278,24 +1289,30 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
         {sellerMessageUnread && chapterThreeOrderPhase === 'verification-requested' && (
           <motion.button
             type="button"
-            initial={{ opacity: 0, y: -12, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -8, scale: 0.98 }}
-            transition={{ duration: reducedMotion ? 0 : 0.2 }}
-            onClick={() => handleLaunchApp('messages')}
+            initial={reducedMotion ? { opacity: 0 } : { opacity: 0, y: -70 }}
+            animate={reducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+            exit={reducedMotion ? { opacity: 0 } : { opacity: 0, y: -70 }}
+            transition={{ duration: reducedMotion ? 0.2 : 0.45, ease: [0.22, 1, 0.36, 1] }}
+            onPointerDown={handleSellerMessagePointerDown}
+            onClick={handleSellerMessageClick}
             data-meta-immediate="true"
-            className="absolute right-3 top-9 z-[70] flex w-[min(330px,calc(100%-24px))] items-center gap-2 rounded-2xl border border-white/10 bg-[#151920]/95 p-3 text-left shadow-2xl backdrop-blur-md"
+            data-meta-hit-recovery="true"
+            data-system-notification="incoming-message"
+            className="absolute left-1/2 top-3 z-[70] flex w-[92%] max-w-[430px] -translate-x-1/2 items-center gap-3 rounded-[20px] border border-white/[0.1] bg-[#1b2130]/90 px-3.5 py-3 text-left shadow-2xl backdrop-blur-xl transition-transform active:scale-[0.985]"
             id="messages-seller-notification"
+            aria-label="Open incoming message from coldboot_17"
           >
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500 text-white">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-gradient-to-br from-emerald-400 to-cyan-700 text-white shadow-inner">
               <IconMessages />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-[8px] font-medium uppercase tracking-wide text-slate-400">Messages · now</div>
-              <div className="truncate text-[10px] font-semibold text-white">coldboot_17</div>
-              <div className="truncate text-[9px] text-slate-300">Buyer check. What score belongs to the impossible runner?</div>
+              <div className="flex items-center justify-between">
+                <span className="text-[9.5px] font-semibold uppercase tracking-[0.16em] text-slate-400">Cognitive Investigation</span>
+                <span className="text-[9.5px] text-slate-500">now</span>
+              </div>
+              <div className="text-[13px] font-semibold leading-tight text-slate-50">Incoming Message · coldboot_17</div>
+              <div className="truncate text-[11px] leading-snug text-slate-300/85">Buyer check waiting in Messages — open the secure relay.</div>
             </div>
-            <span className="text-[9px] font-semibold text-emerald-300">OPEN</span>
           </motion.button>
         )}
       </AnimatePresence>

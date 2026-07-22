@@ -72,3 +72,30 @@ test('Chapter 3 completes immediately after the correct Messages reply', () => {
   assert.match(phoneSource, /const handleSellerVerified[\s\S]{0,240}completePuzzleChapter\(prev, 3/);
   assert.doesNotMatch(source, /handleSignDelivery|SIGN FOR DELIVERY/);
 });
+
+test('both projected Messages entry points open reliably from the system notification layer', () => {
+  const martSource = readFileSync(new URL('../src/components/AmazeMart.tsx', import.meta.url), 'utf8');
+  const phoneSource = readFileSync(new URL('../src/components/PhoneSimulator.tsx', import.meta.url), 'utf8');
+  const martButton = martSource.slice(
+    martSource.lastIndexOf('<button', martSource.indexOf('id="am-open-messages"')),
+    martSource.indexOf('</button>', martSource.indexOf('id="am-open-messages"')),
+  );
+  const notification = phoneSource.slice(
+    phoneSource.lastIndexOf('<motion.button', phoneSource.indexOf('id="messages-seller-notification"')),
+    phoneSource.indexOf('</motion.button>', phoneSource.indexOf('id="messages-seller-notification"')),
+  );
+
+  assert.match(martButton, /onPointerDown=\{\(event\) => \{[\s\S]*onOpenMessages\(\)/);
+  assert.match(martButton, /if \(event\.detail !== 0\) return;[\s\S]*onOpenMessages\(\)/);
+  assert.match(martButton, /data-meta-immediate="true"/);
+  assert.match(martButton, /data-meta-hit-recovery="true"/);
+
+  assert.match(phoneSource, /const handleSellerMessagePointerDown[\s\S]{0,220}handleLaunchApp\('messages'\)/);
+  assert.match(notification, /onPointerDown=\{handleSellerMessagePointerDown\}/);
+  assert.match(notification, /onClick=\{handleSellerMessageClick\}/);
+  assert.match(notification, /data-meta-hit-recovery="true"/);
+  assert.match(notification, /data-system-notification="incoming-message"/);
+  assert.match(notification, /absolute left-1\/2 top-3[\s\S]*-translate-x-1\/2/);
+  assert.match(notification, /Cognitive Investigation/);
+  assert.doesNotMatch(notification, /absolute right-3|>OPEN</);
+});

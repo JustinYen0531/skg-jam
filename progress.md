@@ -1,5 +1,12 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-22 — Chapter 3 Messages entry recovery
+
+- Changed both the AmazeMart `OPEN MESSAGES` control and the incoming-message banner to navigate on pointer-down, while retaining keyboard click activation.
+- Added projected-rectangle hit recovery to both controls so Meta camera/posture movement cannot lose edge presses.
+- Replaced the AmazeMart-like top-right alert with a centered system notification using the existing evidence banner's safe-zone placement and visual language; it remains explicitly an incoming-message notice rather than a chapter-completion notice.
+- Added focused regression coverage for both interaction paths and notification ownership. Static verification passed in the clean delivery worktree and active desktop: 151/151 tests and production builds in both, plus TypeScript in the clean worktree; Browser and Preview remain intentionally unused.
+
 ## 2026-07-22 — Chapter 3 signature step removed
 
 - Removed the return-to-AmazeMart and signature requirement after the seller accepts `184`.

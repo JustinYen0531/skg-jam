@@ -346,8 +346,18 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({
                       <p><span className="font-mono text-cyan-200">coldboot_17</span> sent a buyer check to the green Messages app.</p>
                       <button
                         type="button"
-                        onClick={onOpenMessages}
-                        className="flex w-full items-center justify-center gap-1.5 rounded bg-emerald-500 py-2 text-xs font-black text-slate-950 hover:bg-emerald-400"
+                        onPointerDown={(event) => {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          onOpenMessages();
+                        }}
+                        onClick={(event) => {
+                          if (event.detail !== 0) return;
+                          onOpenMessages();
+                        }}
+                        data-meta-immediate="true"
+                        data-meta-hit-recovery="true"
+                        className="flex min-h-10 w-full items-center justify-center gap-1.5 rounded bg-emerald-500 px-3 py-2 text-xs font-black text-slate-950 hover:bg-emerald-400 active:bg-emerald-300"
                         id="am-open-messages"
                       >
                         <MessageCircle className="h-4 w-4" /> OPEN MESSAGES
