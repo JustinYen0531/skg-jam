@@ -9,7 +9,7 @@ test('normal interactions connect every chapter completion from one through nine
   const expectedCompletions: ReadonlyArray<readonly [string, readonly number[]]> = [
     ['ViewTube', [1]],
     ['BrowserApp', [2, 5]],
-    ['AmazeMart', [3]],
+    ['PhoneSimulator', [3]],
     ['SavedScreenshots', [4]],
     ['SocialApp', [6]],
     ['MessagesApp', [7, 8, 9]],
@@ -24,7 +24,7 @@ test('normal interactions connect every chapter completion from one through nine
 });
 
 test('normal app flow no longer mutates currentChapter with skip-ahead arithmetic', () => {
-  const sources = ['ViewTube', 'BrowserApp', 'AmazeMart', 'SavedScreenshots', 'SocialApp', 'MessagesApp']
+  const sources = ['ViewTube', 'BrowserApp', 'PhoneSimulator', 'SavedScreenshots', 'SocialApp', 'MessagesApp']
     .map(readComponent)
     .join('\n');
 

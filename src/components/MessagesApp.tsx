@@ -5,14 +5,13 @@ import { canUseProgressionAction, completePuzzleChapter } from '../lib/chapterPr
 import { isSellerCodeAccepted, type AmazeMartOrderPhase } from '../lib/amazemartPuzzle';
 import { useMetaInteraction } from './MetaInteractionScene';
 import { CHAPTER_THREE_DIALOGUE, getChapterThreeSellerCodeResponse } from '../lib/chapterThreeDialogue';
-import { KeyRound, MessageCircle, PackageCheck, Send, ShieldAlert } from 'lucide-react';
+import { KeyRound, MessageCircle, Send, ShieldAlert } from 'lucide-react';
 
 interface MessagesAppProps {
   progress: GameProgress;
   updateProgress: (updater: (prev: GameProgress) => GameProgress) => void;
   chapterThreeOrderPhase: AmazeMartOrderPhase;
   onSellerVerified: () => void;
-  onOpenAmazeMart: () => void;
 }
 
 type MessageTab = 'mom' | 'seller' | 'admin';
@@ -27,7 +26,6 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
   updateProgress,
   chapterThreeOrderPhase,
   onSellerVerified,
-  onOpenAmazeMart,
 }) => {
   const metaInteraction = useMetaInteraction();
   const [activeTab, setActiveTab] = useState<MessageTab>(chapterThreeOrderPhase === 'idle' ? 'mom' : 'seller');
@@ -229,16 +227,8 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                 <>
                   <div className="ml-auto max-w-[70%] rounded-2xl rounded-br-md bg-[#2f7d60] px-3 py-2 text-right font-mono text-xs text-white">184</div>
                   <div className="mr-auto max-w-[88%] rounded-2xl rounded-bl-md bg-[#1d212b] px-3 py-2 text-xs leading-relaxed text-slate-200">
-                    Match. The schematic packet has been delivered. Return to AmazeMart and sign for it.
+                    Match. The schematic packet has been delivered and indexed. No signature required.
                   </div>
-                  <button
-                    type="button"
-                    onClick={onOpenAmazeMart}
-                    className="mx-auto flex items-center gap-1.5 rounded-full bg-emerald-500 px-4 py-2 text-[10px] font-bold text-slate-950 hover:bg-emerald-400"
-                    id="messages-return-amazemart"
-                  >
-                    <PackageCheck className="h-3.5 w-3.5" /> RETURN TO AMAZEMART
-                  </button>
                 </>
               )}
 

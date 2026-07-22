@@ -15,7 +15,7 @@ test('every chapter has an English-only guide for reaching the next stage', () =
     const guideText = [guide.nextLabel, guide.objective, ...guide.steps, guide.completion].join(' ');
 
     assert.equal(guide.chapter, chapter.id);
-    assert.equal(guide.steps.length, 3);
+    assert.ok(guide.steps.length >= 2);
     assert.doesNotMatch(guideText, /[\u3400-\u9fff]/u);
   }
 });

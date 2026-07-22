@@ -68,15 +68,13 @@ test('Chapter 3 dialogue is wired through scene, phone, marketplace, and seller 
   assert.match(scene, /CHAPTER_THREE_DIALOGUE\.approvedEndingA/);
   assert.match(phone, /getChapterThreeWrongAppDialogue/);
   assert.match(phone, /getChapterThreeCompanionDialogue/);
-  assert.match(phone, /CHAPTER_THREE_DIALOGUE\.signatureAvailable/);
+  assert.doesNotMatch(phone, /CHAPTER_THREE_DIALOGUE\.signatureAvailable/);
   assert.match(mart, /getChapterThreeSearchResponse/);
   assert.match(mart, /CHAPTER_THREE_DIALOGUE\.sellerRevealed/);
   assert.match(mart, /CHAPTER_THREE_DIALOGUE\.riskCancelled/);
-  assert.match(mart, /completePuzzleChapter\(prev, 3/);
+  assert.doesNotMatch(mart, /completePuzzleChapter\(prev, 3/);
   assert.match(messages, /getChapterThreeSellerCodeResponse/);
   assert.match(messages, /CHAPTER_THREE_DIALOGUE\.sellerMatched/);
-
-  const signStart = mart.indexOf('const handleSignDelivery =');
-  const completion = mart.indexOf('completePuzzleChapter(prev, 3', signStart);
-  assert.ok(signStart >= 0 && completion > signStart);
+  assert.match(phone, /const handleSellerVerified[\s\S]{0,240}completePuzzleChapter\(prev, 3/);
+  assert.doesNotMatch(messages, /RETURN TO AMAZEMART|messages-return-amazemart/);
 });

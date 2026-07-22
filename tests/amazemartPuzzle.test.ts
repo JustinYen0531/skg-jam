@@ -35,7 +35,7 @@ test('suppressed seller remains hidden until the player scrolls into the feed', 
   assert.equal(shouldRevealSuppressedSeller({ scrollTop: 200, scrollHeight: 400, clientHeight: 400 }), false);
 });
 
-test('Chapter 3 crosses from AmazeMart to Messages before returning for signature', () => {
+test('Chapter 3 completes immediately after the correct Messages reply', () => {
   const source = readFileSync(new URL('../src/components/AmazeMart.tsx', import.meta.url), 'utf8');
   const messagesSource = readFileSync(new URL('../src/components/MessagesApp.tsx', import.meta.url), 'utf8');
   const phoneSource = readFileSync(new URL('../src/components/PhoneSimulator.tsx', import.meta.url), 'utf8');
@@ -48,8 +48,8 @@ test('Chapter 3 crosses from AmazeMart to Messages before returning for signatur
   assert.match(source, /onRequestSellerVerification\(\)/);
   assert.match(source, /id="am-open-messages"/);
   assert.match(source, /id="am-awaiting-message"/);
-  assert.match(source, /id="am-seller-delivery"/);
-  assert.match(source, /id="am-sign-delivery"/);
+  assert.doesNotMatch(source, /id="am-seller-delivery"/);
+  assert.doesNotMatch(source, /id="am-sign-delivery"/);
   assert.match(source, /data-meta-immediate="true"/);
   assert.match(source, /data-meta-hit-recovery="true"/);
   assert.match(source, /setOrderRequestPending\(true\)/);
@@ -67,9 +67,8 @@ test('Chapter 3 crosses from AmazeMart to Messages before returning for signatur
   assert.match(messagesSource, /id="messages-seller-code"/);
   assert.match(messagesSource, /isSellerCodeAccepted\(sellerCode\)/);
   assert.match(messagesSource, /onSellerVerified\(\)/);
-  assert.match(messagesSource, /id="messages-return-amazemart"/);
+  assert.doesNotMatch(messagesSource, /id="messages-return-amazemart"/);
   assert.doesNotMatch(source, /id="am-seller-code"/);
-  assert.match(source, /onClick=\{handleSignDelivery\}/);
-  assert.match(source, /const handleSignDelivery[\s\S]*completePuzzleChapter\(prev, 3/);
-  assert.doesNotMatch(source, /setTimeout\([\s\S]{0,300}completePuzzleChapter\(prev, 3/);
+  assert.match(phoneSource, /const handleSellerVerified[\s\S]{0,240}completePuzzleChapter\(prev, 3/);
+  assert.doesNotMatch(source, /handleSignDelivery|SIGN FOR DELIVERY/);
 });

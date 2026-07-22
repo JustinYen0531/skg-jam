@@ -53,9 +53,8 @@ const CHAPTER_ADVANCE_GUIDES: Record<PuzzleChapter, ChapterAdvanceGuide> = {
     steps: [
       'Search AmazeMart for Lumen Arc, then scroll to and expand the suppressed seller.',
       'Accept the scam warning, open Messages, and reply to coldboot_17 with ARC_184\'s impossible score: 184.',
-      'Return to AmazeMart and sign for the delivered screenshot packet.',
     ],
-    completion: 'The signed delivery unlocks the screenshot bundle.',
+    completion: 'The accepted score reply delivers and unlocks the screenshot bundle.',
   },
   4: {
     chapter: 4,

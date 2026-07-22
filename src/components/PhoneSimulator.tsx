@@ -48,6 +48,7 @@ import { useReducedMotion } from '../lib/useReducedMotion';
 import { ChapterTransition, EvidenceNotification } from './ChapterTransition';
 import { MetaWindowScene } from './MetaWindowScene';
 import type { AmazeMartOrderPhase } from '../lib/amazemartPuzzle';
+import { completePuzzleChapter } from '../lib/chapterProgress';
 
 /** Modern widget chassis: translucent, friendly, current-year. */
 const WIDGET_SHELL =
@@ -266,9 +267,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
           ? CHAPTER_TWO_DIALOGUE.browserOpened
           : getChapterTwoWrongAppDialogue(app, chapterTwoAppAttempt.current))
           : (app === 'amazemart'
-            ? (chapterThreeOrderPhase === 'verified'
-              ? CHAPTER_THREE_DIALOGUE.signatureAvailable
-              : [...CHAPTER_THREE_DIALOGUE.amazeMartOpened, ...CHAPTER_THREE_DIALOGUE.storefrontVisible])
+            ? [...CHAPTER_THREE_DIALOGUE.amazeMartOpened, ...CHAPTER_THREE_DIALOGUE.storefrontVisible]
             : app === 'messages' && chapterThreeOrderPhase !== 'idle'
               ? (chapterThreeOrderPhase === 'verified'
                 ? CHAPTER_THREE_DIALOGUE.sellerMatched
@@ -305,6 +304,10 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
 
   const handleSellerVerified = () => {
     setChapterThreeOrderPhase('verified');
+    updateProgress((prev) => completePuzzleChapter(prev, 3, {
+      orderedPhone: true,
+      deliveredPhone: true,
+    }));
   };
 
   // The meta hand animation intercepts click events higher in the tree. Open
@@ -1127,7 +1130,6 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
             >
               <AmazeMart
                 progress={progress}
-                updateProgress={updateProgress}
                 orderPhase={chapterThreeOrderPhase}
                 onRequestSellerVerification={handleRequestSellerVerification}
                 onOpenMessages={() => handleLaunchApp('messages')}
@@ -1189,7 +1191,6 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                 updateProgress={updateProgress}
                 chapterThreeOrderPhase={chapterThreeOrderPhase}
                 onSellerVerified={handleSellerVerified}
-                onOpenAmazeMart={() => handleLaunchApp('amazemart')}
               />
             </motion.div>
           )}

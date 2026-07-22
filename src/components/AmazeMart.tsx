@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { GameProgress } from '../types';
 import audio from '../lib/audio';
-import { canUseProgressionAction, completePuzzleChapter } from '../lib/chapterProgress';
+import { canUseProgressionAction } from '../lib/chapterProgress';
 import { createFeedSeed, shuffleFeed } from '../lib/pseudoFeed';
 import {
   isLumenArcSearch,
@@ -32,7 +32,6 @@ import {
   AlertTriangle,
   ChevronDown,
   MessageCircle,
-  FileSignature,
 } from 'lucide-react';
 
 const AMAZEMART_PRODUCTS = [
@@ -56,7 +55,6 @@ const AMAZEMART_DEPARTMENT_PRODUCTS: Readonly<Record<Exclude<AmazeMartDepartment
 
 interface AmazeMartProps {
   progress: GameProgress;
-  updateProgress: (updater: (prev: GameProgress) => GameProgress) => void;
   orderPhase: AmazeMartOrderPhase;
   onRequestSellerVerification: () => void;
   onOpenMessages: () => void;
@@ -67,7 +65,6 @@ type MerchantPhase = 'browsing' | 'risk-confirm';
 
 export const AmazeMart: React.FC<AmazeMartProps> = ({
   progress,
-  updateProgress,
   orderPhase,
   onRequestSellerVerification,
   onOpenMessages,
@@ -150,22 +147,12 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({
   };
 
   const handleAcceptRisk = () => {
-    // Checkout hands verification to the phone's real Messages app. The
-    // package cannot be signed for until that separate conversation succeeds.
+    // Checkout hands verification to the phone's real Messages app. A correct
+    // reply there completes the order without another marketplace ceremony.
     audio.play('amazemart.purchase');
     setMerchantPhase('browsing');
     onRequestSellerVerification();
     speakChapterThree([...CHAPTER_THREE_DIALOGUE.riskAccepted, ...CHAPTER_THREE_DIALOGUE.sellerNotification]);
-  };
-
-  const handleSignDelivery = () => {
-    audio.playTick();
-    speakChapterThree(CHAPTER_THREE_DIALOGUE.approvedEndingA);
-    updateProgress((prev) => completePuzzleChapter(prev, 3, {
-      orderedPhone: true,
-      deliveredPhone: true,
-    }));
-    onOpenScreenshots();
   };
 
   return (
@@ -369,24 +356,6 @@ export const AmazeMart: React.FC<AmazeMartProps> = ({
                   </section>
                 )}
 
-                {orderPhase === 'verified' && (
-                  <section className="overflow-hidden rounded-lg border border-emerald-400/35 bg-slate-950" id="am-seller-delivery">
-                    <div className="border-b border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-[10px] font-bold text-emerald-200">
-                      DELIVERY WAITING FOR SIGNATURE
-                    </div>
-                    <div className="space-y-2 p-3 font-mono text-[9px]">
-                      <div className="max-w-[90%] rounded bg-emerald-500/10 p-2 text-emerald-200">MATCH. SCHEMATIC PACKET DELIVERED. SIGN TO RELEASE IMAGE SET.</div>
-                      <button
-                        type="button"
-                        onClick={handleSignDelivery}
-                        className="flex w-full items-center justify-center gap-1.5 rounded bg-emerald-400 py-2 font-sans text-xs font-black text-slate-950 hover:bg-emerald-300"
-                        id="am-sign-delivery"
-                      >
-                        <FileSignature className="h-4 w-4" /> SIGN FOR DELIVERY
-                      </button>
-                    </div>
-                  </section>
-                )}
               </>
             ) : (
               /* Already ordered and delivered! */
