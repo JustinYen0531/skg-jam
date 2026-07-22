@@ -298,7 +298,12 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   assert.equal((sceneSource.match(/rotateX: cameraPitchStyle/g) ?? []).length, 5);
   assert.match(sceneSource, /onPointerMove=\{handlePointerMove\}/);
   assert.match(sceneSource, /onPointerLeave=\{handlePointerLeave\}/);
-  assert.match(sceneSource, /data-hand-pose=\{interactionPending \? 'reaching' : 'holding'\}/);
+  assert.match(sceneSource, /data-autonomous-hand=\{autonomousTapping \? 'locked' : 'player-led'\}/);
+  assert.match(sceneSource, /data-hand-pose=\{autonomousTapping \? 'agitated-tapping' : interactionPending \? 'reaching' : 'holding'\}/);
+  assert.match(sceneSource, /const tapSequence = useCallback/);
+  assert.match(sceneSource, /const beatMs = 230/);
+  assert.match(sceneSource, /autonomousTappingRef\.current = true/);
+  assert.match(sceneSource, /setPressed\(true\)[\s\S]{0,120}meta\.fingerContact/);
   assert.match(sceneSource, /opacity: interactionPending && pointer\.x > 0 \? 1 : 0/);
   assert.match(sceneSource, /className="[^"]*z-\[8\][^"]*"[\s\S]{0,180}id="meta-tapping-hand-back"/);
   assert.match(sceneSource, /className="[^"]*z-\[60\][^"]*"[\s\S]{0,500}id="meta-pointer-hand"/);

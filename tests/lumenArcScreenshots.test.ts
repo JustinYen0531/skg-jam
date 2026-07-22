@@ -91,7 +91,7 @@ test('the parcel only reveals after scratching and angle-driven paper inspection
   assert.match(source, /import \{ LumenArcReveal \}/);
   assert.match(source, /revealPlaying && viewingLumenPackage/);
   assert.match(source, /if \(record\.id === 'lumen-arc'\) \{[\s\S]{0,280}setRevealPlaying\(true\)/);
-  assert.match(source, /<LumenArcReveal[\s\S]{0,400}setRevealPlaying\(false\);[\s\S]{0,300}CHAPTER_FOUR_DIALOGUE\.packageOpened/);
+  assert.match(source, /<LumenArcReveal[\s\S]{0,500}onDeceptionRevealed=\{\(\) =>[\s\S]{0,240}runPackageRevealReaction\(\)[\s\S]{0,300}onComplete=\{\(\) =>[\s\S]{0,120}setRevealPlaying\(false\)/);
 
   const reveal = readFileSync(new URL('../src/components/LumenArcReveal.tsx', import.meta.url), 'utf8');
   assert.match(reveal, /type RevealPhase = 'scratch' \| 'phone-ready' \| 'inspect' \| 'burst' \| 'clear'/);
@@ -104,9 +104,14 @@ test('the parcel only reveals after scratching and angle-driven paper inspection
 
   assert.match(reveal, /id="lumen-arc-inspect-phone"/);
   assert.match(reveal, /setPhase\('inspect'\)/);
-  assert.match(reveal, /delta \* 0\.42/);
+  assert.match(reveal, /PHONE_ROTATION_SENSITIVITY = 0\.21/);
+  assert.match(reveal, /delta \* PHONE_ROTATION_SENSITIVITY/);
   assert.match(reveal, /Math\.abs\(next\) >= BURST_ANGLE/);
   assert.match(reveal, /if \(phase !== 'burst'\) return;/);
+  assert.match(reveal, /REVEAL_TIME_SCALE = 2/);
+  assert.match(reveal, /3900 \* REVEAL_TIME_SCALE/);
+  assert.match(reveal, /3\.05 \* REVEAL_TIME_SCALE/);
+  assert.match(reveal, /onDeceptionRevealed\(\)[\s\S]{0,100}setPhase\('burst'\)/);
 
   assert.match(reveal, /PHONE_DEPTH_LAYERS/);
   assert.match(reveal, /data-phone-material="stacked-paper"/);

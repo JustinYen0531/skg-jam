@@ -1,5 +1,13 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-22 — Chapter 4 shock-to-resolve monologue and autonomous angry taps
+
+- Expanded the parcel reveal reaction into four timed emotional stages: disbelief, anger, defeated frustration, and a deliberate decision to work with the limited screenshot evidence.
+- Added a Meta-owned five-tap autonomous finger sequence. It varies the screen contact point, plays contact/release foley per tap, labels the hand `agitated-tapping`, and briefly rejects player pointer, keyboard, and wheel input so the protagonist visibly acts on their own.
+- Moved the monologue trigger to the exact angle where the layered-paper phone is exposed, allowing the dialogue to play over the visual betrayal instead of waiting for the reveal to close.
+- Reduced manual phone rotation sensitivity from `0.42` to `0.21` and doubled the jester, screenshot burst, downward drift, audio cues, and clear timing for a true 0.5x presentation speed.
+- Added regression coverage for dialogue order, five autonomous taps, player-control lock, reveal-time scaling, and the angle-triggered handoff. Focused tests, TypeScript, and diff checks pass; Browser and Preview remain intentionally unused.
+
 ## 2026-07-22 — Player-driven parcel scratch and paper-phone reveal
 
 - Replaced the high suspended box and `OPEN PARCEL` autoplay gate with a centered scratchable cardboard canvas; held pointer movement erases the cover along the real drag path and exposes the device underneath.

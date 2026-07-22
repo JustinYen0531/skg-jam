@@ -21,8 +21,21 @@ export const CHAPTER_FOUR_DIALOGUE = {
     'Only one of them cost exactly one dollar and eighty-four cents.',
   ],
   packageOpened: [
-    "No. That's not a phone.",
-    'He sent me what the phone remembered. Not the phone.',
+    "Wait. No—no, that's not a phone.",
+    'Those are screenshots. He sent me screenshots.',
+  ],
+  packageAnger: [
+    'You sold me a stack of pictures and called it a device.',
+    'Come on. Open. Do something.',
+  ],
+  packageDespair: [
+    "There's nothing underneath.",
+    "I paid for somebody else's leftovers.",
+  ],
+  packageResolve: [
+    'Fine. Fine.',
+    'If this is all we have, then this is what we use.',
+    "Let's see what these screenshots still know.",
   ],
   titleFound: [
     'Skyline 256. So Flappy was never the real name.',

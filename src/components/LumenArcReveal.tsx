@@ -4,6 +4,7 @@ import audio from '../lib/audio';
 
 interface LumenArcRevealProps {
   reducedMotion: boolean;
+  onDeceptionRevealed: () => void;
   onComplete: () => void;
 }
 
@@ -11,6 +12,8 @@ type RevealPhase = 'scratch' | 'phone-ready' | 'inspect' | 'burst' | 'clear';
 
 const SCRATCH_COMPLETE_AT = 72;
 const BURST_ANGLE = 58;
+const PHONE_ROTATION_SENSITIVITY = 0.21;
+const REVEAL_TIME_SCALE = 2;
 const PHONE_DEPTH_LAYERS = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] as const;
 
 const FALLING_IMAGES: readonly {
@@ -82,7 +85,7 @@ const drawPackageCover = (canvas: HTMLCanvasElement) => {
   ctx.fillRect(width / 2 - 66, height / 2 + 18, 74, 4);
 };
 
-export const LumenArcReveal: React.FC<LumenArcRevealProps> = ({ reducedMotion, onComplete }) => {
+export const LumenArcReveal: React.FC<LumenArcRevealProps> = ({ reducedMotion, onDeceptionRevealed, onComplete }) => {
   const [phase, setPhase] = useState<RevealPhase>('scratch');
   const [damage, setDamage] = useState(0);
   const [rotation, setRotation] = useState(0);
@@ -96,6 +99,7 @@ export const LumenArcReveal: React.FC<LumenArcRevealProps> = ({ reducedMotion, o
   const rotationRef = useRef(0);
   const lastScratchSound = useRef(0);
   const completed = useRef(false);
+  const deceptionNotified = useRef(false);
 
   const finish = useCallback(() => {
     if (completed.current) return;
@@ -119,13 +123,13 @@ export const LumenArcReveal: React.FC<LumenArcRevealProps> = ({ reducedMotion, o
     }
 
     audio.play('story.dataCorrupt');
-    audio.play('screenshot.zoom', { delay: 0.08 });
-    audio.play('archive.downloadStart', { delay: 0.22 });
-    audio.play('screenshot.rotate', { delay: 1.5 });
-    audio.play('archive.downloadComplete', { delay: 2.9 });
+    audio.play('screenshot.zoom', { delay: 0.08 * REVEAL_TIME_SCALE });
+    audio.play('archive.downloadStart', { delay: 0.22 * REVEAL_TIME_SCALE });
+    audio.play('screenshot.rotate', { delay: 1.5 * REVEAL_TIME_SCALE });
+    audio.play('archive.downloadComplete', { delay: 2.9 * REVEAL_TIME_SCALE });
 
-    const clearTimer = window.setTimeout(() => setPhase('clear'), 3900);
-    const doneTimer = window.setTimeout(finish, 4500);
+    const clearTimer = window.setTimeout(() => setPhase('clear'), 3900 * REVEAL_TIME_SCALE);
+    const doneTimer = window.setTimeout(finish, 4500 * REVEAL_TIME_SCALE);
     return () => {
       window.clearTimeout(clearTimer);
       window.clearTimeout(doneTimer);
@@ -178,14 +182,18 @@ export const LumenArcReveal: React.FC<LumenArcRevealProps> = ({ reducedMotion, o
     if (phase !== 'inspect') return;
     phonePointer.current = null;
     setDraggingPhone(false);
+    if (!deceptionNotified.current) {
+      deceptionNotified.current = true;
+      onDeceptionRevealed();
+    }
     setPhase('burst');
-  }, [phase]);
+  }, [onDeceptionRevealed, phase]);
 
   const updatePhoneRotation = (clientX: number) => {
     if (phase !== 'inspect' || phonePointer.current === null) return;
     const delta = clientX - phonePointerX.current;
     phonePointerX.current = clientX;
-    const next = Math.max(-72, Math.min(72, rotationRef.current + delta * 0.42));
+    const next = Math.max(-72, Math.min(72, rotationRef.current + delta * PHONE_ROTATION_SENSITIVITY));
     rotationRef.current = next;
     setRotation(next);
     if (Math.abs(next) >= BURST_ANGLE) triggerBurst();
@@ -371,7 +379,7 @@ export const LumenArcReveal: React.FC<LumenArcRevealProps> = ({ reducedMotion, o
               className="absolute z-20 flex flex-col items-center"
               initial={{ y: 54, scale: 0.3, opacity: 0 }}
               animate={{ y: [54, -104, -78, 30], scale: [0.3, 1.16, 1, 0.72], opacity: [0, 1, 1, 0] }}
-              transition={{ duration: 1.25, times: [0, 0.32, 0.68, 1], ease: 'easeOut' }}
+              transition={{ duration: 1.25 * REVEAL_TIME_SCALE, times: [0, 0.32, 0.68, 1], ease: 'easeOut' }}
               data-jester-box-sting="true"
             >
               <div className="relative h-[68px] w-[68px] rounded-full border-2 border-slate-100/70 bg-[#e8d8bd] shadow-[0_0_25px_rgba(248,113,113,0.28)]">
@@ -403,9 +411,9 @@ export const LumenArcReveal: React.FC<LumenArcRevealProps> = ({ reducedMotion, o
                       }
                 }
                 transition={{
-                  duration: phase === 'clear' ? 0.5 : 3.05,
+                  duration: phase === 'clear' ? 0.5 * REVEAL_TIME_SCALE : 3.05 * REVEAL_TIME_SCALE,
                   times: phase === 'clear' ? undefined : [0, 0.24, 1],
-                  delay: phase === 'clear' ? 0 : index * 0.075,
+                  delay: phase === 'clear' ? 0 : index * 0.075 * REVEAL_TIME_SCALE,
                   ease: phase === 'clear' ? 'easeInOut' : [0.2, 0.72, 0.28, 1],
                 }}
               >

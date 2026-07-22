@@ -22,9 +22,12 @@ test('Chapter 4 preserves the physical-to-photo reveal until the target package 
   const screenshots = readFileSync(new URL('../src/components/SavedScreenshots.tsx', import.meta.url), 'utf8');
 
   assert.deepEqual(CHAPTER_FOUR_DIALOGUE.packageOpened, [
-    "No. That's not a phone.",
-    'He sent me what the phone remembered. Not the phone.',
+    "Wait. No—no, that's not a phone.",
+    'Those are screenshots. He sent me screenshots.',
   ]);
+  assert.deepEqual(CHAPTER_FOUR_DIALOGUE.packageAnger, ['You sold me a stack of pictures and called it a device.', 'Come on. Open. Do something.']);
+  assert.deepEqual(CHAPTER_FOUR_DIALOGUE.packageDespair, ["There's nothing underneath.", "I paid for somebody else's leftovers."]);
+  assert.deepEqual(CHAPTER_FOUR_DIALOGUE.packageResolve, ['Fine. Fine.', 'If this is all we have, then this is what we use.', "Let's see what these screenshots still know."]);
   assert.doesNotMatch(chapterThree, /sellerMatched: \[[^\]]*(?:no device|screenshots?|image packet)/i);
   assert.doesNotMatch(messages, /schematic packet has been delivered/i);
   assert.doesNotMatch(screenshots, /coldboot_17 · signed image packet attached[^\n]*target: true/);
@@ -101,6 +104,8 @@ test('Chapter 4 dialogue is wired to every runtime interaction boundary', () => 
   assert.match(screenshots, /&& !completedHere\.current/);
   assert.match(screenshots, /CHAPTER_FOUR_DIALOGUE\.caseAssembled/);
   assert.match(screenshots, /CHAPTER_FOUR_DIALOGUE\.completed/);
+  assert.match(screenshots, /CHAPTER_FOUR_DIALOGUE\.packageOpened[\s\S]{0,500}CHAPTER_FOUR_DIALOGUE\.packageAnger[\s\S]{0,500}tapSequence\('lumen-arc-frustration-tap-zone', 5[\s\S]{0,500}CHAPTER_FOUR_DIALOGUE\.packageDespair[\s\S]{0,500}CHAPTER_FOUR_DIALOGUE\.packageResolve/);
+  assert.match(screenshots, /id="lumen-arc-frustration-tap-zone"/);
   assert.match(screenshots, /decoysSinceClue\.current % 3 === 0/);
   assert.match(screenshots, /caseDialogueTimer\.current = setTimeout/);
 });

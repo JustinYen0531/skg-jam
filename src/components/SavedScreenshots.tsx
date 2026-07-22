@@ -314,6 +314,8 @@ export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, up
   const completedRevisitSpoken = useRef(false);
   const completedHere = useRef(false);
   const caseDialogueTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const revealReactionTimers = useRef<number[]>([]);
+  const revealReactionScope = useRef(0);
 
   const assembled = hasAssembledCase(found);
   const activeDelivery = DELIVERY_RECORDS.find((record) => record.id === activeDeliveryId) ?? null;
@@ -321,6 +323,9 @@ export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, up
 
   useEffect(() => () => {
     if (caseDialogueTimer.current) clearTimeout(caseDialogueTimer.current);
+    revealReactionScope.current += 1;
+    revealReactionTimers.current.forEach((timer) => window.clearTimeout(timer));
+    revealReactionTimers.current = [];
   }, []);
 
   useEffect(() => {
@@ -461,6 +466,29 @@ export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, up
 
   const viewingLumenPackage = activeDeliveryId === 'lumen-arc';
 
+  const runPackageRevealReaction = () => {
+    revealReactionScope.current += 1;
+    const scope = revealReactionScope.current;
+    revealReactionTimers.current.forEach((timer) => window.clearTimeout(timer));
+    revealReactionTimers.current = [];
+
+    metaInteraction.speak(CHAPTER_FOUR_DIALOGUE.packageOpened);
+    const angerTimer = window.setTimeout(() => {
+      if (revealReactionScope.current !== scope) return;
+      metaInteraction.speak(CHAPTER_FOUR_DIALOGUE.packageAnger);
+      metaInteraction.tapSequence('lumen-arc-frustration-tap-zone', 5, () => {
+        if (revealReactionScope.current !== scope) return;
+        metaInteraction.speak(CHAPTER_FOUR_DIALOGUE.packageDespair);
+        const resolveTimer = window.setTimeout(() => {
+          if (revealReactionScope.current !== scope) return;
+          metaInteraction.speak(CHAPTER_FOUR_DIALOGUE.packageResolve);
+        }, 2200);
+        revealReactionTimers.current.push(resolveTimer);
+      });
+    }, 1700);
+    revealReactionTimers.current.push(angerTimer);
+  };
+
   return (
     <div className="relative flex h-full flex-col overflow-hidden bg-[var(--laos-bg)] font-sans text-[var(--laos-text)]" id="screenshots-root">
       {!viewingLumenPackage ? (
@@ -532,6 +560,11 @@ export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, up
 
       {/* The signed parcel contains an uncurated attachment bundle. */}
       <div className="relative flex-1 space-y-3 overflow-y-auto p-3.5" id="spec-workspace">
+        <div
+          className="pointer-events-none absolute left-1/2 top-[42%] h-20 w-28 -translate-x-1/2 -translate-y-1/2"
+          id="lumen-arc-frustration-tap-zone"
+          data-protagonist-tap-target="true"
+        />
         <div className="text-center font-laos text-[10px] text-[var(--laos-dim)]">
           coldboot_17 · signed image packet attached. Three details may belong to the same case.
         </div>
@@ -653,12 +686,14 @@ export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, up
       {revealPlaying && viewingLumenPackage && (
         <LumenArcReveal
           reducedMotion={reducedMotion}
-          onComplete={() => {
-            setRevealPlaying(false);
+          onDeceptionRevealed={() => {
             if (chapterFourActive) {
-              metaInteraction.speak(CHAPTER_FOUR_DIALOGUE.packageOpened);
+              runPackageRevealReaction();
               packageOpenCount.current += 1;
             }
+          }}
+          onComplete={() => {
+            setRevealPlaying(false);
           }}
         />
       )}
