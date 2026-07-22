@@ -15,6 +15,12 @@ test('defines one deterministic physical environment for Chapter 0 through 10', 
   }
 });
 
+test('the desk-resting coffee has a dedicated one-and-a-half-times content scale', () => {
+  const environmentSource = readFileSync(new URL('../src/components/ChapterEnvironment.tsx', import.meta.url), 'utf8');
+  assert.match(environmentSource, /data-coffee-resting-scale=\{deviceResting \? '1\.5x' : '1x'\}/);
+  assert.match(environmentSource, /origin-bottom-right \$\{deviceResting \? 'scale-\[1\.5\]' : ''\}/);
+});
+
 test('Chapter 0 exposes no physical desk objects', () => {
   assert.deepEqual(getChapterEnvironment(0), {
     chapter: 0,
