@@ -80,7 +80,7 @@ interface PhoneSimulatorProps {
   isMuted: boolean;
   immersiveIntro?: boolean;
   debugTargetApp?: { app: ActiveApp; nonce: number } | null;
-  onLeaderboardOpened: () => void;
+  onSuspiciousRunSelected: () => void;
   soundVolume: number;
   musicVolume: number;
   screenBrightness: number;
@@ -108,7 +108,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   isMuted,
   immersiveIntro = false,
   debugTargetApp,
-  onLeaderboardOpened,
+  onSuspiciousRunSelected,
   soundVolume,
   musicVolume,
   screenBrightness,
@@ -1292,7 +1292,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                 progress={progress}
                 updateProgress={updateProgress}
                 onHome={handleHomeButton}
-                onLeaderboardOpened={onLeaderboardOpened}
+                onSuspiciousRunSelected={onSuspiciousRunSelected}
               />
             </motion.div>
           )}

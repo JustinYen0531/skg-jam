@@ -102,7 +102,7 @@ export default function App() {
     audio.playUnlock();
   };
 
-  const handleLeaderboardOpened = () => {
+  const handleSuspiciousRunSelected = () => {
     if (shouldRevealMetaView(progress.deathsAt40, true)) {
       setMetaViewActive(true);
       setProgress((previous) => ({ ...previous, phase: 'os_unlocked' }));
@@ -358,7 +358,7 @@ export default function App() {
             isMuted={isMuted}
             immersiveIntro={!metaSceneActive}
             debugTargetApp={debugTargetApp}
-            onLeaderboardOpened={handleLeaderboardOpened}
+            onSuspiciousRunSelected={handleSuspiciousRunSelected}
             soundVolume={soundVolume}
             musicVolume={musicVolume}
             screenBrightness={screenBrightness}

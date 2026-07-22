@@ -3,14 +3,14 @@ import { GameProgress, ActiveApp } from '../types';
 import audio from '../lib/audio';
 import { EASY_FLAPPY_SETTINGS, FlappyDeathCause, GATE_40_INDEX, getCheapTelemetry, getFlappyNightMix, getGateHeights, getGateSpawnX, getGateVisualStyle, getScoreAfterPassingGate, nextGate40DeathCount, resolvePipeCollision } from '../lib/flappyPhysics';
 import { calculateBeatPercentage, createPublicLeaderboard } from '../lib/leaderboard';
-import { RefreshCw, Play, Volume2, VolumeX, CheckCircle, Zap, Crown, Sparkles, Rocket, Brain, Activity, X } from 'lucide-react';
+import { RefreshCw, Play, Volume2, VolumeX, CheckCircle, Zap, Crown, Sparkles, Rocket, Brain, Activity } from 'lucide-react';
 import { LeaderboardPanel } from './LeaderboardPanel';
 
 interface FlappyGameProps {
   progress: GameProgress;
   updateProgress: (updater: (prev: GameProgress) => GameProgress) => void;
   onHome: () => void;
-  onLeaderboardOpened: () => void;
+  onSuspiciousRunSelected: () => void;
 }
 
 // Sequence of target altitudes near pipe 40
@@ -20,7 +20,7 @@ const ALTITUDE_SEQUENCE = [184, 172, 149, 133, 121, 118, 126, 143];
 // room between gates. Scoring and gate spawning remain in lockstep.
 const PACE_INTERVAL_FRAMES = EASY_FLAPPY_SETTINGS.spawnIntervalFrames;
 
-export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress, onHome, onLeaderboardOpened }) => {
+export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress, onHome, onSuspiciousRunSelected }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   
@@ -36,7 +36,6 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
   const [seqIndex, setSeqIndex] = useState(0); // index in altitude matching
   const [seqMatched, setSeqMatched] = useState<boolean[]>(new Array(8).fill(false));
   const [hackedMode, setHackedMode] = useState(false);
-  const [showLearnMore, setShowLearnMore] = useState(false);
 
   // Core physics references to prevent state lag in canvas loop
   const stateRef = useRef({
@@ -98,6 +97,17 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
   const restartRun = () => {
     audio.play('flight.restart');
     resetGame();
+  };
+
+  const openLeaderboard = () => {
+    audio.play('leaderboard.open');
+    setShowLeaderboard(true);
+    updateProgress((prev) => ({ ...prev, seenLeaderboard: true }));
+  };
+
+  const enterMetaFromRun = () => {
+    onHome();
+    onSuspiciousRunSelected();
   };
 
   const handleJump = (e: React.MouseEvent | React.TouchEvent | KeyboardEvent) => {
@@ -1182,17 +1192,19 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
                 Begin Your Intelligent Flight Experience
               </button>
               <button
-                onClick={() => { audio.play('phone.modalOpen'); setShowLearnMore(true); }}
-                className="px-3 py-2.5 rounded-2xl border border-white/20 bg-white/5 backdrop-blur text-[#9a9a9a] text-[9px] font-bold uppercase tracking-wider hover:text-white transition-colors"
-                id="learn-more-button"
+                type="button"
+                onClick={(event) => event.stopPropagation()}
+                className="px-3 py-2.5 rounded-2xl border border-yellow-300/35 bg-gradient-to-b from-yellow-300 to-amber-500 text-[#301400] text-[9px] font-black uppercase tracking-wider shadow-[0_3px_0_#8a4b00,0_0_14px_rgba(251,191,36,0.28)] flex items-center gap-1"
+                id="premium-unlock-button"
+                aria-label="Unlock premium edition"
               >
-                Learn More
+                <Zap className="h-3 w-3 fill-current" /> Unlock
               </button>
             </div>
 
             {/* Cheap emoji leaderboard entry point */}
             <button
-              onClick={() => { audio.play('leaderboard.open'); setShowLeaderboard(true); }}
+              onClick={openLeaderboard}
               className="px-4 py-1.5 rounded-xl bg-[#1a1a2e] border border-purple-500/40 text-purple-200 text-[10px] font-black tracking-wide hover:bg-[#232345] transition-colors"
               id="home-leaderboard-button"
             >
@@ -1231,68 +1243,6 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
           </div>
         )}
 
-        {/* Learn More modal: modal dependency syndrome, cards within cards */}
-        {showLearnMore && !isPlaying && (
-          <div
-            className="absolute inset-0 z-30 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 font-sans"
-            id="learn-more-modal"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="max-w-[340px] w-full max-h-full overflow-y-auto rounded-[24px] border-2 border-purple-500/50 bg-white/5 backdrop-blur-xl p-4 text-left shadow-[0_0_40px_rgba(139,92,246,0.4)] space-y-2.5">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-cyan-500 flex items-center justify-center shadow-[0_0_16px_rgba(139,92,246,0.7)]">
-                    <Sparkles className="w-4 h-4 text-white" />
-                  </div>
-                  <div>
-                    <div className="text-white text-xs font-black">About Your Flight Experience</div>
-                    <div className="text-[7px] font-mono text-cyan-300/70 uppercase tracking-widest">Powered by BirdOS Neural Engine</div>
-                  </div>
-                </div>
-                <button
-                  onClick={() => { audio.play('phone.modalClose'); setShowLearnMore(false); }}
-                  className="text-[#9a9a9a] hover:text-white transition-colors shrink-0"
-                  id="learn-more-close-x"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              <p className="text-[9px] text-[#9a9a9a] leading-relaxed">
-                Thank you for taking the time to learn more about your upcoming flight experience.
-                Flappy Something leverages next-generation bird-based intelligence to deliver a
-                fully optimized, deeply personalized vertical navigation journey.
-              </p>
-
-              {/* Card within card within card */}
-              <div className="rounded-2xl bg-white/5 border border-white/10 p-2.5 space-y-2">
-                <div className="text-[8px] font-bold text-purple-300 uppercase tracking-wider">Platform Reliability Card</div>
-                <div className="rounded-xl bg-black/30 border border-white/10 p-2 flex items-center justify-between">
-                  <span className="text-[8px] text-[#8a8a8a] font-mono">NEURAL UPTIME</span>
-                  <span className="text-[10px] font-black text-cyan-300">99.99%</span>
-                </div>
-                <div className="rounded-xl bg-black/30 border border-white/10 p-2 flex items-center justify-between">
-                  <span className="text-[8px] text-[#8a8a8a] font-mono">FLAP LATENCY</span>
-                  <span className="text-[10px] font-black text-emerald-300">12ms</span>
-                </div>
-              </div>
-
-              <p className="text-[8px] text-[#777777] leading-relaxed italic">
-                Please note that individual flight results may vary. Continued flapping constitutes
-                acceptance of our Intelligent Flight Terms.
-              </p>
-
-              <button
-                onClick={() => { audio.play('phone.modalClose'); setShowLearnMore(false); }}
-                className="w-full py-2 rounded-[24px] bg-gradient-to-r from-purple-600 to-cyan-500 text-white text-[9px] font-black uppercase tracking-wider shadow-[0_0_18px_rgba(139,92,246,0.5)]"
-                id="learn-more-close"
-              >
-                I Understand, Thank You For Reading
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* Cheap emoji results screen after death: score first, everything else second */}
         {showResults && !showLeaderboard && (
           <div className="absolute inset-0 bg-[#0a0a12] flex flex-col items-center justify-center gap-1.5 p-4 text-center font-sans" id="game-results-panel">
@@ -1318,12 +1268,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
                 🔁 TRY AGAIN!!
               </button>
               <button
-                onClick={() => {
-                  audio.play('leaderboard.open');
-                  setShowLeaderboard(true);
-                  updateProgress((prev) => ({ ...prev, seenLeaderboard: true }));
-                  if (progress.deathsAt40 >= 1) onLeaderboardOpened();
-                }}
+                onClick={openLeaderboard}
                 className="px-5 py-2 rounded-xl bg-[#1a1a2e] border border-purple-500/40 text-purple-200 text-xs font-black tracking-wide hover:bg-[#232345] transition-colors"
                 id="results-leaderboard"
               >
@@ -1342,7 +1287,8 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
             beatPercentage={beatPercentage}
             onRetry={restartRun}
             onClose={() => { audio.play('ui.close'); setShowLeaderboard(false); }}
-            onInvestigate={onHome}
+            suspiciousRunsEnabled={progress.deathsAt40 >= 1}
+            onSuspiciousRunSelected={enterMetaFromRun}
           />
         )}
       </div>

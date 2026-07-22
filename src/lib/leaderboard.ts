@@ -52,3 +52,6 @@ export const calculateBeatPercentage = (playerBestScore: number): number => {
   if (score < 184) return Number((97 + ((score - 40) / 144) * 2.8).toFixed(1));
   return 99.99;
 };
+
+export const isSuspiciousLeaderboardEntry = (entry: PublicLeaderboardEntry): boolean =>
+  entry.rank <= 6 && entry.kind !== 'player';

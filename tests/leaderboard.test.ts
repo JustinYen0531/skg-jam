@@ -1,7 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
-import { calculateBeatPercentage, createPublicLeaderboard } from '../src/lib/leaderboard';
+import {
+  calculateBeatPercentage,
+  createPublicLeaderboard,
+  isSuspiciousLeaderboardEntry,
+} from '../src/lib/leaderboard';
 
 test('public leaderboard is long, sorted, and dominated by anonymous visitors near score 40', () => {
   const entries = createPublicLeaderboard(40);
@@ -20,6 +24,29 @@ test('player row uses the exact best score and receives its sorted rank', () => 
 
   assert.equal(player?.score, 52);
   assert.equal(player?.rank, 3);
+});
+
+test('the six anomalous top runs are the only leaderboard story entry points', () => {
+  const entries = createPublicLeaderboard(40);
+  const suspicious = entries.filter(isSuspiciousLeaderboardEntry);
+
+  assert.equal(suspicious.length, 6);
+  assert.deepEqual(suspicious.map((entry) => entry.rank), [1, 2, 3, 4, 5, 6]);
+  assert.ok(suspicious.every((entry) => entry.score > 40));
+
+  const panelSource = readFileSync(new URL('../src/components/LeaderboardPanel.tsx', import.meta.url), 'utf8');
+  assert.match(panelSource, /data-suspicious-run="true"/);
+  assert.match(panelSource, /Game <span[^>]*>Quest<\/span>ing,/);
+  assert.match(panelSource, /<span[^>]*>Quest<\/span>ioning Game/);
+  assert.doesNotMatch(panelSource, /INVESTIGATE/);
+});
+
+test('the cheap landing page uses a non-functional premium unlock instead of Learn More', () => {
+  const flappySource = readFileSync(new URL('../src/components/FlappyGame.tsx', import.meta.url), 'utf8');
+
+  assert.match(flappySource, /id="premium-unlock-button"/);
+  assert.match(flappySource, /<Zap[^>]*\/> Unlock/);
+  assert.doesNotMatch(flappySource, /Learn More|learn-more-modal/);
 });
 
 test('public leaderboard does not reveal the hidden Noah overflow record', () => {

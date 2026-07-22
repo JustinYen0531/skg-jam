@@ -880,3 +880,11 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Chapter 8 now begins inside the restored archive index and advances only when the player opens the Mara Kade and Noah Kade private thread; Chapters 9–10 keep their existing boundaries.
 - Removed the premature full `184-40-256` string from the Chapter 4 screenshot pile and replaced it with the old `SilverKite_Games` backup-account clue.
 - Static verification passed: focused tests 40/40 and full tests 192/192 on the clean delivery tree, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.
+
+## 2026-07-22 — Player-chosen leaderboard reveal and formal title
+
+- Opening the leaderboard now only records that it was seen; it no longer unlocks Meta by itself.
+- After the Gate 40 condition, the anomalous top six runs become subtly highlighted, accessible buttons.
+- Selecting any of those runs plays the fullscreen title `Game Questing, Questioning Game`, then returns to the phone home screen and unlocks Meta.
+- Removed the explicit leaderboard investigation callout and replaced the landing-page Learn More modal with a deliberately inert gold `UNLOCK` upsell.
+- Updated the North Star title and prologue handoff. Verification remains static-only per project instructions.

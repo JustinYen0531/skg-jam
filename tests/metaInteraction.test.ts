@@ -21,15 +21,19 @@ import {
   shouldShowMetaScene,
 } from '../src/lib/metaInteraction';
 
-test('meta camera reveal requires the first Gate 40 death and an opened leaderboard', () => {
+test('meta camera reveal requires the first Gate 40 death and a selected suspicious run', () => {
   assert.equal(shouldRevealMetaView(0, true), false);
   assert.equal(shouldRevealMetaView(1, false), false);
   assert.equal(shouldRevealMetaView(1, true), true);
   assert.equal(shouldRevealMetaView(2, true), true);
 
   const flappySource = readFileSync(new URL('../src/components/FlappyGame.tsx', import.meta.url), 'utf8');
-  assert.match(flappySource, /progress\.deathsAt40 >= 1\) onLeaderboardOpened\(\)/);
-  assert.doesNotMatch(flappySource, /progress\.deathsAt40 >= 2\) onLeaderboardOpened\(\)/);
+  const leaderboardSource = readFileSync(new URL('../src/components/LeaderboardPanel.tsx', import.meta.url), 'utf8');
+  const openLeaderboardBody = flappySource.match(/const openLeaderboard = \(\) => \{([\s\S]*?)\n  \};/)?.[1] ?? '';
+
+  assert.doesNotMatch(openLeaderboardBody, /onSuspiciousRunSelected/);
+  assert.match(flappySource, /suspiciousRunsEnabled=\{progress\.deathsAt40 >= 1\}/);
+  assert.match(leaderboardSource, /window\.setTimeout\(onSuspiciousRunSelected, 2200\)/);
 });
 
 test('developer chapter tools preview the meta scene without changing the story unlock rule', () => {

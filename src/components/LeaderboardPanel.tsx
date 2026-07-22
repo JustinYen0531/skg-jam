@@ -1,7 +1,8 @@
-import React, { useEffect, useRef } from 'react';
-import { Crown, RefreshCw, Sparkles, Trophy, X, Zap } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Crown, RefreshCw, Sparkles, Trophy, X } from 'lucide-react';
+import { motion } from 'motion/react';
 import audio from '../lib/audio';
-import type { PublicLeaderboardEntry } from '../lib/leaderboard';
+import { isSuspiciousLeaderboardEntry, type PublicLeaderboardEntry } from '../lib/leaderboard';
 
 interface LeaderboardPanelProps {
   entries: PublicLeaderboardEntry[];
@@ -9,7 +10,8 @@ interface LeaderboardPanelProps {
   beatPercentage: number;
   onRetry: () => void;
   onClose: () => void;
-  onInvestigate: () => void;
+  suspiciousRunsEnabled: boolean;
+  onSuspiciousRunSelected: () => void;
 }
 
 const rankLabel = (rank: number) => `#${String(rank).padStart(2, '0')}`;
@@ -20,12 +22,20 @@ export const LeaderboardPanel: React.FC<LeaderboardPanelProps> = ({
   beatPercentage,
   onRetry,
   onClose,
-  onInvestigate,
+  suspiciousRunsEnabled,
+  onSuspiciousRunSelected,
 }) => {
   const listRef = useRef<HTMLDivElement | null>(null);
   const mountedAtRef = useRef(0);
   const seenRowsRef = useRef(new Set<string>());
   const lastPercentRef = useRef(beatPercentage);
+  const [selectedRun, setSelectedRun] = useState<PublicLeaderboardEntry | null>(null);
+
+  useEffect(() => {
+    if (!selectedRun) return;
+    const timer = window.setTimeout(onSuspiciousRunSelected, 2200);
+    return () => window.clearTimeout(timer);
+  }, [selectedRun, onSuspiciousRunSelected]);
 
   // §4.2 rowPass: only your own row and story rows announce themselves as
   // they scroll into view; the anonymous filler stays silent.
@@ -120,24 +130,27 @@ export const LeaderboardPanel: React.FC<LeaderboardPanelProps> = ({
           const isPlayer = entry.kind === 'player';
           const isFeatured = entry.kind === 'featured';
           const isNamed = entry.kind === 'named';
+          const isSuspicious = suspiciousRunsEnabled && isSuspiciousLeaderboardEntry(entry);
+          const rowClassName = `relative grid grid-cols-[44px_1fr_58px] items-center min-h-9 w-full px-2.5 py-1.5 border-b text-[10px] ${
+            isPlayer
+              ? 'sticky top-0 bottom-0 z-10 border-cyan-300/40 bg-gradient-to-r from-cyan-500/25 via-violet-500/20 to-fuchsia-500/20 shadow-[0_0_18px_rgba(34,211,238,0.18)]'
+              : isFeatured
+                ? 'border-amber-300/30 bg-gradient-to-r from-amber-400/15 to-fuchsia-500/10'
+                : 'border-white/[0.05] odd:bg-white/[0.025]'
+          } ${isSuspicious ? 'cursor-pointer overflow-hidden text-left shadow-[inset_0_0_12px_rgba(139,92,246,0.09)] transition-[filter,background-color] duration-200 hover:brightness-125 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-cyan-300/80' : ''}`;
 
-          return (
-            <div
-              key={entry.id}
-              className={`grid grid-cols-[44px_1fr_58px] items-center min-h-9 px-2.5 py-1.5 border-b text-[10px] ${
-                isPlayer
-                  ? 'sticky top-0 bottom-0 z-10 border-cyan-300/40 bg-gradient-to-r from-cyan-500/25 via-violet-500/20 to-fuchsia-500/20 shadow-[0_0_18px_rgba(34,211,238,0.18)]'
-                  : isFeatured
-                    ? 'border-amber-300/30 bg-gradient-to-r from-amber-400/15 to-fuchsia-500/10'
-                    : 'border-white/[0.05] odd:bg-white/[0.025]'
-              }`}
-              data-entry-kind={entry.kind}
-              data-row-key={entry.id}
-            >
-              <span className={`font-mono font-black ${isFeatured ? 'text-amber-300' : isPlayer ? 'text-cyan-300' : 'text-slate-500'}`}>
+          const rowContent = (
+            <>
+              {isSuspicious && (
+                <span
+                  className="pointer-events-none absolute inset-y-1 left-0 w-0.5 rounded-full bg-cyan-200/70 shadow-[0_0_8px_rgba(103,232,249,0.9)] animate-pulse"
+                  aria-hidden="true"
+                />
+              )}
+              <span className={`relative font-mono font-black ${isFeatured ? 'text-amber-300' : isPlayer ? 'text-cyan-300' : 'text-slate-500'}`}>
                 {rankLabel(entry.rank)}
               </span>
-              <div className="flex items-center gap-1.5 min-w-0">
+              <div className="relative flex items-center gap-1.5 min-w-0">
                 <span className={`w-5 h-5 rounded-full shrink-0 flex items-center justify-center text-[7px] font-black ${
                   isPlayer ? 'bg-cyan-300 text-slate-950' : isFeatured ? 'bg-amber-300 text-slate-950' : isNamed ? 'bg-violet-500/30 text-violet-200' : 'bg-slate-800 text-slate-500'
                 }`}>
@@ -147,14 +160,46 @@ export const LeaderboardPanel: React.FC<LeaderboardPanelProps> = ({
                 {isPlayer && <span className="text-[7px] px-1 py-0.5 rounded bg-cyan-300 text-slate-950 font-black">LIVE BEST</span>}
                 {isFeatured && <span className="text-[7px] px-1 py-0.5 rounded bg-amber-300/15 border border-amber-300/25 text-amber-200 font-black">TRENDING</span>}
               </div>
-              <span className={`text-right text-sm font-black tabular-nums ${isPlayer ? 'text-cyan-200' : isFeatured ? 'text-amber-300' : 'text-white'}`}>{entry.score}</span>
+              <span className={`relative text-right text-sm font-black tabular-nums ${isPlayer ? 'text-cyan-200' : isFeatured ? 'text-amber-300' : isSuspicious ? 'text-violet-100 drop-shadow-[0_0_5px_rgba(196,181,253,0.8)]' : 'text-white'}`}>{entry.score}</span>
+            </>
+          );
+
+          if (isSuspicious) {
+            return (
+              <button
+                type="button"
+                key={entry.id}
+                className={rowClassName}
+                data-entry-kind={entry.kind}
+                data-row-key={entry.id}
+                data-suspicious-run="true"
+                aria-label={`Open rank ${entry.rank} run by ${entry.name}`}
+                onClick={() => {
+                  if (selectedRun) return;
+                  audio.play('ui.primaryTap');
+                  setSelectedRun(entry);
+                }}
+              >
+                {rowContent}
+              </button>
+            );
+          }
+
+          return (
+            <div
+              key={entry.id}
+              className={rowClassName}
+              data-entry-kind={entry.kind}
+              data-row-key={entry.id}
+            >
+              {rowContent}
             </div>
           );
         })}
       </div>
     </div>
 
-    <div className="relative shrink-0 mx-3 mt-2 rounded-[18px] border border-fuchsia-400/25 bg-gradient-to-r from-violet-600/20 via-fuchsia-500/15 to-cyan-500/15 px-3 py-2">
+    <div className="relative shrink-0 mx-3 my-2 rounded-[18px] border border-fuchsia-400/25 bg-gradient-to-r from-violet-600/20 via-fuchsia-500/15 to-cyan-500/15 px-3 py-2">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
           <div className="flex items-center gap-1 text-[8px] font-black tracking-widest text-fuchsia-300"><Sparkles className="w-3 h-3" /> PERFORMANCE MIRACLE DETECTED</div>
@@ -166,19 +211,26 @@ export const LeaderboardPanel: React.FC<LeaderboardPanelProps> = ({
       </div>
     </div>
 
-    <div className="relative shrink-0 mx-3 my-2 rounded-xl border border-violet-400/25 bg-black/55 px-3 py-2 flex items-center justify-between gap-3" id="protagonist-monologue">
-      <div className="min-w-0">
-        <p className="text-[10px] italic text-violet-100 truncate">“Everyone stops near 40. ARC_184 has 184. That cannot be normal.”</p>
-        <p className="text-[8px] text-violet-400 mt-0.5">The replay may explain what the ranking refuses to.</p>
-      </div>
-      <button
-        onClick={onInvestigate}
-        className="min-h-8 px-3 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white text-[9px] font-black flex items-center gap-1 shrink-0 shadow-[0_0_14px_rgba(217,70,239,0.35)]"
-        id="go-investigate"
+    {selectedRun && (
+      <motion.div
+        className="absolute inset-0 z-50 flex items-center justify-center overflow-hidden bg-[#030309] text-center"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.35 }}
+        id="game-title-intro"
       >
-        <Zap className="w-3 h-3 fill-current" /> INVESTIGATE
-      </button>
-    </div>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.96, letterSpacing: '0.08em' }}
+          animate={{ opacity: 1, scale: 1, letterSpacing: '0.02em' }}
+          transition={{ delay: 0.25, duration: 0.85, ease: 'easeOut' }}
+          className="relative px-6 font-black uppercase leading-[0.9] text-white"
+        >
+          <div className="text-[clamp(1.7rem,6vw,4.5rem)]">Game <span className="text-cyan-300">Quest</span>ing,</div>
+          <div className="mt-2 text-[clamp(1.7rem,6vw,4.5rem)]"><span className="text-cyan-300">Quest</span>ioning Game</div>
+          <div className="mx-auto mt-6 h-px w-20 bg-gradient-to-r from-transparent via-cyan-300/80 to-transparent" />
+        </motion.div>
+      </motion.div>
+    )}
   </div>
   );
 };
