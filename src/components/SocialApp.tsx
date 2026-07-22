@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   ArrowDownAZ,
   ArrowUpAZ,
@@ -25,6 +25,16 @@ import {
   type ChapterSixComment,
   type ChapterSixPost,
 } from '../lib/chapterSixSocial';
+import {
+  CHAPTER_SIX_DIALOGUE,
+  getChapterSixAdDialogue,
+  getChapterSixCommentDialogue,
+  getChapterSixNoiseDialogue,
+  getChapterSixPostDialogue,
+  getChapterSixSearchDialogue,
+  type ChapterSixNoiseKind,
+} from '../lib/chapterSixDialogue';
+import type { DialogueLines } from '../lib/chapterOneDialogue';
 
 const FACESPACE_FEED = [
   { id: 'fs-1', author: 'Mina Liao', avatar: 'ML', time: '18 min', audience: 'Friends', content: 'The café recommendation algorithm sent me to the café I was already sitting in. Five stars for confidence.', reactions: 84, comments: 12, accent: 'from-rose-500 to-orange-400' },
@@ -45,9 +55,10 @@ interface SocialAppProps {
   progress: GameProgress;
   updateProgress: (updater: (prev: GameProgress) => GameProgress) => void;
   onMaraFound?: () => void;
+  onDialogue?: (lines: DialogueLines) => void;
 }
 
-const LeftSidebar: React.FC = () => (
+const LeftSidebar: React.FC<{ onInteract: (kind: ChapterSixNoiseKind) => void }> = ({ onInteract }) => (
   <aside className="w-[21%] min-w-[126px] shrink-0 space-y-2 overflow-y-auto rounded-xl border border-white/[0.06] bg-slate-950/70 p-2" id="social-left-sidebar">
     <div className="text-[8px] font-black uppercase tracking-[0.16em] text-slate-500">Your FaceSpace</div>
     {[
@@ -58,7 +69,7 @@ const LeftSidebar: React.FC = () => (
     ].map(([Icon, label, meta]) => {
       const ItemIcon = Icon as React.FC<{ className?: string }>;
       return (
-        <button key={label as string} type="button" onClick={() => audio.playTick()} className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left hover:bg-white/[0.05]">
+        <button key={label as string} type="button" onClick={() => { audio.playTick(); onInteract('left-sidebar'); }} className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left hover:bg-white/[0.05]">
           <ItemIcon className="h-3.5 w-3.5 shrink-0 text-blue-400" />
           <span className="min-w-0 flex-1 text-[9px] font-semibold text-slate-200">{label as string}</span>
           <span className="text-[7px] text-slate-600">{meta as string}</span>
@@ -67,36 +78,36 @@ const LeftSidebar: React.FC = () => (
     })}
     <div className="border-t border-white/[0.06] pt-2 text-[8px] font-black uppercase tracking-[0.14em] text-slate-500">People you may know</div>
     {FRIEND_NOISE.map(([avatar, name, mutual]) => (
-      <div key={name} className="flex items-center gap-2 rounded-lg bg-white/[0.025] p-2">
+      <button key={name} type="button" onClick={() => { audio.playTick(); onInteract('left-sidebar'); }} className="flex w-full items-center gap-2 rounded-lg bg-white/[0.025] p-2 text-left">
         <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-950 text-[8px] font-black">{avatar}</div>
         <div className="min-w-0">
           <div className="truncate text-[8.5px] font-bold">{name}</div>
           <div className="truncate text-[7px] text-slate-600">{mutual}</div>
         </div>
-      </div>
+      </button>
     ))}
   </aside>
 );
 
-const RightSidebar: React.FC = () => (
+const RightSidebar: React.FC<{ onInteract: (kind: ChapterSixNoiseKind) => void }> = ({ onInteract }) => (
   <aside className="w-[22%] min-w-[132px] shrink-0 space-y-2 overflow-y-auto rounded-xl border border-white/[0.06] bg-slate-950/70 p-2" id="social-right-sidebar">
     <div className="flex items-center justify-between text-[8px] font-black uppercase tracking-[0.15em] text-slate-500"><span>Trending</span><Globe2 className="h-3 w-3" /></div>
     {['#HarborviewFog', '#ArchiveWeekend', '#EndlessSummerAI'].map((tag, index) => (
-      <button key={tag} type="button" onClick={() => audio.playTick()} className="block w-full rounded-lg bg-white/[0.03] p-2 text-left">
+      <button key={tag} type="button" onClick={() => { audio.playTick(); onInteract('right-sidebar'); }} className="block w-full rounded-lg bg-white/[0.03] p-2 text-left">
         <div className="text-[8.5px] font-bold text-slate-300">{tag}</div>
         <div className="mt-0.5 text-[7px] text-slate-600">{[1300, 884, 40200][index].toLocaleString()} posts</div>
       </button>
     ))}
-    <div className="rounded-lg border border-fuchsia-400/20 bg-gradient-to-br from-fuchsia-950/70 to-cyan-950/50 p-2" id="social-sidebar-ad">
+    <button type="button" onClick={() => { audio.playTick(); onInteract('sidebar-ad'); }} className="w-full rounded-lg border border-fuchsia-400/20 bg-gradient-to-br from-fuchsia-950/70 to-cyan-950/50 p-2 text-left" id="social-sidebar-ad">
       <div className="text-[6.5px] font-black tracking-[0.18em] text-fuchsia-300">SPONSORED</div>
       <div className="mt-1 text-[9px] font-black text-white">AutoFriend Pro</div>
       <p className="mt-1 text-[7.5px] leading-relaxed text-slate-400">Never forget a birthday. Never remember one either.</p>
-    </div>
+    </button>
     <div className="text-[7px] leading-relaxed text-slate-700">Privacy · Terms · Automated memories · Ad choices · © 2026</div>
   </aside>
 );
 
-export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress, onMaraFound }) => {
+export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress, onMaraFound, onDialogue }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [hasSearched, setHasSearched] = useState(progress.discoveredMotherComment || progress.currentChapter >= 7);
   const [sortOldest, setSortOldest] = useState(false);
@@ -104,6 +115,26 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress, 
   const [searchError, setSearchError] = useState('');
   const [expandedComments, setExpandedComments] = useState<ReadonlySet<string>>(() => new Set());
   const [homeFeed] = useState(() => shuffleFeed(FACESPACE_FEED, createFeedSeed('facespace')));
+  const searchFocusShown = useRef(false);
+  const noiseAttempt = useRef(0);
+  const commentAttempt = useRef(0);
+  const adAttempts = useRef(new Map<string, number>());
+  const postAttempts = useRef(new Map<string, number>());
+
+  const speakChapterSix = (lines: DialogueLines) => {
+    if (progress.currentChapter === 6 && lines.length > 0) onDialogue?.(lines);
+  };
+
+  const handleNoiseInteraction = (kind: ChapterSixNoiseKind) => {
+    speakChapterSix(getChapterSixNoiseDialogue(kind, noiseAttempt.current));
+    noiseAttempt.current += 1;
+  };
+
+  const handleSearchFocus = () => {
+    if (searchFocusShown.current) return;
+    searchFocusShown.current = true;
+    speakChapterSix(CHAPTER_SIX_DIALOGUE.searchFocused);
+  };
 
   const handleSearch = (event: React.FormEvent) => {
     event.preventDefault();
@@ -118,9 +149,14 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress, 
       setSearchError('');
       setHasSearched(true);
       setActiveTab('posts');
+      speakChapterSix([
+        CHAPTER_SIX_DIALOGUE.profileLoaded[0],
+        CHAPTER_SIX_DIALOGUE.sponsoredWallVisible[0],
+      ]);
       return;
     }
     setSearchError(query ? `No profiles found for “${searchQuery.trim()}”.` : 'Enter a name to search FaceSpace.');
+    speakChapterSix(getChapterSixSearchDialogue(searchQuery));
   };
 
   const toggleSort = () => {
@@ -128,16 +164,35 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress, 
     audio.play('social.sort', { variant: next ? 1 : 0 });
     setSortOldest(next);
     setExpandedComments(new Set());
+    speakChapterSix(next ? CHAPTER_SIX_DIALOGUE.sortedOldest : CHAPTER_SIX_DIALOGUE.sortedSponsored);
   };
 
-  const toggleComments = (postId: string) => {
+  const toggleComments = (post: ChapterSixPost) => {
     audio.play('phone.tab');
+    const opening = !expandedComments.has(post.id);
+    if (opening) {
+      const containsMara = post.comments.some((comment) => comment.clue === 'mara-kade');
+      const attempt = postAttempts.current.get(post.id) ?? 0;
+      speakChapterSix(containsMara
+        ? getChapterSixCommentDialogue(true, commentAttempt.current++)
+        : attempt === 0
+          ? getChapterSixPostDialogue(post.id, attempt)
+          : getChapterSixCommentDialogue(false, commentAttempt.current++));
+      postAttempts.current.set(post.id, attempt + 1);
+    }
     setExpandedComments((current) => {
       const next = new Set(current);
-      if (next.has(postId)) next.delete(postId);
-      else next.add(postId);
+      if (next.has(post.id)) next.delete(post.id);
+      else next.add(post.id);
       return next;
     });
+  };
+
+  const handleAdInteraction = (adId: string) => {
+    audio.playTick();
+    const attempt = adAttempts.current.get(adId) ?? 0;
+    speakChapterSix(getChapterSixAdDialogue(adId, attempt));
+    adAttempts.current.set(adId, attempt + 1);
   };
 
   const handleComment = (comment: ChapterSixComment) => {
@@ -166,7 +221,7 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress, 
         <p className="py-2 text-[10px] leading-relaxed text-slate-200">{post.content}</p>
         <div className="flex items-center justify-between border-t border-slate-800 pt-2 text-[8px] text-slate-500">
           <span><Heart className="mr-1 inline h-3 w-3 text-rose-500" />{post.likes}</span>
-          <button type="button" onClick={() => toggleComments(post.id)} className="flex items-center gap-1 rounded px-1.5 py-1 font-bold text-slate-400 hover:bg-white/[0.05] hover:text-white" aria-expanded={commentsOpen} data-comment-toggle={post.id}>
+          <button type="button" onClick={() => toggleComments(post)} className="flex items-center gap-1 rounded px-1.5 py-1 font-bold text-slate-400 hover:bg-white/[0.05] hover:text-white" aria-expanded={commentsOpen} data-comment-toggle={post.id}>
             <MessageCircle className="h-3 w-3" /> {commentsOpen ? 'Hide' : 'View'} {post.comments.length} comments
             <ChevronDown className={`h-3 w-3 transition-transform ${commentsOpen ? 'rotate-180' : ''}`} />
           </button>
@@ -199,7 +254,7 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress, 
       <header className="flex shrink-0 items-center gap-3 border-b border-blue-700/50 bg-blue-600 px-3 py-2" id="social-header">
         <div className="flex items-center gap-1.5 font-display text-base font-black tracking-tight text-white"><span className="rounded bg-white px-1.5 py-0.5 text-xs text-blue-600">f</span>FaceSpace</div>
         <form onSubmit={handleSearch} className="relative mx-auto w-[48%] max-w-[360px]">
-          <input id="social-search-input" value={searchQuery} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search people" className="w-full rounded-full border border-blue-400/30 bg-blue-950/35 px-3 py-1.5 pr-8 text-[10px] text-white placeholder-blue-200/70 outline-none focus:border-white/50" />
+          <input id="social-search-input" value={searchQuery} onFocus={handleSearchFocus} onChange={(event) => setSearchQuery(event.target.value)} placeholder="Search people" className="w-full rounded-full border border-blue-400/30 bg-blue-950/35 px-3 py-1.5 pr-8 text-[10px] text-white placeholder-blue-200/70 outline-none focus:border-white/50" />
           <button id="social-search-submit" type="submit" className="absolute right-2.5 top-1.5 text-blue-200"><Search className="h-3.5 w-3.5" /></button>
         </form>
         <div className="flex items-center gap-1.5 text-blue-100"><Bell className="h-4 w-4" /><UserRound className="h-4 w-4" /></div>
@@ -208,7 +263,7 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress, 
       {searchError && <div className="shrink-0 border-b border-amber-400/20 bg-amber-950/35 px-3 py-1.5 text-center text-[8px] text-amber-200" id="social-search-error">{searchError}</div>}
 
       <div className="flex min-h-0 flex-1 gap-2 p-2" id="social-three-column-layout">
-        <LeftSidebar />
+        <LeftSidebar onInteract={handleNoiseInteraction} />
         <main className="min-w-0 flex-1 overflow-y-auto overscroll-contain" id="social-primary-column">
           {!hasSearched ? (
             <div className="mx-auto max-w-[540px] space-y-3" id="social-home-feed">
@@ -217,7 +272,7 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress, 
               </section>
               <div className="flex items-center justify-between px-1"><span className="text-[10px] font-black">Top stories</span><span className="text-[7px] font-mono text-slate-600">PERSONALIZED · PROBABLY</span></div>
               {homeFeed.map((post) => (
-                <article key={post.id} className="overflow-hidden rounded-xl border border-slate-800 bg-slate-950">
+                <article key={post.id} onClick={() => handleNoiseInteraction('home-feed')} className="overflow-hidden rounded-xl border border-slate-800 bg-slate-950">
                   <div className="flex items-start gap-2 p-2.5"><div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br ${post.accent} text-[8px] font-black`}>{post.avatar}</div><div className="min-w-0 flex-1"><div className="truncate text-[9px] font-bold">{post.author}</div><div className="text-[7px] text-slate-600">{post.time} · {post.audience}</div></div><MoreHorizontal className="h-4 w-4 text-slate-700" /></div>
                   <p className="px-2.5 pb-2.5 text-[9px] leading-relaxed text-slate-300">{post.content}</p>
                   <div className={`h-14 bg-gradient-to-br ${post.accent} opacity-75`} />
@@ -247,7 +302,7 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress, 
                       <article key={entry.id} className="overflow-hidden rounded-xl border border-fuchsia-400/25 bg-gradient-to-br from-fuchsia-950/75 via-slate-950 to-cyan-950/60 p-3" data-skg-automation-ad={entry.id}>
                         <div className="flex items-center justify-between text-[7px] font-black tracking-[0.16em] text-fuchsia-300"><span>SKG AUTOMATION · SPONSORED</span><Settings2 className="h-3 w-3" /></div>
                         <h3 className="mt-2 text-[12px] font-black text-white">{entry.headline}</h3><p className="mt-1 text-[8.5px] leading-relaxed text-slate-400">{entry.body}</p>
-                        <div className="mt-2 flex items-center justify-between border-t border-white/[0.08] pt-2 text-[7.5px]"><span className="text-cyan-300">{entry.metric}</span><button type="button" onClick={() => audio.playTick()} className="rounded bg-fuchsia-500 px-2 py-1 font-black text-white">AUTOMATE NOW</button></div>
+                        <div className="mt-2 flex items-center justify-between border-t border-white/[0.08] pt-2 text-[7.5px]"><span className="text-cyan-300">{entry.metric}</span><button type="button" onClick={() => handleAdInteraction(entry.id)} className="rounded bg-fuchsia-500 px-2 py-1 font-black text-white">AUTOMATE NOW</button></div>
                       </article>
                     ))}
                   </div>
@@ -262,7 +317,7 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress, 
             </div>
           )}
         </main>
-        <RightSidebar />
+        <RightSidebar onInteract={handleNoiseInteraction} />
       </div>
     </div>
   );

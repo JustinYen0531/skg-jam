@@ -43,6 +43,12 @@ import {
   getChapterFiveWrongAppDialogue,
 } from '../lib/chapterFiveDialogue';
 import {
+  CHAPTER_SIX_DIALOGUE,
+  getChapterSixCompanionDialogue,
+  getChapterSixWrongAppDialogue,
+} from '../lib/chapterSixDialogue';
+import type { DialogueLines } from '../lib/chapterOneDialogue';
+import {
   getChapterPhoneSignals,
   type PhoneLauncherApp,
 } from '../lib/chapterPhoneSignals';
@@ -150,6 +156,9 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   const chapterFourHomeAttempt = useRef(0);
   const chapterFiveAppAttempt = useRef(0);
   const chapterFiveHomeAttempt = useRef(0);
+  const chapterSixAppAttempt = useRef(0);
+  const chapterSixHomeAttempt = useRef(0);
+  const chapterSixProfileShown = useRef(false);
   const reminderListRef = useRef<HTMLDivElement>(null);
 
   // Chapter-advance transition: an "evidence collected" banner the moment a
@@ -279,7 +288,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
     if (app === 'messages' && chapterThreeOrderPhase !== 'idle') {
       setSellerMessageUnread(false);
     }
-    if ((progress.currentChapter === 1 || progress.currentChapter === 2 || progress.currentChapter === 3 || progress.currentChapter === 4 || progress.currentChapter === 5) && metaInteraction.active) {
+    if ((progress.currentChapter === 1 || progress.currentChapter === 2 || progress.currentChapter === 3 || progress.currentChapter === 4 || progress.currentChapter === 5 || progress.currentChapter === 6) && metaInteraction.active) {
       const dialogue = progress.currentChapter === 1
         ? (app === 'viewtube'
         ? CHAPTER_ONE_DIALOGUE.viewTubeOpened
@@ -300,14 +309,19 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
               ? (app === 'screenshots'
                 ? CHAPTER_FOUR_DIALOGUE.deliveriesOpened
                 : getChapterFourWrongAppDialogue(app, chapterFourAppAttempt.current))
-              : (app === 'browser'
-                ? CHAPTER_FIVE_DIALOGUE.browserOpened
-                : getChapterFiveWrongAppDialogue(app, chapterFiveAppAttempt.current));
+              : progress.currentChapter === 5
+                ? (app === 'browser'
+                  ? CHAPTER_FIVE_DIALOGUE.browserOpened
+                  : getChapterFiveWrongAppDialogue(app, chapterFiveAppAttempt.current))
+                : (app === 'social'
+                  ? CHAPTER_SIX_DIALOGUE.socialOpened
+                  : getChapterSixWrongAppDialogue(app, chapterSixAppAttempt.current));
       if (progress.currentChapter === 1 && app !== 'viewtube') chapterOneAppAttempt.current += 1;
       if (progress.currentChapter === 2 && app !== 'browser') chapterTwoAppAttempt.current += 1;
       if (progress.currentChapter === 3 && app !== 'amazemart') chapterThreeAppAttempt.current += 1;
       if (progress.currentChapter === 4 && app !== 'screenshots') chapterFourAppAttempt.current += 1;
       if (progress.currentChapter === 5 && app !== 'browser') chapterFiveAppAttempt.current += 1;
+      if (progress.currentChapter === 6 && app !== 'social') chapterSixAppAttempt.current += 1;
       if (chapterOneDialogueTimer.current) clearTimeout(chapterOneDialogueTimer.current);
       // Commit navigation first. Chapter 1 is the only chapter that also
       // updates the parent Meta dialogue on launch; separating those updates
@@ -417,6 +431,14 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
           : getChapterFiveCompanionDialogue(attempt - 1),
       );
       chapterFiveHomeAttempt.current += 1;
+    } else if (progress.currentChapter === 6 && metaInteraction.active) {
+      const attempt = chapterSixHomeAttempt.current;
+      metaInteraction.speak(
+        attempt === 0
+          ? CHAPTER_SIX_DIALOGUE.homeReturned
+          : getChapterSixCompanionDialogue(attempt - 1),
+      );
+      chapterSixHomeAttempt.current += 1;
     }
   };
 
@@ -426,6 +448,10 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
     if (page === 1 && !profilePageUnlocked) return;
     audio.play('phone.tab');
     setHomePage(page);
+    if (page === 1 && progress.currentChapter === 6 && metaInteraction.active && !chapterSixProfileShown.current) {
+      chapterSixProfileShown.current = true;
+      metaInteraction.speak(CHAPTER_SIX_DIALOGUE.profilePageOpened);
+    }
   };
 
   const handleHomeSwipeStart = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -442,10 +468,11 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   };
 
   const handleMaraFound = () => {
-    metaInteraction.speak([
-      'Mara Kade. That name feels familiar.',
-      'I have seen it somewhere. Back to Home—this phone may already know why.',
-    ]);
+    if (metaInteraction.active) metaInteraction.speak(CHAPTER_SIX_DIALOGUE.maraCommentSelected);
+  };
+
+  const handleChapterSixDialogue = (lines: DialogueLines) => {
+    if (progress.currentChapter === 6 && metaInteraction.active) metaInteraction.speak(lines);
   };
 
   const confirmMaraFamilyAccount = () => {
@@ -453,10 +480,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
     audio.play('narrative.clueEmphasis');
     setFamilyAccountConfirmed(true);
     updateProgress((prev) => completePuzzleChapter(prev, 6, { discoveredMotherComment: true }));
-    metaInteraction.speak([
-      'Mara Kade. My mother.',
-      'Noah was not just a developer I found. This was my family’s archive.',
-    ]);
+    if (metaInteraction.active) metaInteraction.speak(CHAPTER_SIX_DIALOGUE.completed);
   };
 
   const toggleDockUtility = (utility: DockUtility) => {
@@ -1340,7 +1364,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
               transition={{ duration: 0.22, ease: 'easeOut' }}
               className="absolute inset-0"
             >
-              <SocialApp progress={progress} updateProgress={updateProgress} onMaraFound={handleMaraFound} />
+              <SocialApp progress={progress} updateProgress={updateProgress} onMaraFound={handleMaraFound} onDialogue={handleChapterSixDialogue} />
             </motion.div>
           )}
 

@@ -849,3 +849,12 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Kept Reminders, weather, Agenda, migration status, page dots, and the five-item Dock visible while Arcane's profile and linked accounts are open.
 - Preserved the existing clue gate, horizontal swipe, Arcane identity reveal, linked-account expansion, and Mara-only Chapter 6 completion rule.
 - Static verification passed: focused tests 28/28 in both worktrees, full tests 184/184 on the clean delivery tree, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.
+
+## 2026-07-22 — Chapter 6 protagonist dialogue runtime
+
+- Added `chapterSixDialogue.ts` with restrained English dialogue for chapter entry, home/incorrect apps, FaceSpace search variants, feed and sidebar noise, six SKG Automation ads, date sorting, Noah posts, comment threads, Mara discovery, the embedded Arcane profile, and final family confirmation.
+- Adapted the draft to the current three-stage reveal: expanding the 2014 thread recognizes Mara, selecting her comment raises the device/child question and unlocks Home page two, and only confirming `Mara Kade · Mother` identifies Arcane as the child and Noah as his father.
+- Added static knowledge-boundary tests that forbid Chapter 7 coordinates/password material and the later ARC_184 identity reveal from Chapter 6 dialogue.
+- Wired the dialogue through `MetaInteractionScene`, `PhoneSimulator`, and `SocialApp` without changing any Chapter 6 progression gate.
+- Updated the original Chapter 6 dialogue specification to match the implemented runtime instead of trusting its obsolete comment-click completion point.
+- Static verification passed on the clean delivery tree: focused tests 32/32, full tests 188/188, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.
