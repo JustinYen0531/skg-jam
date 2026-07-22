@@ -1,0 +1,61 @@
+import { strict as assert } from 'node:assert';
+import { readFileSync } from 'node:fs';
+import { test } from 'node:test';
+import {
+  cluesRemaining,
+  hasAssembledCase,
+  REQUIRED_CLUE_IDS,
+  type LumenArcClueId,
+} from '../src/lib/lumenArcClues';
+
+test('the case only assembles once every required detail is found', () => {
+  assert.equal(REQUIRED_CLUE_IDS.length, 3);
+  const none = new Set<LumenArcClueId>();
+  assert.equal(hasAssembledCase(none), false);
+  assert.equal(cluesRemaining(none), 3);
+
+  const two = new Set<LumenArcClueId>(['title', 'params']);
+  assert.equal(hasAssembledCase(two), false);
+  assert.equal(cluesRemaining(two), 1);
+
+  const all = new Set<LumenArcClueId>(REQUIRED_CLUE_IDS);
+  assert.equal(hasAssembledCase(all), true);
+  assert.equal(cluesRemaining(all), 0);
+});
+
+test('the screenshot pile hides exactly three clues among many decoys', () => {
+  const source = readFileSync(new URL('../src/components/SavedScreenshots.tsx', import.meta.url), 'utf8');
+
+  // The player hunts a real pile, not a curated set of three.
+  const sheetKinds = source.match(/data-sheet-kind=\{sheet\.clueId \? 'clue' : 'decoy'\}/g) ?? [];
+  assert.equal(sheetKinds.length, 1); // rendered once in the map
+  const sheetIds = source.match(/^\s*id: '[a-z]+',$/gm) ?? [];
+  assert.ok(sheetIds.length >= 9, `expected at least 9 screenshots, found ${sheetIds.length}`);
+
+  // Exactly three sheets carry a clueId, one per required detail.
+  const clueSheets = source.match(/clueId: '(title|params|numbers)'/g) ?? [];
+  assert.equal(clueSheets.length, 3);
+  assert.match(source, /clueId: 'title'/);
+  assert.match(source, /clueId: 'params'/);
+  assert.match(source, /clueId: 'numbers'/);
+
+  // Each clue is a clickable, underlined word; decoys never render one.
+  assert.match(source, /data-clue-word=\{clueId\}/);
+  assert.match(source, /underline decoration-dotted/);
+});
+
+test('the viewer counts key details and only advances the chapter when assembled', () => {
+  const source = readFileSync(new URL('../src/components/SavedScreenshots.tsx', import.meta.url), 'utf8');
+
+  // A running n / 3 counter, shown per the requested progression.
+  assert.match(source, /KEY DETAILS · \$\{found\.size\}\/\$\{CLUE_SHEET_COUNT\}/);
+  assert.match(source, /CASE ASSEMBLED · 3\/3/);
+
+  // The advance is gated behind the assembled banner's Continue button, which
+  // completes chapter 4 — never the individual clue clicks.
+  assert.match(source, /\{assembled && \(/);
+  assert.match(source, /id="spec-continue-button"/);
+  assert.match(source, /completePuzzleChapter\(prev, 4, \{ discoveredOriginalTitle: true \}\)/);
+  // Finding a clue must not itself complete the chapter.
+  assert.doesNotMatch(source, /findClue[\s\S]{0,200}completePuzzleChapter/);
+});
