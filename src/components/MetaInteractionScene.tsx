@@ -668,7 +668,7 @@ const MetaFireplace: React.FC<{ reducedMotion: boolean }> = ({ reducedMotion }) 
 
   return (
     <div
-      className="pointer-events-none absolute left-1/2 top-[31%] z-[2] h-[17%] w-[18%] -translate-x-1/2"
+      className="pointer-events-none absolute left-1/2 top-[42%] z-[2] h-[17%] w-[18%] -translate-x-1/2"
       data-fireplace-intensity="maximum"
       id="meta-fireplace"
     >
@@ -1487,7 +1487,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
               animate={reducedMotion ? { opacity: 0.72 } : { opacity: [0.66, 0.78, 0.7] }}
               transition={reducedMotion ? { duration: 0 } : { duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
               className="pointer-events-none absolute inset-0 z-[3] mix-blend-screen"
-              style={{ background: 'radial-gradient(ellipse 82% 74% at 50% 42%, rgba(255,181,88,0.52) 0%, rgba(255,129,45,0.24) 38%, rgba(255,103,31,0.08) 68%, transparent 100%)' }}
+              style={{ background: 'radial-gradient(ellipse 82% 74% at 50% 50%, rgba(255,181,88,0.52) 0%, rgba(255,129,45,0.24) 38%, rgba(255,103,31,0.08) 68%, transparent 100%)' }}
               data-room-firelight="maximum-all-chapters"
               id="meta-room-firelight"
             />

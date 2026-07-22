@@ -207,6 +207,7 @@ test('maximum symbolic fireplace light illuminates every visible room chapter', 
     assert.ok(getMetaWallStage(chapter as keyof typeof CHAPTER_ENVIRONMENTS) > 0);
   }
   assert.match(sceneSource, /id="meta-fireplace"/);
+  assert.match(sceneSource, /left-1\/2 top-\[42%\] z-\[2\] h-\[17%\]/);
   assert.match(sceneSource, /data-fireplace-intensity="maximum"/);
   assert.match(sceneSource, /data-fireplace-local-glow="strong"/);
   assert.match(sceneSource, /<MetaFireplace reducedMotion=\{reducedMotion\} \/>/);

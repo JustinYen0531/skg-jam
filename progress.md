@@ -826,3 +826,9 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Added one broad warm room-light wash at fixed maximum intensity for every visible-room chapter (1–10), with gentle flicker and a stable reduced-motion state.
 - Chapter-based fading is intentionally deferred until a later request.
 - Static verification passed: focused tests 38/38, full tests 179/179, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.
+
+## 2026-07-22 — Fireplace position correction
+
+- Moved the complete flame group from 31% to 42% wall height so it sits inside the dark firebox instead of floating above the mantel.
+- Lowered the broad room-light origin with it while preserving the approved maximum intensity and flame size.
+- Static verification passed: focused tests 38/38, full tests 179/179, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.
