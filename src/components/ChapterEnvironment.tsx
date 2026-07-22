@@ -60,8 +60,8 @@ const CoffeeCup: React.FC<{
   const tipped = state === 'tipped-empty';
   const assetSource = COFFEE_ASSET_SOURCE[state];
   const positionClass = deviceResting
-    ? (pushedAway ? 'right-[4%] top-[66%] scale-[1.25]' : tipped ? 'right-[8%] top-[64%] scale-[1.4]' : 'right-[6%] top-[64%] scale-[1.35]')
-    : (pushedAway ? 'right-[2%] top-[78%] scale-[1.1]' : tipped ? 'right-[6%] top-[77%] scale-[1.25]' : 'right-[4%] top-[78%] scale-[1.2]');
+    ? (pushedAway ? 'right-[4%] top-[66%] scale-[2.5]' : tipped ? 'right-[8%] top-[64%] scale-[2.8]' : 'right-[6%] top-[64%] scale-[2.7]')
+    : (pushedAway ? 'right-[2%] top-[78%] scale-[2.2]' : tipped ? 'right-[6%] top-[77%] scale-[2.5]' : 'right-[4%] top-[78%] scale-[2.4]');
 
   // Position is anchored purely in CSS and eased with a CSS transition —
   // deliberately NOT Framer's `layout`. This desk layer sits inside an env

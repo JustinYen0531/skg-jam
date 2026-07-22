@@ -717,3 +717,7 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Reduced the upright and resting cup scales and anchored each posture near the visible desk edge; the transparent PNG canvas no longer magnifies its opaque cup bounds into the center of the device.
 - Kept the CSS-only transitions and the no-Framer-layout regression rule for all moving desk objects.
 - Browser verification remains intentionally omitted under the repository rule; focused environment tests, full static tests, TypeScript checks, production build, and diff checks are the acceptance boundary.
+
+## 2026-07-22 — Coffee scale adjustment
+
+- Doubled the approved desk-anchored coffee presentation in both postures while retaining its underlay depth behind the phone.

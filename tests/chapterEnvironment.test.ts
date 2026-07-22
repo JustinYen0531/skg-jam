@@ -125,8 +125,8 @@ test('the physical environment is display-only and does not mutate progress', ()
   const sceneSource = readFileSync(new URL('../src/components/MetaInteractionScene.tsx', import.meta.url), 'utf8');
   assert.doesNotMatch(environmentSource, /updateProgress|setProgress|GameProgress/);
   assert.match(environmentSource, /id="meta-desk-coffee"/);
-  assert.match(environmentSource, /deviceResting\s+\? \(pushedAway \? 'right-\[4%\] top-\[66%\] scale-\[1\.25\]' : tipped \? 'right-\[8%\] top-\[64%\] scale-\[1\.4\]' : 'right-\[6%\] top-\[64%\] scale-\[1\.35\]'\)/);
-  assert.match(environmentSource, /: \(pushedAway \? 'right-\[2%\] top-\[78%\] scale-\[1\.1\]' : tipped \? 'right-\[6%\] top-\[77%\] scale-\[1\.25\]' : 'right-\[4%\] top-\[78%\] scale-\[1\.2\]'\)/);
+  assert.match(environmentSource, /deviceResting\s+\? \(pushedAway \? 'right-\[4%\] top-\[66%\] scale-\[2\.5\]' : tipped \? 'right-\[8%\] top-\[64%\] scale-\[2\.8\]' : 'right-\[6%\] top-\[64%\] scale-\[2\.7\]'\)/);
+  assert.match(environmentSource, /: \(pushedAway \? 'right-\[2%\] top-\[78%\] scale-\[2\.2\]' : tipped \? 'right-\[6%\] top-\[77%\] scale-\[2\.5\]' : 'right-\[4%\] top-\[78%\] scale-\[2\.4\]'\)/);
   assert.match(environmentSource, /data-composition-offset=\{deviceResting \? 'resting-desk-right' : 'upright-desk-bottom'\}/);
   assert.match(environmentSource, /data-scene-depth="behind-device"/);
   assert.match(environmentSource, /deviceResting=\{deviceResting\}/);
