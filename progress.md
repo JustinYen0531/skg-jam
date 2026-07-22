@@ -1,5 +1,14 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-22 — Player-driven parcel scratch and paper-phone reveal
+
+- Replaced the high suspended box and `OPEN PARCEL` autoplay gate with a centered scratchable cardboard canvas; held pointer movement erases the cover along the real drag path and exposes the device underneath.
+- Added a restrained inspection-station frame, deterministic cardboard fibres, tape, label, live package-integrity meter, and contextual instructions for each interaction phase.
+- Added a second manual gate after the package is torn: the phone waits for a click, then follows horizontal drag input instead of rotating automatically.
+- Rebuilt the device as ten alternating paper-edge layers. Crossing the deliberate 58-degree inspection angle triggers the reveal, never elapsed time.
+- Added a brief jack-in-the-box jester sting and ten image cards that burst upward before drifting down into a loose pile.
+- Updated regression contracts for actual canvas erasure, manual inspection, angle gating, paper construction, jester sting, and top-to-bottom image drift. Focused tests, TypeScript, and diff checks pass; Browser and Preview remain intentionally unused.
+
 ## 2026-07-22 — Screenshot detail Back control
 
 - Added a visible `BACK` control below every enlarged Chapter 4 screenshot.

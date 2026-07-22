@@ -85,7 +85,7 @@ test('the Lumen Arc evidence must be found inside a normal delivery archive', ()
   assert.match(source, /id="delivery-back-to-archive"/);
 });
 
-test('the parcel waits for input before its enlarged solid collapses into images', () => {
+test('the parcel only reveals after scratching and angle-driven paper inspection', () => {
   const source = readFileSync(new URL('../src/components/SavedScreenshots.tsx', import.meta.url), 'utf8');
 
   assert.match(source, /import \{ LumenArcReveal \}/);
@@ -94,16 +94,23 @@ test('the parcel waits for input before its enlarged solid collapses into images
   assert.match(source, /<LumenArcReveal[\s\S]{0,400}setRevealPlaying\(false\);[\s\S]{0,300}CHAPTER_FOUR_DIALOGUE\.packageOpened/);
 
   const reveal = readFileSync(new URL('../src/components/LumenArcReveal.tsx', import.meta.url), 'utf8');
-  assert.match(reveal, /const \[started, setStarted\] = useState\(false\)/);
-  assert.match(reveal, /if \(!started\) return;/);
-  assert.match(reveal, /id="lumen-arc-open-parcel"/);
-  assert.match(reveal, /onPointerDown=\{\(event\) =>/);
-  assert.match(reveal, /if \(event\.detail === 0\) startReveal\(\)/);
-  assert.match(reveal, /data-meta-immediate="true"/);
-  assert.match(reveal, /data-package-stage-scale="1\.5"/);
-  assert.match(reveal, /scale-\[1\.5\]/);
+  assert.match(reveal, /type RevealPhase = 'scratch' \| 'phone-ready' \| 'inspect' \| 'burst' \| 'clear'/);
+  assert.match(reveal, /useState<RevealPhase>\('scratch'\)/);
+  assert.match(reveal, /id="lumen-arc-package-scratch-layer"/);
+  assert.match(reveal, /globalCompositeOperation = 'destination-out'/);
+  assert.match(reveal, /onPointerMove=\{\(event\) =>[\s\S]{0,240}scratchAt\(event\.clientX, event\.clientY\)/);
+  assert.match(reveal, /next >= SCRATCH_COMPLETE_AT[\s\S]{0,120}setPhase\('phone-ready'\)/);
+  assert.doesNotMatch(reveal, /OPEN PARCEL/);
+
+  assert.match(reveal, /id="lumen-arc-inspect-phone"/);
+  assert.match(reveal, /setPhase\('inspect'\)/);
+  assert.match(reveal, /delta \* 0\.42/);
+  assert.match(reveal, /Math\.abs\(next\) >= BURST_ANGLE/);
+  assert.match(reveal, /if \(phase !== 'burst'\) return;/);
+
   assert.match(reveal, /PHONE_DEPTH_LAYERS/);
-  assert.match(reveal, /'flatten',[\s\S]*'fall',[\s\S]*'impact',[\s\S]*'shatter'/);
-  assert.match(reveal, /data-phone-form=\{reached\('flatten'\) \? 'flat' : 'solid'\}/);
-  assert.equal((reveal.match(/\{ x: -?\d+, y: -?\d+, r: -?\d+ \}/g) ?? []).length, 10);
+  assert.match(reveal, /data-phone-material="stacked-paper"/);
+  assert.match(reveal, /data-jester-box-sting="true"/);
+  assert.match(reveal, /y: \[-10, image\.apexY, image\.finalY\]/);
+  assert.equal((reveal.match(/\{ apexX:/g) ?? []).length, 10);
 });
