@@ -813,3 +813,9 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Synchronized the Chapter 5 dialogue module and tests into the actual desktop runtime, then added only the missing Browser, Phone, and Meta wiring while preserving the desktop worktree's later camera and Controls changes.
 - Chapter 5 now reacts on direct debug entry, Browser launch, search focus/submission, seven decoy results, portal noise, corporate details, support bot replies, empty snapshot years, archived-page fragments, wrong apps, and all three Noah Kade references.
 - Static verification in the active desktop worktree passed: 177/177 tests, TypeScript lint, production build, and focused wiring checks. Browser and Preview remain intentionally unused.
+
+## 2026-07-22 — Resting desk upper-view adjustment
+
+- Kept the midpoint and two-thirds lower cap unchanged, while flattening and lowering only the top mouse-height endpoint so more of the fireplace remains visible.
+- Applied the same restrained retreat to resting desk objects to preserve their shared desk-plane perspective.
+- Static verification passed on the latest main: focused tests 38/38, full tests 178/178, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.

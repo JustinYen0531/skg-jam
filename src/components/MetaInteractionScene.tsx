@@ -694,10 +694,10 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     mass: 0.72,
   });
   const idleDeskTableScaleX = useTransform(idleDeskView, [0, 0.5, 1], [0.88, 1, 1.12]);
-  const idleDeskTableScaleY = useTransform(idleDeskView, [0, 0.5, 1], [0.75, 1, 1.35]);
-  const idleDeskTableY = useTransform(idleDeskView, [0, 0.5, 1], ['7%', '0%', '-9%']);
-  const idleDeskObjectScale = useTransform(idleDeskView, [0, 0.5, 1], [0.82, 1, 1.18]);
-  const idleDeskObjectY = useTransform(idleDeskView, [0, 0.5, 1], ['7%', '0%', '-8%']);
+  const idleDeskTableScaleY = useTransform(idleDeskView, [0, 0.5, 1], [0.68, 1, 1.35]);
+  const idleDeskTableY = useTransform(idleDeskView, [0, 0.5, 1], ['10%', '0%', '-9%']);
+  const idleDeskObjectScale = useTransform(idleDeskView, [0, 0.5, 1], [0.78, 1, 1.18]);
+  const idleDeskObjectY = useTransform(idleDeskView, [0, 0.5, 1], ['10%', '0%', '-8%']);
   const [pointer, setPointer] = useState<PointerPosition>({ x: 0, y: 0 });
   const [pressed, setPressed] = useState(false);
   const [interactionPending, setInteractionPending] = useState(false);

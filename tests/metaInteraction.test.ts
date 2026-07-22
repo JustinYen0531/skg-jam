@@ -162,8 +162,8 @@ test('rest posture lays down the phone and swaps the grip for desk-plane hands',
   assert.match(scene, /transformOrigin: '75% 100%'/);
   assert.match(scene, /scaleX: 0\.36, scaleY: 0\.72, y: '-1%'/);
   assert.match(scene, /data-desk-perspective=\{deviceResting \? 'mouse-depth-trapezoid' : 'raised-front-edge'\}/);
-  assert.match(scene, /idleDeskTableScaleY = useTransform\(idleDeskView, \[0, 0\.5, 1\], \[0\.75, 1, 1\.35\]\)/);
-  assert.match(scene, /idleDeskTableY = useTransform\(idleDeskView, \[0, 0\.5, 1\], \['7%', '0%', '-9%'\]\)/);
+  assert.match(scene, /idleDeskTableScaleY = useTransform\(idleDeskView, \[0, 0\.5, 1\], \[0\.68, 1, 1\.35\]\)/);
+  assert.match(scene, /idleDeskTableY = useTransform\(idleDeskView, \[0, 0\.5, 1\], \['10%', '0%', '-9%'\]\)/);
   assert.equal((scene.match(/restingView=\{idleDeskView\}/g) ?? []).length, 2);
   assert.match(scene, /id="meta-resting-hands-perspective"/);
   assert.match(scene, /data-resting-hand-camera=\{deviceResting \? 'shared-mouse-depth' : 'inactive'\}/);
