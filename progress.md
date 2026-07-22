@@ -772,3 +772,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 ## 2026-07-22 — Coffee foreground correction
 
 - Restored the coffee cup as an intentional foreground totem over the phone surface and changed its primary upright scale from 1.2x to the user-approved 1.8x (1.5x), with matching proportional variants.
+
+## 2026-07-22 — Chapter 5 archived-name hunt
+
+- Hid the Snapshot reel everywhere except the opened SKG site and kept its initial position at 2026.
+- Made every unpreserved year from 2009 onward land on an explicit `NO SCREENSHOT AVAILABLE` state; reaching the real 2014 capture no longer completes the chapter.
+- Added three independently tracked, visibly underlined Noah Kade references in the preserved page body. The 2013 dated byline is intentionally non-interactive, and only recovering all three body references advances to Chapter 6.
+- Static verification passed on the clean delivery tree: 169/169 tests, TypeScript lint, production build, and focused diff checks; Browser and Preview remain intentionally unused.

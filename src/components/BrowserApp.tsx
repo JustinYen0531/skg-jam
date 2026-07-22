@@ -58,6 +58,9 @@ const ARC_BOT_REPLIES = {
   freeform: "I've escalated this to a human specialist. (No human specialists are currently, or ever, scheduled.) Your request has been archived. It will be processed never.",
 } as const;
 
+const NOAH_TRACE_IDS = ['studio-credit', 'developer-note', 'cofounder-credit'] as const;
+type NoahTraceId = (typeof NOAH_TRACE_IDS)[number];
+
 interface BrowserAppProps {
   progress: GameProgress;
   updateProgress: (updater: (prev: GameProgress) => GameProgress) => void;
@@ -81,6 +84,9 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
   const [botOpen, setBotOpen] = useState(false);
   const [botReply, setBotReply] = useState('');
   const [botInput, setBotInput] = useState('');
+  const [foundNoahTraces, setFoundNoahTraces] = useState<NoahTraceId[]>(
+    progress.discoveredSKGHistory ? [...NOAH_TRACE_IDS] : [],
+  );
   const chapterTwoSearchAttempt = useRef(0);
   const portalDistractionAttempt = useRef(0);
   const chapterTwoLandingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -101,6 +107,11 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
     };
   }, [archiveFinderOpen, metaInteraction.active, metaInteraction.speak, progress.currentChapter, searchedKeyword]);
 
+  useEffect(() => {
+    if (progress.discoveredSKGHistory) setFoundNoahTraces([...NOAH_TRACE_IDS]);
+    else if (progress.currentChapter === 5) setFoundNoahTraces([]);
+  }, [progress.currentChapter, progress.discoveredSKGHistory]);
+
   const speakChapterTwo = (lines: readonly string[]) => {
     if (progress.currentChapter === 2 && metaInteraction.active) metaInteraction.speak(lines);
   };
@@ -119,6 +130,7 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
     setViewingSkgSite(true);
     setSearchedKeyword('skg');
     setSelectedYear(2026);
+    setScrubYear(2026);
     setAddressBar('http://www.skg-automation.com');
   };
 
@@ -165,6 +177,8 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
     setViewingSkgSite(false);
     setArchiveFinderOpen(false);
     setSearchedKeyword(query);
+    setSelectedYear(2026);
+    setScrubYear(2026);
     setAddressBar(`https://www.searchfinder.com?q=${encodeURIComponent(query)}`);
   };
 
@@ -174,16 +188,11 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
     setSelectedYear(year);
     if (viewingSkgSite) {
       setAddressBar(year === 2026 ? 'http://www.skg-automation.com' : 'http://web.archive.org/web/2014/silverkitegames.com');
-      if (year === 2014) {
-        updateProgress((prev) => completePuzzleChapter(prev, 5, { discoveredSKGHistory: true }));
-      }
     }
   };
 
-  // Dragging the reel only "lands" at either end — 2026 (current) or 2014
-  // (archive). Every year in between is dead static: the label ticks past it
-  // but nothing underneath changes. The player has to drag all the way, not
-  // just tap a toggle.
+  // The reel begins in 2026. The preserved 2014 capture is the only old page;
+  // every other year deliberately lands on an empty archive response.
   const handleScrub = (year: number) => {
     setScrubYear(year);
     if (year === selectedYear) return;
@@ -191,7 +200,42 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
       handleYearChange(year);
     } else {
       audio.play('leaderboard.rowPass');
+      setSelectedYear(year);
+      setAddressBar(`http://web.archive.org/web/${year}/silverkitegames.com`);
     }
+  };
+
+  const handleNoahTrace = (traceId: NoahTraceId) => {
+    if (foundNoahTraces.includes(traceId)) {
+      audio.play('ui.disabled');
+      return;
+    }
+    audio.playTick();
+    const next = [...foundNoahTraces, traceId];
+    setFoundNoahTraces(next);
+    if (next.length === NOAH_TRACE_IDS.length) {
+      updateProgress((prev) => completePuzzleChapter(prev, 5, { discoveredSKGHistory: true }));
+    }
+  };
+
+  const renderNoahTrace = (traceId: NoahTraceId) => {
+    const found = foundNoahTraces.includes(traceId);
+    return (
+      <button
+        type="button"
+        onClick={() => handleNoahTrace(traceId)}
+        className={`inline px-0.5 font-bold underline decoration-2 underline-offset-2 transition-colors ${
+          found
+            ? 'bg-[#b8e6ad] text-[#24551d] decoration-[#24551d]'
+            : 'bg-[#fff2a8] text-[#0000cc] decoration-[#0000cc] hover:bg-[#ffe56b]'
+        }`}
+        data-noah-trace={traceId}
+        data-noah-found={found ? 'true' : 'false'}
+        aria-label={`${found ? 'Recovered' : 'Recover'} Noah Kade reference`}
+      >
+        Noah Kade{found ? ' ✓' : ''}
+      </button>
+    );
   };
 
   const handleDownload = () => {
@@ -211,12 +255,9 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
       {/* Top chrome: an ordinary modern browser */}
       <div className="bg-[#171a21] p-2.5 border-b border-white/[0.06] space-y-2" id="browser-top-nav">
 
-        {/* Archive timeline: a reel spanning 2008–2026. Only 2014 (the real
-            snapshot) and 2026 (current) land on anything — dragging all the
-            way to the far end (2008) is a dead stop like every other year,
-            so the player has to find 2014 specifically, not just drag to
-            the limit. */}
-        <div className="space-y-1" id="wayback-slider-box">
+        {/* The Snapshot reel belongs to the SKG site, not Browser/Wayback itself. */}
+        {viewingSkgSite && (
+          <div className="space-y-1" id="wayback-slider-box">
           <div className="flex items-center justify-between text-[10px]">
             <span className="flex items-center gap-1.5 text-slate-400 font-medium">
               <Clock className="w-3.5 h-3.5 text-slate-500" />
@@ -233,7 +274,7 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
           </div>
           <input
             type="range"
-            min={2008}
+            min={2009}
             max={2026}
             step={1}
             value={scrubYear}
@@ -247,11 +288,12 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
             aria-label="Drag the reel to an archived year"
           />
           <datalist id="wayback-years">
-            {Array.from({ length: 19 }, (_, i) => 2008 + i).map((y) => (
+            {Array.from({ length: 18 }, (_, i) => 2009 + i).map((y) => (
               <option key={y} value={y} />
             ))}
           </datalist>
-        </div>
+          </div>
+        )}
 
         {/* Address pill */}
         <div className="flex items-center gap-1.5" id="url-search-form">
@@ -270,7 +312,7 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
             />
             <button
               type="button"
-              onClick={() => { audio.playTick(); setAddressBar(''); setSearchedKeyword(null); setViewingSkgSite(false); setArchiveFinderOpen(false); }}
+              onClick={() => { audio.playTick(); setAddressBar(''); setSearchedKeyword(null); setViewingSkgSite(false); setArchiveFinderOpen(false); setSelectedYear(2026); setScrubYear(2026); }}
               className="absolute right-2.5 text-slate-500 hover:text-white"
               id="url-reset"
               aria-label="Return to browser home"
@@ -497,6 +539,14 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
               </div>
             </div>
           )
+        ) : viewingSkgSite && selectedYear !== 2014 ? (
+          <div className="flex min-h-full items-center justify-center py-12" id="wayback-no-screenshot">
+            <div className="w-full max-w-sm border border-dashed border-slate-700 bg-slate-950/50 px-6 py-10 text-center font-mono">
+              <Clock className="mx-auto mb-3 h-7 w-7 text-slate-600" />
+              <div className="text-xs font-bold tracking-[0.16em] text-slate-400">NO SCREENSHOT AVAILABLE</div>
+              <div className="mt-2 text-[9px] text-slate-600">No capture was preserved for {selectedYear}.</div>
+            </div>
+          </div>
         ) : (
           /* Year 2014: Original indie developer site (Silver Kite Games) */
           viewingSkgSite ? (
@@ -526,12 +576,20 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
                 <div>
                   <h1 className="font-black text-lg text-[#003366]">SILVER KITE GAMES</h1>
                   <p className="text-[10px] text-[#555] italic">Crafting flying experiences that matter</p>
+                  <p className="mt-1 text-[9px] font-sans text-[#444]">
+                    Studio design &amp; code: {renderNoahTrace('studio-credit')}
+                  </p>
                 </div>
                 <div className="text-right">
                   <span className="text-[9px] bg-[#fff8d0] text-[#7a5c00] px-1.5 py-0.5 border border-[#c9b45a] font-sans">
                     LAOS_PARTNER_MEMBER
                   </span>
                 </div>
+              </div>
+
+              <div className="flex items-center justify-between border border-[#c9b45a] bg-[#fff8d0] px-2 py-1 font-sans text-[9px] text-[#6f5a14]" id="noah-trace-progress">
+                <span>Recovered name references</span>
+                <span className="font-bold">{foundNoahTraces.length} / {NOAH_TRACE_IDS.length}</span>
               </div>
 
               {/* Old-web nav strip (decorative dead links) */}
@@ -568,7 +626,7 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
                 <div className="bg-white p-3 border border-[#bab48f] shadow-[2px_2px_0_#d8d2ac] space-y-2">
                   <div className="flex justify-between items-center text-[10px] font-sans border-b border-[#ddd] pb-1">
                     <span className="text-[#0000cc] underline font-bold">Log: Why 256, and why it ends</span>
-                    <span className="text-[#777]">2013-11-20 • Noah Kade</span>
+                    <span className="text-[#777]">2013-11-20 • SilverKite_Games</span>
                   </div>
                   <p className="text-[11px] leading-relaxed text-[#222]">
                     People keep asking for an infinite mode. I keep saying no. A flight that never lands isn't freedom, it's a treadmill. 256 gates, then you're done. That number isn't a limit. It's a promise I intend to keep.
@@ -579,10 +637,13 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
                 <div className="bg-white p-3 border border-[#bab48f] shadow-[2px_2px_0_#d8d2ac] space-y-2">
                   <div className="flex justify-between items-center text-[10px] font-sans border-b border-[#ddd] pb-1">
                     <span className="text-[#0000cc] underline font-bold">Log: Skyline 256 Completion Build</span>
-                    <span className="text-[#777]">2014-03-08 • Noah Kade</span>
+                    <span className="text-[#777]">2014-03-08 • SilverKite_Games</span>
                   </div>
                   <p className="text-[11px] leading-relaxed text-[#222]">
                     Skyline 256 isn't an infinite game. I've received a lot of criticism about this. Elias says infinite modes increase monetization loop duration. But I believe every flight deserves a touchdown.
+                  </p>
+                  <p className="text-[10px] font-sans text-[#444]">
+                    Completion build maintained by {renderNoahTrace('developer-note')}.
                   </p>
                   {/* Broken image placeholder — asset never archived */}
                   <div className="flex items-center gap-1.5 border border-[#9aa] bg-[#fdfdfd] px-2 py-3 text-[10px] text-[#556] font-sans w-fit">
@@ -598,7 +659,7 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
                 <div className="bg-white p-3 border border-[#bab48f] shadow-[2px_2px_0_#d8d2ac] space-y-2">
                   <div className="flex justify-between items-center text-[10px] font-sans border-b border-[#ddd] pb-1">
                     <span className="text-[#0000cc] underline font-bold">Log: I left something in the last build</span>
-                    <span className="text-[#777]">2014-04-02 • Noah Kade</span>
+                    <span className="text-[#777]">2014-04-02 • SilverKite_Games</span>
                   </div>
                   <p className="text-[11px] leading-relaxed text-[#222]">
                     I'm not going to explain it here. If you ever read the source the way it was meant to be read, you'll already know where to look. Some doors only open for the person patient enough to stop pushing.
@@ -615,7 +676,7 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
                     <span className="text-[#aa2222] underline font-bold flex items-center gap-1">
                       <HeartCrack className="w-3.5 h-3.5" /> Log: The Recall Decision
                     </span>
-                    <span className="text-[#777]">2014-04-14 • Noah Kade</span>
+                    <span className="text-[#777]">2014-04-14 • SilverKite_Games</span>
                   </div>
                   <p className="text-[11px] leading-relaxed text-[#222]">
                     It's official. Government authorities are recalling all Lumen Arc devices due to battery heating issues. It feels like a commercial setup by the larger mobile brands.
@@ -674,6 +735,7 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
 
               {/* Old-web footer: visitor counter and a bounced webmaster address */}
               <div className="text-center text-[10px] font-sans text-[#555] space-y-1 border-t border-[#c8c2a0] pt-2">
+                <div>Co-founder &amp; lead designer: {renderNoahTrace('cofounder-credit')}</div>
                 <div>
                   You are visitor <span className="bg-black text-[#33ff33] font-mono px-1 tracking-[0.2em]">0018437</span> since 2009
                 </div>

@@ -75,8 +75,9 @@ const CHAPTER_ADVANCE_GUIDES: Record<PuzzleChapter, ChapterAdvanceGuide> = {
       'Open Browser and search for SKG.',
       'Review the current SKG Automation page.',
       'Switch the Snapshot control from 2026 to 2014.',
+      'Find and select all three highlighted Noah Kade references in the preserved page body.',
     ],
-    completion: 'The Silver Kite Games archive and Noah Kade are revealed.',
+    completion: 'All three Noah Kade references in the Silver Kite Games archive are recovered.',
   },
   6: {
     chapter: 6,
