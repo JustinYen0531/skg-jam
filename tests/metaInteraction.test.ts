@@ -318,7 +318,7 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   assert.match(sceneSource, /id="meta-scroll-finger"/);
   assert.match(sceneSource, /data-scroll-direction=\{scrollGesture\.travelY < 0 \? 'finger-up' : 'finger-down'\}/);
   assert.match(appSource, /setMetaViewActive\(true\);[\s\S]{0,180}setDebugTargetApp/);
-  assert.match(appSource, /const metaSceneActive = shouldShowMetaScene\(metaViewActive, debugMode, progress\.phase\)/);
+  assert.match(appSource, /const metaSceneActive = !fullscreenOnly && shouldShowMetaScene\(metaViewActive, debugMode, progress\.phase\)/);
   assert.match(appSource, /immersiveIntro=\{!metaSceneActive\}/);
   assert.match(appSource, /metaSceneActive \? 'bg-slate-950\/40' : 'bg-black'/);
   assert.match(appSource, /<MetaInteractionScene[\s\S]{0,220}active=\{metaSceneActive\}[\s\S]{0,220}chapter=\{metaSceneActive \? progress\.currentChapter : 0\}/);

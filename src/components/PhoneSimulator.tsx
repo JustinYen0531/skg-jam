@@ -76,6 +76,7 @@ interface PhoneSimulatorProps {
   screenContrast: number;
   cameraPitchEnabled: boolean;
   postureControlEnabled: boolean;
+  fullscreenOnly: boolean;
   developerToolsOpen: boolean;
   onSoundVolumeChange: (volume: number) => void;
   onMusicVolumeChange: (volume: number) => void;
@@ -83,6 +84,7 @@ interface PhoneSimulatorProps {
   onScreenContrastChange: (contrast: number) => void;
   onCameraPitchEnabledChange: (enabled: boolean) => void;
   onPostureControlEnabledChange: (enabled: boolean) => void;
+  onFullscreenOnlyChange: (enabled: boolean) => void;
   onOpenDeveloperTools: () => void;
   onRestartCurrentChapter: () => void;
   onRestartLoop: () => void;
@@ -102,6 +104,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   screenContrast,
   cameraPitchEnabled,
   postureControlEnabled,
+  fullscreenOnly,
   developerToolsOpen,
   onSoundVolumeChange,
   onMusicVolumeChange,
@@ -109,6 +112,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   onScreenContrastChange,
   onCameraPitchEnabledChange,
   onPostureControlEnabledChange,
+  onFullscreenOnlyChange,
   onOpenDeveloperTools,
   onRestartCurrentChapter,
   onRestartLoop,
@@ -583,6 +587,18 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
               id="dock-desk-posture">
               <span><span className="block">Desk posture</span><span className="mt-0.5 block text-[8px] text-slate-500">Background clicks can lay the device down</span></span>
               <span className={postureControlEnabled ? 'text-emerald-300' : 'text-slate-500'}>{postureControlEnabled ? 'ON' : 'OFF'}</span>
+            </button>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={fullscreenOnly}
+              onClick={() => onFullscreenOnlyChange(!fullscreenOnly)}
+              className={`${actionButtonClassName} flex w-full items-center justify-between border-amber-300/20 text-left`}
+              id="dock-fullscreen-only"
+              data-meta-hit-recovery="true"
+            >
+              <span><span className="block">Fullscreen only</span><span className="mt-0.5 block text-[8px] text-slate-500">Bypass the Meta camera and use direct screen input</span></span>
+              <span className={fullscreenOnly ? 'text-amber-300' : 'text-slate-500'}>{fullscreenOnly ? 'ON' : 'OFF'}</span>
             </button>
           </div>
         );

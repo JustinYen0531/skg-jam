@@ -1,5 +1,12 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-22 — Fullscreen-only Controls safeguard
+
+- Added a persistent `Fullscreen only` switch to the existing Controls popover.
+- When enabled, the game bypasses the Meta scene and its projected input relay while preserving the underlying story unlock state, so disabling the switch restores the normal Meta presentation.
+- Stored the preference locally so the direct-input safety mode survives reloads.
+- Browser verification remains intentionally excluded by project instruction; focused static tests, TypeScript, and production build are the verification gate.
+
 ## 2026-07-22 — Chapter 5 bottom Noah trace recovery
 
 - Traced the blocked Chapter 5 completion to the footer `Noah Kade` reference: it is the third required archive trace, but its tiny projected-bottom hit target lacked the shared Meta recovery contract.
