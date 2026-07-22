@@ -1404,7 +1404,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
 
               <div className="space-y-3 text-xs leading-relaxed text-slate-300">
                 <p>
-                  <strong className="text-white">SKG: Scorekeeper</strong> is a creative interactive homage to the global <strong className="text-amber-400">"Stop Killing Games"</strong> campaign, exploring game preservation and consumer ownership rights.
+                  <strong className="text-white">Game Questing, Questioning Game</strong> is a creative interactive homage to the global <strong className="text-amber-400">"Stop Killing Games"</strong> campaign, exploring game preservation and consumer ownership rights.
                 </p>
 
                 <p>

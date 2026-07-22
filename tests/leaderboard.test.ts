@@ -43,10 +43,12 @@ test('the six anomalous top runs are the only leaderboard story entry points', (
 
 test('the cheap landing page uses a non-functional premium unlock instead of Learn More', () => {
   const flappySource = readFileSync(new URL('../src/components/FlappyGame.tsx', import.meta.url), 'utf8');
+  const documentSource = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 
   assert.match(flappySource, /id="premium-unlock-button"/);
   assert.match(flappySource, /<Zap[^>]*\/> Unlock/);
   assert.doesNotMatch(flappySource, /Learn More|learn-more-modal/);
+  assert.match(documentSource, /<title>Game Questing, Questioning Game<\/title>/);
 });
 
 test('public leaderboard does not reveal the hidden Noah overflow record', () => {
