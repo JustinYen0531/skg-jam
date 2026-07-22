@@ -47,9 +47,11 @@ test('the screenshot pile hides exactly three clues among many decoys', () => {
 test('the viewer counts key details and only advances the chapter when assembled', () => {
   const source = readFileSync(new URL('../src/components/SavedScreenshots.tsx', import.meta.url), 'utf8');
 
-  // A running n / 3 counter, shown per the requested progression.
-  assert.match(source, /KEY DETAILS · \$\{found\.size\}\/\$\{CLUE_SHEET_COUNT\}/);
-  assert.match(source, /CASE ASSEMBLED · 3\/3/);
+  // A prominent running n / 3 counter, shown per the requested progression.
+  assert.match(source, /id="spec-clue-counter"/);
+  assert.match(source, /KEY DETAILS/);
+  assert.match(source, /\{found\.size\}<span[^>]*>\/\{CLUE_SHEET_COUNT\}/);
+  assert.match(source, /CASE ASSEMBLED/);
 
   // The advance is gated behind the assembled banner's Continue button, which
   // completes chapter 4 — never the individual clue clicks.
@@ -58,4 +60,15 @@ test('the viewer counts key details and only advances the chapter when assembled
   assert.match(source, /completePuzzleChapter\(prev, 4, \{ discoveredOriginalTitle: true \}\)/);
   // Finding a clue must not itself complete the chapter.
   assert.doesNotMatch(source, /findClue[\s\S]{0,200}completePuzzleChapter/);
+});
+
+test('the Lumen Arc evidence must be found inside a normal delivery archive', () => {
+  const source = readFileSync(new URL('../src/components/SavedScreenshots.tsx', import.meta.url), 'utf8');
+
+  assert.match(source, /const DELIVERY_RECORDS/);
+  assert.match(source, /id: 'lumen-arc'/);
+  assert.match(source, /Lumen Arc Recovery Lot/);
+  assert.match(source, /activeDeliveryId === 'lumen-arc'/);
+  assert.match(source, /id="delivery-archive"/);
+  assert.match(source, /id="delivery-back-to-archive"/);
 });

@@ -14,7 +14,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Wifi, CheckCircle2, X, Volume2, VolumeX, RotateCcw } from 'lucide-react';
 import {
   IconFlappy, IconViewTube, IconAmazeMart, IconWayback, IconFaceSpace,
-  IconMessages, IconSchematics, IconConcept,
+  IconMessages, IconDeliveries, IconConcept,
   IconVoiceLog, IconFileBox, IconGallery, IconTerminal, IconControls,
 } from './OsIcons';
 import {
@@ -1026,14 +1026,14 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                     id="launcher-screenshots"
                   >
                     <div className="relative w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
-                      <IconSchematics legacy={residue >= 2} />
+                      <IconDeliveries legacy={residue >= 2} />
                       {launcherSignals('screenshots')}
                     </div>
                     <span className={`truncate max-w-full ${
                       residue >= 2
                         ? 'font-laos text-[clamp(10px,1.05cqw,12.5px)] tracking-[0.04em] text-[#b9c2d4]'
                         : 'text-[clamp(10px,1.1cqw,13px)] font-medium text-slate-100/90'
-                    }`}>Schematics</span>
+                    }`}>Deliveries</span>
                   </button>
 
                   <button

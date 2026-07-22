@@ -163,11 +163,11 @@ export const IconMessages: React.FC = () => (
   </ModernTile>
 );
 
-/** Schematics — the extracted Lumen Arc folder. Modern placeholder until the
- *  legacy package arrives; pass `legacy` once the residue has spread. */
-export const IconSchematics: React.FC<{ legacy?: boolean }> = ({ legacy = false }) =>
-  legacy ? (
-    <LegacyTile id="os-ic-schematics" top="#96773f" bottom="#443016">
+/** Deliveries — a signed-parcel archive. The old package is ordinary until
+ *  the player opens it; pass `legacy` once the residue has spread. */
+export const IconDeliveries: React.FC<{ legacy?: boolean }> = ({ legacy = false }) =>
+ legacy ? (
+    <LegacyTile id="os-ic-deliveries" top="#96773f" bottom="#443016">
       <path d="M11 18.5 Q11 16.5 13 16.5 H19.8 L22.4 19.5 H35 Q37 19.5 37 21.5 V33 Q37 35 35 35 H13 Q11 35 11 33 Z" fill={GLYPH} />
       <line x1="15.5" y1="24" x2="32.5" y2="24" stroke={CUT} strokeWidth="1.2" />
       <line x1="15.5" y1="27.5" x2="32.5" y2="27.5" stroke={CUT} strokeWidth="1.2" />
@@ -175,7 +175,7 @@ export const IconSchematics: React.FC<{ legacy?: boolean }> = ({ legacy = false 
       <circle cx="30.2" cy="30.2" r="2.5" fill="none" stroke={CUT} strokeWidth="1.2" />
     </LegacyTile>
   ) : (
-    <ModernTile id="os-ic-schematics-m" from="#8a7a55" to="#4c3d22">
+    <ModernTile id="os-ic-deliveries-m" from="#8a7a55" to="#4c3d22">
       <path d="M11 18.5 Q11 16.5 13 16.5 H19.8 L22.4 19.5 H35 Q37 19.5 37 21.5 V33 Q37 35 35 35 H13 Q11 35 11 33 Z" fill={GLYPH} />
       <line x1="15.5" y1="24.5" x2="32.5" y2="24.5" stroke="#4c3d22" strokeWidth="1.4" opacity="0.5" />
       <line x1="15.5" y1="28.5" x2="27" y2="28.5" stroke="#4c3d22" strokeWidth="1.4" opacity="0.5" />

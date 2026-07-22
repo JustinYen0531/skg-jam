@@ -1,9 +1,10 @@
-// Chapter 4 "extracted screenshots" puzzle. The seller dumped a folder of
-// screenshots off a used Lumen Arc handheld; three of them quietly carry the
-// pieces the player needs (the original title, the three flight parameters, and
-// the developer's number set). The player has to read the pile, notice the
-// three that hide a clickable detail, and click all three. Nothing here knows
-// which screenshots matter — that judgement is the puzzle.
+// Chapter 4 signed-parcel puzzle. A normal-looking delivery archive contains a
+// Lumen Arc Recovery Lot whose signed image packet holds the evidence. Three
+// screenshots quietly carry the pieces the player needs (the original title,
+// the three flight parameters, and the developer's number set). The player has
+// to read the pile, notice the three hidden clickable details, and collect all
+// three. Nothing marks the right screenshots in advance — that judgement is
+// the puzzle.
 
 export type LumenArcClueId = 'title' | 'params' | 'numbers';
 

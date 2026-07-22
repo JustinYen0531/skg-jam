@@ -61,11 +61,11 @@ const CHAPTER_ADVANCE_GUIDES: Record<PuzzleChapter, ChapterAdvanceGuide> = {
     nextLabel: 'CHAPTER 05',
     objective: 'Identify the original game and its developer.',
     steps: [
-      'Open the newly unlocked Screenshots app.',
-      'Select and enlarge the first printed screenshot.',
-      'Read the old title and the SilverKite_Games account name.',
+      'Open Deliveries and inspect the signed purchase history.',
+      'Find the Lumen Arc Recovery Lot, then open its image packet.',
+      'Collect all three key details hidden across the attached screenshots.',
     ],
-    completion: 'SKG: Skyline 256 is identified.',
+    completion: 'The three details assemble the Skyline 256 case.',
   },
   5: {
     chapter: 5,
