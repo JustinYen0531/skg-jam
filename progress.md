@@ -819,3 +819,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Kept the midpoint and two-thirds lower cap unchanged, while flattening and lowering only the top mouse-height endpoint so more of the fireplace remains visible.
 - Applied the same restrained retreat to resting desk objects to preserve their shared desk-plane perspective.
 - Static verification passed on the latest main: focused tests 38/38, full tests 178/178, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.
+
+## 2026-07-22 — Maximum fireplace illumination
+
+- Added a restrained symbolic two-flame hearth with embers and a strong local halo, positioned inside the wall layer so the desk can occlude it naturally.
+- Added one broad warm room-light wash at fixed maximum intensity for every visible-room chapter (1–10), with gentle flicker and a stable reduced-motion state.
+- Chapter-based fading is intentionally deferred until a later request.
+- Static verification passed: focused tests 38/38, full tests 179/179, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.

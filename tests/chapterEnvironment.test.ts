@@ -200,3 +200,17 @@ test('resting desk props share one mouse-depth scale instead of drifting indepen
   assert.match(environmentSource, /data-resting-object-scale=\{deviceResting \? 'shared-mouse-depth' : 'upright'\}/);
   assert.match(environmentSource, /id=\{underlay \? 'meta-chapter-underlay-perspective' : 'meta-chapter-object-perspective'\}/);
 });
+
+test('maximum symbolic fireplace light illuminates every visible room chapter', () => {
+  const sceneSource = readFileSync(new URL('../src/components/MetaInteractionScene.tsx', import.meta.url), 'utf8');
+  for (let chapter = 1; chapter <= 10; chapter += 1) {
+    assert.ok(getMetaWallStage(chapter as keyof typeof CHAPTER_ENVIRONMENTS) > 0);
+  }
+  assert.match(sceneSource, /id="meta-fireplace"/);
+  assert.match(sceneSource, /data-fireplace-intensity="maximum"/);
+  assert.match(sceneSource, /data-fireplace-local-glow="strong"/);
+  assert.match(sceneSource, /<MetaFireplace reducedMotion=\{reducedMotion\} \/>/);
+  assert.match(sceneSource, /id="meta-room-firelight"/);
+  assert.match(sceneSource, /data-room-firelight="maximum-all-chapters"/);
+  assert.match(sceneSource, /mix-blend-screen/);
+});

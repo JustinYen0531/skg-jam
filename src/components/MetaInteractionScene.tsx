@@ -661,6 +661,40 @@ const TypewriterThoughts: React.FC<{ lines: DialogueLines; instant: boolean }> =
   );
 };
 
+const MetaFireplace: React.FC<{ reducedMotion: boolean }> = ({ reducedMotion }) => {
+  const flicker = reducedMotion
+    ? { opacity: 0.94, scale: 1 }
+    : { opacity: [0.82, 1, 0.9, 0.98], scale: [0.96, 1.04, 0.99, 1.02] };
+
+  return (
+    <div
+      className="pointer-events-none absolute left-1/2 top-[31%] z-[2] h-[17%] w-[18%] -translate-x-1/2"
+      data-fireplace-intensity="maximum"
+      id="meta-fireplace"
+    >
+      <motion.div
+        animate={flicker}
+        transition={reducedMotion ? { duration: 0 } : { duration: 1.35, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute -inset-[90%] rounded-full blur-[42px]"
+        style={{ background: 'radial-gradient(circle, rgba(255,195,92,0.78) 0%, rgba(255,116,31,0.38) 34%, rgba(255,91,20,0) 72%)' }}
+        data-fireplace-local-glow="strong"
+      />
+      <div className="absolute inset-x-[15%] bottom-[12%] h-[42%] rounded-[50%] bg-[#ff8a24]/55 blur-md" />
+      <div className="absolute inset-x-[18%] bottom-[13%] h-[12%] rounded-full bg-[#ffcb62] shadow-[0_0_18px_rgba(255,164,48,0.95)]" />
+      <motion.div
+        animate={reducedMotion ? { scaleY: 1, rotate: -7 } : { scaleY: [0.86, 1.08, 0.92], rotate: [-9, -4, -11] }}
+        transition={reducedMotion ? { duration: 0 } : { duration: 0.82, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute bottom-[18%] left-[28%] h-[48%] w-[25%] origin-bottom rounded-[62%_38%_55%_45%] bg-gradient-to-t from-[#ff6a1a] via-[#ffad32] to-[#ffe49a] blur-[0.4px]"
+      />
+      <motion.div
+        animate={reducedMotion ? { scaleY: 1, rotate: 8 } : { scaleY: [1.04, 0.88, 1.1], rotate: [7, 11, 5] }}
+        transition={reducedMotion ? { duration: 0 } : { duration: 1.02, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute bottom-[18%] right-[27%] h-[58%] w-[27%] origin-bottom rounded-[42%_58%_48%_52%] bg-gradient-to-t from-[#ff5a16] via-[#ff982c] to-[#ffd675] blur-[0.5px]"
+      />
+    </div>
+  );
+};
+
 export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   active,
   chapter,
@@ -1405,6 +1439,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
                   data-source-floor="visible-over-floor"
                   id="meta-wall-art"
                 />
+                <MetaFireplace reducedMotion={reducedMotion} />
                 {chapterClock && <MetaWallClock time={chapterClock} />}
               </div>
             )}
@@ -1448,6 +1483,14 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
               />
             </motion.div>
             <ChapterEnvironment chapter={chapter} reducedMotion={reducedMotion} layer="lighting" />
+            <motion.div
+              animate={reducedMotion ? { opacity: 0.72 } : { opacity: [0.66, 0.78, 0.7] }}
+              transition={reducedMotion ? { duration: 0 } : { duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
+              className="pointer-events-none absolute inset-0 z-[3] mix-blend-screen"
+              style={{ background: 'radial-gradient(ellipse 82% 74% at 50% 42%, rgba(255,181,88,0.52) 0%, rgba(255,129,45,0.24) 38%, rgba(255,103,31,0.08) 68%, transparent 100%)' }}
+              data-room-firelight="maximum-all-chapters"
+              id="meta-room-firelight"
+            />
             <div className="absolute left-1/2 top-[57%] h-[12%] w-[64%] -translate-x-1/2 rounded-[50%] bg-black/55 blur-2xl" />
             <div className="absolute bottom-[7%] right-[5%] h-[13%] w-[13%] rotate-6 rounded-md border border-amber-100/5 bg-black/15 shadow-xl" />
             <div className="absolute right-[10%] top-[14%] text-[9px] font-mono tracking-[0.32em] text-amber-100/25">CAM_02 · REC</div>
