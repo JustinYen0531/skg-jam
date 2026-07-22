@@ -1,15 +1,17 @@
 ﻿import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { AnimatePresence, motion, useMotionValue, useSpring } from 'motion/react';
+import { AnimatePresence, motion, useMotionValue, useMotionValueEvent, useSpring, useTransform } from 'motion/react';
 import {
   applyVirtualKey,
   canStartMetaInteraction,
   getMetaDevicePostureAction,
   getMetaCameraPitch,
+  getMetaIdleDeskView,
   getProjectiveTransformMatrix,
   getScrollFingerTravel,
   formatProjectiveMatrix3d,
   isPointInsideProjectiveQuad,
   META_CAMERA_PITCH,
+  META_IDLE_DESK_VIEW,
   META_TAP_TIMING,
   normalizeVirtualKey,
   scaleProjectiveQuad,
@@ -667,6 +669,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
 }) => {
   const sceneRef = useRef<HTMLDivElement | null>(null);
   const projectivePlaneRef = useRef<HTMLDivElement | null>(null);
+  const updateRestingProjectionRef = useRef<() => void>(() => undefined);
   const pendingRef = useRef(false);
   const autonomousTappingRef = useRef(false);
   const keyQueueRef = useRef<QueuedKey[]>([]);
@@ -683,6 +686,17 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     damping: 24,
     mass: 0.58,
   });
+  const idleDeskViewTarget = useMotionValue<number>(META_IDLE_DESK_VIEW.rest);
+  const idleDeskView = useSpring(idleDeskViewTarget, {
+    stiffness: 92,
+    damping: 25,
+    mass: 0.72,
+  });
+  const idleDeskTableScaleX = useTransform(idleDeskView, [0, 0.5, 1], [0.88, 1, 1.12]);
+  const idleDeskTableScaleY = useTransform(idleDeskView, [0, 0.5, 1], [0.75, 1, 1.35]);
+  const idleDeskTableY = useTransform(idleDeskView, [0, 0.5, 1], ['7%', '0%', '-9%']);
+  const idleDeskObjectScale = useTransform(idleDeskView, [0, 0.5, 1], [0.82, 1, 1.18]);
+  const idleDeskObjectY = useTransform(idleDeskView, [0, 0.5, 1], ['7%', '0%', '-8%']);
   const [pointer, setPointer] = useState<PointerPosition>({ x: 0, y: 0 });
   const [pressed, setPressed] = useState(false);
   const [interactionPending, setInteractionPending] = useState(false);
@@ -762,15 +776,19 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   useEffect(() => {
     setDeviceResting(false);
     cameraPitchTarget.set(META_CAMERA_PITCH.restDeg);
-  }, [active, cameraPitchTarget, reducedMotion]);
+    idleDeskViewTarget.set(META_IDLE_DESK_VIEW.rest);
+  }, [active, cameraPitchTarget, idleDeskViewTarget, reducedMotion]);
 
   useEffect(() => {
     if (!postureControlEnabled) setDeviceResting(false);
   }, [postureControlEnabled]);
 
   useEffect(() => {
-    if (!cameraPitchEnabled) cameraPitchTarget.set(META_CAMERA_PITCH.restDeg);
-  }, [cameraPitchEnabled, cameraPitchTarget]);
+    if (!cameraPitchEnabled) {
+      cameraPitchTarget.set(META_CAMERA_PITCH.restDeg);
+      idleDeskViewTarget.set(META_IDLE_DESK_VIEW.rest);
+    }
+  }, [cameraPitchEnabled, cameraPitchTarget, idleDeskViewTarget]);
 
   useEffect(() => {
     const plane = projectivePlaneRef.current;
@@ -779,6 +797,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
         plane.style.transform = 'none';
         plane.dataset.projectiveState = 'upright';
       }
+      updateRestingProjectionRef.current = () => undefined;
       return;
     }
 
@@ -811,6 +830,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
       plane.style.transform = formatProjectiveMatrix3d(getProjectiveTransformMatrix(source, target));
       plane.dataset.projectiveState = 'desk-quad';
     };
+    updateRestingProjectionRef.current = updateProjection;
     const trackDeskTransition = (now: number) => {
       updateProjection();
       if (now - startedAt < 1400) animationFrame = requestAnimationFrame(trackDeskTransition);
@@ -821,8 +841,13 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     return () => {
       cancelAnimationFrame(animationFrame);
       window.removeEventListener('resize', updateProjection);
+      updateRestingProjectionRef.current = () => undefined;
     };
   }, [active, deviceResting]);
+
+  useMotionValueEvent(idleDeskView, 'change', () => {
+    if (active && deviceResting) updateRestingProjectionRef.current();
+  });
 
   useEffect(() => {
     if (!active) {
@@ -1137,6 +1162,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
       setScrollGesture(null);
       closeKeyboard();
       cameraPitchTarget.set(META_CAMERA_PITCH.restDeg);
+      idleDeskViewTarget.set(META_IDLE_DESK_VIEW.rest);
       if (nextResting) {
         audio.play('meta.handDepart');
         audio.play('meta.deskContact', { delay: 0.48 });
@@ -1266,15 +1292,20 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   };
 
   const handlePointerMove = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
-    if (!active || !cameraPitchEnabled || deviceResting || reducedMotion || event.pointerType !== 'mouse') return;
+    if (!active || !cameraPitchEnabled || reducedMotion || event.pointerType !== 'mouse') return;
     const rect = sceneRef.current?.getBoundingClientRect();
     if (!rect) return;
-    cameraPitchTarget.set(getMetaCameraPitch(event.clientY - rect.top, rect.height));
-  }, [active, cameraPitchEnabled, cameraPitchTarget, deviceResting, reducedMotion]);
+    if (deviceResting) {
+      idleDeskViewTarget.set(getMetaIdleDeskView(event.clientY - rect.top, rect.height));
+    } else {
+      cameraPitchTarget.set(getMetaCameraPitch(event.clientY - rect.top, rect.height));
+    }
+  }, [active, cameraPitchEnabled, cameraPitchTarget, deviceResting, idleDeskViewTarget, reducedMotion]);
 
   const handlePointerLeave = useCallback(() => {
     cameraPitchTarget.set(META_CAMERA_PITCH.restDeg);
-  }, [cameraPitchTarget, deviceResting]);
+    idleDeskViewTarget.set(META_IDLE_DESK_VIEW.rest);
+  }, [cameraPitchTarget, idleDeskViewTarget]);
 
   const contextValue = useMemo<MetaInteractionContextValue>(() => ({
     active,
@@ -1336,7 +1367,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
       data-meta-view={active ? 'revealed' : 'screen-capture'}
-      data-camera-pitch-control={active ? (!cameraPitchEnabled ? 'disabled' : deviceResting ? 'locked-table' : 'mouse-y') : 'inactive'}
+      data-camera-pitch-control={active ? (!cameraPitchEnabled ? 'disabled' : deviceResting ? 'idle-mouse-y' : 'mouse-y') : 'inactive'}
       data-posture-control={postureControlEnabled ? 'enabled' : 'disabled'}
       data-device-posture={deviceResting ? 'table-rest' : 'upright'}
       data-meta-pending={interactionPending ? 'true' : 'false'}
@@ -1389,19 +1420,31 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
             <div className="absolute left-[7%] top-[8%] h-36 w-36 rounded-full bg-amber-100/12 blur-[70px]" />
             <div className="absolute right-[9%] top-[12%] h-28 w-28 rounded-full bg-sky-200/5 blur-[65px]" />
 
-            <motion.img
-              src="/assets/meta-desk-table.png"
-              alt=""
-              initial={false}
-              animate={deviceResting
-                ? { scaleX: 0.36, scaleY: 0.72, y: '-1%' }
-                : { scaleX: 1, scaleY: 1, y: 0 }}
-              transition={{ duration: reducedMotion ? 0 : 0.82, ease: [0.22, 1, 0.36, 1] }}
-              className="pointer-events-none absolute left-1/2 top-[-40%] z-[2] h-[212%] w-auto max-w-none"
-              style={{ x: '-50%', transformOrigin: '50% 50%' }}
-              data-desk-perspective={deviceResting ? 'flattened-trapezoid' : 'raised-front-edge'}
-              id="meta-desk-table-art"
-            />
+            <motion.div
+              className="pointer-events-none absolute inset-0 z-[2]"
+              style={deviceResting ? {
+                scaleX: idleDeskTableScaleX,
+                scaleY: idleDeskTableScaleY,
+                y: idleDeskTableY,
+                transformOrigin: '50% 58%',
+              } : undefined}
+              data-idle-desk-camera={deviceResting ? 'mouse-y' : 'inactive'}
+              id="meta-desk-perspective-frame"
+            >
+              <motion.img
+                src="/assets/meta-desk-table.png"
+                alt=""
+                initial={false}
+                animate={deviceResting
+                  ? { scaleX: 0.36, scaleY: 0.72, y: '-1%' }
+                  : { scaleX: 1, scaleY: 1, y: 0 }}
+                transition={{ duration: reducedMotion ? 0 : 0.82, ease: [0.22, 1, 0.36, 1] }}
+                className="pointer-events-none absolute left-1/2 top-[-40%] z-[2] h-[212%] w-auto max-w-none"
+                style={{ x: '-50%', transformOrigin: '50% 50%' }}
+                data-desk-perspective={deviceResting ? 'mouse-depth-trapezoid' : 'raised-front-edge'}
+                id="meta-desk-table-art"
+              />
+            </motion.div>
             <ChapterEnvironment chapter={chapter} reducedMotion={reducedMotion} layer="lighting" />
             <div className="absolute left-1/2 top-[57%] h-[12%] w-[64%] -translate-x-1/2 rounded-[50%] bg-black/55 blur-2xl" />
             <div className="absolute bottom-[7%] right-[5%] h-[13%] w-[13%] rotate-6 rounded-md border border-amber-100/5 bg-black/15 shadow-xl" />
@@ -1410,13 +1453,14 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
         )}
       </AnimatePresence>
 
-      {active && <ChapterEnvironment chapter={chapter} reducedMotion={reducedMotion} layer="underlay" deviceResting={deviceResting} />}
+      {active && <ChapterEnvironment chapter={chapter} reducedMotion={reducedMotion} layer="underlay" deviceResting={deviceResting} restingView={idleDeskView} />}
 
       {active && (
         <motion.div
           animate={deviceResting
             ? { opacity: 0.72, scaleX: 1.04, scaleY: 0.42, y: '8%' }
             : { opacity: 0.38, scaleX: 0.82, scaleY: 0.78, y: '-7%' }}
+          style={deviceResting ? { scale: idleDeskObjectScale, transformOrigin: '50% 72%' } : undefined}
           transition={{ duration: reducedMotion ? 0 : 0.82, ease: [0.22, 1, 0.36, 1] }}
           className="pointer-events-none absolute left-[18%] top-[53%] z-[9] h-[18%] w-[64%] rounded-[50%] bg-black blur-2xl"
           aria-hidden="true"
@@ -1599,7 +1643,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
         </div>
       </motion.div>
 
-      {active && <ChapterEnvironment chapter={chapter} reducedMotion={reducedMotion} layer="objects" deviceResting={deviceResting} />}
+      {active && <ChapterEnvironment chapter={chapter} reducedMotion={reducedMotion} layer="objects" deviceResting={deviceResting} restingView={idleDeskView} />}
 
       <AnimatePresence>
         {active && (
@@ -1652,57 +1696,64 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
               id="meta-right-hand-asset"
             />
 
-            <motion.img
-              src="/assets/meta-resting-hands.png"
-              alt=""
-              draggable={false}
-              initial={false}
-              animate={{
-                opacity: deviceResting ? 1 : 0,
-                x: deviceResting ? '-8%' : 0,
-                y: deviceResting ? '10%' : '12%',
-                rotateX: deviceResting ? 4 : 18,
-                rotateZ: deviceResting ? -8 : 0,
-                scale: deviceResting ? 0.46 : 0.46,
-              }}
-              transition={{ duration: reducedMotion ? 0 : 0.72, ease: [0.22, 1, 0.36, 1] }}
-              className="pointer-events-none absolute left-0 top-0 z-[22] h-full w-full select-none object-fill drop-shadow-[0_12px_10px_rgba(0,0,0,0.24)]"
-              style={{
-                clipPath: 'inset(0 50% 0 0)',
-                transformOrigin: '25% 100%',
-                transformPerspective: 1500,
-              }}
-              data-resting-hand-perspective="desk-plane"
-              data-wrist-crop="below-scene-edge"
-              aria-hidden="true"
-              id="meta-left-resting-hand"
-            />
+            <motion.div
+              className="pointer-events-none absolute inset-0 z-[22]"
+              style={deviceResting ? { scale: idleDeskObjectScale, y: idleDeskObjectY, transformOrigin: '50% 72%' } : undefined}
+              data-resting-hand-camera={deviceResting ? 'shared-mouse-depth' : 'inactive'}
+              id="meta-resting-hands-perspective"
+            >
+              <motion.img
+                src="/assets/meta-resting-hands.png"
+                alt=""
+                draggable={false}
+                initial={false}
+                animate={{
+                  opacity: deviceResting ? 1 : 0,
+                  x: deviceResting ? '-8%' : 0,
+                  y: deviceResting ? '10%' : '12%',
+                  rotateX: deviceResting ? 4 : 18,
+                  rotateZ: deviceResting ? -8 : 0,
+                  scale: deviceResting ? 0.46 : 0.46,
+                }}
+                transition={{ duration: reducedMotion ? 0 : 0.72, ease: [0.22, 1, 0.36, 1] }}
+                className="pointer-events-none absolute left-0 top-0 h-full w-full select-none object-fill drop-shadow-[0_12px_10px_rgba(0,0,0,0.24)]"
+                style={{
+                  clipPath: 'inset(0 50% 0 0)',
+                  transformOrigin: '25% 100%',
+                  transformPerspective: 1500,
+                }}
+                data-resting-hand-perspective="desk-plane"
+                data-wrist-crop="below-scene-edge"
+                aria-hidden="true"
+                id="meta-left-resting-hand"
+              />
 
-            <motion.img
-              src="/assets/meta-resting-hands.png"
-              alt=""
-              draggable={false}
-              initial={false}
-              animate={{
-                opacity: deviceResting && !interactionPending && !scrollGesture ? 1 : 0,
-                x: deviceResting ? '8%' : 0,
-                y: deviceResting ? '10%' : '12%',
-                rotateX: deviceResting ? 4 : 18,
-                rotateZ: deviceResting ? 8 : 0,
-                scale: deviceResting ? 0.46 : 0.46,
-              }}
-              transition={{ duration: reducedMotion ? 0 : 0.72, ease: [0.22, 1, 0.36, 1] }}
-              className="pointer-events-none absolute left-0 top-0 z-[22] h-full w-full select-none object-fill drop-shadow-[0_12px_10px_rgba(0,0,0,0.24)]"
-              style={{
-                clipPath: 'inset(0 0 0 50%)',
-                transformOrigin: '75% 100%',
-                transformPerspective: 1500,
-              }}
-              data-resting-hand-perspective="desk-plane"
-              data-wrist-crop="below-scene-edge"
-              aria-hidden="true"
-              id="meta-right-resting-hand"
-            />
+              <motion.img
+                src="/assets/meta-resting-hands.png"
+                alt=""
+                draggable={false}
+                initial={false}
+                animate={{
+                  opacity: deviceResting && !interactionPending && !scrollGesture ? 1 : 0,
+                  x: deviceResting ? '8%' : 0,
+                  y: deviceResting ? '10%' : '12%',
+                  rotateX: deviceResting ? 4 : 18,
+                  rotateZ: deviceResting ? 8 : 0,
+                  scale: deviceResting ? 0.46 : 0.46,
+                }}
+                transition={{ duration: reducedMotion ? 0 : 0.72, ease: [0.22, 1, 0.36, 1] }}
+                className="pointer-events-none absolute left-0 top-0 h-full w-full select-none object-fill drop-shadow-[0_12px_10px_rgba(0,0,0,0.24)]"
+                style={{
+                  clipPath: 'inset(0 0 0 50%)',
+                  transformOrigin: '75% 100%',
+                  transformPerspective: 1500,
+                }}
+                data-resting-hand-perspective="desk-plane"
+                data-wrist-crop="below-scene-edge"
+                aria-hidden="true"
+                id="meta-right-resting-hand"
+              />
+            </motion.div>
 
             <AnimatePresence>
               {scrollGesture && (

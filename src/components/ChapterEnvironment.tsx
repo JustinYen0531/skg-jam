@@ -1,5 +1,5 @@
 import React from 'react';
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, motion, useMotionValue, useTransform, type MotionValue } from 'motion/react';
 import {
   getChapterEnvironment,
   type CoffeeState,
@@ -14,6 +14,8 @@ interface ChapterEnvironmentProps {
   layer?: 'lighting' | 'underlay' | 'objects';
   /** Share the tablet's resting camera scale so desk props remain one scene. */
   deviceResting?: boolean;
+  /** Mouse-height camera depth shared by every object on the resting desk. */
+  restingView?: MotionValue<number>;
 }
 
 const COFFEE_ASSET_SOURCE: Record<Exclude<CoffeeState, 'none'>, string> = {
@@ -261,7 +263,12 @@ export const ChapterEnvironment: React.FC<ChapterEnvironmentProps> = ({
   reducedMotion,
   layer = 'objects',
   deviceResting = false,
+  restingView,
 }) => {
+  const restingViewFallback = useMotionValue(0.5);
+  const restingViewSource = restingView ?? restingViewFallback;
+  const restingObjectScale = useTransform(restingViewSource, [0, 0.5, 1], [0.82, 1, 1.18]);
+  const restingObjectY = useTransform(restingViewSource, [0, 0.5, 1], ['7%', '0%', '-8%']);
   const environment = getChapterEnvironment(chapter);
   if (chapter === 0) return null;
 
@@ -294,6 +301,12 @@ export const ChapterEnvironment: React.FC<ChapterEnvironmentProps> = ({
       data-desk-resting-scale={deviceResting ? 'shared' : 'full'}
       id={underlay ? 'meta-chapter-underlay' : 'meta-chapter-environment'}
     >
+      <motion.div
+        className="absolute inset-0"
+        style={deviceResting ? { scale: restingObjectScale, y: restingObjectY, transformOrigin: '50% 72%' } : undefined}
+        data-resting-object-scale={deviceResting ? 'shared-mouse-depth' : 'upright'}
+        id={underlay ? 'meta-chapter-underlay-perspective' : 'meta-chapter-object-perspective'}
+      >
       <AnimatePresence mode="popLayout">
         <motion.div
           key={`${layer}-${chapter}`}
@@ -333,6 +346,7 @@ export const ChapterEnvironment: React.FC<ChapterEnvironmentProps> = ({
           CASE {chapter.toString().padStart(2, '0')} // {environment.caseLabel}
         </motion.div>
       </AnimatePresence>}
+      </motion.div>
     </motion.div>
   );
 };

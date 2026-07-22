@@ -12,6 +12,12 @@ export const META_CAMERA_PITCH = {
   restDeg: 5.5,
 } as const;
 
+export const META_IDLE_DESK_VIEW = {
+  top: 0,
+  rest: 0.5,
+  bottom: 1,
+} as const;
+
 export interface ProjectivePoint {
   x: number;
   y: number;
@@ -121,6 +127,14 @@ export const getMetaCameraPitch = (pointerY: number, sceneHeight: number): numbe
   const normalizedY = Math.min(1, Math.max(0, pointerY / sceneHeight));
   return META_CAMERA_PITCH.topDeg
     + (META_CAMERA_PITCH.bottomDeg - META_CAMERA_PITCH.topDeg) * normalizedY;
+};
+
+export const getMetaIdleDeskView = (pointerY: number, sceneHeight: number): number => {
+  if (!Number.isFinite(pointerY) || !Number.isFinite(sceneHeight) || sceneHeight <= 0) {
+    return META_IDLE_DESK_VIEW.rest;
+  }
+
+  return Math.min(META_IDLE_DESK_VIEW.bottom, Math.max(META_IDLE_DESK_VIEW.top, pointerY / sceneHeight));
 };
 
 export interface VirtualKeyResult {

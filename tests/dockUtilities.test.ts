@@ -67,7 +67,8 @@ test('Terminal opens the existing developer panel and keeps Meta active', () => 
 });
 
 test('Controls independently gate camera follow and desk posture', () => {
-  assert.match(metaSource, /if \(!active \|\| !cameraPitchEnabled \|\| deviceResting/);
+  assert.match(metaSource, /if \(!active \|\| !cameraPitchEnabled \|\| reducedMotion/);
+  assert.match(metaSource, /if \(deviceResting\) \{[\s\S]{0,160}getMetaIdleDeskView/);
   assert.match(metaSource, /const postureAction = postureControlEnabled/);
   assert.match(metaSource, /if \(!postureControlEnabled\) setDeviceResting\(false\)/);
   assert.match(phoneSource, /onCameraPitchEnabledChange\(!cameraPitchEnabled\)/);

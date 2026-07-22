@@ -793,3 +793,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Made every unpreserved year from 2009 onward land on an explicit `NO SCREENSHOT AVAILABLE` state; reaching the real 2014 capture no longer completes the chapter.
 - Added three independently tracked, visibly underlined Noah Kade references in the preserved page body. The 2013 dated byline is intentionally non-interactive, and only recovering all three body references advances to Chapter 6.
 - Static verification passed on the clean delivery tree: 169/169 tests, TypeScript lint, production build, and focused diff checks; Browser and Preview remain intentionally unused.
+
+## 2026-07-22 — Resting mouse-depth desk camera
+
+- Extended mouse-height camera follow into the phone-on-desk resting posture without changing the existing handheld pitch behavior.
+- The upper pointer range compresses and lowers the desk to reveal more of the fireplace; the midpoint preserves the previous default composition; the lower range enlarges and raises the trapezoid to occlude the fireplace.
+- Recomputed the resting phone's projective quad throughout the spring motion and gave desk props plus resting hands one shared proportional scale/translation curve, preventing independent drift.
+- Static verification passed after replaying onto the latest main: 173/173 tests, TypeScript lint, production build, and focused diff checks; Browser and Preview remain intentionally unused.

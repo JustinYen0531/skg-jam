@@ -7,10 +7,12 @@ import {
   canStartMetaInteraction,
   getMetaDevicePostureAction,
   getMetaCameraPitch,
+  getMetaIdleDeskView,
   getProjectiveTransformMatrix,
   getScrollFingerTravel,
   isPointInsideProjectiveQuad,
   META_CAMERA_PITCH,
+  META_IDLE_DESK_VIEW,
   META_TAP_TIMING,
   normalizeVirtualKey,
   scaleProjectiveQuad,
@@ -97,6 +99,15 @@ test('mouse height maps to a clamped camera pitch from desk-flat to upright', ()
   assert.equal(getMetaCameraPitch(20, 0), META_CAMERA_PITCH.restDeg);
 });
 
+test('mouse height maps the resting desk from fireplace reveal to raised foreground', () => {
+  assert.equal(getMetaIdleDeskView(0, 1000), META_IDLE_DESK_VIEW.top);
+  assert.equal(getMetaIdleDeskView(500, 1000), META_IDLE_DESK_VIEW.rest);
+  assert.equal(getMetaIdleDeskView(1000, 1000), META_IDLE_DESK_VIEW.bottom);
+  assert.equal(getMetaIdleDeskView(-200, 1000), META_IDLE_DESK_VIEW.top);
+  assert.equal(getMetaIdleDeskView(1200, 1000), META_IDLE_DESK_VIEW.bottom);
+  assert.equal(getMetaIdleDeskView(20, 0), META_IDLE_DESK_VIEW.rest);
+});
+
 test('the visible phone trapezoid is the only upright no-rest collision area', () => {
   const phoneQuad = [
     { x: 120, y: 75 },
@@ -129,7 +140,7 @@ test('rest posture lays down the phone and swaps the grip for desk-plane hands',
   assert.doesNotMatch(scene, /data-meta-rest-surface|targetOnRestSurface/);
   assert.match(scene, /if \(!targetInsidePhone\) \{[\s\S]{0,120}event\.preventDefault\(\)/);
   assert.match(scene, /data-device-posture=\{deviceResting \? 'table-rest' : 'upright'\}/);
-  assert.match(scene, /!cameraPitchEnabled \? 'disabled' : deviceResting \? 'locked-table' : 'mouse-y'/);
+  assert.match(scene, /!cameraPitchEnabled \? 'disabled' : deviceResting \? 'idle-mouse-y' : 'mouse-y'/);
   assert.match(scene, /data-posture-control=\{postureControlEnabled \? 'enabled' : 'disabled'\}/);
   assert.match(scene, /cameraPitchTarget\.set\(META_CAMERA_PITCH\.restDeg\)/);
   assert.match(scene, /deviceResting \? \{ scale: 1, y: '0%' \} : \{ scale: 0\.92, y: '-13%' \}/);
@@ -149,7 +160,12 @@ test('rest posture lays down the phone and swaps the grip for desk-plane hands',
   assert.match(scene, /transformOrigin: '25% 100%'/);
   assert.match(scene, /transformOrigin: '75% 100%'/);
   assert.match(scene, /scaleX: 0\.36, scaleY: 0\.72, y: '-1%'/);
-  assert.match(scene, /data-desk-perspective=\{deviceResting \? 'flattened-trapezoid' : 'raised-front-edge'\}/);
+  assert.match(scene, /data-desk-perspective=\{deviceResting \? 'mouse-depth-trapezoid' : 'raised-front-edge'\}/);
+  assert.match(scene, /idleDeskTableScaleY = useTransform\(idleDeskView, \[0, 0\.5, 1\], \[0\.75, 1, 1\.35\]\)/);
+  assert.match(scene, /idleDeskTableY = useTransform\(idleDeskView, \[0, 0\.5, 1\], \['7%', '0%', '-9%'\]\)/);
+  assert.equal((scene.match(/restingView=\{idleDeskView\}/g) ?? []).length, 2);
+  assert.match(scene, /id="meta-resting-hands-perspective"/);
+  assert.match(scene, /data-resting-hand-camera=\{deviceResting \? 'shared-mouse-depth' : 'inactive'\}/);
   assert.equal((scene.match(/data-resting-hand-perspective="desk-plane"/g) ?? []).length, 2);
   assert.equal((scene.match(/data-wrist-crop="below-scene-edge"/g) ?? []).length, 2);
   assert.match(scene, /id="meta-device-contact-shadow"/);
@@ -293,7 +309,7 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   assert.doesNotMatch(sceneSource, /bg-\[#292119\]/);
   assert.match(sceneSource, /id="meta-phone-depth"/);
   assert.match(sceneSource, /id="meta-glass-reflection"/);
-  assert.match(sceneSource, /data-camera-pitch-control=\{active \? \(!cameraPitchEnabled \? 'disabled' : deviceResting \? 'locked-table' : 'mouse-y'\) : 'inactive'\}/);
+  assert.match(sceneSource, /data-camera-pitch-control=\{active \? \(!cameraPitchEnabled \? 'disabled' : deviceResting \? 'idle-mouse-y' : 'mouse-y'\) : 'inactive'\}/);
   assert.match(sceneSource, /rotateX: cameraPitchStyle/);
   assert.equal((sceneSource.match(/rotateX: cameraPitchStyle/g) ?? []).length, 5);
   assert.match(sceneSource, /onPointerMove=\{handlePointerMove\}/);
@@ -323,8 +339,8 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   assert.match(appSource, /metaSceneActive \? 'bg-slate-950\/40' : 'bg-black'/);
   assert.match(appSource, /<MetaInteractionScene[\s\S]{0,220}active=\{metaSceneActive\}[\s\S]{0,220}chapter=\{metaSceneActive \? progress\.currentChapter : 0\}/);
   assert.match(sceneSource, /<ChapterEnvironment chapter=\{chapter\} reducedMotion=\{reducedMotion\} layer="lighting" \/>/);
-  assert.match(sceneSource, /<ChapterEnvironment chapter=\{chapter\} reducedMotion=\{reducedMotion\} layer="underlay" deviceResting=\{deviceResting\} \/>/);
-  assert.match(sceneSource, /<ChapterEnvironment chapter=\{chapter\} reducedMotion=\{reducedMotion\} layer="objects" deviceResting=\{deviceResting\} \/>/);
+  assert.match(sceneSource, /<ChapterEnvironment chapter=\{chapter\} reducedMotion=\{reducedMotion\} layer="underlay" deviceResting=\{deviceResting\} restingView=\{idleDeskView\} \/>/);
+  assert.match(sceneSource, /<ChapterEnvironment chapter=\{chapter\} reducedMotion=\{reducedMotion\} layer="objects" deviceResting=\{deviceResting\} restingView=\{idleDeskView\} \/>/);
   assert.match(sceneSource, /#meta-terminal-dialogue \{ background-color: rgb\(13 19 27 \/ 0\.52\)/);
   assert.match(sceneSource, /data-environment-chapter=\{chapter\}/);
   assert.match(sceneSource, /scale: 0\.92/);

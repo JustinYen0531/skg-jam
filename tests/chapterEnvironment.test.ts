@@ -192,3 +192,11 @@ test('the physical environment is display-only and does not mutate progress', ()
   assert.match(environmentSource, /transition-\[left,top,rotate,scale\] duration-\[620ms\]/); // pen
   assert.match(environmentSource, /transition-\[top,scale,rotate\] duration-\[620ms\]/); // notebook
 });
+
+test('resting desk props share one mouse-depth scale instead of drifting independently', () => {
+  const environmentSource = readFileSync(new URL('../src/components/ChapterEnvironment.tsx', import.meta.url), 'utf8');
+  assert.match(environmentSource, /restingObjectScale = useTransform\(restingViewSource, \[0, 0\.5, 1\], \[0\.82, 1, 1\.18\]\)/);
+  assert.match(environmentSource, /restingObjectY = useTransform\(restingViewSource, \[0, 0\.5, 1\], \['7%', '0%', '-8%'\]\)/);
+  assert.match(environmentSource, /data-resting-object-scale=\{deviceResting \? 'shared-mouse-depth' : 'upright'\}/);
+  assert.match(environmentSource, /id=\{underlay \? 'meta-chapter-underlay-perspective' : 'meta-chapter-object-perspective'\}/);
+});
