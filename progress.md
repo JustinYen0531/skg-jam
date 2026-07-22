@@ -1,5 +1,12 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-22 — Screenshot detail Back control
+
+- Added a visible `BACK` control below every enlarged Chapter 4 screenshot.
+- The control closes only the selected screenshot and returns directly to the Lumen Arc screenshot pile; it never clears the selected parcel or returns to the delivery archive.
+- Reused the same close handler as the top-right X and marked the lower-edge button for immediate Meta input and projected-hit recovery.
+- Static verification passed: 164/164 clean-delivery tests, 163/163 active-desktop tests, TypeScript, production builds, and diff checks; Browser and Preview remain intentionally unused.
+
 ## 2026-07-22 — Click-gated 3D parcel collapse
 
 - Kept the unopened Lumen Arc parcel suspended until one explicit player click; mounting the package view no longer starts timers, sound, or motion automatically.

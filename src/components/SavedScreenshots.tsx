@@ -432,6 +432,11 @@ export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, up
     updateProgress((prev) => completePuzzleChapter(prev, 4, { discoveredOriginalTitle: true }));
   };
 
+  const closeActiveSheet = () => {
+    audio.play('phone.modalClose');
+    setActiveSheet(null);
+  };
+
   const openSheet = (index: number) => {
     audio.play('screenshot.zoom');
     const sheet = SHEETS[index];
@@ -611,7 +616,7 @@ export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, up
                     </div>
                     <button
                       type="button"
-                      onClick={() => { audio.play('phone.modalClose'); setActiveSheet(null); }}
+                      onClick={closeActiveSheet}
                       className="rounded-full p-1 transition-colors hover:bg-black/10"
                       id="spec-close-button"
                     >
@@ -626,6 +631,17 @@ export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, up
                   <span className="flex items-center gap-1"><ZoomIn className="h-3 w-3" /> Lumen_Arc_Screenshots.zip</span>
                   <span>{String(activeSheet + 1).padStart(2, '0')} / {SHEETS.length}</span>
                 </div>
+                <button
+                  type="button"
+                  onClick={closeActiveSheet}
+                  data-meta-immediate="true"
+                  data-meta-hit-recovery="true"
+                  className="mt-3 flex w-full items-center justify-center gap-1.5 rounded border border-current/30 bg-black/80 px-3 py-2 font-laos text-[10px] font-semibold tracking-wide text-white shadow-sm transition-colors hover:bg-black/95"
+                  id="spec-back-to-screenshots"
+                  aria-label="Back to Lumen Arc screenshots"
+                >
+                  <ArrowRight className="h-3.5 w-3.5 rotate-180" /> BACK
+                </button>
               </motion.div>
             </motion.div>
           )}

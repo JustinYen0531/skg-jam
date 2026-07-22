@@ -62,6 +62,18 @@ test('the viewer counts key details and only advances the chapter when assembled
   assert.doesNotMatch(source, /findClue[\s\S]{0,200}completePuzzleChapter/);
 });
 
+test('the zoomed screenshot has a reliable Back control that returns to the pile', () => {
+  const source = readFileSync(new URL('../src/components/SavedScreenshots.tsx', import.meta.url), 'utf8');
+
+  assert.match(source, /const closeActiveSheet = \(\) => \{[\s\S]{0,120}setActiveSheet\(null\)/);
+  assert.match(source, /id="spec-back-to-screenshots"/);
+  assert.match(source, /aria-label="Back to Lumen Arc screenshots"/);
+  assert.match(source, /onClick=\{closeActiveSheet\}/);
+  assert.match(source, /id="spec-back-to-screenshots"[\s\S]{0,120}>[\s\S]{0,80}BACK/);
+  assert.match(source, /data-meta-immediate="true"[\s\S]{0,80}data-meta-hit-recovery="true"/);
+  assert.doesNotMatch(source, /const closeActiveSheet = \(\) => \{[\s\S]{0,160}setActiveDeliveryId/);
+});
+
 test('the Lumen Arc evidence must be found inside a normal delivery archive', () => {
   const source = readFileSync(new URL('../src/components/SavedScreenshots.tsx', import.meta.url), 'utf8');
 
