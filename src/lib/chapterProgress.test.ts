@@ -51,6 +51,12 @@ test('chapter snapshots accumulate discoveries instead of leaking future discove
   assert.equal(getChapterSnapshot(5).discoveredOriginalTitle, true);
   assert.equal(getChapterSnapshot(6).discoveredSKGHistory, true);
   assert.equal(getChapterSnapshot(7).discoveredNoahQA, false);
+  assert.equal(getChapterSnapshot(7).discoveredMaraAltitude184, false);
+  assert.equal(getChapterSnapshot(7).loggedIntoAdmin, false);
+  assert.equal(getChapterSnapshot(8).discoveredMaraAltitude184, true);
+  assert.equal(getChapterSnapshot(8).discoveredMaraGate40, true);
+  assert.equal(getChapterSnapshot(8).discoveredMaraEnd256, true);
+  assert.equal(getChapterSnapshot(8).loggedIntoAdmin, true);
   assert.equal(getChapterSnapshot(8).unlockedAdminLogin, true);
   assert.equal(getChapterSnapshot(10).unlockedCodeRoute, true);
 });
@@ -87,9 +93,16 @@ test('chapter metadata supplies a target phone app for debug navigation', () => 
 
 test('normal player cannot use guessed archive credentials before the clue is unlocked', () => {
   const early = getChapterSnapshot(2);
-  const ready = getChapterSnapshot(8);
+  const chapterSeven = getChapterSnapshot(7);
+  const ready = {
+    ...chapterSeven,
+    discoveredMaraAltitude184: true,
+    discoveredMaraGate40: true,
+    discoveredMaraEnd256: true,
+  };
 
   assert.equal(canUseProgressionAction('admin-login', early), false);
+  assert.equal(canUseProgressionAction('admin-login', { ...ready, discoveredMaraEnd256: false }), false);
   assert.equal(canUseProgressionAction('admin-login', ready), true);
 });
 

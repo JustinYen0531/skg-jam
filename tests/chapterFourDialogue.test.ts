@@ -52,7 +52,7 @@ test('every wrong parcel and decoy reacts twice, then becomes quiet', () => {
 });
 
 test('clues, stalls, re-entry, revisit, wrong apps, and companion loops are covered', () => {
-  for (const clueId of ['title', 'params', 'numbers'] as const) {
+  for (const clueId of ['title', 'params', 'archive'] as const) {
     assert.ok(getChapterFourClueDialogue(clueId).length > 0);
     assert.ok(getChapterFourClueDialogue(clueId, 0).length > 0);
     assert.deepEqual(getChapterFourClueDialogue(clueId, 1), []);
@@ -71,7 +71,7 @@ test('Chapter 4 dialogue stays English-only and inside its knowledge boundary', 
     ...Object.values(CHAPTER_FOUR_DIALOGUE).flat(),
     ...wrongDeliveries.flatMap((id) => [0, 1, 2].flatMap((attempt) => getChapterFourWrongDeliveryDialogue(id, attempt))),
     ...decoys.flatMap((id) => [0, 1, 2].flatMap((attempt) => getChapterFourDecoyDialogue(id, attempt))),
-    ...(['title', 'params', 'numbers'] as const).flatMap((id) => [
+    ...(['title', 'params', 'archive'] as const).flatMap((id) => [
       ...getChapterFourClueDialogue(id),
       ...getChapterFourClueDialogue(id, 0),
     ]),

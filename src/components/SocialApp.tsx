@@ -10,6 +10,7 @@ import {
   Heart,
   Home,
   MessageCircle,
+  MapPin,
   MoreHorizontal,
   Search,
   Settings2,
@@ -36,6 +37,7 @@ import {
   type ChapterSixNoiseKind,
 } from '../lib/chapterSixDialogue';
 import type { DialogueLines } from '../lib/chapterOneDialogue';
+import { getMaraClueProgress, getMaraNumberValue, MARA_PROFILE_POSTS, type MaraNumberClue } from '../lib/chapterSevenSocial';
 
 const FACESPACE_FEED = [
   { id: 'fs-1', author: 'Mina Liao', avatar: 'ML', time: '18 min', audience: 'Friends', content: 'The café recommendation algorithm sent me to the café I was already sitting in. Five stars for confidence.', reactions: 84, comments: 12, accent: 'from-rose-500 to-orange-400' },
@@ -90,8 +92,23 @@ const LeftSidebar: React.FC<{ onInteract: (kind: ChapterSixNoiseKind) => void }>
   </aside>
 );
 
-const RightSidebar: React.FC<{ onInteract: (kind: ChapterSixNoiseKind) => void }> = ({ onInteract }) => (
+const RightSidebar: React.FC<{ progress: GameProgress; onInteract: (kind: ChapterSixNoiseKind) => void; onOpenMara: () => void }> = ({ progress, onInteract, onOpenMara }) => (
   <aside className="w-[22%] min-w-[132px] shrink-0 space-y-2 overflow-y-auto rounded-xl border border-white/[0.06] bg-slate-950/70 p-2" id="social-right-sidebar">
+    {progress.currentChapter >= 7 && progress.discoveredMotherComment && (
+      <div className="space-y-1.5" id="social-recently-viewed">
+        <div className="text-[8px] font-black uppercase tracking-[0.15em] text-slate-500">Recently viewed</div>
+        {[
+          ['MK', 'Mara Kade', 'Comment profile'],
+          ['NK', 'Noah Kade', 'Silver Kite Games'],
+          ['RT', 'Retro Tech Archaeology', 'Public page'],
+        ].map(([avatar, name, meta]) => (
+          <button key={name} type="button" onClick={() => name === 'Mara Kade' ? onOpenMara() : onInteract('right-sidebar')} className="flex w-full items-center gap-2 rounded-lg bg-white/[0.035] p-2 text-left" id={name === 'Mara Kade' ? 'social-recent-mara' : undefined}>
+            <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[8px] font-black ${name === 'Mara Kade' ? 'bg-pink-700' : 'bg-slate-700'}`}>{avatar}</div>
+            <div className="min-w-0"><div className="truncate text-[8.5px] font-bold">{name}</div><div className="truncate text-[7px] text-slate-600">{meta}</div></div>
+          </button>
+        ))}
+      </div>
+    )}
     <div className="flex items-center justify-between text-[8px] font-black uppercase tracking-[0.15em] text-slate-500"><span>Trending</span><Globe2 className="h-3 w-3" /></div>
     {['#HarborviewFog', '#ArchiveWeekend', '#EndlessSummerAI'].map((tag, index) => (
       <button key={tag} type="button" onClick={() => { audio.playTick(); onInteract('right-sidebar'); }} className="block w-full rounded-lg bg-white/[0.03] p-2 text-left">
@@ -110,7 +127,7 @@ const RightSidebar: React.FC<{ onInteract: (kind: ChapterSixNoiseKind) => void }
 
 export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress, onMaraFound, onDialogue }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [hasSearched, setHasSearched] = useState(progress.discoveredMotherComment || progress.currentChapter >= 7);
+  const [activeProfile, setActiveProfile] = useState<'none' | 'noah' | 'mara'>(() => progress.currentChapter === 6 && progress.discoveredMotherComment ? 'noah' : 'none');
   const [sortOldest, setSortOldest] = useState(false);
   const [activeTab, setActiveTab] = useState<'posts' | 'about'>('posts');
   const [searchError, setSearchError] = useState('');
@@ -148,7 +165,7 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress, 
         return;
       }
       setSearchError('');
-      setHasSearched(true);
+      setActiveProfile('noah');
       setActiveTab('posts');
       speakChapterSix([
         CHAPTER_SIX_DIALOGUE.profileLoaded[0],
@@ -203,6 +220,22 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress, 
       ? { ...previous, discoveredMotherComment: true }
       : previous);
     onMaraFound?.();
+  };
+
+  const handleMaraNumberClue = (clue: MaraNumberClue) => {
+    if (progress.currentChapter !== 7) return;
+    audio.play('narrative.clueEmphasis');
+    updateProgress((previous) => {
+      if (previous.currentChapter !== 7) return previous;
+      const next = {
+        ...previous,
+        discoveredMaraAltitude184: previous.discoveredMaraAltitude184 || clue === 'altitude',
+        discoveredMaraGate40: previous.discoveredMaraGate40 || clue === 'gate',
+        discoveredMaraEnd256: previous.discoveredMaraEnd256 || clue === 'end',
+      };
+      const complete = next.discoveredMaraAltitude184 && next.discoveredMaraGate40 && next.discoveredMaraEnd256;
+      return complete ? { ...next, discoveredNoahQA: true, unlockedAdminLogin: true } : next;
+    });
   };
 
   const timeline = getChapterSixTimeline(sortOldest);
@@ -267,7 +300,7 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress, 
       <div className="flex min-h-0 flex-1 gap-2 p-2" id="social-three-column-layout">
         <LeftSidebar onInteract={handleNoiseInteraction} />
         <main className="min-w-0 flex-1 overflow-y-auto overscroll-contain" id="social-primary-column">
-          {!hasSearched ? (
+          {activeProfile === 'none' ? (
             <div className="mx-auto max-w-[540px] space-y-3" id="social-home-feed">
               <section className="rounded-xl border border-slate-800 bg-slate-950 p-2.5" id="social-composer">
                 <div className="flex items-center gap-2"><div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-[9px] font-black">ME</div><div className="flex-1 rounded-full bg-slate-800 px-3 py-2 text-[9px] text-slate-500">What is on your mind?</div></div>
@@ -282,6 +315,28 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress, 
                 </article>
               ))}
             </div>
+          ) : activeProfile === 'mara' ? (
+            <div className="mx-auto max-w-[560px] space-y-3" id="social-mara-profile">
+              <section className="overflow-hidden rounded-xl border border-pink-300/15 bg-slate-950" id="social-mara-banner">
+                <div className="h-16 bg-gradient-to-r from-rose-950 via-pink-950 to-slate-950" />
+                <div className="-mt-6 flex items-end gap-3 px-4 pb-3"><div className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-slate-950 bg-pink-700 text-xl font-black">MK</div><div className="mb-1"><h2 className="text-sm font-bold">Mara Kade</h2><p className="text-[9px] text-slate-500">Harborview · Family, books, and small remembered places</p></div></div>
+              </section>
+              <div className="rounded-lg border border-white/[0.06] bg-slate-950/90 p-2 text-[8px] text-slate-500" id="mara-clue-counter">
+                Saved details · {Object.values(getMaraClueProgress(progress)).filter(Boolean).length}/3
+              </div>
+              <section className="space-y-3" id="mara-post-timeline">
+                {MARA_PROFILE_POSTS.map((post) => {
+                  const found = post.clue ? getMaraClueProgress(progress)[post.clue] : false;
+                  return (
+                    <article key={post.id} className="rounded-xl border border-slate-800 bg-slate-950 p-3" data-mara-post={post.id}>
+                      <div className="flex items-center gap-2"><div className="flex h-8 w-8 items-center justify-center rounded-full bg-pink-700 text-[8px] font-black">MK</div><div className="min-w-0 flex-1"><div className="text-[9px] font-bold">Mara Kade</div><div className="text-[7px] text-slate-600">{post.date} · Public</div></div></div>
+                      <p className="py-2 text-[9.5px] leading-relaxed text-slate-300">{post.content}</p>
+                      <div className="flex items-center justify-between border-t border-slate-800 pt-2 text-[7.5px] text-slate-600"><span>♥ {post.reactions} · {post.comments} comments</span>{post.clue && <button type="button" onClick={() => handleMaraNumberClue(post.clue!)} disabled={found} className="flex items-center gap-1 rounded px-2 py-1 text-slate-400 hover:bg-white/[0.05] hover:text-white disabled:text-pink-300" data-mara-number-clue={post.clue}><MapPin className="h-3 w-3" />{found ? `Saved ${getMaraNumberValue(post.clue)}` : 'Remember this place'}</button>}</div>
+                    </article>
+                  );
+                })}
+              </section>
+            </div>
           ) : (
             <div className="mx-auto max-w-[560px] space-y-3" id="social-profile-view">
               <section className="overflow-hidden rounded-xl border border-slate-800 bg-slate-950" id="social-profile-banner">
@@ -289,7 +344,7 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress, 
                 <div className="-mt-6 flex items-end gap-3 px-4 pb-3"><div className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-slate-950 bg-blue-600 text-xl font-black">NK</div><div className="mb-1"><h2 className="text-sm font-bold">Noah Kade</h2><p className="text-[9px] text-slate-500">Founder & Game Designer · Silver Kite Games</p></div></div>
                 <div className="grid grid-cols-2 border-t border-slate-800 text-center text-[9px] font-bold">
                   <button type="button" onClick={() => { audio.play('phone.tab'); setActiveTab('posts'); }} className={`py-2 ${activeTab === 'posts' ? 'border-b-2 border-blue-500 text-blue-400' : 'text-slate-500'}`}>Post timeline</button>
-                  <button type="button" disabled={progress.currentChapter < 7} onClick={() => { audio.play('phone.tab'); setActiveTab('about'); updateProgress((previous) => previous.currentChapter === 7 ? { ...previous, discoveredNoahQA: true } : previous); }} className={`py-2 ${activeTab === 'about' ? 'border-b-2 border-blue-500 text-blue-400' : 'text-slate-500'} disabled:cursor-not-allowed disabled:opacity-35`} id="social-about-tab">About & Q&A</button>
+                  <button type="button" onClick={() => { audio.play('phone.tab'); setActiveTab('about'); }} className={`py-2 ${activeTab === 'about' ? 'border-b-2 border-blue-500 text-blue-400' : 'text-slate-500'}`} id="social-about-tab">About & Q&A</button>
                 </div>
               </section>
 
@@ -318,14 +373,14 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress, 
               ) : (
                 <section className="space-y-3 rounded-xl border border-slate-800 bg-slate-950 p-3 text-[10px]" id="social-about">
                   <div className="flex items-center gap-1.5 border-b border-slate-800 pb-2 font-bold text-blue-400"><Award className="h-4 w-4" />Developer Personal Q&A Board</div>
-                  <div className="font-bold">Q: What is your favorite number or coordinate?</div>
-                  <div className="rounded border border-slate-800 bg-slate-900 p-2.5 font-mono text-slate-300">My favorite coordinate is <span className="bg-yellow-500/20 px-1 font-bold text-yellow-400">184-40-256</span>. Treat it as a path: ALTITUDE / GATE / END.</div>
+                  <div className="font-bold">Q: Why should a game have an ending?</div>
+                  <div className="rounded border border-slate-800 bg-slate-900 p-2.5 text-slate-300">Because finishing something is not the same as abandoning it.</div>
                 </section>
               )}
             </div>
           )}
         </main>
-        <RightSidebar onInteract={handleNoiseInteraction} />
+        <RightSidebar progress={progress} onInteract={handleNoiseInteraction} onOpenMara={() => { audio.play('phone.tab'); setActiveProfile('mara'); }} />
       </div>
     </div>
   );

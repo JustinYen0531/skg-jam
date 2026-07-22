@@ -43,8 +43,8 @@ export const CHAPTER_FOUR_DIALOGUE = {
   paramsFound: [
     'Altitude. Gate. End. Three labels, in that order.',
   ],
-  numbersFound: [
-    '184. 40. 256. The same numbers again.',
+  archiveFound: [
+    'SilverKite_Games. An old backup account, not a product label.',
   ],
   caseAssembled: [
     'Different screenshots. Same structure.',
@@ -94,7 +94,7 @@ const REPEATED_DECOY = [
 const REPEATED_CLUE: Readonly<Record<LumenArcClueId, DialogueLines>> = {
   title: ['Already marked. Skyline 256.'],
   params: ['Already marked. Altitude, gate, end.'],
-  numbers: ['Already marked. 184, 40, 256.'],
+  archive: ['Already marked. SilverKite_Games.'],
 };
 
 const STALLED_DIALOGUE = [
@@ -146,7 +146,7 @@ export const getChapterFourClueDialogue = (
   if (repeatAttempt !== undefined) return repeatAttempt === 0 ? REPEATED_CLUE[clueId] : [];
   if (clueId === 'title') return CHAPTER_FOUR_DIALOGUE.titleFound;
   if (clueId === 'params') return CHAPTER_FOUR_DIALOGUE.paramsFound;
-  return CHAPTER_FOUR_DIALOGUE.numbersFound;
+  return CHAPTER_FOUR_DIALOGUE.archiveFound;
 };
 
 export const getChapterFourStalledDialogue = (attempt: number): DialogueLines => [

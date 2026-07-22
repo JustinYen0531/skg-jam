@@ -872,3 +872,11 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - A death by itself still leaves the game in its cheap fullscreen presentation; zero Gate 40 deaths cannot unlock Meta even if the leaderboard callback is invoked.
 - Updated the Chapter 1 debug baseline, regression tests, GDD, environment evolution, implementation checklist, and sound-event documentation to the new retention-focused pacing.
 - Static verification passed: focused tests 35/35 in both worktrees, full tests 188/188 on the clean delivery tree, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.
+
+## 2026-07-22 — Chapter 7 Mara coordinate trail and archive login
+
+- Reassigned `184`, `40`, and `256` from Noah's single Q&A answer to three separate memories in Mara Kade's nine-post FaceSpace timeline.
+- Chapter 7 now begins from FaceSpace `Recently viewed`, persists each Mara clue separately, rejects the archive password until all three are found, and completes only after the player logs into `MARA_KADE`.
+- Chapter 8 now begins inside the restored archive index and advances only when the player opens the Mara Kade and Noah Kade private thread; Chapters 9–10 keep their existing boundaries.
+- Removed the premature full `184-40-256` string from the Chapter 4 screenshot pile and replaced it with the old `SilverKite_Games` backup-account clue.
+- Static verification passed: focused tests 40/40 and full tests 192/192 on the clean delivery tree, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.

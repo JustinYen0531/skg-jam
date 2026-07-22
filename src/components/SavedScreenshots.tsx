@@ -223,7 +223,7 @@ const SHEETS: readonly Sheet[] = [
     angle: 4,
     bg: 'bg-[#fefce8]',
     textColor: 'text-yellow-950',
-    clueId: 'numbers',
+    clueId: 'archive',
     content: (clue) => (
       <div className="space-y-2 p-1 font-sans text-[10px] text-yellow-900">
         <div className="border-b-2 border-yellow-900/15 pb-1 font-mono text-[9px] font-bold text-yellow-800/80">NOTES · untitled</div>
@@ -231,7 +231,7 @@ const SHEETS: readonly Sheet[] = [
           <li>— pick up milk, bread</li>
           <li>— dentist thurs @ 3</li>
           <li>— return the drill to Sam</li>
-          <li>— lucky combo again: {clue ? clue('184-40-256') : '184-40-256'}</li>
+          <li>— old backup account: {clue ? clue('SilverKite_Games') : 'SilverKite_Games'}</li>
           <li>— call about the warranty</li>
         </ul>
       </div>

@@ -33,11 +33,12 @@ test('the screenshot pile hides exactly three clues among many decoys', () => {
   assert.ok(sheetIds.length >= 9, `expected at least 9 screenshots, found ${sheetIds.length}`);
 
   // Exactly three sheets carry a clueId, one per required detail.
-  const clueSheets = source.match(/clueId: '(title|params|numbers)'/g) ?? [];
+  const clueSheets = source.match(/clueId: '(title|params|archive)'/g) ?? [];
   assert.equal(clueSheets.length, 3);
   assert.match(source, /clueId: 'title'/);
   assert.match(source, /clueId: 'params'/);
-  assert.match(source, /clueId: 'numbers'/);
+  assert.match(source, /clueId: 'archive'/);
+  assert.doesNotMatch(source, /184-40-256/);
 
   // Each clue is a clickable, underlined word; decoys never render one.
   assert.match(source, /data-clue-word=\{clueId\}/);

@@ -109,8 +109,9 @@
 - [ ] 購買 Lumen Arc 後，才解鎖截圖資料夾。
 - [ ] 閱讀截圖後，才得到 `SKG: Skyline 256` 與 SilverKite_Games。
 - [ ] 追查 Browser 的 Silver Kite Games 舊網站後，才得到 Noah 線索。
-- [ ] FaceSpace 搜尋 Noah 並查看最早貼文／Q&A 後，才得到 `184-40-256`。
-- [ ] Messages 只在前置線索足夠時解鎖密碼登入。
+- [x] Chapter 7 從 FaceSpace 的 `Recently viewed` 進入 Mara 個人頁，並從九篇貼文中的三個不同位置分別取得 `184`、`40`、`256`。
+- [x] Messages 只在三段 Mara 數字線索全部取得時接受座標密碼；登入成功才完成 Chapter 7。
+- [x] Chapter 8 從已登入的封存索引開始，玩家親自開啟 Mara 與 Noah 的私人對話。
 - [ ] 登入舊帳號後，才解鎖高度序列。
 - [ ] 沒有完成前置調查時，不能直接輸入密碼或取得完整路線。
 

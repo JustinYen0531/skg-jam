@@ -6,7 +6,7 @@ export type MetaFloorStage = MetaWallStage;
 export type DeskLighting = 'hidden' | 'cool' | 'focused' | 'still' | 'ready';
 export type CoffeeState = 'none' | 'fresh' | 'sipped' | 'half' | 'near-empty' | 'empty' | 'tipped-empty' | 'pushed-away';
 export type CableState = 'none' | 'loose' | 'connected';
-export type NotebookState = 'none' | 'closed' | 'blank' | 'skg' | 'company' | 'noah' | 'numbers' | 'password' | 'quiet' | 'route';
+export type NotebookState = 'none' | 'closed' | 'blank' | 'skg' | 'company' | 'noah' | 'mara' | 'numbers' | 'password' | 'quiet' | 'route';
 export type PenState = 'none' | 'neat' | 'working' | 'crossed' | 'resting' | 'route';
 export type DeskOrder = 'hidden' | 'clean' | 'gathering' | 'cluttered' | 'quiet' | 'organized';
 
@@ -168,10 +168,10 @@ export const CHAPTER_ENVIRONMENTS: Readonly<Record<EnvironmentChapter, ChapterEn
     teaService: false,
     paperBalls: false,
     cable: 'connected',
-    notebook: 'noah',
+    notebook: 'mara',
     notebookPosition: 'default',
     pen: 'working',
-    stickyNote: 'MARA COMMENT',
+    stickyNote: 'RECENTLY VIEWED',
     deskOrder: 'cluttered',
   },
   8: {

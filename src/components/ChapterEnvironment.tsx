@@ -34,6 +34,7 @@ const NOTEBOOK_COPY: Record<NotebookState, readonly string[]> = {
   skg: ['SKG', '?'],
   company: ['SILVER KITE GAMES', '→ SKG AUTOMATION', 'YEAR ?'],
   noah: ['NOAH KADE?', 'old posts / earliest'],
+  mara: ['MARA · PLACES', 'ALT?  GATE?  END?'],
   numbers: ['184 — 40 — 256', 'ALT?  GATE?  END?'],
   password: ['184 / 40 / 256', 'ALT184GATE40END256'],
   quiet: [],

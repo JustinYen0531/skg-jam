@@ -6,6 +6,7 @@ import { isSellerCodeAccepted, type AmazeMartOrderPhase } from '../lib/amazemart
 import { useMetaInteraction } from './MetaInteractionScene';
 import { CHAPTER_THREE_DIALOGUE, getChapterThreeSellerCodeResponse } from '../lib/chapterThreeDialogue';
 import { KeyRound, MessageCircle, Send, ShieldAlert } from 'lucide-react';
+import { hasAllMaraNumberClues } from '../lib/chapterSevenSocial';
 
 interface MessagesAppProps {
   progress: GameProgress;
@@ -40,40 +41,27 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
     {
       sender: 'mom',
       time: '11:22 AM',
-      content: 'Hello Noah... oh sorry, my dear, I mean my sweet boy. Have you found your father\'s old drawings?',
+      content: 'Hello Noah... oh sorry, my dear, I mean my sweet boy. Did you find what you were looking for?',
     },
     {
       sender: 'me',
       time: '11:23 AM',
-      content: 'I found some of his old technical schematics, Mom. The ones from Silver Kite Games.',
+      content: 'I found the old Silver Kite pages. And your FaceSpace profile.',
     },
     {
       sender: 'mom',
       time: '11:24 AM',
-      content: 'He was so proud of Skyline 256. Everyone wanted games to go on forever, to scrape infinite coins. But he said a true flight always lands.',
-    },
-    {
-      sender: 'me',
-      time: '11:25 AM',
-      content: 'Mom, what was his favorite number code? 184-40-256? Is it a password?',
-    },
-    {
-      sender: 'mom',
-      time: '11:26 AM',
-      content: 'Oh... your father always said numbers aren\'t passwords. They are paths. You must pair them with their coordinates: ALT, GATE, and END. Just like on the old schematics.',
-    },
-    {
-      sender: 'me',
-      time: '11:27 AM',
-      content: 'ALT184GATE40END256?',
-      isUnlockedCode: true,
-    },
-    {
-      sender: 'mom',
-      time: '11:28 AM',
-      content: 'Yes! That sounds so familiar. My memory wanders, dear... but I know he left a conversation in our old Silver Kite Messenger database. You should log in there. He left a path for you.',
+      content: 'Those little places mattered to me. I used them when I needed numbers I would not forget.',
     }
   ];
+
+  if (hasAllMaraNumberClues(progress)) {
+    momMessages.push(
+      { sender: 'me', time: '11:25 AM', content: 'I found three of them. The harbor lookout, the old terminal gate, and the ending of your book.' },
+      { sender: 'mom', time: '11:26 AM', content: 'Then they were mine, not your father\'s. Numbers are not passwords by themselves, dear. They are places. The old login asked for altitude, gate, and end—in that order.' },
+      { sender: 'mom', time: '11:27 AM', content: 'My memory wanders, but the Silver Kite archive should still recognize the path if you label each number correctly.' },
+    );
+  }
 
   const handleAdminLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,7 +85,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
       audio.play('auth.correct');
       setLoginError('');
       setFailCount(0);
-      updateProgress((prev) => completePuzzleChapter(prev, 8, { loggedIntoAdmin: true }));
+      updateProgress((prev) => completePuzzleChapter(prev, 7, { unlockedAdminLogin: true, loggedIntoAdmin: true }));
     } else {
       audio.play('auth.wrong');
       const nextFails = failCount + 1;
@@ -108,9 +96,9 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
     }
   };
 
-  const handleInterpretCoordinateKey = () => {
+  const handleOpenArchiveThread = () => {
     audio.playUnlock();
-    updateProgress((prev) => completePuzzleChapter(prev, 7, { unlockedAdminLogin: true }));
+    updateProgress((prev) => completePuzzleChapter(prev, 8));
   };
 
   const handleRecoverRoute = () => {
@@ -289,16 +277,6 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                 </div>
               ))}
 
-              {progress.discoveredNoahQA && progress.discoveredMotherComment && !progress.unlockedAdminLogin && (
-                <button
-                  type="button"
-                  onClick={handleInterpretCoordinateKey}
-                  className="mx-auto border border-amber-300/45 bg-amber-200/10 px-3 py-2 text-[9px] font-mono font-bold tracking-[0.12em] text-amber-200 hover:bg-amber-200/15"
-                  id="messages-interpret-number"
-                >
-                  ASSEMBLE COORDINATE KEY
-                </button>
-              )}
             </div>
 
             {/* Decayed archive artifacts: the system kept the slots, not the words */}
@@ -390,6 +368,15 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                   DECRYPT ENCRYPTED NODES
                 </button>
               </form>
+            ) : progress.currentChapter === 8 ? (
+              <div className="laos-panel space-y-3 p-4" id="admin-archive-index">
+                <div className="laos-label text-[9px]">RESTORED ARCHIVE INDEX · MARA_KADE</div>
+                <div className="border border-[var(--laos-line-dim)] bg-[var(--laos-bg)] p-3">
+                  <div className="font-laos text-[10px] font-semibold text-[var(--laos-text)]">Private thread · Mara Kade ↔ Noah Kade</div>
+                  <div className="mt-1 font-mono text-[8px] text-[var(--laos-faint)]">2014-04-20 · 7 messages · 1 attachment</div>
+                </div>
+                <button type="button" onClick={handleOpenArchiveThread} className="laos-slow w-full border border-[var(--laos-warm)]/60 bg-[var(--laos-surface-2)] px-3 py-2 font-laos text-[10px] font-semibold tracking-[0.14em] text-[var(--laos-warm)]" id="messages-open-private-thread">OPEN PRIVATE THREAD</button>
+              </div>
             ) : (
               /* Already Logged In: Show emotional dialog logs containing the sequence */
               <div className="space-y-4" id="admin-unlocked-logs">

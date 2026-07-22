@@ -15,8 +15,11 @@ export interface GameProgress {
   deliveredPhone: boolean; // Triggers "Printed Screenshots" box
   discoveredOriginalTitle: boolean; // "SKG: Skyline 256"
   discoveredSKGHistory: boolean;    // "Silver Kite Games" old site
-  discoveredNoahQA: boolean;        // "184-40-256" favorite number
+  discoveredNoahQA: boolean;        // legacy marker: all three Mara number posts found
   discoveredMotherComment: boolean; // "Bought hundreds of keys... kept one for our child"
+  discoveredMaraAltitude184: boolean;
+  discoveredMaraGate40: boolean;
+  discoveredMaraEnd256: boolean;
   unlockedAdminLogin: boolean;      // knows ALT184GATE40END256
   loggedIntoAdmin: boolean;         // logged into Mother's old Silver Kite account
   unlockedCodeRoute: boolean;       // knows the exact sequence NK_184.172.149.133.121.118.126.143
