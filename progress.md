@@ -1,5 +1,13 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-22 — Click-gated 3D parcel collapse
+
+- Kept the unopened Lumen Arc parcel suspended until one explicit player click; mounting the package view no longer starts timers, sound, or motion automatically.
+- Enlarged the complete physical reveal stage to 1.5x and rebuilt the phone phantom from seven visible depth slices with a stronger rim, perspective, and cast shadow.
+- Recut the reveal into a readable physical sequence: parcel drop, lid opening, solid-device rise and hold, 140 ms depth collapse, forward fall, impact, and breakup into ten overlapping image cards.
+- Preserved keyboard activation and reduced-motion behavior behind the same manual opening gate.
+- Added source-level regression contracts for the input gate, 1.5x scale, solid-to-flat state, ordered fall/impact/shatter beats, and ten-card pile. Focused tests and TypeScript validation pass; Browser and Preview remain intentionally unused.
+
 ## 2026-07-22 — Complete Chapter 4 protagonist dialogue coverage
 
 - Added the Chapter 4 dialogue module in the same data/function pattern as Chapters 1–3, with restrained English-only lines and explicit future-knowledge boundaries.

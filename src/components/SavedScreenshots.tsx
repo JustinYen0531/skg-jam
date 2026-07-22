@@ -18,6 +18,8 @@ import {
   type ChapterFourSheetId,
   type ChapterFourWrongDeliveryId,
 } from '../lib/chapterFourDialogue';
+import { useReducedMotion } from '../lib/useReducedMotion';
+import { LumenArcReveal } from './LumenArcReveal';
 import { useMetaInteraction } from './MetaInteractionScene';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowRight, Check, FolderOpen, ImageIcon, PackageCheck, PackageOpen, Truck, X, ZoomIn } from 'lucide-react';
@@ -291,8 +293,12 @@ const CLUE_SHEET_COUNT = SHEETS.filter((sheet) => sheet.clueId).length;
 
 export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, updateProgress }) => {
   const metaInteraction = useMetaInteraction();
+  const reducedMotion = useReducedMotion();
   const [activeSheet, setActiveSheet] = useState<number | null>(null);
   const [activeDeliveryId, setActiveDeliveryId] = useState<string | null>(null);
+  // The package view appears first; the physical collapse begins only after
+  // the player explicitly clicks the suspended parcel.
+  const [revealPlaying, setRevealPlaying] = useState(false);
   // If the chapter is already complete (a later snapshot, or a re-visit), every
   // detail counts as found so the viewer shows its assembled state.
   const [found, setFound] = useState<Set<LumenArcClueId>>(
@@ -304,6 +310,7 @@ export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, up
   const decoysSinceClue = useRef(0);
   const stalledAttempts = useRef(0);
   const packageOpenCount = useRef(0);
+  const revealSeen = useRef(false);
   const completedRevisitSpoken = useRef(false);
   const completedHere = useRef(false);
   const caseDialogueTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -330,16 +337,22 @@ export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, up
   }, [metaInteraction.active, metaInteraction.speak, progress.currentChapter, progress.discoveredOriginalTitle]);
 
   const openDelivery = (record: DeliveryRecord) => {
-    audio.play(record.target ? 'ui.primaryTap' : 'ui.secondaryTap');
-    if (chapterFourActive) {
-      if (record.id === 'lumen-arc') {
-        metaInteraction.speak(
-          packageOpenCount.current === 0
-            ? CHAPTER_FOUR_DIALOGUE.packageOpened
-            : CHAPTER_FOUR_DIALOGUE.packetReentered,
-        );
-        packageOpenCount.current += 1;
+    if (record.id === 'lumen-arc') {
+      // The reveal owns the physical opening sound and the first reaction. A
+      // solved re-visit skips the theatre and goes straight to the image pile.
+      if (!progress.discoveredOriginalTitle && !revealSeen.current) {
+        revealSeen.current = true;
+        setRevealPlaying(true);
       } else {
+        audio.play('ui.primaryTap');
+        if (chapterFourActive) {
+          metaInteraction.speak(CHAPTER_FOUR_DIALOGUE.packetReentered);
+          packageOpenCount.current += 1;
+        }
+      }
+    } else {
+      audio.play('ui.secondaryTap');
+      if (chapterFourActive) {
         const attempt = wrongDeliveryAttempts.current.get(record.id) ?? 0;
         metaInteraction.speak(getChapterFourWrongDeliveryDialogue(record.id, attempt));
         wrongDeliveryAttempts.current.set(record.id, attempt + 1);
@@ -444,7 +457,7 @@ export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, up
   const viewingLumenPackage = activeDeliveryId === 'lumen-arc';
 
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-[var(--laos-bg)] font-sans text-[var(--laos-text)]" id="screenshots-root">
+    <div className="relative flex h-full flex-col overflow-hidden bg-[var(--laos-bg)] font-sans text-[var(--laos-text)]" id="screenshots-root">
       {!viewingLumenPackage ? (
         <>
           <div className="flex items-center justify-between border-b border-[var(--laos-line)] bg-[var(--laos-surface)] p-3" id="delivery-archive-header">
@@ -619,6 +632,19 @@ export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, up
         </AnimatePresence>
       </div>
         </>
+      )}
+
+      {revealPlaying && viewingLumenPackage && (
+        <LumenArcReveal
+          reducedMotion={reducedMotion}
+          onComplete={() => {
+            setRevealPlaying(false);
+            if (chapterFourActive) {
+              metaInteraction.speak(CHAPTER_FOUR_DIALOGUE.packageOpened);
+              packageOpenCount.current += 1;
+            }
+          }}
+        />
       )}
     </div>
   );

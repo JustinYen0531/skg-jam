@@ -72,3 +72,26 @@ test('the Lumen Arc evidence must be found inside a normal delivery archive', ()
   assert.match(source, /id="delivery-archive"/);
   assert.match(source, /id="delivery-back-to-archive"/);
 });
+
+test('the parcel waits for input before its enlarged solid collapses into images', () => {
+  const source = readFileSync(new URL('../src/components/SavedScreenshots.tsx', import.meta.url), 'utf8');
+
+  assert.match(source, /import \{ LumenArcReveal \}/);
+  assert.match(source, /revealPlaying && viewingLumenPackage/);
+  assert.match(source, /if \(record\.id === 'lumen-arc'\) \{[\s\S]{0,280}setRevealPlaying\(true\)/);
+  assert.match(source, /<LumenArcReveal[\s\S]{0,400}setRevealPlaying\(false\);[\s\S]{0,300}CHAPTER_FOUR_DIALOGUE\.packageOpened/);
+
+  const reveal = readFileSync(new URL('../src/components/LumenArcReveal.tsx', import.meta.url), 'utf8');
+  assert.match(reveal, /const \[started, setStarted\] = useState\(false\)/);
+  assert.match(reveal, /if \(!started\) return;/);
+  assert.match(reveal, /id="lumen-arc-open-parcel"/);
+  assert.match(reveal, /onPointerDown=\{\(event\) =>/);
+  assert.match(reveal, /if \(event\.detail === 0\) startReveal\(\)/);
+  assert.match(reveal, /data-meta-immediate="true"/);
+  assert.match(reveal, /data-package-stage-scale="1\.5"/);
+  assert.match(reveal, /scale-\[1\.5\]/);
+  assert.match(reveal, /PHONE_DEPTH_LAYERS/);
+  assert.match(reveal, /'flatten',[\s\S]*'fall',[\s\S]*'impact',[\s\S]*'shatter'/);
+  assert.match(reveal, /data-phone-form=\{reached\('flatten'\) \? 'flat' : 'solid'\}/);
+  assert.equal((reveal.match(/\{ x: -?\d+, y: -?\d+, r: -?\d+ \}/g) ?? []).length, 10);
+});
