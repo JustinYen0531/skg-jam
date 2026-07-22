@@ -15,7 +15,7 @@ export const META_CAMERA_PITCH = {
 export const META_IDLE_DESK_VIEW = {
   top: 0,
   rest: 0.5,
-  bottom: 1,
+  bottom: 2 / 3,
 } as const;
 
 export interface ProjectivePoint {

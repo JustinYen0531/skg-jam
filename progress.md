@@ -800,3 +800,9 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - The upper pointer range compresses and lowers the desk to reveal more of the fireplace; the midpoint preserves the previous default composition; the lower range enlarges and raises the trapezoid to occlude the fireplace.
 - Recomputed the resting phone's projective quad throughout the spring motion and gave desk props plus resting hands one shared proportional scale/translation curve, preventing independent drift.
 - Static verification passed after replaying onto the latest main: 173/173 tests, TypeScript lint, production build, and focused diff checks; Browser and Preview remain intentionally unused.
+
+## 2026-07-22 — Resting desk lower-bound correction
+
+- Kept the upper mouse-height view unchanged and capped the lower endpoint at exactly two-thirds of the scene height.
+- Moving the pointer below that line no longer raises or enlarges the desk, preserving the requested lowest composition instead of the former extreme foreground view.
+- Static verification passed on the latest main: focused tests 38/38, full tests 178/178, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.

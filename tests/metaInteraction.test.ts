@@ -100,6 +100,7 @@ test('mouse height maps to a clamped camera pitch from desk-flat to upright', ()
 });
 
 test('mouse height maps the resting desk from fireplace reveal to raised foreground', () => {
+  assert.equal(META_IDLE_DESK_VIEW.bottom, 2 / 3);
   assert.equal(getMetaIdleDeskView(0, 1000), META_IDLE_DESK_VIEW.top);
   assert.equal(getMetaIdleDeskView(500, 1000), META_IDLE_DESK_VIEW.rest);
   assert.equal(getMetaIdleDeskView(1000, 1000), META_IDLE_DESK_VIEW.bottom);
