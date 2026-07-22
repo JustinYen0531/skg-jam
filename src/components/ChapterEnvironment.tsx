@@ -85,6 +85,7 @@ const CoffeeCup: React.FC<{
       data-coffee-spill={spill || undefined}
       id="meta-desk-coffee"
     >
+      <div className={`relative h-full w-full origin-bottom-right ${deviceResting ? 'scale-[1.5]' : ''}`} data-coffee-resting-scale={deviceResting ? '1.5x' : '1x'}>
       {ring && !tipped && (
         <div
           className="absolute left-[14%] top-[84%] h-[14%] w-[67%] rounded-[50%] border-[3px] border-amber-950/35 opacity-60 blur-[0.4px]"
@@ -114,6 +115,7 @@ const CoffeeCup: React.FC<{
         className="absolute inset-0 h-full w-full object-contain drop-shadow-[0_10px_10px_rgba(0,0,0,0.36)]"
         id="meta-coffee-png"
       />
+      </div>
     </div>
   );
 };
