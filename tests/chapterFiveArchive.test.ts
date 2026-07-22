@@ -36,6 +36,16 @@ test('three distinct body references are required and the dated byline is not a 
   assert.doesNotMatch(browser, /data-noah-trace[^>]*2013-06-02/);
 });
 
+test('the bottom Noah reference survives Meta projection and advances on click', () => {
+  const traceButton = browser.slice(browser.indexOf('const renderNoahTrace'), browser.indexOf('const handleDownload'));
+
+  assert.match(traceButton, /onClick=\{\(\) => handleNoahTrace\(traceId\)\}/);
+  assert.match(traceButton, /data-meta-immediate="true"/);
+  assert.match(traceButton, /data-meta-hit-recovery="true"/);
+  assert.match(traceButton, /inline-flex min-h-6 touch-manipulation/);
+  assert.match(browser, /Co-founder &amp; lead designer: \{renderNoahTrace\('cofounder-credit'\)\}/);
+});
+
 test('Chapter 5 advances only after all three name references are found', () => {
   const traceHandler = browser.slice(browser.indexOf('const handleNoahTrace'), browser.indexOf('const renderNoahTrace'));
   assert.match(traceHandler, /const next = \[\.\.\.foundNoahTraces, traceId\]/);

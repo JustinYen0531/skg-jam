@@ -224,7 +224,9 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
       <button
         type="button"
         onClick={() => handleNoahTrace(traceId)}
-        className={`inline px-0.5 font-bold underline decoration-2 underline-offset-2 transition-colors ${
+        data-meta-immediate="true"
+        data-meta-hit-recovery="true"
+        className={`inline-flex min-h-6 touch-manipulation items-center px-1 font-bold underline decoration-2 underline-offset-2 transition-colors ${
           found
             ? 'bg-[#b8e6ad] text-[#24551d] decoration-[#24551d]'
             : 'bg-[#fff2a8] text-[#0000cc] decoration-[#0000cc] hover:bg-[#ffe56b]'
