@@ -1322,7 +1322,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
                   audio.play('leaderboard.open');
                   setShowLeaderboard(true);
                   updateProgress((prev) => ({ ...prev, seenLeaderboard: true }));
-                  if (progress.deathsAt40 >= 2) onLeaderboardOpened();
+                  if (progress.deathsAt40 >= 1) onLeaderboardOpened();
                 }}
                 className="px-5 py-2 rounded-xl bg-[#1a1a2e] border border-purple-500/40 text-purple-200 text-xs font-black tracking-wide hover:bg-[#232345] transition-colors"
                 id="results-leaderboard"

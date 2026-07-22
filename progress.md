@@ -865,3 +865,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Added a diegetic archive-limit card stating that seven older posts were excluded by relevance sorting.
 - `Oldest First` now acts as the sole route to all ten posts, preserving the intended 2010-to-2014 emotional read before Mara appears in the eighth oldest post.
 - Static verification passed: focused tests 11/11 in both worktrees, full tests 188/188 on the clean delivery tree, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.
+
+## 2026-07-22 — First Gate 40 death unlocks the Meta reveal
+
+- Lowered the formal Meta threshold from two Gate 40 deaths to one, while preserving the separate requirement that the player actively open the results leaderboard.
+- A death by itself still leaves the game in its cheap fullscreen presentation; zero Gate 40 deaths cannot unlock Meta even if the leaderboard callback is invoked.
+- Updated the Chapter 1 debug baseline, regression tests, GDD, environment evolution, implementation checklist, and sound-event documentation to the new retention-focused pacing.
+- Static verification passed: focused tests 35/35 in both worktrees, full tests 188/188 on the clean delivery tree, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.

@@ -145,7 +145,7 @@ export interface VirtualKeyResult {
 export const shouldRevealMetaView = (
   deathsAt40: number,
   leaderboardActuallyOpened: boolean,
-): boolean => deathsAt40 >= 2 && leaderboardActuallyOpened;
+): boolean => deathsAt40 >= 1 && leaderboardActuallyOpened;
 
 export const shouldShowMetaScene = (
   metaViewUnlocked: boolean,

@@ -21,11 +21,15 @@ import {
   shouldShowMetaScene,
 } from '../src/lib/metaInteraction';
 
-test('meta camera reveal requires both a second Gate 40 death and an opened leaderboard', () => {
-  assert.equal(shouldRevealMetaView(1, true), false);
-  assert.equal(shouldRevealMetaView(2, false), false);
+test('meta camera reveal requires the first Gate 40 death and an opened leaderboard', () => {
+  assert.equal(shouldRevealMetaView(0, true), false);
+  assert.equal(shouldRevealMetaView(1, false), false);
+  assert.equal(shouldRevealMetaView(1, true), true);
   assert.equal(shouldRevealMetaView(2, true), true);
-  assert.equal(shouldRevealMetaView(3, true), true);
+
+  const flappySource = readFileSync(new URL('../src/components/FlappyGame.tsx', import.meta.url), 'utf8');
+  assert.match(flappySource, /progress\.deathsAt40 >= 1\) onLeaderboardOpened\(\)/);
+  assert.doesNotMatch(flappySource, /progress\.deathsAt40 >= 2\) onLeaderboardOpened\(\)/);
 });
 
 test('developer chapter tools preview the meta scene without changing the story unlock rule', () => {

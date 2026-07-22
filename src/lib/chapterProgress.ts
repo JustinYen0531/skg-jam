@@ -157,7 +157,7 @@ type ChapterEvidence = Partial<Pick<GameProgress,
 const BASE_PROGRESS: GameProgress = {
   currentChapter: 1,
   phase: 'os_unlocked',
-  deathsAt40: 2,
+  deathsAt40: 1,
   seenLeaderboard: true,
   bestScore: 40,
   viewTubeSearchedArc: false,
