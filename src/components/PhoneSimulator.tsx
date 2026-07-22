@@ -1026,7 +1026,17 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                   )}
                 </AnimatePresence>
                 <div className="w-full max-w-[680px] flex flex-col gap-[clamp(14px,2.8cqh,30px)] px-1">
-
+                <div className="flex min-h-[clamp(250px,42cqh,390px)] w-full items-center" id="home-right-page-content">
+                  <AnimatePresence mode="wait" initial={false}>
+                    {homePage === 0 ? (
+                      <motion.div
+                        key="apps"
+                        initial={{ opacity: 0, x: reducedMotion ? 0 : '-7%' }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: reducedMotion ? 0 : '-7%' }}
+                        transition={{ duration: reducedMotion ? 0 : 0.2, ease: 'easeOut' }}
+                        className="w-full"
+                      >
                 <div
                   className="grid grid-cols-4 justify-items-center gap-y-[clamp(18px,3.4cqh,36px)]"
                   id="home-apps-grid"
@@ -1158,6 +1168,48 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                   <button type="button" onClick={() => selectHomePage(0)} className={`h-1.5 w-1.5 rounded-full ${homePage === 0 ? 'bg-slate-200/80' : 'bg-slate-200/25'}`} aria-label="Open apps home page" />
                   <button type="button" disabled={!profilePageUnlocked} onClick={() => selectHomePage(1)} className={`h-1.5 w-1.5 rounded-full ${homePage === 1 ? 'bg-slate-200/80' : 'bg-slate-200/25'} disabled:opacity-20`} aria-label="Open personal profile page" id="home-profile-page-dot" />
                 </div>
+                      </motion.div>
+                    ) : profilePageUnlocked ? (
+                      <motion.section
+                        key="profile"
+                        initial={{ opacity: 0, x: reducedMotion ? 0 : '7%' }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: reducedMotion ? 0 : '7%' }}
+                        transition={{ duration: reducedMotion ? 0 : 0.2, ease: 'easeOut' }}
+                        className="w-full rounded-[22px] border border-white/[0.09] bg-[#141925]/72 p-[clamp(12px,1.6cqw,18px)] shadow-[0_16px_38px_rgba(0,0,0,0.22)] backdrop-blur-md"
+                        id="home-personal-profile-page"
+                        data-profile-owner="Arcane Kade"
+                      >
+                        <div className="flex items-center justify-between border-b border-white/[0.08] pb-2.5">
+                          <div><div className="font-mono text-[7px] tracking-[0.18em] text-slate-500">PERSONAL SETTINGS</div><h2 className="mt-0.5 text-[clamp(12px,1.25cqw,15px)] font-semibold text-white">Account & device identity</h2></div>
+                          <div className="rounded-full border border-emerald-300/20 bg-emerald-300/10 px-2 py-1 text-[7px] text-emerald-300">BACKUP VERIFIED</div>
+                        </div>
+
+                        <div className="mt-3 grid grid-cols-[0.92fr_1.08fr] gap-3">
+                          <div className="rounded-2xl border border-white/[0.09] bg-white/[0.045] p-3">
+                            <div className="flex items-center gap-2.5"><div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-900 text-sm font-black text-white">AK</div><div className="min-w-0"><div className="text-[7px] text-slate-500">PRIMARY ACCOUNT</div><div className="truncate text-[clamp(12px,1.25cqw,15px)] font-semibold text-white" id="home-profile-owner-name">Arcane Kade</div><div className="text-[8px] text-slate-400">Local player · Harborview</div></div></div>
+                            <div className="mt-3 space-y-1.5 border-t border-white/[0.07] pt-2.5 text-[8px] text-slate-400"><div className="flex justify-between gap-2"><span>Account created</span><span className="text-right text-slate-200">2014 migration</span></div><div className="flex justify-between gap-2"><span>Legacy profile</span><span className="font-mono text-slate-200">AK_HOME</span></div><div className="flex justify-between gap-2"><span>Device source</span><span className="text-right text-slate-200">Lumen Arc backup</span></div></div>
+                          </div>
+
+                          <div className="space-y-2 rounded-2xl border border-white/[0.09] bg-white/[0.045] p-3">
+                            <button type="button" onClick={() => { audio.play('phone.tab'); setFamilyAccountsOpen((open) => !open); }} className="flex w-full items-center gap-2 rounded-xl border border-white/[0.07] bg-black/15 p-2.5 text-left" id="home-linked-accounts-toggle" aria-expanded={familyAccountsOpen}>
+                              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-blue-500/15 text-blue-300"><Link2 className="h-4 w-4" /></div><div className="min-w-0 flex-1"><div className="text-[9px] font-semibold text-white">Accounts linked to this profile</div><div className="mt-0.5 text-[7px] text-slate-500">Family and migration relationships</div></div><ChevronRight className={`h-4 w-4 shrink-0 text-slate-500 transition-transform ${familyAccountsOpen ? 'rotate-90' : ''}`} />
+                            </button>
+
+                            {familyAccountsOpen && (
+                              <div className="space-y-1.5" id="home-linked-family-accounts">
+                                <div className="flex items-center gap-2 rounded-xl bg-black/15 p-2 text-slate-500"><UserRound className="h-4 w-4" /><div className="flex-1"><div className="text-[8px] font-semibold">Archived guardian record</div><div className="text-[7px]">Identity unavailable</div></div></div>
+                                <button type="button" onClick={confirmMaraFamilyAccount} disabled={familyAccountConfirmed || progress.currentChapter >= 7} className="flex w-full items-center gap-2 rounded-xl border border-pink-300/20 bg-pink-300/[0.07] p-2 text-left hover:bg-pink-300/[0.12] disabled:cursor-default" id="home-mara-related-account">
+                                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-pink-700 text-[8px] font-black text-white">MK</div><div className="min-w-0 flex-1"><div className="text-[9px] font-semibold text-pink-100">Mara Kade</div><div className="text-[7px] leading-snug text-pink-200/55">Mother · linked through Lumen Arc family migration</div></div><Users className="h-4 w-4 shrink-0 text-pink-300/60" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </motion.section>
+                    ) : null}
+                  </AnimatePresence>
+                </div>
 
                 {/* Dock. At deeper residue its geometry stops being friendly. */}
                 <div
@@ -1200,50 +1252,6 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                 </div>
               </div>
 
-              <AnimatePresence>
-                {homePage === 1 && profilePageUnlocked && (
-                  <motion.section
-                    initial={{ opacity: 0, x: '16%' }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: '16%' }}
-                    transition={{ duration: reducedMotion ? 0 : 0.28, ease: 'easeOut' }}
-                    className="absolute inset-0 z-40 flex flex-col overflow-y-auto bg-gradient-to-br from-[#20283a] via-[#141925] to-[#0d1018] p-5"
-                    id="home-personal-profile-page"
-                    data-profile-owner="Arcane Kade"
-                  >
-                    <div className="mx-auto flex w-full max-w-[760px] flex-1 flex-col">
-                      <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
-                        <div><div className="text-[8px] font-mono tracking-[0.18em] text-slate-500">PERSONAL SETTINGS</div><h2 className="mt-1 text-[15px] font-semibold text-white">Account & device identity</h2></div>
-                        <div className="rounded-full border border-emerald-300/20 bg-emerald-300/10 px-2 py-1 text-[8px] text-emerald-300">BACKUP VERIFIED</div>
-                      </div>
-
-                      <div className="mt-4 grid grid-cols-[1fr_1.1fr] gap-4">
-                        <div className="rounded-2xl border border-white/[0.09] bg-white/[0.045] p-4">
-                          <div className="flex items-center gap-3"><div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-900 text-lg font-black text-white">AK</div><div><div className="text-[8px] text-slate-500">PRIMARY ACCOUNT</div><div className="text-[16px] font-semibold text-white" id="home-profile-owner-name">Arcane Kade</div><div className="text-[9px] text-slate-400">Local player · Harborview</div></div></div>
-                          <div className="mt-4 space-y-2 border-t border-white/[0.07] pt-3 text-[9px] text-slate-400"><div className="flex justify-between"><span>Account created</span><span className="text-slate-200">2014 migration</span></div><div className="flex justify-between"><span>Legacy profile</span><span className="font-mono text-slate-200">AK_HOME</span></div><div className="flex justify-between"><span>Device source</span><span className="text-slate-200">Lumen Arc backup</span></div></div>
-                        </div>
-
-                        <div className="space-y-3 rounded-2xl border border-white/[0.09] bg-white/[0.045] p-4">
-                          <button type="button" onClick={() => { audio.play('phone.tab'); setFamilyAccountsOpen((open) => !open); }} className="flex w-full items-center gap-3 rounded-xl border border-white/[0.07] bg-black/15 p-3 text-left" id="home-linked-accounts-toggle" aria-expanded={familyAccountsOpen}>
-                            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-500/15 text-blue-300"><Link2 className="h-4 w-4" /></div><div className="min-w-0 flex-1"><div className="text-[10px] font-semibold text-white">Accounts linked to this profile</div><div className="mt-0.5 text-[8px] text-slate-500">Family and migration relationships</div></div><ChevronRight className={`h-4 w-4 text-slate-500 transition-transform ${familyAccountsOpen ? 'rotate-90' : ''}`} />
-                          </button>
-
-                          {familyAccountsOpen && (
-                            <div className="space-y-2" id="home-linked-family-accounts">
-                              <div className="flex items-center gap-2 rounded-xl bg-black/15 p-2.5 text-slate-500"><UserRound className="h-4 w-4" /><div className="flex-1"><div className="text-[9px] font-semibold">Archived guardian record</div><div className="text-[7.5px]">Identity unavailable</div></div></div>
-                              <button type="button" onClick={confirmMaraFamilyAccount} disabled={familyAccountConfirmed || progress.currentChapter >= 7} className="flex w-full items-center gap-2 rounded-xl border border-pink-300/20 bg-pink-300/[0.07] p-2.5 text-left hover:bg-pink-300/[0.12] disabled:cursor-default" id="home-mara-related-account">
-                                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-pink-700 text-[9px] font-black text-white">MK</div><div className="min-w-0 flex-1"><div className="text-[10px] font-semibold text-pink-100">Mara Kade</div><div className="text-[8px] text-pink-200/55">Mother · linked through Lumen Arc family migration</div></div><Users className="h-4 w-4 text-pink-300/60" />
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="mt-auto flex justify-center gap-1.5 pt-4"><button type="button" onClick={() => selectHomePage(0)} className="h-1.5 w-1.5 rounded-full bg-slate-200/25" aria-label="Return to apps home page" /><span className="h-1.5 w-1.5 rounded-full bg-slate-200/80" /></div>
-                    </div>
-                  </motion.section>
-                )}
-              </AnimatePresence>
             </motion.div>
           )}
 

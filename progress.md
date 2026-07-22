@@ -842,3 +842,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Updated the Chapter 6 guide and GDD boundary so neither Arcane's surname nor the profile page can appear before the clue is earned.
 - Added the approved later-story truth that the original twelve-year-old `ARC_184` record belongs to a young Arcane Kade, while the present ViewTube uploader is a sympathetic traffic-seeking impersonator; Chapter 6 deliberately does not reveal this yet.
 - Static verification passed on the clean delivery tree: focused tests 38/38, full tests 183/183, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.
+
+## 2026-07-22 — Chapter 6 profile page constrained to the launcher region
+
+- Replaced the full-screen personal-settings overlay with a compact second page inside the right-side launcher region.
+- Kept Reminders, weather, Agenda, migration status, page dots, and the five-item Dock visible while Arcane's profile and linked accounts are open.
+- Preserved the existing clue gate, horizontal swipe, Arcane identity reveal, linked-account expansion, and Mara-only Chapter 6 completion rule.
+- Static verification passed: focused tests 28/28 in both worktrees, full tests 184/184 on the clean delivery tree, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.

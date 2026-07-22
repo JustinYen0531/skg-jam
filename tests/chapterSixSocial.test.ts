@@ -48,3 +48,12 @@ test('Chapter 6 only completes from Arcane Kade linked accounts after Mara is fo
   const completionIndex = phoneSource.indexOf('const confirmMaraFamilyAccount');
   assert.ok(clueIndex >= 0 && completionIndex > clueIndex);
 });
+
+test('the personal profile replaces only the right-side app grid', () => {
+  assert.match(phoneSource, /id="home-right-page-content"/);
+  assert.match(phoneSource, /homePage === 0 \? \(/);
+  assert.match(phoneSource, /id="home-personal-profile-page"/);
+  assert.doesNotMatch(phoneSource, /className="absolute inset-0 z-40[^\"]*"[\s\S]{0,180}id="home-personal-profile-page"/);
+  assert.ok(phoneSource.indexOf('id="home-widget"') < phoneSource.indexOf('id="home-right-page-content"'));
+  assert.ok(phoneSource.indexOf('id="home-personal-profile-page"') < phoneSource.indexOf('id="home-dock"'));
+});
