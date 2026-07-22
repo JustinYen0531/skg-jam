@@ -1,5 +1,12 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-22 — Shared projected-bottom input recovery
+
+- Traced the unresponsive Messages composer to the shared Meta click relay: it delayed input focus until after a hand/posture animation, while the projected bottom edge could move away from the browser's original target.
+- Expanded the shared pointer-down recovery from buttons to explicitly marked inputs and buttons. Direct hits and misrouted transparent-layer hits now resolve before posture movement.
+- Marked the Chapter 3 Messages composer and send control for immediate focus/submit recovery; focusing also opens the existing Meta virtual keyboard.
+- Added regression contracts for pointer-down focus, virtual-keyboard activation, submit recovery, and preservation of unmarked controls. Static verification passed: 157/157 post-rebase clean-delivery tests, 156/156 active-desktop tests, TypeScript in the clean worktree, and production builds in both; Browser and Preview remain intentionally unused.
+
 ## 2026-07-22 — Chapter 3 Messages entry recovery
 
 - Changed both the AmazeMart `OPEN MESSAGES` control and the incoming-message banner to navigate on pointer-down, while retaining keyboard click activation.

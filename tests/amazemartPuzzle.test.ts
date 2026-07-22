@@ -56,6 +56,7 @@ test('Chapter 3 completes immediately after the correct Messages reply', () => {
   assert.match(source, /tapElement\('am-buy-button'/);
   assert.match(source, /orderRequestPending \? 'REACHING\.\.\.' : 'ORDER INSTANT'/);
   assert.match(metaSource, /#home-dock button, button\[data-meta-hit-recovery="true"\]/);
+  assert.match(metaSource, /input\[data-meta-hit-recovery="true"\]/);
   assert.match(metaSource, /const hitSlop = 16/);
   assert.match(metaSource, /element\.id === 'messages-seller-code'/);
   assert.match(phoneSource, /id="messages-seller-notification"/);
@@ -65,12 +66,24 @@ test('Chapter 3 completes immediately after the correct Messages reply', () => {
   assert.match(messagesSource, /id="tab-seller"/);
   assert.match(messagesSource, /id="messages-seller-code-form"/);
   assert.match(messagesSource, /id="messages-seller-code"/);
+  assert.match(messagesSource, /placeholder="Text Message"[\s\S]{0,180}data-meta-immediate="true"[\s\S]{0,100}data-meta-hit-recovery="true"/);
+  assert.match(messagesSource, /type="submit" data-meta-immediate="true" data-meta-hit-recovery="true"[\s\S]{0,240}id="messages-submit-seller-code"/);
   assert.match(messagesSource, /isSellerCodeAccepted\(sellerCode\)/);
   assert.match(messagesSource, /onSellerVerified\(\)/);
   assert.doesNotMatch(messagesSource, /id="messages-return-amazemart"/);
   assert.doesNotMatch(source, /id="am-seller-code"/);
   assert.match(phoneSource, /const handleSellerVerified[\s\S]{0,240}completePuzzleChapter\(prev, 3/);
   assert.doesNotMatch(source, /handleSignDelivery|SIGN FOR DELIVERY/);
+});
+
+test('projected bottom inputs focus and submit on pointer-down before posture movement', () => {
+  const metaSource = readFileSync(new URL('../src/components/MetaInteractionScene.tsx', import.meta.url), 'utf8');
+
+  assert.match(metaSource, /const directControl = source\.closest<HTMLElement>\(selector\)/);
+  assert.match(metaSource, /if \(!directControl && source\.closest\('button, input'\)\) return/);
+  assert.match(metaSource, /control instanceof HTMLInputElement[\s\S]{0,180}control\.focus\(\{ preventScroll: true \}\)/);
+  assert.match(metaSource, /isMetaKeyboardInput\(control\)\) setKeyboardTarget\(control\)/);
+  assert.match(metaSource, /control instanceof HTMLButtonElement && !control\.disabled\) control\.click\(\)/);
 });
 
 test('both projected Messages entry points open reliably from the system notification layer', () => {

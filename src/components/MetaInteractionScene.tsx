@@ -976,16 +976,21 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   const handlePointerDownCapture = (event: React.PointerEvent<HTMLDivElement>) => {
     if (!active || event.button !== 0) return;
     const source = event.target;
-    if (!(source instanceof Element) || source.closest('button')) return;
+    if (!(source instanceof Element)) return;
 
     // Chromium can route a point on the projected bottom edge to a later,
-    // transparent scene layer instead of the transformed button. Recover the
-    // home dock and explicitly marked edge controls from their real rectangles.
+    // transparent scene layer instead of the transformed control. Resolve an
+    // explicitly marked control on pointer-down, before posture movement can
+    // invalidate the browser's eventual click/focus target.
     const hitSlop = 16;
-    const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>(
-      '#home-dock button, button[data-meta-hit-recovery="true"]',
+    const selector = '#home-dock button, button[data-meta-hit-recovery="true"], input[data-meta-hit-recovery="true"]';
+    const directControl = source.closest<HTMLElement>(selector);
+    if (!directControl && source.closest('button, input')) return;
+
+    const controls = Array.from(document.querySelectorAll<HTMLElement>(
+      selector,
     ));
-    const button = buttons
+    const control = directControl ?? controls
       .map((candidate) => {
         const rect = candidate.getBoundingClientRect();
         const inside = event.clientX >= rect.left - hitSlop
@@ -1001,10 +1006,17 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
       .filter(({ inside }) => inside)
       .sort((a, b) => a.centerDistance - b.centerDistance)[0]?.candidate;
 
-    if (!button) return;
+    if (!control) return;
     event.preventDefault();
     event.stopPropagation();
-    button.click();
+
+    if (control instanceof HTMLInputElement) {
+      control.focus({ preventScroll: true });
+      if (isMetaKeyboardInput(control)) setKeyboardTarget(control);
+      return;
+    }
+
+    if (control instanceof HTMLButtonElement && !control.disabled) control.click();
   };
 
   const handleClickCapture = (event: React.MouseEvent<HTMLDivElement>) => {

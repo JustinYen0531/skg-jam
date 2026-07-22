@@ -22,9 +22,10 @@ test('dock utilities stay on the home screen in one small non-modal popover', ()
   assert.match(phoneSource, /onClick=\{\(event\) => handleDockUtilityClick\(event, utility\)\}/);
   assert.match(metaSource, /onPointerDownCapture=\{handlePointerDownCapture\}/);
   assert.match(metaSource, /#home-dock button, button\[data-meta-hit-recovery="true"\]/);
+  assert.match(metaSource, /input\[data-meta-hit-recovery="true"\]/);
   assert.match(metaSource, /getBoundingClientRect\(\)/);
   assert.match(metaSource, /const hitSlop = 16/);
-  assert.match(metaSource, /event\.stopPropagation\(\);\s*button\.click\(\);/);
+  assert.match(metaSource, /control instanceof HTMLButtonElement && !control\.disabled\) control\.click\(\)/);
   assert.match(metaSource, /className="pointer-events-none absolute bottom-\[2\.5%\][^"]+"\s+id="meta-terminal-dialogue"/);
 });
 

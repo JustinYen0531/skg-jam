@@ -247,11 +247,13 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                   inputMode="numeric"
                   autoComplete="off"
                   placeholder="Text Message"
+                  data-meta-immediate="true"
+                  data-meta-hit-recovery="true"
                   className="min-w-0 flex-1 rounded-full border border-white/[0.1] bg-[#171a21] px-3 py-2 text-xs text-white outline-none focus:border-emerald-400/70"
                   id="messages-seller-code"
                   aria-label="Reply to coldboot_17"
                 />
-                <button type="submit" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-slate-950 hover:bg-emerald-400" id="messages-submit-seller-code" aria-label="Send score">
+                <button type="submit" data-meta-immediate="true" data-meta-hit-recovery="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-slate-950 hover:bg-emerald-400 active:bg-emerald-300" id="messages-submit-seller-code" aria-label="Send score">
                   <Send className="h-4 w-4" />
                 </button>
               </form>
