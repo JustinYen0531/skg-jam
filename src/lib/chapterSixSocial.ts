@@ -134,10 +134,19 @@ export const SKG_AUTOMATION_FACE_ADS: readonly ChapterSixAd[] = [
 
 export type ChapterSixTimelineEntry = ChapterSixPost | ChapterSixAd;
 
+export const DEFAULT_RELEVANCE_POST_IDS = [
+  'noah-2014-10',
+  'noah-2014-08',
+  'noah-2013-06',
+] as const;
+
 export const getChapterSixTimeline = (oldestFirst: boolean): readonly ChapterSixTimelineEntry[] => {
   const posts = [...CHAPTER_SIX_POSTS].sort((a, b) => a.publishedAt.localeCompare(b.publishedAt));
   if (oldestFirst) return [...posts, ...SKG_AUTOMATION_FACE_ADS];
-  return [...SKG_AUTOMATION_FACE_ADS, ...posts.reverse()];
+  const relevancePosts = DEFAULT_RELEVANCE_POST_IDS.map((id) => (
+    posts.find((post) => post.id === id)
+  )).filter((post): post is ChapterSixPost => Boolean(post));
+  return [...SKG_AUTOMATION_FACE_ADS, ...relevancePosts];
 };
 
 export const getMaraCluePostIndex = (): number => (

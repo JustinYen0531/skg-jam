@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import {
   CHAPTER_SIX_POSTS,
+  DEFAULT_RELEVANCE_POST_IDS,
   SKG_AUTOMATION_FACE_ADS,
   getChapterSixTimeline,
   getMaraCluePostIndex,
@@ -13,10 +14,19 @@ const phoneSource = readFileSync(new URL('../src/components/PhoneSimulator.tsx',
 
 test('FaceSpace search starts with an SKG Automation ad wall until sorted by date', () => {
   const defaultTimeline = getChapterSixTimeline(false);
+  const defaultPosts = defaultTimeline.filter((entry) => entry.kind === 'post');
+  const oldestTimeline = getChapterSixTimeline(true);
   assert.equal(SKG_AUTOMATION_FACE_ADS.length, 6);
   assert.deepEqual(defaultTimeline.slice(0, 6).map((entry) => entry.kind), Array(6).fill('ad'));
-  assert.equal(getChapterSixTimeline(true)[0].kind, 'post');
+  assert.equal(defaultTimeline.length, 9);
+  assert.deepEqual(defaultPosts.map((post) => post.id), [...DEFAULT_RELEVANCE_POST_IDS]);
+  assert.ok(defaultPosts.every((post) => !post.comments.some((comment) => comment.clue === 'mara-kade')));
+  assert.equal(oldestTimeline[0].kind, 'post');
+  assert.equal(oldestTimeline.filter((entry) => entry.kind === 'post').length, 10);
   assert.match(socialSource, /data-timeline-order=\{sortOldest \? 'oldest-first' : 'sponsored-first'\}/);
+  assert.match(socialSource, /id="social-relevance-archive-limit"/);
+  assert.match(socialSource, /data-hidden-post-count=\{hiddenPostCount\}/);
+  assert.match(socialSource, /Chronological view is required to load the complete public archive/);
 });
 
 test('Mara is hidden in the eighth oldest post and every post has expandable discussion', () => {

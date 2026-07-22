@@ -22,6 +22,7 @@ import { canUseProgressionAction } from '../lib/chapterProgress';
 import { createFeedSeed, shuffleFeed } from '../lib/pseudoFeed';
 import {
   getChapterSixTimeline,
+  CHAPTER_SIX_POSTS,
   type ChapterSixComment,
   type ChapterSixPost,
 } from '../lib/chapterSixSocial';
@@ -205,6 +206,7 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress, 
   };
 
   const timeline = getChapterSixTimeline(sortOldest);
+  const hiddenPostCount = CHAPTER_SIX_POSTS.length - timeline.filter((entry) => entry.kind === 'post').length;
 
   const renderPost = (post: ChapterSixPost) => {
     const commentsOpen = expandedComments.has(post.id);
@@ -295,7 +297,7 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress, 
                 <section className="space-y-3" id="social-posts">
                   <div className="sticky top-0 z-10 flex items-center justify-between rounded-lg border border-slate-800 bg-slate-950/95 p-2 text-[8.5px] text-slate-400 backdrop-blur">
                     <span className="font-mono">{sortOldest ? 'EARLIEST PUBLIC ACTIVITY' : 'RELEVANCE · SPONSORED FIRST'}</span>
-                    <button type="button" onClick={toggleSort} className="flex items-center gap-1 rounded bg-blue-600/20 px-2 py-1.5 font-bold text-blue-300" id="social-sort-toggle">{sortOldest ? <ArrowUpAZ className="h-3.5 w-3.5" /> : <ArrowDownAZ className="h-3.5 w-3.5" />}{sortOldest ? 'Oldest First' : 'Newest First'}</button>
+                    <button type="button" onClick={toggleSort} className="flex items-center gap-1 rounded bg-blue-600/20 px-2 py-1.5 font-bold text-blue-300" id="social-sort-toggle">{sortOldest ? <ArrowDownAZ className="h-3.5 w-3.5" /> : <ArrowUpAZ className="h-3.5 w-3.5" />}{sortOldest ? 'Sponsored First' : 'Oldest First'}</button>
                   </div>
                   <div className="space-y-3" data-timeline-order={sortOldest ? 'oldest-first' : 'sponsored-first'}>
                     {timeline.map((entry) => entry.kind === 'post' ? renderPost(entry) : (
@@ -306,6 +308,12 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress, 
                       </article>
                     ))}
                   </div>
+                  {!sortOldest && (
+                    <div className="rounded-xl border border-dashed border-slate-700 bg-slate-950/70 px-3 py-3 text-center" id="social-relevance-archive-limit" data-hidden-post-count={hiddenPostCount}>
+                      <div className="font-mono text-[8px] tracking-[0.12em] text-slate-400">{hiddenPostCount} OLDER POSTS EXCLUDED BY RELEVANCE SORTING</div>
+                      <div className="mt-1 text-[7.5px] text-slate-600">Chronological view is required to load the complete public archive.</div>
+                    </div>
+                  )}
                 </section>
               ) : (
                 <section className="space-y-3 rounded-xl border border-slate-800 bg-slate-950 p-3 text-[10px]" id="social-about">
