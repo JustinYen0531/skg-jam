@@ -132,12 +132,7 @@ test('the physical environment is display-only and does not mutate progress', ()
   assert.match(environmentSource, /id=\{part === 'insert' \? 'meta-cable-insert-layer' : 'meta-desk-cable'\}/);
   assert.match(environmentSource, /id="meta-case-marker"/);
   assert.match(environmentSource, /data-environment-layer=\{underlay \? 'underlay' : 'foreground'\}/);
-  // The desk layer's resting shift must be a declarative CSS transform, not a
-  // Framer `animate` — a JS-projected transform could be stranded on a layout
-  // reflow (e.g. closing the dev panel), which flung the scaled coffee cup to
-  // the middle of the desk.
-  assert.match(environmentSource, /transform: deviceResting \? 'translate\(4%, 2%\) scale\(0\.87\)' : 'none'/);
-  assert.doesNotMatch(environmentSource, /x: deviceResting \? '4%' : 0/);
+  assert.match(environmentSource, /x: deviceResting \? '4%' : 0/);
   assert.match(environmentSource, /z-\[9\]/);
   assert.match(environmentSource, /z-\[25\]/);
   assert.match(environmentSource, /scale-\[1\.35\]/);
@@ -173,17 +168,16 @@ test('the physical environment is display-only and does not mutate progress', ()
   assert.match(environmentSource, /data-plug-target=\{connected && part === 'insert' \? 'phone-bottom-port'/);
   assert.match(environmentSource, /skg: \['SKG', '\?'\]/);
   assert.match(environmentSource, /quiet: \[\]/);
-  // Pen, Notebook, and both charging-cable layers still animate via Framer
-  // layout; the coffee cup deliberately does not (see below).
-  assert.equal((environmentSource.match(/layout=\{animateLayout\}/g) ?? []).length, 3);
-  // The coffee cup must NOT use Framer's `layout` projection — because it is
-  // scaled 2.7x from its bottom-right corner, a stale viewport measurement
-  // (dev-panel reflow, chapter remount) amplified into the cup floating to the
-  // middle of the desk. It anchors purely in CSS and lifts with a transition.
-  assert.match(environmentSource, /transition-\[top,right,transform\] duration-\[820ms\]/);
-  const coffeeCupBlock = environmentSource.slice(
-    environmentSource.indexOf('const CoffeeCup'),
-    environmentSource.indexOf('const ChargingCable'),
-  );
-  assert.doesNotMatch(coffeeCupBlock, /layout=\{animateLayout\}/);
+  // No desk object may use Framer's `layout`: they render inside an env whose
+  // `scale` is Framer-animated when the device rests, and a `layout` child
+  // there re-projects against its own already-transformed box. Interrupting the
+  // animation (chapter jumps / dev-panel toggles mid-transition) compounds that
+  // projection into a runaway — the coffee cup shooting across the desk. Each
+  // object is anchored in CSS and eased with a CSS transition instead.
+  assert.equal((environmentSource.match(/layout=\{animateLayout\}/g) ?? []).length, 0);
+  assert.doesNotMatch(environmentSource, /<motion\.(div|svg)\s+layout/);
+  // The moving desk objects still ease their position via CSS transitions.
+  assert.match(environmentSource, /transition-\[top,right,scale\] duration-\[620ms\]/); // coffee cup
+  assert.match(environmentSource, /transition-\[left,top,rotate,scale\] duration-\[620ms\]/); // pen
+  assert.match(environmentSource, /transition-\[top,scale,rotate\] duration-\[620ms\]/); // notebook
 });

@@ -17,6 +17,8 @@ import {
   type ProjectiveQuad,
 } from '../lib/metaInteraction';
 import { CHAPTER_ONE_DIALOGUE, DialogueLines } from '../lib/chapterOneDialogue';
+import { CHAPTER_TWO_DIALOGUE } from '../lib/chapterTwoDialogue';
+import { CHAPTER_THREE_DIALOGUE } from '../lib/chapterThreeDialogue';
 import audio from '../lib/audio';
 import { getMetaFloorStage, getMetaWallStage, type EnvironmentChapter } from '../lib/chapterEnvironment';
 import { getChapterPhoneWidgetState } from '../lib/chapterPhoneWidgets';
@@ -29,10 +31,6 @@ interface MetaInteractionSceneProps {
   chapter: EnvironmentChapter;
   cameraPitchEnabled?: boolean;
   postureControlEnabled?: boolean;
-  /** Whether the developer panel is open. Toggling it reshapes the layout
-      without changing any scene prop, so the scene must reconcile its posture
-      and desk projection when it flips (see the effect below). */
-  developerToolsOpen?: boolean;
   children: React.ReactNode;
 }
 
@@ -80,8 +78,13 @@ const KEYBOARD_ROWS = [
   ['Backspace', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'Enter'],
 ] as const;
 
-const isViewTubeSearch = (element: Element): element is HTMLInputElement =>
-  element instanceof HTMLInputElement && element.id === 'vt-search-input';
+const isMetaKeyboardInput = (element: Element): element is HTMLInputElement =>
+  element instanceof HTMLInputElement
+  && (
+    element.id === 'vt-search-input'
+    || element.id === 'chapter-two-archive-search'
+    || element.id === 'messages-seller-code'
+  );
 
 /* ==========================================================================
    Hand anatomy kit.
@@ -658,7 +661,6 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   chapter,
   cameraPitchEnabled = true,
   postureControlEnabled = true,
-  developerToolsOpen = false,
   children,
 }) => {
   const sceneRef = useRef<HTMLDivElement | null>(null);
@@ -685,6 +687,8 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [dialogueLines, setDialogueLines] = useState<DialogueLines>(CHAPTER_ONE_DIALOGUE.entry);
+  const previousDialogueChapterRef = useRef(chapter);
+  const chapterDialogueTimerRef = useRef<number | null>(null);
   const [scrollGesture, setScrollGesture] = useState<ScrollGesture | null>(null);
   const [deviceResting, setDeviceResting] = useState(false);
 
@@ -723,8 +727,32 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   }, []);
 
   useEffect(() => {
-    if (active) setDialogueLines(CHAPTER_ONE_DIALOGUE.entry);
-  }, [active]);
+    const previousChapter = previousDialogueChapterRef.current;
+    previousDialogueChapterRef.current = chapter;
+    if (chapterDialogueTimerRef.current !== null) {
+      window.clearTimeout(chapterDialogueTimerRef.current);
+      chapterDialogueTimerRef.current = null;
+    }
+    if (!active) return undefined;
+    if (chapter === 1) setDialogueLines(CHAPTER_ONE_DIALOGUE.entry);
+    if (chapter === 2) setDialogueLines(CHAPTER_TWO_DIALOGUE.entry);
+    if (chapter === 3 && previousChapter !== 2) setDialogueLines(CHAPTER_THREE_DIALOGUE.entry);
+    if (previousChapter === 2 && chapter === 3) {
+      chapterDialogueTimerRef.current = window.setTimeout(() => {
+        setDialogueLines(CHAPTER_TWO_DIALOGUE.maternalMemory);
+        chapterDialogueTimerRef.current = null;
+      }, 1150);
+    }
+    if (previousChapter === 3 && chapter === 4) {
+      setDialogueLines(CHAPTER_THREE_DIALOGUE.approvedEndingA);
+    }
+    return () => {
+      if (chapterDialogueTimerRef.current !== null) {
+        window.clearTimeout(chapterDialogueTimerRef.current);
+        chapterDialogueTimerRef.current = null;
+      }
+    };
+  }, [active, chapter]);
 
   useEffect(() => {
     setDeviceResting(false);
@@ -734,17 +762,6 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   useEffect(() => {
     if (!postureControlEnabled) setDeviceResting(false);
   }, [postureControlEnabled]);
-
-  // Opening or closing the developer panel reshapes the layout underneath the
-  // scene without changing `active` or `chapter`, so none of the posture or
-  // projection effects would otherwise re-run — leaving the device and desk in
-  // a stale in-between state (the coffee cup stranded mid-desk). Snap posture
-  // back to a known upright rest whenever the panel toggles so everything
-  // recomputes cleanly from a defined baseline.
-  useEffect(() => {
-    setDeviceResting(false);
-    cameraPitchTarget.set(META_CAMERA_PITCH.restDeg);
-  }, [developerToolsOpen, cameraPitchTarget]);
 
   useEffect(() => {
     if (!cameraPitchEnabled) cameraPitchTarget.set(META_CAMERA_PITCH.restDeg);
@@ -985,13 +1002,15 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   const handlePointerDownCapture = (event: React.PointerEvent<HTMLDivElement>) => {
     if (!active || event.button !== 0) return;
     const source = event.target;
-    if (!(source instanceof Element) || source.closest('#home-dock button')) return;
+    if (!(source instanceof Element) || source.closest('button')) return;
 
     // Chromium can route a point on the projected bottom edge to a later,
-    // transparent scene layer instead of the transformed dock button. Recover
-    // that dead zone from each button's actual on-screen rectangle.
-    const hitSlop = 12;
-    const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>('#home-dock button'));
+    // transparent scene layer instead of the transformed button. Recover the
+    // home dock and explicitly marked edge controls from their real rectangles.
+    const hitSlop = 16;
+    const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>(
+      '#home-dock button, button[data-meta-hit-recovery="true"]',
+    ));
     const button = buttons
       .map((candidate) => {
         const rect = candidate.getBoundingClientRect();
@@ -1071,7 +1090,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     }
 
     if (reducedMotion) {
-      if (isViewTubeSearch(target)) setKeyboardTarget(target);
+      if (isMetaKeyboardInput(target)) setKeyboardTarget(target);
       return;
     }
 
@@ -1079,7 +1098,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     event.stopPropagation();
     if (!canStartMetaInteraction(active, pendingRef.current, reducedMotion)) return;
 
-    if (isViewTubeSearch(target)) {
+    if (isMetaKeyboardInput(target)) {
       void animateTap(target, () => {
         target.focus();
         setKeyboardTarget(target);
@@ -1099,7 +1118,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   const handleKeyDownCapture = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (!active || !event.nativeEvent.isTrusted) return;
     const input = event.target;
-    if (!isViewTubeSearch(input)) return;
+    if (!isMetaKeyboardInput(input)) return;
     const key = normalizeVirtualKey(event.key);
     if (!key || event.ctrlKey || event.altKey || event.metaKey) return;
 

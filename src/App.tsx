@@ -335,7 +335,6 @@ export default function App() {
           chapter={metaSceneActive ? progress.currentChapter : 0}
           cameraPitchEnabled={cameraPitchEnabled}
           postureControlEnabled={postureControlEnabled}
-          developerToolsOpen={debugMode}
         >
           <PhoneSimulator
             progress={progress}

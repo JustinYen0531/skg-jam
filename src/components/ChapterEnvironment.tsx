@@ -62,20 +62,21 @@ const CoffeeCup: React.FC<{
   const positionClass = deviceResting
     ? (pushedAway ? 'right-[7%] top-[51%] scale-[2.1]' : tipped ? 'right-[14%] top-[53%] scale-[2.5]' : 'right-[12%] top-[48%] scale-[2.7]')
     : (pushedAway ? 'right-[7%] top-[65%] scale-[2.1]' : tipped ? 'right-[14%] top-[67%] scale-[2.5]' : 'right-[12%] top-[62%] scale-[2.7]');
-  // The cup is anchored purely by CSS (right/top/scale) and lifts between its
-  // resting and upright spots with a plain CSS transition. It deliberately
-  // does NOT use Framer's `layout` prop: that writes a projection transform
-  // measured in viewport space, and because the cup is scaled 2.7x from its
-  // bottom-right corner, any stale measurement (a scene reflow from the dev
-  // panel, or a chapter remount outside Framer's measure cycle) was amplified
-  // into the cup floating to the middle of the desk. A CSS transition depends
-  // on nothing but this element, so its position is always correct.
+
+  // Position is anchored purely in CSS and eased with a CSS transition —
+  // deliberately NOT Framer's `layout`. This desk layer sits inside an env
+  // whose `scale` is Framer-animated when the device rests; a `layout` child
+  // inside a scale-animated parent measures its own already-transformed box
+  // and re-projects against it, so rapidly interrupting the animation (jumping
+  // chapters / toggling the dev panel mid-transition) compounds the projection
+  // and the 2.7x-scaled cup runs away across the desk. A CSS transform can't
+  // compound: the browser always re-renders it from its declared value.
   const motionClass = animateLayout
-    ? 'transition-[top,right,transform] duration-[820ms] [transition-timing-function:cubic-bezier(0.22,1,0.36,1)]'
+    ? 'transition-[top,right,scale] duration-[620ms] ease-out'
     : '';
 
   return (
-    <motion.div
+    <div
       className={`absolute z-[3] h-[27%] w-[17%] min-w-36 origin-bottom-right ${motionClass} ${positionClass}`}
       data-composition-offset={deviceResting ? 'resting-coffee-up-14' : 'upright-original'}
       data-coffee-state={state}
@@ -113,15 +114,20 @@ const CoffeeCup: React.FC<{
         className="absolute inset-0 h-full w-full object-contain drop-shadow-[0_10px_10px_rgba(0,0,0,0.36)]"
         id="meta-coffee-png"
       />
-    </motion.div>
+    </div>
   );
 };
 
+// None of the desk objects use Framer's `layout` — they live inside an env
+// whose `scale` is Framer-animated when the device rests, and a `layout` child
+// there re-projects against its own already-transformed box, compounding into
+// a runaway when the animation is interrupted (chapter jumps / dev-panel
+// toggles mid-transition). CSS transitions ease the same moves without ever
+// compounding.
 const ChargingCable: React.FC<{ connected: boolean; animateLayout: boolean; part: 'insert' | 'body' }> = ({ connected, animateLayout, part }) => (
-  <motion.svg
-    layout={animateLayout}
+  <svg
     viewBox="0 0 500 140"
-    className="absolute bottom-[15.5%] right-[-5%] z-[2] h-[12%] w-[39%] origin-bottom-right scale-[1.7] overflow-visible opacity-75 drop-shadow-[0_5px_4px_rgba(0,0,0,0.45)]"
+    className={`absolute bottom-[15.5%] right-[-5%] z-[2] h-[12%] w-[39%] origin-bottom-right scale-[1.7] overflow-visible opacity-75 drop-shadow-[0_5px_4px_rgba(0,0,0,0.45)] ${animateLayout ? 'transition-transform duration-[620ms] ease-out' : ''}`}
     data-composition-offset="cable-right-3"
     data-cable-state={connected ? 'connected' : 'loose'}
     data-cable-layer={part === 'insert' ? 'underlay' : 'foreground'}
@@ -158,7 +164,7 @@ const ChargingCable: React.FC<{ connected: boolean; animateLayout: boolean; part
         {!connected && <rect x="102" y="80" width="28" height="24" rx="5" fill="#343840" stroke="#747b85" strokeWidth="2" />}
       </>
     ) : null}
-  </motion.svg>
+  </svg>
 );
 
 const Pen: React.FC<{ state: PenState; animateLayout: boolean }> = ({ state, animateLayout }) => {
@@ -172,15 +178,14 @@ const Pen: React.FC<{ state: PenState; animateLayout: boolean }> = ({ state, ani
   };
 
   return (
-    <motion.div
-      layout={animateLayout}
-      className={`absolute z-[5] h-[5px] w-[17%] min-w-28 origin-left scale-[1.35] rounded-full bg-gradient-to-r from-[#15181c] via-[#464d58] to-[#111318] shadow-[0_4px_4px_rgba(0,0,0,0.38)] ${poseClass[state]}`}
+    <div
+      className={`absolute z-[5] h-[5px] w-[17%] min-w-28 origin-left scale-[1.35] rounded-full bg-gradient-to-r from-[#15181c] via-[#464d58] to-[#111318] shadow-[0_4px_4px_rgba(0,0,0,0.38)] ${animateLayout ? 'transition-[left,top,rotate,scale] duration-[620ms] ease-out' : ''} ${poseClass[state]}`}
       data-pen-state={state}
       id="meta-desk-pen"
     >
       <div className="absolute right-0 top-[-1px] h-[7px] w-[9%] rounded-r-full bg-[#b4a88f]" />
       <div className="absolute left-[12%] top-[-2px] h-[9px] w-[3px] bg-white/20" />
-    </motion.div>
+    </div>
   );
 };
 
@@ -190,9 +195,8 @@ const Notebook: React.FC<{ state: NotebookState; stickyNote: string | null; posi
   const isClosed = state === 'closed';
 
   return (
-    <motion.div
-      layout={animateLayout}
-      className={`absolute left-[4%] ${position === 'lowered' ? 'top-[75%]' : 'top-[68%]'} z-[3] h-[20%] w-[24%] min-w-56 origin-bottom-left scale-[1.35] -rotate-[4deg] rounded-sm shadow-[0_16px_18px_rgba(0,0,0,0.38)] ${isClosed ? 'bg-[#243a42]' : 'bg-[#d6ccb7]'}`}
+    <div
+      className={`absolute left-[4%] ${position === 'lowered' ? 'top-[75%]' : 'top-[68%]'} z-[3] h-[20%] w-[24%] min-w-56 origin-bottom-left scale-[1.35] -rotate-[4deg] rounded-sm shadow-[0_16px_18px_rgba(0,0,0,0.38)] ${animateLayout ? 'transition-[top,scale,rotate] duration-[620ms] ease-out' : ''} ${isClosed ? 'bg-[#243a42]' : 'bg-[#d6ccb7]'}`}
       data-notebook-state={state}
       id="meta-desk-notebook"
     >
@@ -218,7 +222,7 @@ const Notebook: React.FC<{ state: NotebookState; stickyNote: string | null; posi
           {stickyNote || '\u00a0'}
         </div>
       )}
-    </motion.div>
+    </div>
   );
 };
 
@@ -277,22 +281,12 @@ export const ChapterEnvironment: React.FC<ChapterEnvironmentProps> = ({
 
   const underlay = layer === 'underlay';
 
-  // The whole desk layer shifts and shrinks a little when the device lies
-  // down. This is driven by DECLARATIVE CSS (a plain transform + transition),
-  // deliberately NOT a Framer `animate`: a JS-projected transform could be
-  // left stale when the surrounding layout reflows without a state change —
-  // e.g. closing the developer panel with the hotkey — which stranded the
-  // (2.7x-scaled) coffee cup out in the middle of the desk. A CSS transform is
-  // always re-rendered by the browser from its declared value, so it can never
-  // be stranded.
   return (
-    <div
+    <motion.div
       className={`pointer-events-none absolute inset-0 overflow-hidden ${underlay ? 'z-[9]' : 'z-[25]'}`}
-      style={{
-        transformOrigin: '50% 72%',
-        transform: deviceResting ? 'translate(4%, 2%) scale(0.87)' : 'none',
-        transition: reducedMotion ? undefined : 'transform 620ms ease-out',
-      }}
+      animate={{ scale: deviceResting ? 0.87 : 1, x: deviceResting ? '4%' : 0, y: deviceResting ? '2%' : 0 }}
+      transition={transition}
+      style={{ transformOrigin: '50% 72%' }}
       data-environment-chapter={chapter}
       data-desk-order={environment.deskOrder}
       data-environment-layer={underlay ? 'underlay' : 'foreground'}
@@ -338,6 +332,6 @@ export const ChapterEnvironment: React.FC<ChapterEnvironmentProps> = ({
           CASE {chapter.toString().padStart(2, '0')} // {environment.caseLabel}
         </motion.div>
       </AnimatePresence>}
-    </div>
+    </motion.div>
   );
 };
