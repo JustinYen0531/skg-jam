@@ -1382,6 +1382,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                 updateProgress={updateProgress}
                 chapterThreeOrderPhase={chapterThreeOrderPhase}
                 onSellerVerified={handleSellerVerified}
+                developerPreview={developerToolsOpen || Boolean(debugTargetApp)}
               />
             </motion.div>
           )}

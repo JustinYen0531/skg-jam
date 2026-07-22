@@ -58,7 +58,8 @@ test('Chapter 3 completes immediately after the correct Messages reply', () => {
   assert.match(metaSource, /#home-dock button, button\[data-meta-hit-recovery="true"\]/);
   assert.match(metaSource, /input\[data-meta-hit-recovery="true"\]/);
   assert.match(metaSource, /const hitSlop = 16/);
-  assert.match(metaSource, /element\.id === 'messages-seller-code'/);
+  assert.match(metaSource, /\['text', 'search', 'password', 'email', 'tel', 'url', 'number'\]\.includes\(element\.type\)/);
+  assert.match(messagesSource, /registerInput\('messages-seller-code'/);
   assert.match(phoneSource, /id="messages-seller-notification"/);
   assert.match(phoneSource, /setSellerMessageUnread\(true\)/);
   assert.match(phoneSource, /audio\.play\('messages\.incoming'\)/);

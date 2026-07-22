@@ -87,11 +87,9 @@ const KEYBOARD_ROWS = [
 
 const isMetaKeyboardInput = (element: Element): element is HTMLInputElement =>
   element instanceof HTMLInputElement
-  && (
-    element.id === 'vt-search-input'
-    || element.id === 'chapter-two-archive-search'
-    || element.id === 'messages-seller-code'
-  );
+  && !element.disabled
+  && !element.readOnly
+  && ['text', 'search', 'password', 'email', 'tel', 'url', 'number'].includes(element.type);
 
 /* ==========================================================================
    Hand anatomy kit.
@@ -1060,7 +1058,6 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
 
   const applyQueuedKey = useCallback((input: HTMLInputElement, key: string) => {
     const controller = inputControllersRef.current.get(input.id);
-    if (!controller) return;
     // Enter's confirm sound belongs to the submit handler, not the key.
     if (key === 'Backspace') {
       audio.play('key.backspace');
@@ -1069,11 +1066,19 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     } else if (key.length === 1) {
       audio.play('key.character');
     }
-    const currentValue = controller.getValue();
+    const currentValue = controller?.getValue() ?? input.value;
     const result = applyVirtualKey(currentValue, key);
-    if (result.value !== currentValue) controller.onChange(result.value);
+    if (result.value !== currentValue) {
+      if (controller) controller.onChange(result.value);
+      else {
+        const valueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
+        valueSetter?.call(input, result.value);
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    }
     if (result.submit) {
-      controller.onSubmit();
+      if (controller) controller.onSubmit();
+      else input.form?.requestSubmit();
       setKeyboardTarget(null);
       input.blur();
     }

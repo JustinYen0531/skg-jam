@@ -888,3 +888,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Selecting any of those runs plays the fullscreen title `Game Questing, Questioning Game`, then returns to the phone home screen and unlocks Meta.
 - Removed the explicit leaderboard investigation callout and replaced the landing-page Learn More modal with a deliberately inert gold `UNLOCK` upsell.
 - Updated the North Star title and prologue handoff. Verification remains static-only per project instructions.
+
+## 2026-07-22 — Chapter 7 developer login and universal Meta keyboard
+
+- Developer Chapter 7 snapshots now retain preview authorization after the debug panel closes, so the correct archive password can be exercised without weakening the normal three-clue gate.
+- Every enabled text-like input now opens the embedded Meta keyboard; unregistered React-controlled inputs receive native input events and Enter submits their form.
+- Centered the Mara archive credential form away from the gripping hands and added restored-account, backup, access, and safety context above it.
+- Static verification passed: full tests 196/196 in the active worktree and 198/198 after integrating the latest remote delivery, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.

@@ -92,7 +92,7 @@ test('Chapter 2 dialogue is wired through the transcript, phone, browser, and ar
   assert.match(scene, /chapter === 2\) setDialogueLines\(CHAPTER_TWO_DIALOGUE\.entry\)/);
   assert.match(scene, /previousChapter === 2 && chapter === 3/);
   assert.match(scene, /setDialogueLines\(CHAPTER_TWO_DIALOGUE\.maternalMemory\)/);
-  assert.match(scene, /element\.id === 'chapter-two-archive-search'/);
+  assert.match(scene, /\['text', 'search', 'password', 'email', 'tel', 'url', 'number'\]\.includes\(element\.type\)/);
   assert.match(phone, /getChapterTwoWrongAppDialogue/);
   assert.match(phone, /getChapterTwoCompanionDialogue/);
   assert.match(phone, /CHAPTER_TWO_DIALOGUE\.browserOpened/);

@@ -13,6 +13,7 @@ interface MessagesAppProps {
   updateProgress: (updater: (prev: GameProgress) => GameProgress) => void;
   chapterThreeOrderPhase: AmazeMartOrderPhase;
   onSellerVerified: () => void;
+  developerPreview?: boolean;
 }
 
 type MessageTab = 'mom' | 'seller' | 'admin';
@@ -27,6 +28,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
   updateProgress,
   chapterThreeOrderPhase,
   onSellerVerified,
+  developerPreview = false,
 }) => {
   const metaInteraction = useMetaInteraction();
   const [activeTab, setActiveTab] = useState<MessageTab>(chapterThreeOrderPhase === 'idle' ? 'mom' : 'seller');
@@ -75,7 +77,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
       return;
     }
 
-    if (formattedInput === 'ALT184GATE40END256' && !canUseProgressionAction('admin-login', progress)) {
+    if (formattedInput === 'ALT184GATE40END256' && !developerPreview && !canUseProgressionAction('admin-login', progress)) {
       audio.play('auth.wrong');
       setLoginError('NICE TRY, TIME TRAVELER. FIND THE CLUES BEFORE THE PASSWORD FINDS YOU.');
       return;
@@ -321,7 +323,15 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
           <div className="space-y-4" id="chat-admin-panel">
             {!progress.loggedIntoAdmin ? (
               /* If not logged in: Show credential prompt */
-              <form onSubmit={handleAdminLogin} className="laos-panel p-4 space-y-4" id="admin-login-form">
+              <form onSubmit={handleAdminLogin} className="laos-panel mx-auto max-w-[620px] space-y-4 p-4 pb-24" id="admin-login-form">
+                <div className="grid grid-cols-3 gap-px border border-[var(--laos-line-dim)] bg-[var(--laos-line-dim)] font-mono text-[7px]" id="archive-account-context">
+                  <div className="bg-[var(--laos-bg)] p-2"><div className="text-[var(--laos-faint)]">ACCOUNT</div><div className="mt-1 text-[var(--laos-text)]">MARA_KADE</div></div>
+                  <div className="bg-[var(--laos-bg)] p-2"><div className="text-[var(--laos-faint)]">BACKUP</div><div className="mt-1 text-[var(--laos-text)]">2014 MIGRATION</div></div>
+                  <div className="bg-[var(--laos-bg)] p-2"><div className="text-[var(--laos-faint)]">ACCESS</div><div className="mt-1 text-[var(--laos-warm)]">LOCAL RESTORE</div></div>
+                </div>
+                <div className="border border-[var(--laos-line-dim)] bg-[var(--laos-surface-2)] p-2.5 font-laos text-[8px] leading-relaxed text-[var(--laos-dim)]" id="archive-login-notice">
+                  Switching accounts does not replace your current profile. This restored node is read-only until its coordinate key is verified. Failed attempts remain on this device.
+                </div>
                 <div className="text-center space-y-1.5">
                   <div className="w-10 h-10 border border-[var(--laos-line)] bg-[var(--laos-surface-2)] flex items-center justify-center mx-auto">
                     <KeyRound className="w-5 h-5 text-[var(--laos-warm)]" strokeWidth={1.5} />
@@ -348,7 +358,12 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                       placeholder="e.g. ALT100GATE10END10"
                       value={passwordInput}
                       onChange={(e) => setPasswordInput(e.target.value)}
-                      className="laos-slow w-full bg-[var(--laos-bg)] px-2.5 py-1.5 border border-[var(--laos-line)] rounded-none text-[var(--laos-text)] font-mono placeholder-[var(--laos-faint)] focus:outline-none focus:border-[var(--laos-warm)] uppercase"
+                      autoComplete="off"
+                      autoCorrect="off"
+                      autoCapitalize="characters"
+                      spellCheck={false}
+                      data-meta-hit-recovery="true"
+                      className="laos-slow mx-auto block w-[74%] min-w-[300px] bg-[var(--laos-bg)] px-2.5 py-2 border border-[var(--laos-line)] rounded-none text-[var(--laos-text)] font-mono placeholder-[var(--laos-faint)] focus:outline-none focus:border-[var(--laos-warm)] uppercase"
                       id="admin-password-input"
                     />
                   </div>
