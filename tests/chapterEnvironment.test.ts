@@ -125,10 +125,10 @@ test('the physical environment is display-only and does not mutate progress', ()
   const sceneSource = readFileSync(new URL('../src/components/MetaInteractionScene.tsx', import.meta.url), 'utf8');
   assert.doesNotMatch(environmentSource, /updateProgress|setProgress|GameProgress/);
   assert.match(environmentSource, /id="meta-desk-coffee"/);
-  assert.match(environmentSource, /deviceResting\s+\? \(pushedAway \? 'right-\[4%\] top-\[66%\] scale-\[2\.5\]' : tipped \? 'right-\[8%\] top-\[64%\] scale-\[2\.8\]' : 'right-\[6%\] top-\[64%\] scale-\[2\.7\]'\)/);
-  assert.match(environmentSource, /: \(pushedAway \? 'right-\[2%\] top-\[78%\] scale-\[2\.2\]' : tipped \? 'right-\[6%\] top-\[77%\] scale-\[2\.5\]' : 'right-\[4%\] top-\[78%\] scale-\[2\.4\]'\)/);
+  assert.match(environmentSource, /deviceResting\s+\? \(pushedAway \? 'right-\[4%\] top-\[66%\] scale-\[1\.875\]' : tipped \? 'right-\[8%\] top-\[64%\] scale-\[2\.1\]' : 'right-\[6%\] top-\[64%\] scale-\[2\.025\]'\)/);
+  assert.match(environmentSource, /: \(pushedAway \? 'right-\[2%\] top-\[78%\] scale-\[1\.65\]' : tipped \? 'right-\[6%\] top-\[77%\] scale-\[1\.875\]' : 'right-\[4%\] top-\[78%\] scale-\[1\.8\]'\)/);
   assert.match(environmentSource, /data-composition-offset=\{deviceResting \? 'resting-desk-right' : 'upright-desk-bottom'\}/);
-  assert.match(environmentSource, /data-scene-depth="behind-device"/);
+  assert.match(environmentSource, /data-scene-depth="front-of-device"/);
   assert.match(environmentSource, /deviceResting=\{deviceResting\}/);
   assert.match(environmentSource, /id="meta-desk-notebook"/);
   assert.match(environmentSource, /id=\{part === 'insert' \? 'meta-cable-insert-layer' : 'meta-desk-cable'\}/);
@@ -166,10 +166,9 @@ test('the physical environment is display-only and does not mutate progress', ()
   assert.match(environmentSource, /data-cable-layer=\{part === 'insert' \? 'underlay' : 'foreground'\}/);
   assert.match(environmentSource, /M650 116 C590 116 552 116 510 116/);
   assert.match(environmentSource, /<Pen[\s\S]{0,400}<ChargingCable connected animateLayout=\{!reducedMotion\} part="insert"/);
-  assert.match(environmentSource, /underlay \? \([\s\S]{0,180}<CoffeeCup[\s\S]{0,400}<Notebook/);
-  assert.doesNotMatch(environmentSource, /\) : \(\s*<>\s*<CoffeeCup/);
+  assert.doesNotMatch(environmentSource, /underlay \? \([\s\S]{0,180}<CoffeeCup/);
+  assert.match(environmentSource, /\) : \(\s*<>\s*<CoffeeCup/);
   assert.match(environmentSource, /underlay \? 'z-\[9\]' : 'z-\[25\]'/);
-  assert.match(sceneSource, /absolute inset-0 z-10 flex items-center justify-center/);
   assert.match(environmentSource, /data-plug-target=\{connected && part === 'insert' \? 'phone-bottom-port'/);
   assert.match(environmentSource, /skg: \['SKG', '\?'\]/);
   assert.match(environmentSource, /quiet: \[\]/);

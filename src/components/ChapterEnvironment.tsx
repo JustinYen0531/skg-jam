@@ -60,8 +60,8 @@ const CoffeeCup: React.FC<{
   const tipped = state === 'tipped-empty';
   const assetSource = COFFEE_ASSET_SOURCE[state];
   const positionClass = deviceResting
-    ? (pushedAway ? 'right-[4%] top-[66%] scale-[2.5]' : tipped ? 'right-[8%] top-[64%] scale-[2.8]' : 'right-[6%] top-[64%] scale-[2.7]')
-    : (pushedAway ? 'right-[2%] top-[78%] scale-[2.2]' : tipped ? 'right-[6%] top-[77%] scale-[2.5]' : 'right-[4%] top-[78%] scale-[2.4]');
+    ? (pushedAway ? 'right-[4%] top-[66%] scale-[1.875]' : tipped ? 'right-[8%] top-[64%] scale-[2.1]' : 'right-[6%] top-[64%] scale-[2.025]')
+    : (pushedAway ? 'right-[2%] top-[78%] scale-[1.65]' : tipped ? 'right-[6%] top-[77%] scale-[1.875]' : 'right-[4%] top-[78%] scale-[1.8]');
 
   // Position is anchored purely in CSS and eased with a CSS transition —
   // deliberately NOT Framer's `layout`. This desk layer sits inside an env
@@ -79,7 +79,7 @@ const CoffeeCup: React.FC<{
     <div
       className={`absolute z-[3] h-[27%] w-[17%] min-w-36 origin-bottom-right ${motionClass} ${positionClass}`}
       data-composition-offset={deviceResting ? 'resting-desk-right' : 'upright-desk-bottom'}
-      data-scene-depth="behind-device"
+      data-scene-depth="front-of-device"
       data-coffee-state={state}
       data-coffee-asset-state={tipped ? 'tipped' : state === 'fresh' || state === 'sipped' ? 'full' : 'empty'}
       data-coffee-drip={drip || undefined}
@@ -305,13 +305,13 @@ export const ChapterEnvironment: React.FC<ChapterEnvironmentProps> = ({
         >
           {underlay ? (
             <>
-              <CoffeeCup state={environment.coffee} ring={environment.coffeeRing} steam={environment.coffeeSteam} drip={environment.coffeeDrip} spill={environment.coffeeSpill} animateLayout={!reducedMotion} deviceResting={deviceResting} />
               <Notebook state={environment.notebook} stickyNote={environment.stickyNote} position={environment.notebookPosition} animateLayout={!reducedMotion} />
               <Pen state={environment.pen} animateLayout={!reducedMotion} />
               {environment.cable === 'connected' && <ChargingCable connected animateLayout={!reducedMotion} part="insert" />}
             </>
           ) : (
             <>
+              <CoffeeCup state={environment.coffee} ring={environment.coffeeRing} steam={environment.coffeeSteam} drip={environment.coffeeDrip} spill={environment.coffeeSpill} animateLayout={!reducedMotion} deviceResting={deviceResting} />
               {environment.teaService && <TeaService />}
               {environment.paperBalls && <PaperBalls />}
               {environment.cable !== 'none' && <ChargingCable connected={environment.cable === 'connected'} animateLayout={!reducedMotion} part="body" />}

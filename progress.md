@@ -721,3 +721,7 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 ## 2026-07-22 — Coffee scale adjustment
 
 - Doubled the approved desk-anchored coffee presentation in both postures while retaining its underlay depth behind the phone.
+
+## 2026-07-22 — Coffee foreground correction
+
+- Restored the coffee cup as an intentional foreground totem over the phone surface and changed its primary upright scale from 1.2x to the user-approved 1.8x (1.5x), with matching proportional variants.
