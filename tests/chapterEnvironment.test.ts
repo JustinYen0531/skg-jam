@@ -122,11 +122,13 @@ test('the supplied floor artwork shares each state across two chapters and meets
 
 test('the physical environment is display-only and does not mutate progress', () => {
   const environmentSource = readFileSync(new URL('../src/components/ChapterEnvironment.tsx', import.meta.url), 'utf8');
+  const sceneSource = readFileSync(new URL('../src/components/MetaInteractionScene.tsx', import.meta.url), 'utf8');
   assert.doesNotMatch(environmentSource, /updateProgress|setProgress|GameProgress/);
   assert.match(environmentSource, /id="meta-desk-coffee"/);
-  assert.match(environmentSource, /deviceResting\s+\? \(pushedAway \? 'right-\[7%\] top-\[51%\] scale-\[2\.1\]' : tipped \? 'right-\[14%\] top-\[53%\] scale-\[2\.5\]' : 'right-\[12%\] top-\[48%\] scale-\[2\.7\]'\)/);
-  assert.match(environmentSource, /: \(pushedAway \? 'right-\[7%\] top-\[65%\] scale-\[2\.1\]' : tipped \? 'right-\[14%\] top-\[67%\] scale-\[2\.5\]' : 'right-\[12%\] top-\[62%\] scale-\[2\.7\]'\)/);
-  assert.match(environmentSource, /data-composition-offset=\{deviceResting \? 'resting-coffee-up-14' : 'upright-original'\}/);
+  assert.match(environmentSource, /deviceResting\s+\? \(pushedAway \? 'right-\[4%\] top-\[66%\] scale-\[1\.25\]' : tipped \? 'right-\[8%\] top-\[64%\] scale-\[1\.4\]' : 'right-\[6%\] top-\[64%\] scale-\[1\.35\]'\)/);
+  assert.match(environmentSource, /: \(pushedAway \? 'right-\[2%\] top-\[78%\] scale-\[1\.1\]' : tipped \? 'right-\[6%\] top-\[77%\] scale-\[1\.25\]' : 'right-\[4%\] top-\[78%\] scale-\[1\.2\]'\)/);
+  assert.match(environmentSource, /data-composition-offset=\{deviceResting \? 'resting-desk-right' : 'upright-desk-bottom'\}/);
+  assert.match(environmentSource, /data-scene-depth="behind-device"/);
   assert.match(environmentSource, /deviceResting=\{deviceResting\}/);
   assert.match(environmentSource, /id="meta-desk-notebook"/);
   assert.match(environmentSource, /id=\{part === 'insert' \? 'meta-cable-insert-layer' : 'meta-desk-cable'\}/);
@@ -164,9 +166,23 @@ test('the physical environment is display-only and does not mutate progress', ()
   assert.match(environmentSource, /data-cable-layer=\{part === 'insert' \? 'underlay' : 'foreground'\}/);
   assert.match(environmentSource, /M650 116 C590 116 552 116 510 116/);
   assert.match(environmentSource, /<Pen[\s\S]{0,400}<ChargingCable connected animateLayout=\{!reducedMotion\} part="insert"/);
-  assert.match(environmentSource, /<CoffeeCup[\s\S]{0,400}<ChargingCable connected=\{environment\.cable === 'connected'\} animateLayout=\{!reducedMotion\} part="body"/);
+  assert.match(environmentSource, /underlay \? \([\s\S]{0,180}<CoffeeCup[\s\S]{0,400}<Notebook/);
+  assert.doesNotMatch(environmentSource, /\) : \(\s*<>\s*<CoffeeCup/);
+  assert.match(environmentSource, /underlay \? 'z-\[9\]' : 'z-\[25\]'/);
+  assert.match(sceneSource, /absolute inset-0 z-10 flex items-center justify-center/);
   assert.match(environmentSource, /data-plug-target=\{connected && part === 'insert' \? 'phone-bottom-port'/);
   assert.match(environmentSource, /skg: \['SKG', '\?'\]/);
   assert.match(environmentSource, /quiet: \[\]/);
-  assert.equal((environmentSource.match(/layout=\{animateLayout\}/g) ?? []).length, 4);
+  // No desk object may use Framer's `layout`: they render inside an env whose
+  // `scale` is Framer-animated when the device rests, and a `layout` child
+  // there re-projects against its own already-transformed box. Interrupting the
+  // animation (chapter jumps / dev-panel toggles mid-transition) compounds that
+  // projection into a runaway — the coffee cup shooting across the desk. Each
+  // object is anchored in CSS and eased with a CSS transition instead.
+  assert.equal((environmentSource.match(/layout=\{animateLayout\}/g) ?? []).length, 0);
+  assert.doesNotMatch(environmentSource, /<motion\.(div|svg)\s+layout/);
+  // The moving desk objects still ease their position via CSS transitions.
+  assert.match(environmentSource, /transition-\[top,right,scale\] duration-\[620ms\]/); // coffee cup
+  assert.match(environmentSource, /transition-\[left,top,rotate,scale\] duration-\[620ms\]/); // pen
+  assert.match(environmentSource, /transition-\[top,scale,rotate\] duration-\[620ms\]/); // notebook
 });

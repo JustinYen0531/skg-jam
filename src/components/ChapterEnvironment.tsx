@@ -60,14 +60,26 @@ const CoffeeCup: React.FC<{
   const tipped = state === 'tipped-empty';
   const assetSource = COFFEE_ASSET_SOURCE[state];
   const positionClass = deviceResting
-    ? (pushedAway ? 'right-[7%] top-[51%] scale-[2.1]' : tipped ? 'right-[14%] top-[53%] scale-[2.5]' : 'right-[12%] top-[48%] scale-[2.7]')
-    : (pushedAway ? 'right-[7%] top-[65%] scale-[2.1]' : tipped ? 'right-[14%] top-[67%] scale-[2.5]' : 'right-[12%] top-[62%] scale-[2.7]');
+    ? (pushedAway ? 'right-[4%] top-[66%] scale-[1.25]' : tipped ? 'right-[8%] top-[64%] scale-[1.4]' : 'right-[6%] top-[64%] scale-[1.35]')
+    : (pushedAway ? 'right-[2%] top-[78%] scale-[1.1]' : tipped ? 'right-[6%] top-[77%] scale-[1.25]' : 'right-[4%] top-[78%] scale-[1.2]');
+
+  // Position is anchored purely in CSS and eased with a CSS transition —
+  // deliberately NOT Framer's `layout`. This desk layer sits inside an env
+  // whose `scale` is Framer-animated when the device rests; a `layout` child
+  // inside a scale-animated parent measures its own already-transformed box
+  // and re-projects against it, so rapidly interrupting the animation (jumping
+  // chapters / toggling the dev panel mid-transition) compounds the projection
+  // and an oversized cup runs away across the desk. A CSS transform can't
+  // compound: the browser always re-renders it from its declared value.
+  const motionClass = animateLayout
+    ? 'transition-[top,right,scale] duration-[620ms] ease-out'
+    : '';
 
   return (
-    <motion.div
-      layout={animateLayout}
-      className={`absolute z-[3] h-[27%] w-[17%] min-w-36 origin-bottom-right ${positionClass}`}
-      data-composition-offset={deviceResting ? 'resting-coffee-up-14' : 'upright-original'}
+    <div
+      className={`absolute z-[3] h-[27%] w-[17%] min-w-36 origin-bottom-right ${motionClass} ${positionClass}`}
+      data-composition-offset={deviceResting ? 'resting-desk-right' : 'upright-desk-bottom'}
+      data-scene-depth="behind-device"
       data-coffee-state={state}
       data-coffee-asset-state={tipped ? 'tipped' : state === 'fresh' || state === 'sipped' ? 'full' : 'empty'}
       data-coffee-drip={drip || undefined}
@@ -103,15 +115,20 @@ const CoffeeCup: React.FC<{
         className="absolute inset-0 h-full w-full object-contain drop-shadow-[0_10px_10px_rgba(0,0,0,0.36)]"
         id="meta-coffee-png"
       />
-    </motion.div>
+    </div>
   );
 };
 
+// None of the desk objects use Framer's `layout` — they live inside an env
+// whose `scale` is Framer-animated when the device rests, and a `layout` child
+// there re-projects against its own already-transformed box, compounding into
+// a runaway when the animation is interrupted (chapter jumps / dev-panel
+// toggles mid-transition). CSS transitions ease the same moves without ever
+// compounding.
 const ChargingCable: React.FC<{ connected: boolean; animateLayout: boolean; part: 'insert' | 'body' }> = ({ connected, animateLayout, part }) => (
-  <motion.svg
-    layout={animateLayout}
+  <svg
     viewBox="0 0 500 140"
-    className="absolute bottom-[15.5%] right-[-5%] z-[2] h-[12%] w-[39%] origin-bottom-right scale-[1.7] overflow-visible opacity-75 drop-shadow-[0_5px_4px_rgba(0,0,0,0.45)]"
+    className={`absolute bottom-[15.5%] right-[-5%] z-[2] h-[12%] w-[39%] origin-bottom-right scale-[1.7] overflow-visible opacity-75 drop-shadow-[0_5px_4px_rgba(0,0,0,0.45)] ${animateLayout ? 'transition-transform duration-[620ms] ease-out' : ''}`}
     data-composition-offset="cable-right-3"
     data-cable-state={connected ? 'connected' : 'loose'}
     data-cable-layer={part === 'insert' ? 'underlay' : 'foreground'}
@@ -148,7 +165,7 @@ const ChargingCable: React.FC<{ connected: boolean; animateLayout: boolean; part
         {!connected && <rect x="102" y="80" width="28" height="24" rx="5" fill="#343840" stroke="#747b85" strokeWidth="2" />}
       </>
     ) : null}
-  </motion.svg>
+  </svg>
 );
 
 const Pen: React.FC<{ state: PenState; animateLayout: boolean }> = ({ state, animateLayout }) => {
@@ -162,15 +179,14 @@ const Pen: React.FC<{ state: PenState; animateLayout: boolean }> = ({ state, ani
   };
 
   return (
-    <motion.div
-      layout={animateLayout}
-      className={`absolute z-[5] h-[5px] w-[17%] min-w-28 origin-left scale-[1.35] rounded-full bg-gradient-to-r from-[#15181c] via-[#464d58] to-[#111318] shadow-[0_4px_4px_rgba(0,0,0,0.38)] ${poseClass[state]}`}
+    <div
+      className={`absolute z-[5] h-[5px] w-[17%] min-w-28 origin-left scale-[1.35] rounded-full bg-gradient-to-r from-[#15181c] via-[#464d58] to-[#111318] shadow-[0_4px_4px_rgba(0,0,0,0.38)] ${animateLayout ? 'transition-[left,top,rotate,scale] duration-[620ms] ease-out' : ''} ${poseClass[state]}`}
       data-pen-state={state}
       id="meta-desk-pen"
     >
       <div className="absolute right-0 top-[-1px] h-[7px] w-[9%] rounded-r-full bg-[#b4a88f]" />
       <div className="absolute left-[12%] top-[-2px] h-[9px] w-[3px] bg-white/20" />
-    </motion.div>
+    </div>
   );
 };
 
@@ -180,9 +196,8 @@ const Notebook: React.FC<{ state: NotebookState; stickyNote: string | null; posi
   const isClosed = state === 'closed';
 
   return (
-    <motion.div
-      layout={animateLayout}
-      className={`absolute left-[4%] ${position === 'lowered' ? 'top-[75%]' : 'top-[68%]'} z-[3] h-[20%] w-[24%] min-w-56 origin-bottom-left scale-[1.35] -rotate-[4deg] rounded-sm shadow-[0_16px_18px_rgba(0,0,0,0.38)] ${isClosed ? 'bg-[#243a42]' : 'bg-[#d6ccb7]'}`}
+    <div
+      className={`absolute left-[4%] ${position === 'lowered' ? 'top-[75%]' : 'top-[68%]'} z-[3] h-[20%] w-[24%] min-w-56 origin-bottom-left scale-[1.35] -rotate-[4deg] rounded-sm shadow-[0_16px_18px_rgba(0,0,0,0.38)] ${animateLayout ? 'transition-[top,scale,rotate] duration-[620ms] ease-out' : ''} ${isClosed ? 'bg-[#243a42]' : 'bg-[#d6ccb7]'}`}
       data-notebook-state={state}
       id="meta-desk-notebook"
     >
@@ -208,7 +223,7 @@ const Notebook: React.FC<{ state: NotebookState; stickyNote: string | null; posi
           {stickyNote || '\u00a0'}
         </div>
       )}
-    </motion.div>
+    </div>
   );
 };
 
@@ -290,13 +305,13 @@ export const ChapterEnvironment: React.FC<ChapterEnvironmentProps> = ({
         >
           {underlay ? (
             <>
+              <CoffeeCup state={environment.coffee} ring={environment.coffeeRing} steam={environment.coffeeSteam} drip={environment.coffeeDrip} spill={environment.coffeeSpill} animateLayout={!reducedMotion} deviceResting={deviceResting} />
               <Notebook state={environment.notebook} stickyNote={environment.stickyNote} position={environment.notebookPosition} animateLayout={!reducedMotion} />
               <Pen state={environment.pen} animateLayout={!reducedMotion} />
               {environment.cable === 'connected' && <ChargingCable connected animateLayout={!reducedMotion} part="insert" />}
             </>
           ) : (
             <>
-              <CoffeeCup state={environment.coffee} ring={environment.coffeeRing} steam={environment.coffeeSteam} drip={environment.coffeeDrip} spill={environment.coffeeSpill} animateLayout={!reducedMotion} deviceResting={deviceResting} />
               {environment.teaService && <TeaService />}
               {environment.paperBalls && <PaperBalls />}
               {environment.cable !== 'none' && <ChargingCable connected={environment.cable === 'connected'} animateLayout={!reducedMotion} part="body" />}

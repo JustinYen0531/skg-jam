@@ -695,3 +695,11 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Preserved the knowledge boundary: pre-delivery dialogue cannot explain SKG, Silver Kite, later people, or the contents of the screenshot packet; only signing completes Chapter 3.
 - Added static tests for the A ending, English-only dialogue, evidence boundaries, grouped reactions, runtime connections, and the existing sign-only completion point.
 - Browser verification remains intentionally omitted under the repository rule; full tests, TypeScript lint, production build, and diff checks are the acceptance boundary.
+
+## 2026-07-22 — Coffee depth and desk anchoring correction
+
+- Rejected the earlier “stable top value means fixed” conclusion: removing Framer layout stopped runaway projection, but the cup remained an oversized `z-25` foreground object and could therefore sit stably over the phone screen.
+- Moved the coffee cup into the environment underlay (`z-9`) behind the phone camera frame (`z-10`), creating a stacking invariant that prevents it from rendering inside phone content.
+- Reduced the upright and resting cup scales and anchored each posture near the visible desk edge; the transparent PNG canvas no longer magnifies its opaque cup bounds into the center of the device.
+- Kept the CSS-only transitions and the no-Framer-layout regression rule for all moving desk objects.
+- Browser verification remains intentionally omitted under the repository rule; focused environment tests, full static tests, TypeScript checks, production build, and diff checks are the acceptance boundary.
