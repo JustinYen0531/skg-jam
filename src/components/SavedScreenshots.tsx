@@ -2,228 +2,450 @@ import React, { useState } from 'react';
 import { GameProgress } from '../types';
 import audio from '../lib/audio';
 import { completePuzzleChapter } from '../lib/chapterProgress';
+import {
+  hasAssembledCase,
+  REQUIRED_CLUE_IDS,
+  type LumenArcClueId,
+} from '../lib/lumenArcClues';
 import { motion, AnimatePresence } from 'motion/react';
-import { FileText, RotateCw, X, ZoomIn } from 'lucide-react';
+import { ArrowRight, Check, FolderOpen, ImageIcon, X, ZoomIn } from 'lucide-react';
 
 interface SavedScreenshotsProps {
   progress: GameProgress;
   updateProgress: (updater: (prev: GameProgress) => GameProgress) => void;
 }
 
-export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, updateProgress }) => {
-  const [activeSheet, setActiveSheet] = useState<number | null>(null);
+// A clue renderer wires one embedded phrase to the found-tracking handler; a
+// decoy sheet simply never calls it. `clue` is `null` on decoys.
+type ClueRenderer = ((label: React.ReactNode) => React.ReactNode) | null;
 
-  const sheets = [
-    {
-      id: 1,
-      title: 'Lumen Arc Home Screen Printout',
-      subtitle: 'Capturing state of the original LAOS App Catalog (circa 2014)',
-      angle: -4,
-      bg: 'bg-[#faf6e8]', // warm paper look
-      textColor: 'text-amber-950',
-      content: (
-        <div className="space-y-4 text-amber-900 font-sans p-2">
-          <div className="border-b-2 border-amber-900/20 pb-2 flex items-center justify-between">
-            <span className="font-mono text-[9px] font-bold">SPEC: LAOS_UI_METRIC_71</span>
-            <span className="text-[10px] bg-amber-200 text-amber-800 px-1 rounded">2014-04-12</span>
-          </div>
+interface Sheet {
+  id: string;
+  file: string;
+  title: string;
+  subtitle: string;
+  angle: number;
+  bg: string;
+  textColor: string;
+  clueId?: LumenArcClueId;
+  content: (clue: ClueRenderer) => React.ReactNode;
+}
 
-          <div className="flex items-center gap-3 bg-white/40 p-2.5 rounded border border-amber-900/10">
-            {/* Old App Icon */}
-            <div className="w-12 h-12 bg-amber-950 rounded-xl flex flex-col items-center justify-center border-2 border-amber-900/20 relative shadow-inner">
-              <div className="text-[8px] font-mono text-amber-200 font-bold uppercase tracking-widest scale-75">SKG</div>
-              <div className="w-5 h-5 bg-amber-400 rounded-full border border-amber-900 mt-1 relative">
-                <div className="absolute w-1 h-1 bg-black rounded-full top-1 right-1"></div>
+// Ten screenshots, dumped in no particular order. Three hide a detail; the rest
+// are the ordinary residue of a used device — battery, storage, a stranger's
+// notes. The three that matter are never marked as special anywhere; only the
+// embedded phrase itself is clickable, and only once the player reads far
+// enough to notice it.
+const SHEETS: readonly Sheet[] = [
+  {
+    id: 'battery',
+    file: 'IMG_0142.png',
+    title: 'Battery',
+    subtitle: 'Settings capture — power',
+    angle: -3,
+    bg: 'bg-[#f4f4f5]',
+    textColor: 'text-zinc-800',
+    content: () => (
+      <div className="space-y-2 p-1 font-sans text-[10px] text-zinc-700">
+        <div className="flex items-center justify-between border-b border-zinc-300 pb-1 font-mono text-[9px] text-zinc-500">
+          <span>BATTERY</span><span>21:47</span>
+        </div>
+        <div className="text-center"><span className="font-display text-2xl font-black text-zinc-800">84%</span></div>
+        <div className="flex justify-between"><span>Maximum capacity</span><span className="font-mono">84%</span></div>
+        <div className="flex justify-between"><span>Charge cycles</span><span className="font-mono">611</span></div>
+        <p className="border-t border-zinc-200 pt-1.5 text-[9px] text-zinc-500">Battery health is degraded. Service recommended. Peak performance may be affected.</p>
+      </div>
+    ),
+  },
+  {
+    id: 'home',
+    file: 'IMG_0088.png',
+    title: 'Home screen',
+    subtitle: "Previous owner's apps, still installed",
+    angle: -1,
+    bg: 'bg-[#faf6e8]',
+    textColor: 'text-amber-950',
+    clueId: 'title',
+    content: (clue) => (
+      <div className="space-y-3 p-1 font-sans text-amber-900">
+        <div className="flex items-center justify-between border-b-2 border-amber-900/20 pb-1.5 font-mono text-[9px]">
+          <span className="font-bold">LAOS · HOME</span><span className="rounded bg-amber-200 px-1 text-amber-800">21:47</span>
+        </div>
+        <div className="grid grid-cols-4 gap-2">
+          {['Weather', 'Clock', 'Notes', 'Camera', 'Maps', 'Music'].map((label) => (
+            <div key={label} className="flex flex-col items-center gap-1">
+              <div className="h-8 w-8 rounded-lg border border-amber-900/15 bg-white/50" />
+              <span className="text-[7px] opacity-70">{label}</span>
+            </div>
+          ))}
+          {/* One tile is a leftover game the previous owner never deleted. */}
+          <div className="col-span-2 flex items-center gap-2 rounded-lg border border-amber-900/15 bg-white/60 p-1.5">
+            <div className="flex h-8 w-8 shrink-0 flex-col items-center justify-center rounded-lg border border-amber-900/20 bg-amber-950">
+              <div className="scale-75 font-mono text-[7px] font-bold uppercase tracking-widest text-amber-200">SKG</div>
+              <div className="mt-0.5 h-3.5 w-3.5 rounded-full border border-amber-900 bg-amber-400" />
+            </div>
+            <div className="leading-tight">
+              <div className="text-[7px] text-amber-700">Games</div>
+              <div className="font-display text-[11px] font-black">
+                {clue ? clue('Skyline 256') : 'Skyline 256'}
               </div>
             </div>
-            <div>
-              <div className="text-[10px] text-amber-700 font-bold">App Catalog Listing #412</div>
-              <h4 className="font-display font-black text-sm text-amber-950">SKG: Skyline 256</h4>
-              <p className="text-[9px] text-amber-800">Developer ID: <span className="underline font-mono">SilverKite_Games</span></p>
-            </div>
-          </div>
-
-          <p className="text-[10px] leading-relaxed">
-            *Note:* Unlike normal endless games, <span className="font-bold">Skyline 256</span> requires the player to navigate exactly 256 gates to trigger the final termination buffer.
-          </p>
-        </div>
-      ),
-    },
-    {
-      id: 2,
-      title: 'Calibration Schematic: Flight Coordinates',
-      subtitle: 'Mapping mechanical parameters within the physics loop',
-      angle: 3,
-      bg: 'bg-[#f0f9ff]', // light blue blueprint paper
-      textColor: 'text-sky-950',
-      content: (
-        <div className="space-y-3 text-sky-900 font-sans p-2">
-          <div className="border-b-2 border-sky-900/20 pb-2 flex items-center justify-between">
-            <span className="font-mono text-[9px] font-bold">SYS_MAP: ENGINE_COORD_104</span>
-            <span className="text-[10px] bg-sky-200 text-sky-800 px-1 rounded font-bold">CALIBRATED</span>
-          </div>
-
-          <div className="space-y-2 text-[10px] font-mono bg-sky-950/5 p-2 rounded border border-sky-900/10">
-            <div className="flex justify-between border-b border-sky-900/10 pb-1">
-              <span className="font-bold">PARAMETER</span>
-              <span className="font-bold">DEFINITION & LIMITS</span>
-            </div>
-            <div className="flex justify-between py-0.5">
-              <span>🚀 ALTITUDE (ALT)</span>
-              <span className="font-bold text-sky-950">Y-axis bounds [0 - 256m]</span>
-            </div>
-            <div className="flex justify-between py-0.5">
-              <span>🚪 GATE (GATE)</span>
-              <span className="font-bold text-sky-950">Obstacle sequence [0 - 256]</span>
-            </div>
-            <div className="flex justify-between py-0.5">
-              <span>🏁 END (END)</span>
-              <span className="font-bold text-sky-950">Signed integer overflow limit</span>
-            </div>
-          </div>
-
-          <div className="text-[9px] leading-relaxed text-sky-800 border-t border-sky-900/10 pt-2 italic">
-            "These three variables compose the core execution frame of Noah's test flight module. ALT, GATE, and END must align."
           </div>
         </div>
-      ),
-    },
-    {
-      id: 3,
-      title: 'Magazine Q&A Excerpt',
-      subtitle: 'Hand-marked section of an obsolete mobile industry catalog',
-      angle: -1,
-      bg: 'bg-[#fafaf9]', // simple white paper
-      textColor: 'text-stone-900',
-      content: (
-        <div className="space-y-4 text-stone-900 font-sans p-2">
-          <div className="border-b-2 border-stone-200 pb-2 flex items-center justify-between">
-            <span className="font-mono text-[9px] font-bold text-stone-400">ARCHIVE_DOC: SK_INTERVIEW_09</span>
-            <span className="text-[10px] text-stone-500 italic">Page 18</span>
-          </div>
-
-          <div className="space-y-2 text-xs">
-            <div className="font-bold text-stone-800">Q: Why did you call your game 'Skyline 256'?</div>
-            <p className="text-[10px] leading-relaxed text-stone-600 bg-stone-100 p-2 rounded border border-stone-200">
-              <span className="font-bold text-stone-900">Noah Kade:</span> "Because 256 represents the ultimate gate, the final ceiling. The game has an ending. No one was ever meant to flap forever. If you must know, my favorite numbers are <span className="bg-yellow-200 px-1 py-0.5 rounded font-bold font-mono text-black">184-40-256</span>. They map directly to how the flight path connects our parameters."
-            </p>
-          </div>
-
-          <p className="text-[9px] text-red-600 leading-tight border-t border-dashed border-red-200 pt-2">
-            ✏️ *Handwritten scribbled pen note in the margin:* "Mara, these numbers compose our paths. Remember they map directly to our ALT, GATE, and END parameters."
-          </p>
+        <p className="text-[9px] leading-relaxed text-amber-800/80">Seller note: didn't wipe it, some old apps are still on here.</p>
+      </div>
+    ),
+  },
+  {
+    id: 'storage',
+    file: 'IMG_0143.png',
+    title: 'Storage',
+    subtitle: 'Settings capture — space used',
+    angle: 3,
+    bg: 'bg-[#f4f4f5]',
+    textColor: 'text-zinc-800',
+    content: () => (
+      <div className="space-y-2 p-1 font-sans text-[10px] text-zinc-700">
+        <div className="flex items-center justify-between border-b border-zinc-300 pb-1 font-mono text-[9px] text-zinc-500"><span>STORAGE</span><span>11.9 GB free</span></div>
+        <div className="h-2 overflow-hidden rounded-full bg-zinc-200"><div className="flex h-full"><div className="w-[26%] bg-zinc-500" /><div className="w-[7%] bg-zinc-400" /><div className="w-[9%] bg-zinc-300" /></div></div>
+        <div className="space-y-1">
+          <div className="flex justify-between"><span>Games</span><span className="font-mono">4.2 GB</span></div>
+          <div className="flex justify-between"><span>Photos</span><span className="font-mono">1.1 GB</span></div>
+          <div className="flex justify-between"><span>System</span><span className="font-mono">1.4 GB</span></div>
         </div>
-      ),
-    },
-  ];
+      </div>
+    ),
+  },
+  {
+    id: 'calibration',
+    file: 'IMG_0091.png',
+    title: 'Game options',
+    subtitle: 'Left open on a settings menu',
+    angle: -4,
+    bg: 'bg-[#f0f9ff]',
+    textColor: 'text-sky-950',
+    clueId: 'params',
+    content: (clue) => (
+      <div className="space-y-3 p-1 font-sans text-sky-900">
+        <div className="flex items-center justify-between border-b-2 border-sky-900/20 pb-1.5 font-mono text-[9px]">
+          <span className="font-bold">FLIGHT · CALIBRATION</span><span className="rounded bg-sky-200 px-1 font-bold text-sky-800">ADVANCED</span>
+        </div>
+        <div className="space-y-1.5 rounded border border-sky-900/10 bg-sky-950/[0.04] p-2 font-mono text-[10px]">
+          <div className="flex justify-between border-b border-sky-900/10 pb-1 text-[9px] font-bold"><span>AXIS</span><span>LIMIT</span></div>
+          <div className="flex justify-between"><span>Altitude</span><span className="font-bold">0 – 256 m</span></div>
+          <div className="flex justify-between"><span>Gate index</span><span className="font-bold">0 – 256</span></div>
+          <div className="flex justify-between"><span>End buffer</span><span className="font-bold">overflow</span></div>
+        </div>
+        <p className="border-t border-sky-900/10 pt-1.5 text-[9px] italic leading-relaxed text-sky-800/90">
+          Frame order (do not edit): {clue ? clue('ALT · GATE · END') : 'ALT · GATE · END'}
+        </p>
+      </div>
+    ),
+  },
+  {
+    id: 'box',
+    file: 'IMG_0067.png',
+    title: 'What came in the box',
+    subtitle: 'Photo — accessories',
+    angle: 2,
+    bg: 'bg-[#fafaf9]',
+    textColor: 'text-stone-800',
+    content: () => (
+      <div className="space-y-2 p-1 font-sans text-[10px] text-stone-700">
+        <div className="flex gap-2">
+          <div className="h-12 w-16 shrink-0 rounded border border-stone-300 bg-stone-200" />
+          <div className="h-12 w-10 shrink-0 rounded border border-stone-300 bg-stone-200" />
+        </div>
+        <p className="leading-relaxed">Comes with the original charger and a slightly frayed cable. No manual, no receipt. Case has light scuffs on the back corner.</p>
+      </div>
+    ),
+  },
+  {
+    id: 'network',
+    file: 'IMG_0144.png',
+    title: 'Wi-Fi',
+    subtitle: 'Settings capture — network',
+    angle: -2,
+    bg: 'bg-[#f4f4f5]',
+    textColor: 'text-zinc-800',
+    content: () => (
+      <div className="space-y-1.5 p-1 font-sans text-[10px] text-zinc-700">
+        <div className="border-b border-zinc-300 pb-1 font-mono text-[9px] text-zinc-500">WI-FI</div>
+        {[['HOME-2F', 'saved'], ['xfinitywifi', 'weak'], ['NETGEAR-guest', 'locked']].map(([name, tag]) => (
+          <div key={name} className="flex justify-between border-b border-zinc-100 py-0.5"><span className="font-mono">{name}</span><span className="text-[8px] uppercase text-zinc-400">{tag}</span></div>
+        ))}
+      </div>
+    ),
+  },
+  {
+    id: 'notes',
+    file: 'IMG_0102.png',
+    title: 'Notes',
+    subtitle: "A stranger's to-do list",
+    angle: 4,
+    bg: 'bg-[#fefce8]',
+    textColor: 'text-yellow-950',
+    clueId: 'numbers',
+    content: (clue) => (
+      <div className="space-y-2 p-1 font-sans text-[10px] text-yellow-900">
+        <div className="border-b-2 border-yellow-900/15 pb-1 font-mono text-[9px] font-bold text-yellow-800/80">NOTES · untitled</div>
+        <ul className="space-y-1.5 leading-relaxed">
+          <li>— pick up milk, bread</li>
+          <li>— dentist thurs @ 3</li>
+          <li>— return the drill to Sam</li>
+          <li>— lucky combo again: {clue ? clue('184-40-256') : '184-40-256'}</li>
+          <li>— call about the warranty</li>
+        </ul>
+      </div>
+    ),
+  },
+  {
+    id: 'othergame',
+    file: 'IMG_0110.png',
+    title: 'CinderKart — best lap',
+    subtitle: 'Photo of a different game',
+    angle: -3,
+    bg: 'bg-[#faf5ff]',
+    textColor: 'text-purple-950',
+    content: () => (
+      <div className="space-y-2 p-1 text-center font-sans text-purple-900">
+        <div className="font-display text-sm font-black">NEW RECORD!</div>
+        <div className="font-mono text-2xl font-black text-purple-800">44,180</div>
+        <p className="text-[9px] text-purple-700/80">Sunset Speedway · 3 laps · beat rival "turbo_gran"</p>
+      </div>
+    ),
+  },
+  {
+    id: 'lockscreen',
+    file: 'IMG_0001.png',
+    title: 'Lock screen',
+    subtitle: 'Photo — powered on',
+    angle: 1,
+    bg: 'bg-[#111827]',
+    textColor: 'text-slate-200',
+    content: () => (
+      <div className="space-y-1 p-3 text-center font-sans text-slate-300">
+        <div className="font-display text-3xl font-black text-white">21:47</div>
+        <div className="text-[10px] text-slate-400">Tuesday · April 15</div>
+        <div className="mt-3 text-[8px] uppercase tracking-widest text-slate-500">Lumen Arc · 12% charged</div>
+      </div>
+    ),
+  },
+  {
+    id: 'about',
+    file: 'IMG_0145.png',
+    title: 'About this device',
+    subtitle: 'Settings capture — model',
+    angle: -1,
+    bg: 'bg-[#f4f4f5]',
+    textColor: 'text-zinc-800',
+    content: () => (
+      <div className="space-y-1.5 p-1 font-sans text-[10px] text-zinc-700">
+        <div className="border-b border-zinc-300 pb-1 font-mono text-[9px] text-zinc-500">ABOUT</div>
+        <div className="flex justify-between"><span>Model</span><span className="font-mono">Lumen Arc</span></div>
+        <div className="flex justify-between"><span>System</span><span className="font-mono">LAOS 4.1</span></div>
+        <div className="flex justify-between"><span>Serial</span><span className="font-mono">LA-••••-7731</span></div>
+        <div className="flex justify-between"><span>Region</span><span className="font-mono">NA</span></div>
+      </div>
+    ),
+  },
+];
 
-  const handleZoom = (idx: number) => {
-    // Paper coming closer under glass; the clue chime only on the first
-    // sheet that actually unlocks something (§4.7, §4.8).
+const CLUE_SHEET_COUNT = SHEETS.filter((sheet) => sheet.clueId).length;
+
+export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, updateProgress }) => {
+  const [activeSheet, setActiveSheet] = useState<number | null>(null);
+  // If the chapter is already complete (a later snapshot, or a re-visit), every
+  // detail counts as found so the viewer shows its assembled state.
+  const [found, setFound] = useState<Set<LumenArcClueId>>(
+    () => (progress.discoveredOriginalTitle ? new Set(REQUIRED_CLUE_IDS) : new Set()),
+  );
+
+  const assembled = hasAssembledCase(found);
+
+  const findClue = (clueId: LumenArcClueId) => {
+    if (found.has(clueId)) {
+      audio.play('ui.secondaryTap');
+      return;
+    }
+    audio.play('story.clueUnlock');
+    setFound((prev) => {
+      const next = new Set(prev);
+      next.add(clueId);
+      return next;
+    });
+  };
+
+  // Only a sheet that owns a clue produces a live, clickable phrase; decoys pass
+  // `null` and render their text plain.
+  const clueRendererFor = (sheet: Sheet): ClueRenderer => {
+    if (!sheet.clueId) return null;
+    const clueId = sheet.clueId;
+    return (label: React.ReactNode) => {
+      const isFound = found.has(clueId);
+      return (
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            findClue(clueId);
+          }}
+          data-clue-word={clueId}
+          data-clue-found={isFound || undefined}
+          className={`mx-0.5 inline-flex items-center gap-0.5 rounded px-1 font-semibold underline decoration-dotted decoration-2 underline-offset-2 transition-colors ${
+            isFound
+              ? 'bg-emerald-300/70 text-emerald-950 decoration-emerald-700'
+              : 'decoration-current/40 hover:bg-yellow-200/80 hover:text-black'
+          }`}
+        >
+          {label}
+          {isFound && <Check className="h-3 w-3" strokeWidth={3} />}
+        </button>
+      );
+    };
+  };
+
+  const handleContinue = () => {
+    audio.play('ui.primaryTap');
+    audio.play('story.clueUnlock', { delay: 0.16 });
+    updateProgress((prev) => completePuzzleChapter(prev, 4, { discoveredOriginalTitle: true }));
+  };
+
+  const openSheet = (index: number) => {
     audio.play('screenshot.zoom');
-    if (idx === 0 && !progress.discoveredOriginalTitle) {
-      audio.play('story.clueUnlock', { delay: 0.25 });
-    }
-    setActiveSheet(idx);
-
-    if (idx === 0) {
-      updateProgress((prev) => completePuzzleChapter(prev, 4, { discoveredOriginalTitle: true }));
-    }
+    setActiveSheet(index);
   };
 
   return (
-    <div className="flex flex-col h-full bg-[var(--laos-bg)] text-[var(--laos-text)] font-sans overflow-hidden" id="screenshots-root">
+    <div className="flex h-full flex-col overflow-hidden bg-[var(--laos-bg)] font-sans text-[var(--laos-text)]" id="screenshots-root">
 
-      {/* Viewer chrome: this app arrived with the migration and still draws
-          itself in the old system's language. The paper is the only warmth. */}
-      <div className="bg-[var(--laos-surface)] p-3 border-b border-[var(--laos-line)] flex items-center justify-between" id="spec-header">
-        <div className="flex items-center gap-1.5 font-laos font-semibold text-xs text-[var(--laos-text)] tracking-wide">
-          <FileText className="w-4 h-4 text-[var(--laos-dim)]" strokeWidth={1.5} />
-          <span>Lumen Arc Printed Schematics</span>
+      {/* Viewer chrome: this is a folder the seller uploaded, not a curated
+          exhibit. It knows how many files it holds, not which ones matter. */}
+      <div className="flex items-center justify-between border-b border-[var(--laos-line)] bg-[var(--laos-surface)] p-3" id="spec-header">
+        <div className="flex items-center gap-1.5 font-laos text-xs font-semibold tracking-wide text-[var(--laos-text)]">
+          <FolderOpen className="h-4 w-4 text-[var(--laos-dim)]" strokeWidth={1.5} />
+          <span>Lumen_Arc_Screenshots.zip</span>
+          <span className="text-[var(--laos-dim)]">· {SHEETS.length} images</span>
         </div>
-        <span className="laos-label text-[8px] border border-[var(--laos-line-dim)] bg-[var(--laos-bg)] px-2 py-0.5">
-          STATUS: EXAMINING 3 SHEETS
+        <span
+          className={`laos-label border px-2 py-0.5 text-[8px] transition-colors ${
+            assembled
+              ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300'
+              : 'border-[var(--laos-line-dim)] bg-[var(--laos-bg)]'
+          }`}
+          data-clues-found={found.size}
+          id="spec-clue-counter"
+        >
+          {assembled ? 'CASE ASSEMBLED · 3/3' : `KEY DETAILS · ${found.size}/${CLUE_SHEET_COUNT}`}
         </span>
       </div>
 
-      {/* Grid of papers */}
-      <div className="flex-1 p-3.5 flex flex-col justify-center gap-3 relative overflow-y-auto" id="spec-workspace">
-        <div className="font-laos text-[10px] text-[var(--laos-dim)] text-center">
-          Click any printed paper to zoom in and read the structural details closely.
+      {/* Pile of screenshots */}
+      <div className="relative flex-1 space-y-3 overflow-y-auto p-3.5" id="spec-workspace">
+        <div className="text-center font-laos text-[10px] text-[var(--laos-dim)]">
+          A stranger dumped their whole device here. Open the screenshots and see what they left behind.
         </div>
 
-        {/* Paper Cards overlapping layout */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 relative" id="spec-pile">
-          {sheets.map((sheet, index) => (
-            <motion.div
+        <div className="relative grid grid-cols-2 gap-3 sm:grid-cols-3" id="spec-pile">
+          {SHEETS.map((sheet, index) => (
+            <motion.button
+              type="button"
               key={sheet.id}
-              onClick={() => handleZoom(index)}
+              onClick={() => openSheet(index)}
               onHoverStart={() => audio.play('screenshot.rotate')}
-              whileHover={{ scale: 1.02, rotate: sheet.angle * 0.8 }}
+              whileHover={{ scale: 1.03, rotate: sheet.angle * 0.6, zIndex: 5 }}
               style={{ rotate: `${sheet.angle}deg` }}
-              className={`relative paper-texture paper-crease p-3 rounded-sm shadow-[0_10px_24px_rgba(0,0,0,0.45)] cursor-pointer border border-black/20 flex flex-col justify-between ${sheet.bg} ${sheet.textColor} min-h-[95px] overflow-hidden`}
+              data-sheet-id={sheet.id}
+              data-sheet-kind={sheet.clueId ? 'clue' : 'decoy'}
+              className={`paper-texture paper-crease relative flex min-h-[92px] flex-col justify-between overflow-hidden rounded-sm border border-black/20 p-2.5 text-left shadow-[0_10px_22px_rgba(0,0,0,0.45)] ${sheet.bg} ${sheet.textColor}`}
             >
-              {/* Staple in the top-left corner */}
-              <span className="absolute -top-0.5 left-6 w-3 h-1.5 bg-gradient-to-b from-stone-400 to-stone-600 rounded-sm rotate-[8deg] shadow-sm pointer-events-none"></span>
-              <div className="flex items-start justify-between">
-                <div>
-                  <h4 className="font-display font-black text-xs leading-tight">{sheet.title}</h4>
-                  <p className="text-[8px] opacity-70 leading-normal">{sheet.subtitle}</p>
+              <span className="pointer-events-none absolute -top-0.5 left-6 h-1.5 w-3 rotate-[8deg] rounded-sm bg-gradient-to-b from-stone-400 to-stone-600 shadow-sm" />
+              <div className="flex items-start justify-between gap-1">
+                <div className="min-w-0">
+                  <h4 className="font-display text-[11px] font-black leading-tight">{sheet.title}</h4>
+                  <p className="truncate text-[8px] leading-normal opacity-70">{sheet.subtitle}</p>
                 </div>
-                <ZoomIn className="w-3.5 h-3.5 opacity-40 shrink-0" />
+                <ImageIcon className="h-3.5 w-3.5 shrink-0 opacity-40" />
               </div>
-              <div className="text-[8px] text-right font-mono opacity-50 mt-1">SHEET_0{sheet.id}_PRINT</div>
-            </motion.div>
+              <div className="mt-1 text-right font-mono text-[8px] opacity-50">{sheet.file}</div>
+            </motion.button>
           ))}
         </div>
 
-        {/* Zoomed Overlay Detail Modal */}
+        {/* Case-assembled banner + advance, only once all three are found. */}
+        <AnimatePresence>
+          {assembled && (
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 12 }}
+              className="sticky bottom-0 z-10 rounded-md border border-emerald-500/30 bg-[var(--laos-surface)] p-3 shadow-[0_-8px_24px_rgba(0,0,0,0.4)]"
+              id="spec-case-assembled"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="flex items-center gap-1.5 font-laos text-xs font-semibold text-emerald-300">
+                    <Check className="h-4 w-4" strokeWidth={3} /> Case assembled — 3 / 3 key details
+                  </div>
+                  <p className="mt-0.5 text-[9px] leading-relaxed text-[var(--laos-dim)]">The title, the flight frame, and the number set all line up.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleContinue}
+                  className="flex shrink-0 items-center gap-1 rounded bg-emerald-500 px-3 py-2 text-[11px] font-bold text-slate-950 transition-colors hover:bg-emerald-400"
+                  id="spec-continue-button"
+                >
+                  Continue <ArrowRight className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Zoomed screenshot */}
         <AnimatePresence>
           {activeSheet !== null && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/90 p-4 flex flex-col justify-center z-50 font-sans"
+              className="absolute inset-0 z-50 flex flex-col justify-center bg-black/90 p-4 font-sans"
               id="spec-modal"
             >
               <motion.div
-                initial={{ scale: 0.9, y: 10 }}
+                initial={{ scale: 0.92, y: 10 }}
                 animate={{ scale: 1, y: 0 }}
-                exit={{ scale: 0.9, y: 10 }}
-                className={`paper-texture halftone-zoom p-4 rounded-sm shadow-2xl max-h-full overflow-y-auto flex flex-col justify-between ${sheets[activeSheet].bg} ${sheets[activeSheet].textColor}`}
+                exit={{ scale: 0.92, y: 10 }}
+                className={`paper-texture halftone-zoom flex max-h-full flex-col justify-between overflow-y-auto rounded-sm p-4 shadow-2xl ${SHEETS[activeSheet].bg} ${SHEETS[activeSheet].textColor}`}
               >
                 <div>
-                  <div className="flex justify-between items-start border-b border-current pb-2 mb-3">
+                  <div className="mb-3 flex items-start justify-between border-b border-current pb-2">
                     <div>
-                      <span className="text-[9px] uppercase tracking-wider font-mono opacity-60">PRINTED SCHEMATIC EXCERPT</span>
-                      <h3 className="font-display font-black text-sm">{sheets[activeSheet].title}</h3>
+                      <span className="font-mono text-[9px] uppercase tracking-wider opacity-60">{SHEETS[activeSheet].file}</span>
+                      <h3 className="font-display text-sm font-black">{SHEETS[activeSheet].title}</h3>
                     </div>
                     <button
-                      onClick={() => {
-                        audio.play('phone.modalClose');
-                        setActiveSheet(null);
-                      }}
-                      className="p-1 rounded-full hover:bg-black/10 transition-colors"
+                      type="button"
+                      onClick={() => { audio.play('phone.modalClose'); setActiveSheet(null); }}
+                      className="rounded-full p-1 transition-colors hover:bg-black/10"
                       id="spec-close-button"
                     >
-                      <X className="w-4 h-4" />
+                      <X className="h-4 w-4" />
                     </button>
                   </div>
 
-                  {sheets[activeSheet].content}
+                  {SHEETS[activeSheet].content(clueRendererFor(SHEETS[activeSheet]))}
                 </div>
 
-                <div className="mt-4 border-t border-dashed border-current/20 pt-2 flex justify-between items-center text-[9px] opacity-60 font-mono">
-                  <span>UNBOXED DIRECTORY SOURCE: EXTRACED_LUMEN_ARC.ZIP</span>
-                  <span>SHEET_0{sheets[activeSheet].id}</span>
+                <div className="mt-4 flex items-center justify-between border-t border-dashed border-current/20 pt-2 font-mono text-[9px] opacity-60">
+                  <span className="flex items-center gap-1"><ZoomIn className="h-3 w-3" /> Lumen_Arc_Screenshots.zip</span>
+                  <span>{String(activeSheet + 1).padStart(2, '0')} / {SHEETS.length}</span>
                 </div>
               </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
-
     </div>
   );
 };
