@@ -11,21 +11,40 @@ import {
   getChapterTwoSearchResponse,
   type ChapterTwoPortalDistraction,
 } from '../lib/chapterTwoDialogue';
+import {
+  CHAPTER_FIVE_DIALOGUE,
+  getChapterFiveArchiveDetailDialogue,
+  getChapterFiveBotDialogue,
+  getChapterFiveCorporateDetailDialogue,
+  getChapterFiveDecoyDialogue,
+  getChapterFiveDeadFragmentDialogue,
+  getChapterFiveEmptyYearDialogue,
+  getChapterFiveOffTopicDialogue,
+  getChapterFivePortalDialogue,
+  getChapterFiveRepeatedTraceDialogue,
+  getChapterFiveTraceDialogue,
+  type ChapterFiveBotTopic,
+  type ChapterFiveArchiveDetailId,
+  type ChapterFiveCorporateDetailId,
+  type ChapterFiveDecoyResultId,
+  type ChapterFiveNoahTraceId,
+  type ChapterFiveSearchResultId,
+} from '../lib/chapterFiveDialogue';
 import { Search, RotateCcw, Clock, Download, ArrowRight, ShieldCheck, HeartCrack, Bot } from 'lucide-react';
 
-// SearchFinder disambiguation for "SKG" (puzzle 4). Seven decoys plus one real
+// SearchFinder disambiguation for "SKG" (puzzle 5). Seven decoys plus one real
 // bridge — the real one sits at index 4 and quietly dates itself to a games
 // studio, nudging the player toward the 2014 archive. Pure texture; nothing
 // here advances a puzzle. See docs/CONTENT_EXPANSION_HANDOFF.md §4.2.
-const SEARCHFINDER_RESULTS: readonly { title: string; url: string; blurb: string; bridge?: boolean }[] = [
-  { title: 'Smart Kitchen Group — Connected Cookware & Recipes', url: 'smartkitchengroup.example · Sponsored', blurb: 'Your fridge, but it has opinions. Subscribe to your own groceries.' },
-  { title: 'Secure Key Gateway (SKG) — Enterprise Auth Middleware', url: 'docs.securekeygateway.example', blurb: 'API reference for SKG token rotation. Last updated 3 years ago.' },
-  { title: 'Skyline Knowledge Grid — B2B Data Orchestration', url: 'skg-grid.example', blurb: 'Synergize your unstructured data lakes into actionable outcome…' },
-  { title: 'Sustainable Kinetic Goods — Ethical Motion Products', url: 'skg.eco', blurb: 'We make things that move, responsibly. Carbon-neutral since last Tuesday.' },
-  { title: 'SKG Automation — Legacy Asset Monetization', url: 'skg-automation.com', blurb: 'Formerly a games studio (2009–2014). Now 1.2M+ apps under automated management.', bridge: true },
-  { title: '"skg" in Slang Dictionary — 4 conflicting definitions', url: 'urbanslang.example/skg', blurb: 'Nobody agrees. Three of them are just typos.' },
-  { title: 'SKG Regional Airport — Departures & Arrivals', url: 'fly-skg.example', blurb: 'Live board. Two gates. One perpetually delayed.' },
-  { title: 'Index of /pub/mirrors/skg.tar.gz', url: 'ftp.oldmirror.example', blurb: 'Directory listing · 1 file · permission denied' },
+const SEARCHFINDER_RESULTS: readonly { id: ChapterFiveSearchResultId; title: string; url: string; blurb: string; bridge?: boolean }[] = [
+  { id: 'smart-kitchen', title: 'Smart Kitchen Group — Connected Cookware & Recipes', url: 'smartkitchengroup.example · Sponsored', blurb: 'Your fridge, but it has opinions. Subscribe to your own groceries.' },
+  { id: 'secure-key', title: 'Secure Key Gateway (SKG) — Enterprise Auth Middleware', url: 'docs.securekeygateway.example', blurb: 'API reference for SKG token rotation. Last updated 3 years ago.' },
+  { id: 'knowledge-grid', title: 'Skyline Knowledge Grid — B2B Data Orchestration', url: 'skg-grid.example', blurb: 'Synergize your unstructured data lakes into actionable outcome…' },
+  { id: 'kinetic-goods', title: 'Sustainable Kinetic Goods — Ethical Motion Products', url: 'skg.eco', blurb: 'We make things that move, responsibly. Carbon-neutral since last Tuesday.' },
+  { id: 'skg-automation', title: 'SKG Automation — Legacy Asset Monetization', url: 'skg-automation.com', blurb: 'Formerly a games studio (2009–2014). Now 1.2M+ apps under automated management.', bridge: true },
+  { id: 'slang', title: '"skg" in Slang Dictionary — 4 conflicting definitions', url: 'urbanslang.example/skg', blurb: 'Nobody agrees. Three of them are just typos.' },
+  { id: 'airport', title: 'SKG Regional Airport — Departures & Arrivals', url: 'fly-skg.example', blurb: 'Live board. Two gates. One perpetually delayed.' },
+  { id: 'mirror', title: 'Index of /pub/mirrors/skg.tar.gz', url: 'ftp.oldmirror.example', blurb: 'Directory listing · 1 file · permission denied' },
 ] as const;
 
 // Off-topic filler results: whatever the player searches for that has
@@ -59,7 +78,6 @@ const ARC_BOT_REPLIES = {
 } as const;
 
 const NOAH_TRACE_IDS = ['studio-credit', 'developer-note', 'cofounder-credit'] as const;
-type NoahTraceId = (typeof NOAH_TRACE_IDS)[number];
 
 interface BrowserAppProps {
   progress: GameProgress;
@@ -84,26 +102,68 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
   const [botOpen, setBotOpen] = useState(false);
   const [botReply, setBotReply] = useState('');
   const [botInput, setBotInput] = useState('');
-  const [foundNoahTraces, setFoundNoahTraces] = useState<NoahTraceId[]>(
+  const [foundNoahTraces, setFoundNoahTraces] = useState<ChapterFiveNoahTraceId[]>(
     progress.discoveredSKGHistory ? [...NOAH_TRACE_IDS] : [],
   );
   const chapterTwoSearchAttempt = useRef(0);
   const portalDistractionAttempt = useRef(0);
-  const chapterTwoLandingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const chapterFiveSearchAttempt = useRef(0);
+  const chapterFiveOffTopicAttempt = useRef(0);
+  const chapterFivePortalAttempt = useRef(0);
+  const chapterFiveEmptyYearAttempt = useRef(0);
+  const chapterFiveDecoyAttempts = useRef<Record<ChapterFiveDecoyResultId, number>>({
+    'smart-kitchen': 0,
+    'secure-key': 0,
+    'knowledge-grid': 0,
+    'kinetic-goods': 0,
+    slang: 0,
+    airport: 0,
+    mirror: 0,
+  });
+  const chapterFiveTraceRepeatAttempts = useRef<Record<ChapterFiveNoahTraceId, number>>({
+    'studio-credit': 0,
+    'developer-note': 0,
+    'cofounder-credit': 0,
+  });
+  const chapterFiveCorporateAttempts = useRef<Record<ChapterFiveCorporateDetailId, number>>({
+    stats: 0,
+    leadership: 0,
+    footer: 0,
+  });
+  const chapterFiveArchiveAttempts = useRef<Record<ChapterFiveArchiveDetailId, number>>({
+    'lumen-arc': 0,
+    'why-256': 0,
+    'hidden-route': 0,
+    recall: 0,
+    'guestbook-warning': 0,
+  });
+  const chapterFiveDeadFragmentAttempt = useRef(0);
+  const chapterFiveSearchFocused = useRef(false);
+  const chapterFiveCorporateSpoken = useRef(false);
+  const chapterFiveSnapshotSpoken = useRef(false);
+  const chapterFiveCompletedHere = useRef(false);
+  const chapterFiveRevisitSpoken = useRef(false);
+  const landingDialogueTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const chapterFiveCorporateTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => () => {
-    if (chapterTwoLandingTimer.current) clearTimeout(chapterTwoLandingTimer.current);
+    if (landingDialogueTimer.current) clearTimeout(landingDialogueTimer.current);
+    if (chapterFiveCorporateTimer.current) clearTimeout(chapterFiveCorporateTimer.current);
   }, []);
 
   useEffect(() => {
-    if (progress.currentChapter !== 2 || !metaInteraction.active || searchedKeyword !== null || archiveFinderOpen) return;
-    chapterTwoLandingTimer.current = setTimeout(() => {
-      metaInteraction.speak(CHAPTER_TWO_DIALOGUE.searchFinderVisible);
-      chapterTwoLandingTimer.current = null;
+    if ((progress.currentChapter !== 2 && progress.currentChapter !== 5) || !metaInteraction.active || searchedKeyword !== null || archiveFinderOpen) return;
+    landingDialogueTimer.current = setTimeout(() => {
+      metaInteraction.speak(
+        progress.currentChapter === 2
+          ? CHAPTER_TWO_DIALOGUE.searchFinderVisible
+          : CHAPTER_FIVE_DIALOGUE.searchFinderVisible,
+      );
+      landingDialogueTimer.current = null;
     }, 650);
     return () => {
-      if (chapterTwoLandingTimer.current) clearTimeout(chapterTwoLandingTimer.current);
-      chapterTwoLandingTimer.current = null;
+      if (landingDialogueTimer.current) clearTimeout(landingDialogueTimer.current);
+      landingDialogueTimer.current = null;
     };
   }, [archiveFinderOpen, metaInteraction.active, metaInteraction.speak, progress.currentChapter, searchedKeyword]);
 
@@ -112,16 +172,44 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
     else if (progress.currentChapter === 5) setFoundNoahTraces([]);
   }, [progress.currentChapter, progress.discoveredSKGHistory]);
 
+  useEffect(() => {
+    if (progress.currentChapter !== 5) return;
+    chapterFiveCompletedHere.current = false;
+    chapterFiveRevisitSpoken.current = false;
+  }, [progress.currentChapter]);
+
+  useEffect(() => {
+    if (
+      progress.currentChapter !== 6
+      || !progress.discoveredSKGHistory
+      || !metaInteraction.active
+      || !viewingSkgSite
+      || selectedYear !== 2014
+      || chapterFiveCompletedHere.current
+      || chapterFiveRevisitSpoken.current
+    ) return;
+    chapterFiveRevisitSpoken.current = true;
+    metaInteraction.speak(CHAPTER_FIVE_DIALOGUE.completedRevisit);
+  }, [metaInteraction.active, metaInteraction.speak, progress.currentChapter, progress.discoveredSKGHistory, selectedYear, viewingSkgSite]);
+
   const speakChapterTwo = (lines: readonly string[]) => {
     if (progress.currentChapter === 2 && metaInteraction.active) metaInteraction.speak(lines);
+  };
+
+  const speakChapterFive = (lines: readonly string[]) => {
+    if (progress.currentChapter === 5 && metaInteraction.active && lines.length > 0) metaInteraction.speak(lines);
   };
 
   const handlePortalDistraction = (kind: ChapterTwoPortalDistraction, elementId: string) => {
     metaInteraction.tapElement(elementId, () => {
       audio.play('ui.disabled');
-      if (progress.currentChapter !== 2) return;
-      speakChapterTwo(getChapterTwoPortalDistractionDialogue(kind, portalDistractionAttempt.current));
-      portalDistractionAttempt.current += 1;
+      if (progress.currentChapter === 2) {
+        speakChapterTwo(getChapterTwoPortalDistractionDialogue(kind, portalDistractionAttempt.current));
+        portalDistractionAttempt.current += 1;
+      } else if (progress.currentChapter === 5) {
+        speakChapterFive(getChapterFivePortalDialogue(chapterFivePortalAttempt.current));
+        chapterFivePortalAttempt.current += 1;
+      }
     });
   };
 
@@ -132,6 +220,15 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
     setSelectedYear(2026);
     setScrubYear(2026);
     setAddressBar('http://www.skg-automation.com');
+    speakChapterFive(CHAPTER_FIVE_DIALOGUE.bridgeOpened);
+    if (progress.currentChapter === 5 && metaInteraction.active && !chapterFiveCorporateSpoken.current) {
+      chapterFiveCorporateSpoken.current = true;
+      if (chapterFiveCorporateTimer.current) clearTimeout(chapterFiveCorporateTimer.current);
+      chapterFiveCorporateTimer.current = setTimeout(() => {
+        metaInteraction.speak(CHAPTER_FIVE_DIALOGUE.corporateVisible);
+        chapterFiveCorporateTimer.current = null;
+      }, 1700);
+    }
   };
 
   const openArchiveFinder = () => {
@@ -143,9 +240,10 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
     speakChapterTwo(CHAPTER_TWO_DIALOGUE.archiveLeadSelected);
   };
 
-  const askBot = (reply: string) => {
+  const askBot = (reply: string, topic: ChapterFiveBotTopic) => {
     audio.play('ui.disabled');
     setBotReply(reply);
+    speakChapterFive(getChapterFiveBotDialogue(topic));
   };
 
   const submitBotFreeform = (e: React.FormEvent) => {
@@ -153,6 +251,13 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
     audio.play('ui.disabled');
     setBotReply(ARC_BOT_REPLIES.freeform);
     setBotInput('');
+    speakChapterFive(getChapterFiveBotDialogue('freeform'));
+  };
+
+  const handleChapterFiveSearchFocus = () => {
+    if (chapterFiveSearchFocused.current) return;
+    chapterFiveSearchFocused.current = true;
+    speakChapterFive(CHAPTER_FIVE_DIALOGUE.searchFocused);
   };
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -163,6 +268,15 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
       chapterTwoSearchAttempt.current += 1;
     }
     if (!query) return;
+    if (progress.currentChapter === 5 && metaInteraction.active) {
+      if (isSkgRelated(query)) {
+        if (chapterFiveSearchAttempt.current === 0) speakChapterFive(CHAPTER_FIVE_DIALOGUE.relatedSearch);
+        chapterFiveSearchAttempt.current += 1;
+      } else {
+        speakChapterFive(getChapterFiveOffTopicDialogue(chapterFiveOffTopicAttempt.current));
+        chapterFiveOffTopicAttempt.current += 1;
+      }
+    }
     if (isSkgRelated(query) && !canUseProgressionAction('browser-skg-history', progress)) {
       audio.play('search.noResult');
       setViewingSkgSite(false);
@@ -185,10 +299,21 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
   const handleYearChange = (year: number) => {
     // An old drive seeking to another year (§4.7).
     audio.play('archive.yearSwitch');
+    if (chapterFiveCorporateTimer.current) {
+      clearTimeout(chapterFiveCorporateTimer.current);
+      chapterFiveCorporateTimer.current = null;
+    }
     setSelectedYear(year);
     if (viewingSkgSite) {
       setAddressBar(year === 2026 ? 'http://www.skg-automation.com' : 'http://web.archive.org/web/2014/silverkitegames.com');
     }
+    if (year === 2014) speakChapterFive(CHAPTER_FIVE_DIALOGUE.archiveLoaded);
+  };
+
+  const handleSnapshotInteraction = () => {
+    if (chapterFiveSnapshotSpoken.current) return;
+    chapterFiveSnapshotSpoken.current = true;
+    speakChapterFive(CHAPTER_FIVE_DIALOGUE.snapshotNoticed);
   };
 
   // The reel begins in 2026. The preserved 2014 capture is the only old page;
@@ -202,23 +327,59 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
       audio.play('leaderboard.rowPass');
       setSelectedYear(year);
       setAddressBar(`http://web.archive.org/web/${year}/silverkitegames.com`);
+      speakChapterFive(getChapterFiveEmptyYearDialogue(year, chapterFiveEmptyYearAttempt.current));
+      chapterFiveEmptyYearAttempt.current += 1;
     }
   };
 
-  const handleNoahTrace = (traceId: NoahTraceId) => {
+  const handleChapterFiveDecoy = (resultId: ChapterFiveDecoyResultId) => {
+    audio.play('ui.disabled');
+    const attempt = chapterFiveDecoyAttempts.current[resultId];
+    speakChapterFive(getChapterFiveDecoyDialogue(resultId, attempt));
+    chapterFiveDecoyAttempts.current[resultId] = attempt + 1;
+  };
+
+  const handleChapterFiveCorporateDetail = (detailId: ChapterFiveCorporateDetailId) => {
+    audio.playTick();
+    const attempt = chapterFiveCorporateAttempts.current[detailId];
+    speakChapterFive(getChapterFiveCorporateDetailDialogue(detailId, attempt));
+    chapterFiveCorporateAttempts.current[detailId] = attempt + 1;
+  };
+
+  const handleChapterFiveArchiveDetail = (detailId: ChapterFiveArchiveDetailId) => {
+    audio.playTick();
+    const attempt = chapterFiveArchiveAttempts.current[detailId];
+    speakChapterFive(getChapterFiveArchiveDetailDialogue(detailId, attempt));
+    chapterFiveArchiveAttempts.current[detailId] = attempt + 1;
+  };
+
+  const handleChapterFiveDeadFragment = () => {
+    audio.play('ui.disabled');
+    speakChapterFive(getChapterFiveDeadFragmentDialogue(chapterFiveDeadFragmentAttempt.current));
+    chapterFiveDeadFragmentAttempt.current += 1;
+  };
+
+  const handleNoahTrace = (traceId: ChapterFiveNoahTraceId) => {
     if (foundNoahTraces.includes(traceId)) {
       audio.play('ui.disabled');
+      const attempt = chapterFiveTraceRepeatAttempts.current[traceId];
+      speakChapterFive(getChapterFiveRepeatedTraceDialogue(traceId, attempt));
+      chapterFiveTraceRepeatAttempts.current[traceId] = attempt + 1;
       return;
     }
     audio.playTick();
     const next = [...foundNoahTraces, traceId];
     setFoundNoahTraces(next);
     if (next.length === NOAH_TRACE_IDS.length) {
+      chapterFiveCompletedHere.current = true;
+      speakChapterFive(CHAPTER_FIVE_DIALOGUE.completed);
       updateProgress((prev) => completePuzzleChapter(prev, 5, { discoveredSKGHistory: true }));
+    } else {
+      speakChapterFive(getChapterFiveTraceDialogue(traceId, next.length - 1));
     }
   };
 
-  const renderNoahTrace = (traceId: NoahTraceId) => {
+  const renderNoahTrace = (traceId: ChapterFiveNoahTraceId) => {
     const found = foundNoahTraces.includes(traceId);
     return (
       <button
@@ -281,6 +442,8 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
             step={1}
             value={scrubYear}
             list="wayback-years"
+            onPointerDown={handleSnapshotInteraction}
+            onFocus={handleSnapshotInteraction}
             onChange={(e) => handleScrub(Number(e.target.value))}
             className="w-full h-1.5 appearance-none rounded-full cursor-pointer bg-gradient-to-r from-amber-800/40 via-white/[0.08] to-white/[0.08] accent-amber-300
               [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3.5 [&::-webkit-slider-thumb]:h-3.5 [&::-webkit-slider-thumb]:rounded-full
@@ -304,6 +467,7 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
               type="text"
               value={addressBar}
               onChange={(e) => setAddressBar(e.target.value)}
+              onFocus={handleChapterFiveSearchFocus}
               placeholder="Search the web or an archived address…"
               autoComplete="off"
               autoCorrect="off"
@@ -423,18 +587,18 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
 
               {/* Company statistics block */}
               <div className="grid grid-cols-2 gap-2 text-center text-xs">
-                <div className="bg-slate-900/80 p-2 rounded border border-slate-800">
+                <button type="button" onClick={() => handleChapterFiveCorporateDetail('stats')} className="bg-slate-900/80 p-2 rounded border border-slate-800">
                   <div className="text-cyan-400 font-black font-mono">1.2M+</div>
                   <div className="text-[9px] text-slate-500">Apps Auto-Replaced</div>
-                </div>
-                <div className="bg-slate-900/80 p-2 rounded border border-slate-800">
+                </button>
+                <button type="button" onClick={() => handleChapterFiveCorporateDetail('stats')} className="bg-slate-900/80 p-2 rounded border border-slate-800">
                   <div className="text-cyan-400 font-black font-mono">100%</div>
                   <div className="text-[9px] text-slate-500">Unstaffed Humanless Operations</div>
-                </div>
+                </button>
               </div>
 
               {/* Faceless leadership: perfectly uniform, nobody home */}
-              <div className="bg-slate-900/60 border border-slate-800 rounded-lg p-3 space-y-2">
+              <button type="button" onClick={() => handleChapterFiveCorporateDetail('leadership')} className="block w-full bg-slate-900/60 border border-slate-800 rounded-lg p-3 space-y-2 text-left">
                 <h3 className="font-display font-bold text-slate-300 text-xs border-b border-slate-800 pb-1">Leadership Matrix</h3>
                 <div className="flex items-center justify-around py-1">
                   <div className="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center">
@@ -448,7 +612,7 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
                   </div>
                 </div>
                 <p className="text-[9px] text-center text-slate-600 font-mono">Portraits generated on request. No personnel records available.</p>
-              </div>
+              </button>
 
               {/* Corporate Services Block */}
               <div className="space-y-2 text-xs" id="corp-services">
@@ -458,7 +622,13 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
                 </p>
                 <button
                   type="button"
-                  onClick={() => { audio.playTick(); setBotOpen((open) => !open); }}
+                  onClick={() => {
+                    audio.playTick();
+                    setBotOpen((open) => {
+                      if (!open) speakChapterFive(CHAPTER_FIVE_DIALOGUE.botOpened);
+                      return !open;
+                    });
+                  }}
                   className="w-full bg-blue-950/20 border border-blue-900/40 p-2.5 rounded text-[10px] text-blue-300 flex items-center justify-between hover:bg-blue-950/40"
                   id="skg-bot-trigger"
                 >
@@ -482,13 +652,13 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
                         <span>{botReply || 'Hello, valued asset stakeholder. I am ARC-BOT, your unstaffed resolution assistant. How may I optimize your inquiry today?'}</span>
                       </div>
                       <div className="grid gap-1.5">
-                        <button type="button" onClick={() => askBot(ARC_BOT_REPLIES.ownership)} className="text-left text-[10px] px-2.5 py-1.5 rounded border border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-700">
+                        <button type="button" onClick={() => askBot(ARC_BOT_REPLIES.ownership, 'ownership')} className="text-left text-[10px] px-2.5 py-1.5 rounded border border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-700">
                           I want to claim ownership of a legacy app
                         </button>
-                        <button type="button" onClick={() => askBot(ARC_BOT_REPLIES.creator)} className="text-left text-[10px] px-2.5 py-1.5 rounded border border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-700">
+                        <button type="button" onClick={() => askBot(ARC_BOT_REPLIES.creator, 'creator')} className="text-left text-[10px] px-2.5 py-1.5 rounded border border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-700">
                           Who created the original Skyline game?
                         </button>
-                        <button type="button" onClick={() => askBot(ARC_BOT_REPLIES.restore)} className="text-left text-[10px] px-2.5 py-1.5 rounded border border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-700">
+                        <button type="button" onClick={() => askBot(ARC_BOT_REPLIES.restore, 'restore')} className="text-left text-[10px] px-2.5 py-1.5 rounded border border-slate-800 bg-slate-900/60 text-slate-300 hover:border-slate-700">
                           Restore the old version of the game
                         </button>
                       </div>
@@ -508,9 +678,9 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
                 )}
               </div>
 
-              <div className="text-[8px] text-center text-slate-600 font-mono border-t border-slate-900 pt-3">
+              <button type="button" onClick={() => handleChapterFiveCorporateDetail('footer')} className="block w-full text-[8px] text-center text-slate-600 font-mono border-t border-slate-900 pt-3">
                 Established 2009. Reinvented 2014. No Human Personnel Maintained.
-              </div>
+              </button>
             </div>
           ) : (
             <div className="space-y-3" id="browser-generic-result">
@@ -527,8 +697,13 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
                   <button
                     key={result.title}
                     type="button"
-                    onClick={'bridge' in result && result.bridge ? openSkgResult : () => audio.play('ui.disabled')}
+                    onClick={'bridge' in result && result.bridge
+                      ? openSkgResult
+                      : 'id' in result
+                        ? () => handleChapterFiveDecoy(result.id as ChapterFiveDecoyResultId)
+                        : () => audio.play('ui.disabled')}
                     className="block w-full text-left rounded p-2 transition-colors hover:bg-white/[0.03]"
+                    id={'id' in result ? `search-result-${result.id}` : undefined}
                   >
                     <div className="text-[11px] leading-tight text-[#8ab4f8] font-medium">{result.title}</div>
                     <div className="text-[9px] font-mono text-emerald-500/80 mt-0.5">{result.url}</div>
@@ -602,7 +777,7 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
                 <span className="text-[#888]">|</span>
                 <span className="underline cursor-default">Games</span>
                 <span className="text-[#888]">|</span>
-                <span className="underline line-through text-[#888] cursor-default">Forum (offline)</span>
+                <button type="button" onClick={handleChapterFiveDeadFragment} className="underline line-through text-[#888]">Forum (offline)</button>
               </div>
 
               {/* Developer Blogs */}
@@ -612,22 +787,22 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
                 {/* Blog A — 2013 partnership. Warm, hopeful, before the fall. */}
                 <div className="bg-white p-3 border border-[#bab48f] shadow-[2px_2px_0_#d8d2ac] space-y-2">
                   <div className="flex justify-between items-center text-[10px] font-sans border-b border-[#ddd] pb-1">
-                    <span className="text-[#0000cc] underline font-bold">Log: We're partnering with Lumen Arc!</span>
+                    <button type="button" onClick={() => handleChapterFiveArchiveDetail('lumen-arc')} className="text-[#0000cc] underline font-bold">Log: We're partnering with Lumen Arc!</button>
                     <span className="text-[#777]">2013-06-02 • Noah Kade</span>
                   </div>
                   <p className="text-[11px] leading-relaxed text-[#222]">
                     Signed the deal today. A handheld that wants to keep you company for a lifetime, not for a fiscal quarter. This is the platform of the future. I actually believe that.
                   </p>
-                  <div className="flex items-center gap-1.5 border border-[#9aa] bg-[#fdfdfd] px-2 py-3 text-[10px] text-[#556] font-sans w-fit">
+                  <button type="button" onClick={handleChapterFiveDeadFragment} className="flex items-center gap-1.5 border border-[#9aa] bg-[#fdfdfd] px-2 py-3 text-[10px] text-[#556] font-sans w-fit">
                     <span className="inline-block w-3.5 h-3.5 border border-[#9aa] text-[9px] leading-[13px] text-center text-[#c33] shrink-0">✕</span>
                     <span className="italic">launch_party_group_photo.jpg — image not archived</span>
-                  </div>
+                  </button>
                 </div>
 
                 {/* Blog B — 2013 design philosophy. "256 is a promise." */}
                 <div className="bg-white p-3 border border-[#bab48f] shadow-[2px_2px_0_#d8d2ac] space-y-2">
                   <div className="flex justify-between items-center text-[10px] font-sans border-b border-[#ddd] pb-1">
-                    <span className="text-[#0000cc] underline font-bold">Log: Why 256, and why it ends</span>
+                    <button type="button" onClick={() => handleChapterFiveArchiveDetail('why-256')} className="text-[#0000cc] underline font-bold">Log: Why 256, and why it ends</button>
                     <span className="text-[#777]">2013-11-20 • SilverKite_Games</span>
                   </div>
                   <p className="text-[11px] leading-relaxed text-[#222]">
@@ -648,10 +823,10 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
                     Completion build maintained by {renderNoahTrace('developer-note')}.
                   </p>
                   {/* Broken image placeholder — asset never archived */}
-                  <div className="flex items-center gap-1.5 border border-[#9aa] bg-[#fdfdfd] px-2 py-3 text-[10px] text-[#556] font-sans w-fit">
+                  <button type="button" onClick={handleChapterFiveDeadFragment} className="flex items-center gap-1.5 border border-[#9aa] bg-[#fdfdfd] px-2 py-3 text-[10px] text-[#556] font-sans w-fit">
                     <span className="inline-block w-3.5 h-3.5 border border-[#9aa] text-[9px] leading-[13px] text-center text-[#c33] shrink-0">✕</span>
                     <span className="italic">nk_altitude_final_184.gif — image not archived</span>
-                  </div>
+                  </button>
                   <p className="text-[11px] leading-relaxed font-bold text-[#7a2e00]">
                     Once you cross the 40th pipe section, you enter our calibrated flight channel. Successfully navigate all 256 gates, and the simulation terminates correctly, writing your complete flag.
                   </p>
@@ -660,34 +835,34 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
                 {/* Blog D — 2014 hidden-route foreshadow. Non-actionable: no numbers, no mechanism. */}
                 <div className="bg-white p-3 border border-[#bab48f] shadow-[2px_2px_0_#d8d2ac] space-y-2">
                   <div className="flex justify-between items-center text-[10px] font-sans border-b border-[#ddd] pb-1">
-                    <span className="text-[#0000cc] underline font-bold">Log: I left something in the last build</span>
+                    <button type="button" onClick={() => handleChapterFiveArchiveDetail('hidden-route')} className="text-[#0000cc] underline font-bold">Log: I left something in the last build</button>
                     <span className="text-[#777]">2014-04-02 • SilverKite_Games</span>
                   </div>
                   <p className="text-[11px] leading-relaxed text-[#222]">
                     I'm not going to explain it here. If you ever read the source the way it was meant to be read, you'll already know where to look. Some doors only open for the person patient enough to stop pushing.
                   </p>
-                  <div className="flex items-center gap-1.5 border border-[#9aa] bg-[#fdfdfd] px-2 py-3 text-[10px] text-[#556] font-sans w-fit">
+                  <button type="button" onClick={handleChapterFiveDeadFragment} className="flex items-center gap-1.5 border border-[#9aa] bg-[#fdfdfd] px-2 py-3 text-[10px] text-[#556] font-sans w-fit">
                     <span className="inline-block w-3.5 h-3.5 border border-[#9aa] text-[9px] leading-[13px] text-center text-[#c33] shrink-0">✕</span>
                     <span className="italic">family_2014_do_not_publish.jpg — image not archived</span>
-                  </div>
+                  </button>
                 </div>
 
                 {/* Blog E — 2014 recall (original) */}
                 <div className="bg-white p-3 border border-[#bab48f] shadow-[2px_2px_0_#d8d2ac] space-y-2">
                   <div className="flex justify-between items-center text-[10px] font-sans border-b border-[#ddd] pb-1">
-                    <span className="text-[#aa2222] underline font-bold flex items-center gap-1">
+                    <button type="button" onClick={() => handleChapterFiveArchiveDetail('recall')} className="text-[#aa2222] underline font-bold flex items-center gap-1">
                       <HeartCrack className="w-3.5 h-3.5" /> Log: The Recall Decision
-                    </span>
+                    </button>
                     <span className="text-[#777]">2014-04-14 • SilverKite_Games</span>
                   </div>
                   <p className="text-[11px] leading-relaxed text-[#222]">
                     It's official. Government authorities are recalling all Lumen Arc devices due to battery heating issues. It feels like a commercial setup by the larger mobile brands.
                   </p>
                   {/* Broken image placeholder — asset never archived */}
-                  <div className="flex items-center gap-1.5 border border-[#9aa] bg-[#fdfdfd] px-2 py-3 text-[10px] text-[#556] font-sans w-fit">
+                  <button type="button" onClick={handleChapterFiveDeadFragment} className="flex items-center gap-1.5 border border-[#9aa] bg-[#fdfdfd] px-2 py-3 text-[10px] text-[#556] font-sans w-fit">
                     <span className="inline-block w-3.5 h-3.5 border border-[#9aa] text-[9px] leading-[13px] text-center text-[#c33] shrink-0">✕</span>
                     <span className="italic">recall_notice_scan.jpg — image not archived</span>
-                  </div>
+                  </button>
                   <p className="text-[11px] leading-relaxed text-[#222]">
                     Our database server for leaderboards is shutting down. Elias is already restructuring our organization to "SKG Automation" to execute AI web scrapping and monetize our catalog. I'm completely devastated.
                   </p>
@@ -703,7 +878,7 @@ export const BrowserApp: React.FC<BrowserAppProps> = ({ progress, updateProgress
                   <div><span className="text-[#0000cc] font-bold">xX_skydiver_Xx</span> <span className="text-[#999]">(2013)</span> — "finished all 256 last night. cried a little. thank you."</div>
                   <div><span className="text-[#0000cc] font-bold">m_k</span> <span className="text-[#999]">(2014)</span> — "proud of you. always."</div>
                   <div><span className="text-[#0000cc] font-bold">guest_00417</span> <span className="text-[#999]">(2014)</span> — "wait it ENDS?? games can do that??"</div>
-                  <div className="text-[#999] italic">[entry corrupted] — "▓▓▓▓ below zero ▓▓▓▓ don't submit it"</div>
+                  <button type="button" onClick={() => handleChapterFiveArchiveDetail('guestbook-warning')} className="block text-left text-[#999] italic">[entry corrupted] — "▓▓▓▓ below zero ▓▓▓▓ don't submit it"</button>
                   <div><span className="text-[#0000cc] font-bold">silverkite_admin</span> <span className="text-[#999]">(2014)</span> — "forum going read-only. servers won't last the year."</div>
                   <div className="text-[#999] italic">[entry expired] — message no longer available</div>
                 </div>
