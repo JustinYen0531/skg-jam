@@ -11,7 +11,7 @@ import { SocialApp } from './SocialApp';
 import { MessagesApp } from './MessagesApp';
 import { useMetaInteraction } from './MetaInteractionScene';
 import { motion, AnimatePresence } from 'motion/react';
-import { Wifi, CheckCircle2, X, Volume2, VolumeX, RotateCcw } from 'lucide-react';
+import { Wifi, CheckCircle2, ChevronRight, Link2, UserRound, Users, X, Volume2, VolumeX, RotateCcw } from 'lucide-react';
 import {
   IconFlappy, IconViewTube, IconAmazeMart, IconWayback, IconFaceSpace,
   IconMessages, IconDeliveries, IconConcept,
@@ -124,6 +124,10 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
 }) => {
   const metaInteraction = useMetaInteraction();
   const [activeApp, setActiveApp] = useState<ActiveApp>('flappy');
+  const [homePage, setHomePage] = useState<0 | 1>(0);
+  const [familyAccountsOpen, setFamilyAccountsOpen] = useState(false);
+  const [familyAccountConfirmed, setFamilyAccountConfirmed] = useState(false);
+  const homeSwipeStartX = useRef<number | null>(null);
   // Restore flash: nonce re-keys the overlay so the CSS animation replays.
   const [restoreNonce, setRestoreNonce] = useState(0);
   const [restoreVisible, setRestoreVisible] = useState(false);
@@ -365,6 +369,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   const handleHomeButton = () => {
     audio.play('phone.home');
     setActiveApp('home');
+    setHomePage(0);
     // Chapter 1 begins inside Flappy, so no progress increment exists when
     // the player first reaches the real home screen. Queue its case hand-off
     // explicitly; later returns remain ordinary home navigation.
@@ -413,6 +418,45 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
       );
       chapterFiveHomeAttempt.current += 1;
     }
+  };
+
+  const profilePageUnlocked = progress.discoveredMotherComment || progress.currentChapter >= 7;
+
+  const selectHomePage = (page: 0 | 1) => {
+    if (page === 1 && !profilePageUnlocked) return;
+    audio.play('phone.tab');
+    setHomePage(page);
+  };
+
+  const handleHomeSwipeStart = (event: React.PointerEvent<HTMLDivElement>) => {
+    homeSwipeStartX.current = event.clientX;
+  };
+
+  const handleHomeSwipeEnd = (event: React.PointerEvent<HTMLDivElement>) => {
+    const startX = homeSwipeStartX.current;
+    homeSwipeStartX.current = null;
+    if (startX === null) return;
+    const travel = event.clientX - startX;
+    if (Math.abs(travel) < 64) return;
+    selectHomePage(homePage === 0 ? 1 : 0);
+  };
+
+  const handleMaraFound = () => {
+    metaInteraction.speak([
+      'Mara Kade. That name feels familiar.',
+      'I have seen it somewhere. Back to Home—this phone may already know why.',
+    ]);
+  };
+
+  const confirmMaraFamilyAccount = () => {
+    if (!progress.discoveredMotherComment || progress.currentChapter !== 6) return;
+    audio.play('narrative.clueEmphasis');
+    setFamilyAccountConfirmed(true);
+    updateProgress((prev) => completePuzzleChapter(prev, 6, { discoveredMotherComment: true }));
+    metaInteraction.speak([
+      'Mara Kade. My mother.',
+      'Noah was not just a developer I found. This was my family’s archive.',
+    ]);
   };
 
   const toggleDockUtility = (utility: DockUtility) => {
@@ -712,6 +756,9 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
               transition={{ duration: 0.22, ease: 'easeOut' }}
               className={`absolute inset-0 p-3 md:p-4 flex flex-row gap-3 md:gap-4 overflow-y-auto ${wallpaperCool}`}
               id="phone-desktop"
+              onPointerDown={handleHomeSwipeStart}
+              onPointerUp={handleHomeSwipeEnd}
+              data-home-page={homePage}
               style={{
                 background:
                   'radial-gradient(120% 130% at 82% -12%, #33405c 0%, #1d2434 44%, #10141d 100%)',
@@ -1107,9 +1154,9 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                 </div>
 
                 {/* Page indicator dots */}
-                <div className="flex justify-center gap-1.5 py-0.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-slate-200/80"></span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-slate-200/25"></span>
+                <div className="flex justify-center gap-1.5 py-0.5" id="home-page-indicator">
+                  <button type="button" onClick={() => selectHomePage(0)} className={`h-1.5 w-1.5 rounded-full ${homePage === 0 ? 'bg-slate-200/80' : 'bg-slate-200/25'}`} aria-label="Open apps home page" />
+                  <button type="button" disabled={!profilePageUnlocked} onClick={() => selectHomePage(1)} className={`h-1.5 w-1.5 rounded-full ${homePage === 1 ? 'bg-slate-200/80' : 'bg-slate-200/25'} disabled:opacity-20`} aria-label="Open personal profile page" id="home-profile-page-dot" />
                 </div>
 
                 {/* Dock. At deeper residue its geometry stops being friendly. */}
@@ -1152,6 +1199,51 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                 </div>
                 </div>
               </div>
+
+              <AnimatePresence>
+                {homePage === 1 && profilePageUnlocked && (
+                  <motion.section
+                    initial={{ opacity: 0, x: '16%' }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: '16%' }}
+                    transition={{ duration: reducedMotion ? 0 : 0.28, ease: 'easeOut' }}
+                    className="absolute inset-0 z-40 flex flex-col overflow-y-auto bg-gradient-to-br from-[#20283a] via-[#141925] to-[#0d1018] p-5"
+                    id="home-personal-profile-page"
+                    data-profile-owner="Arcane Kade"
+                  >
+                    <div className="mx-auto flex w-full max-w-[760px] flex-1 flex-col">
+                      <div className="flex items-center justify-between border-b border-white/[0.08] pb-3">
+                        <div><div className="text-[8px] font-mono tracking-[0.18em] text-slate-500">PERSONAL SETTINGS</div><h2 className="mt-1 text-[15px] font-semibold text-white">Account & device identity</h2></div>
+                        <div className="rounded-full border border-emerald-300/20 bg-emerald-300/10 px-2 py-1 text-[8px] text-emerald-300">BACKUP VERIFIED</div>
+                      </div>
+
+                      <div className="mt-4 grid grid-cols-[1fr_1.1fr] gap-4">
+                        <div className="rounded-2xl border border-white/[0.09] bg-white/[0.045] p-4">
+                          <div className="flex items-center gap-3"><div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-900 text-lg font-black text-white">AK</div><div><div className="text-[8px] text-slate-500">PRIMARY ACCOUNT</div><div className="text-[16px] font-semibold text-white" id="home-profile-owner-name">Arcane Kade</div><div className="text-[9px] text-slate-400">Local player · Harborview</div></div></div>
+                          <div className="mt-4 space-y-2 border-t border-white/[0.07] pt-3 text-[9px] text-slate-400"><div className="flex justify-between"><span>Account created</span><span className="text-slate-200">2014 migration</span></div><div className="flex justify-between"><span>Legacy profile</span><span className="font-mono text-slate-200">AK_HOME</span></div><div className="flex justify-between"><span>Device source</span><span className="text-slate-200">Lumen Arc backup</span></div></div>
+                        </div>
+
+                        <div className="space-y-3 rounded-2xl border border-white/[0.09] bg-white/[0.045] p-4">
+                          <button type="button" onClick={() => { audio.play('phone.tab'); setFamilyAccountsOpen((open) => !open); }} className="flex w-full items-center gap-3 rounded-xl border border-white/[0.07] bg-black/15 p-3 text-left" id="home-linked-accounts-toggle" aria-expanded={familyAccountsOpen}>
+                            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-500/15 text-blue-300"><Link2 className="h-4 w-4" /></div><div className="min-w-0 flex-1"><div className="text-[10px] font-semibold text-white">Accounts linked to this profile</div><div className="mt-0.5 text-[8px] text-slate-500">Family and migration relationships</div></div><ChevronRight className={`h-4 w-4 text-slate-500 transition-transform ${familyAccountsOpen ? 'rotate-90' : ''}`} />
+                          </button>
+
+                          {familyAccountsOpen && (
+                            <div className="space-y-2" id="home-linked-family-accounts">
+                              <div className="flex items-center gap-2 rounded-xl bg-black/15 p-2.5 text-slate-500"><UserRound className="h-4 w-4" /><div className="flex-1"><div className="text-[9px] font-semibold">Archived guardian record</div><div className="text-[7.5px]">Identity unavailable</div></div></div>
+                              <button type="button" onClick={confirmMaraFamilyAccount} disabled={familyAccountConfirmed || progress.currentChapter >= 7} className="flex w-full items-center gap-2 rounded-xl border border-pink-300/20 bg-pink-300/[0.07] p-2.5 text-left hover:bg-pink-300/[0.12] disabled:cursor-default" id="home-mara-related-account">
+                                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-pink-700 text-[9px] font-black text-white">MK</div><div className="min-w-0 flex-1"><div className="text-[10px] font-semibold text-pink-100">Mara Kade</div><div className="text-[8px] text-pink-200/55">Mother · linked through Lumen Arc family migration</div></div><Users className="h-4 w-4 text-pink-300/60" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="mt-auto flex justify-center gap-1.5 pt-4"><button type="button" onClick={() => selectHomePage(0)} className="h-1.5 w-1.5 rounded-full bg-slate-200/25" aria-label="Return to apps home page" /><span className="h-1.5 w-1.5 rounded-full bg-slate-200/80" /></div>
+                    </div>
+                  </motion.section>
+                )}
+              </AnimatePresence>
             </motion.div>
           )}
 
@@ -1240,7 +1332,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
               transition={{ duration: 0.22, ease: 'easeOut' }}
               className="absolute inset-0"
             >
-              <SocialApp progress={progress} updateProgress={updateProgress} />
+              <SocialApp progress={progress} updateProgress={updateProgress} onMaraFound={handleMaraFound} />
             </motion.div>
           )}
 

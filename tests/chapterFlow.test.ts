@@ -9,9 +9,8 @@ test('normal interactions connect every chapter completion from one through nine
   const expectedCompletions: ReadonlyArray<readonly [string, readonly number[]]> = [
     ['ViewTube', [1]],
     ['BrowserApp', [2, 5]],
-    ['PhoneSimulator', [3]],
+    ['PhoneSimulator', [3, 6]],
     ['SavedScreenshots', [4]],
-    ['SocialApp', [6]],
     ['MessagesApp', [7, 8, 9]],
   ];
 

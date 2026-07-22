@@ -82,13 +82,16 @@ const CHAPTER_ADVANCE_GUIDES: Record<PuzzleChapter, ChapterAdvanceGuide> = {
   6: {
     chapter: 6,
     nextLabel: 'CHAPTER 07',
-    objective: 'Find Noah Kade\'s earliest surviving posts.',
+    objective: 'Connect Noah Kade\'s oldest posts to the restored phone owner.',
     steps: [
       'Open FaceSpace and search for Noah Kade.',
-      'Open his profile results.',
-      'Change the post order to Oldest First.',
+      'Change the noisy sponsored timeline to Oldest First.',
+      'Read down through the early hopeful posts and expand their comments.',
+      'Select Mara Kade\'s comment in the eighth oldest post.',
+      'Return Home, swipe to the second page, and open Arcane Kade\'s linked accounts.',
+      'Confirm the related Mara Kade account.',
     ],
-    completion: 'Mara\'s old comment and the family connection are found.',
+    completion: 'Arcane confirms that Mara Kade is the mother linked to this restored profile.',
   },
   7: {
     chapter: 7,

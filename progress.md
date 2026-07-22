@@ -832,3 +832,13 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Moved the complete flame group from 31% to 42% wall height so it sits inside the dark firebox instead of floating above the mantel.
 - Lowered the broad room-light origin with it while preserving the approved maximum intensity and flame size.
 - Static verification passed: focused tests 38/38, full tests 179/179, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.
+
+## 2026-07-22 — Chapter 6 FaceSpace investigation expansion
+
+- Rebuilt FaceSpace around a persistent three-column social layout: left-side friends/notifications, a central investigation feed, and right-side trends/sponsored noise. Removed the pre-search Noah recommendation.
+- Added six SKG Automation ads ahead of the default search results and a date sort that moves ten authored Noah posts into chronological order without completing the chapter.
+- Gave every Noah post two or three collapsed comments. Seven hopeful development posts precede the eighth target post containing the only Mara Kade clue.
+- Finding Mara now unlocks, but does not complete, a second Home page. That page reveals the approved protagonist name Arcane Kade; expanding linked accounts and selecting Mara Kade as Mother is the only Chapter 6 completion point.
+- Updated the Chapter 6 guide and GDD boundary so neither Arcane's surname nor the profile page can appear before the clue is earned.
+- Added the approved later-story truth that the original twelve-year-old `ARC_184` record belongs to a young Arcane Kade, while the present ViewTube uploader is a sympathetic traffic-seeking impersonator; Chapter 6 deliberately does not reveal this yet.
+- Static verification passed on the clean delivery tree: focused tests 38/38, full tests 183/183, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.
