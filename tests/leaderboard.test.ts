@@ -48,11 +48,19 @@ test('the six anomalous top runs are the only leaderboard story entry points', (
 test('selecting a suspicious run asks whether to ignore it before the title can begin', () => {
   const panelSource = readFileSync(new URL('../src/components/LeaderboardPanel.tsx', import.meta.url), 'utf8');
 
+  assert.match(panelSource, /id="leaderboard-entry-thought"/);
+  assert.match(panelSource, /I only wanted to be first\. That was all\./);
+  assert.match(panelSource, /Most of the board is stuck at 40\./);
+  assert.match(panelSource, /Then why are there six scores above it\?/);
+  assert.match(panelSource, /showEntryThought && !selectedRun/);
+  assert.match(panelSource, /setTimeout\(\(\) => setShowEntryThought\(false\), 7000\)/);
+  assert.match(panelSource, /onClick=\{\(\) => setShowEntryThought\(false\)\}/);
   assert.match(panelSource, /id="leaderboard-anomaly-prompt"/);
   assert.match(panelSource, /id="leaderboard-inner-monologue"/);
   assert.match(panelSource, /YOU · LOCAL PLAYER/);
   assert.match(panelSource, /Those first few records look strange\./);
   assert.match(panelSource, /Should I ignore them\?/);
+  assert.match(panelSource, /font-thought text-\[clamp\(15px,2cqh,19px\)\] leading-relaxed text-\[#c6d1de\]/);
   assert.match(panelSource, /id="ignore-anomaly-yes"/);
   assert.match(panelSource, /id="ignore-anomaly-no"/);
   assert.match(panelSource, /border-emerald-300\/35 bg-emerald-400\/10/);

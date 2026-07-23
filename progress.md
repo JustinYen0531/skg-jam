@@ -912,6 +912,14 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Forty of the forty-eight anonymous visitors now sit at score 40, making the six scores above 40 read as a deliberate break.
 - Browser and Preview remain intentionally excluded by project instruction.
 
+## 2026-07-23 — Two-step leaderboard motive and decision
+
+- Opening the leaderboard now adds a small, non-blocking protagonist thought about wanting first place, the 40-point ceiling, and the six impossible scores.
+- The thought never dims or blurs the leaderboard; it can be clicked away and also fades after seven seconds.
+- Selecting a top-six record remains the separate, blocking `YES` / `NO` decision.
+- Both thought surfaces now use the existing Meta `font-thought` gray-blue typography for one continuous protagonist voice.
+- Browser and Preview remain intentionally excluded by project instruction.
+
 ## 2026-07-23 — Chapter 7 protagonist dialogue implementation
 
 - Added a dedicated Chapter 7 inner-voice module covering entry, home returns, relevant and wrong apps, FaceSpace noise, Mara's six ordinary posts, all three place clues, Mom's explanation, archive login mistakes, and successful completion.

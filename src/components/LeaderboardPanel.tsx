@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Crown, RefreshCw, Sparkles, Trophy, X } from 'lucide-react';
-import { motion } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
 import audio from '../lib/audio';
 import { isSuspiciousLeaderboardEntry, type PublicLeaderboardEntry } from '../lib/leaderboard';
 
@@ -31,12 +31,19 @@ export const LeaderboardPanel: React.FC<LeaderboardPanelProps> = ({
   const lastPercentRef = useRef(beatPercentage);
   const [selectedRun, setSelectedRun] = useState<PublicLeaderboardEntry | null>(null);
   const [showTitleIntro, setShowTitleIntro] = useState(false);
+  const [showEntryThought, setShowEntryThought] = useState(true);
 
   useEffect(() => {
     if (!showTitleIntro) return;
     const timer = window.setTimeout(onSuspiciousRunSelected, 2200);
     return () => window.clearTimeout(timer);
   }, [showTitleIntro, onSuspiciousRunSelected]);
+
+  useEffect(() => {
+    if (!showEntryThought || selectedRun) return;
+    const timer = window.setTimeout(() => setShowEntryThought(false), 7000);
+    return () => window.clearTimeout(timer);
+  }, [selectedRun, showEntryThought]);
 
   // §4.2 rowPass: only your own row and story rows announce themselves as
   // they scroll into view; the anonymous filler stays silent.
@@ -222,6 +229,34 @@ export const LeaderboardPanel: React.FC<LeaderboardPanelProps> = ({
       </div>
     </div>
 
+    <AnimatePresence>
+      {showEntryThought && !selectedRun && (
+        <motion.button
+          type="button"
+          onClick={() => setShowEntryThought(false)}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 5 }}
+          transition={{ duration: 0.3, ease: 'easeOut' }}
+          className="absolute bottom-16 left-4 z-20 w-[min(22rem,calc(100%-2rem))] cursor-pointer overflow-hidden rounded-[5px] bg-[#0d131b]/88 px-4 py-3 text-left shadow-[0_10px_26px_rgba(0,0,0,0.24)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8fa8c0]/70"
+          aria-label="Dismiss opening thought"
+          id="leaderboard-entry-thought"
+        >
+          <span aria-hidden="true" className="pointer-events-none absolute left-0 top-0 h-px w-[58%] bg-gradient-to-r from-[#61758a]/60 via-[#4a5a6b]/35 to-transparent" />
+          <span aria-hidden="true" className="pointer-events-none absolute bottom-0 right-0 h-px w-[36%] bg-gradient-to-l from-[#61758a]/45 via-[#4a5a6b]/25 to-transparent" />
+          <div className="flex items-center gap-2 font-mono text-[8px] font-bold tracking-[0.3em] text-[#91a7bb]">
+            <span className="h-1.5 w-1.5 rounded-[1px] border border-[#91a7bb]/60" aria-hidden="true" />
+            YOU · LOCAL PLAYER
+          </div>
+          <div className="mt-2.5 space-y-1.5 font-thought text-[clamp(14px,1.7vw,17px)] leading-relaxed text-[#c6d1de]">
+            <p>I only wanted to be first. That was all.</p>
+            <p>Most of the board is stuck at 40.</p>
+            <p>Then why are there six scores above it?</p>
+          </div>
+        </motion.button>
+      )}
+    </AnimatePresence>
+
     {selectedRun && !showTitleIntro && (
       <motion.div
         className="absolute inset-0 z-50 flex items-end justify-center bg-[#05080d]/70 p-5 pb-[7%] backdrop-blur-[2px]"
@@ -250,7 +285,7 @@ export const LeaderboardPanel: React.FC<LeaderboardPanelProps> = ({
             <div className="mt-3 font-mono text-[9px] tracking-[0.16em] text-[#66798b]">
               {rankLabel(selectedRun.rank)} · {selectedRun.name} · {selectedRun.score}
             </div>
-            <p id="anomaly-question" className="mt-4 text-[clamp(0.95rem,2vw,1.2rem)] font-medium leading-relaxed text-[#d6e0e8]">
+            <p id="anomaly-question" className="mt-4 font-thought text-[clamp(15px,2cqh,19px)] leading-relaxed text-[#c6d1de]">
               Those first few records look strange.
               <span className="block text-[#b8c7d3]">Should I ignore them?</span>
             </p>
