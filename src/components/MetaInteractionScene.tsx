@@ -1811,7 +1811,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
           {children}
 
           <AnimatePresence>
-            {active && keyboardTarget && (
+            {active && keyboardTarget?.isConnected && document.activeElement === keyboardTarget && (
               <div
                 className="pointer-events-none absolute left-1/2 top-1/2 z-[18] overflow-hidden rounded-[var(--phone-radius)]"
                 style={{ ...PHONE_SURFACE_SIZE, transform: 'translate3d(-50%, -50%, 12px)' }}

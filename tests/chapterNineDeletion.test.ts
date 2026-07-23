@@ -81,7 +81,13 @@ test('runtime connects storage cleanup, the unresolved power loss, and silent Ch
   const messages = readComponent('MessagesApp');
   const home = readComponent('ChapterNineDeletionHome');
 
+  assert.match(messages, /chapterNineRecoveryOpen/);
+  assert.match(messages, /id="chapter-nine-legacy-profile-access"/);
+  assert.match(messages, /ACCESS LOCAL RECORD/);
+  assert.match(messages, /setArchiveThread\('noah'\)/);
+  assert.match(messages, /progress\.currentChapter === 9 && chapterNineRecoveryOpen/);
   assert.match(messages, /id="chapter-nine-legacy-restore"/);
+  assert.match(messages, /id="chapter-nine-return-noah-thread"/);
   assert.match(messages, /id="chapter-nine-child-profile"/);
   assert.doesNotMatch(messages, /id="chapter-nine-profile-choices"/);
   assert.match(messages, /SILVER KITE LEGACY ASSISTANT/);

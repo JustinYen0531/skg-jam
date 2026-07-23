@@ -166,6 +166,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
   const [chapterNinePassword, setChapterNinePassword] = useState('');
   const [chapterNineRecoveryError, setChapterNineRecoveryError] = useState('');
   const [chapterNineDownloadProgress, setChapterNineDownloadProgress] = useState(0);
+  const [chapterNineRecoveryOpen, setChapterNineRecoveryOpen] = useState(false);
   const chapterNineDownloadTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const chapterNineAuthorizationSpoken = useRef(false);
   const chapterNineStorageSpoken = useRef(false);
@@ -252,10 +253,11 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
     if (progress.currentChapter !== 9) {
       chapterNineAuthorizationSpoken.current = false;
       chapterNineStorageSpoken.current = false;
+      setChapterNineRecoveryOpen(false);
       return;
     }
 
-    if (progress.chapterNineDownloadState === 'idle' && !chapterNineAuthorizationSpoken.current) {
+    if (chapterNineRecoveryOpen && progress.chapterNineDownloadState === 'idle' && !chapterNineAuthorizationSpoken.current) {
       chapterNineAuthorizationSpoken.current = true;
       speakChapterNine(CHAPTER_NINE_DIALOGUE.authorizationLocated);
     }
@@ -264,7 +266,15 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
       chapterNineStorageSpoken.current = true;
       speakChapterNine(CHAPTER_NINE_DIALOGUE.storageBlocked);
     }
-  }, [metaInteraction.active, progress.chapterNineDownloadState, progress.currentChapter]);
+  }, [chapterNineRecoveryOpen, metaInteraction.active, progress.chapterNineDownloadState, progress.currentChapter]);
+
+  // Chapter 9 is still Noah and Mara's recovered thread. The assistant is an
+  // attachment at the bottom of that history, not a replacement Messages view.
+  useEffect(() => {
+    if (progress.currentChapter !== 9) return;
+    setAccount('silverkite');
+    setArchiveThread('noah');
+  }, [progress.currentChapter]);
 
   const allMaraNumbersCollected = hasAllMaraNumberClues(progress);
   const collectionRequired = !developerPreview && !allMaraNumbersCollected;
@@ -828,11 +838,19 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                   {collectionRequired ? 'COLLECT THREE NUMBER FRAGMENTS' : mappingRequired ? 'VERIFY COORDINATE MAPPING' : 'DECRYPT ENCRYPTED NODES'}
                 </button>
               </form>
-            ) : progress.currentChapter === 9 ? (
+            ) : progress.currentChapter === 9 && chapterNineRecoveryOpen ? (
               <section
                 className="laos-panel mx-auto max-w-[720px] space-y-4 p-4"
                 id="chapter-nine-legacy-restore"
               >
+                <button
+                  type="button"
+                  onClick={() => setChapterNineRecoveryOpen(false)}
+                  className="flex items-center gap-1 font-mono text-[8px] tracking-[0.12em] text-slate-400 transition-colors hover:text-slate-100"
+                  id="chapter-nine-return-noah-thread"
+                >
+                  <ChevronLeft className="h-3 w-3" /> RETURN TO NOAH'S THREAD
+                </button>
                 <div className="flex items-start justify-between gap-3 border-b border-[var(--laos-line-dim)] pb-3">
                   <div>
                     <div className="laos-label text-[8px]">SILVER KITE LEGACY ASSISTANT</div>
@@ -964,7 +982,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                   </>
                 )}
               </section>
-            ) : progress.currentChapter === 8 ? (
+            ) : (progress.currentChapter === 8 || progress.currentChapter === 9) ? (
               activeArchive ? (
                 /* Reading one of Mara's own conversations. Her bubbles are the
                    green, right-hand side now — the mirror of the player's thread. */
@@ -1099,7 +1117,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                         );
                       })}
 
-                      {allNoahMessagesRestored ? (
+                      {allNoahMessagesRestored && progress.currentChapter === 8 ? (
                         <button
                           type="button"
                           onClick={handleOpenLegacyChildProfile}
@@ -1117,6 +1135,29 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                           </p>
                           <div className="mt-2 font-mono text-[8px] font-bold tracking-[0.14em] text-emerald-300">
                             OPEN RECOVERY RECORD →
+                          </div>
+                        </button>
+                      ) : allNoahMessagesRestored && progress.currentChapter === 9 ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            audio.playUnlock();
+                            setChapterNineRecoveryOpen(true);
+                          }}
+                          data-meta-immediate="true"
+                          data-meta-hit-recovery="true"
+                          className="w-full rounded-lg border border-emerald-300/45 bg-emerald-300/10 p-3 text-center transition-colors hover:bg-emerald-300/15"
+                          id="chapter-nine-legacy-profile-access"
+                        >
+                          <UserCircle2 className="mx-auto h-5 w-5 text-emerald-300" />
+                          <div className="mt-1.5 text-[8px] font-semibold tracking-[0.12em] text-emerald-200">
+                            LEGACY ASSISTANT AUTHORIZATION · LOCAL COPY FOUND
+                          </div>
+                          <p className="mt-1 text-[8px] leading-relaxed text-slate-400">
+                            A device-bound authorization record is attached to Noah's final restored message.
+                          </p>
+                          <div className="mt-2 font-mono text-[8px] font-bold tracking-[0.14em] text-emerald-300">
+                            ACCESS LOCAL RECORD →
                           </div>
                         </button>
                       ) : (
