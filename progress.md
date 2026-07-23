@@ -904,6 +904,14 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - The deliberately inverted wording makes investigation an explicit refusal to ignore the anomaly.
 - Verification remains static-only per project instructions.
 
+## 2026-07-23 — Quiet inner-monologue decision and pinned anomaly block
+
+- Reframed the anomaly decision as the protagonist's calm gray-blue inner monologue instead of a neon game-system modal.
+- `YES` and `NO` now use equally weighted green and red treatments with no default focus or animated preference.
+- Ranks 1–6 remain fixed beneath the leaderboard header while only rank 7 onward scrolls.
+- Forty of the forty-eight anonymous visitors now sit at score 40, making the six scores above 40 read as a deliberate break.
+- Browser and Preview remain intentionally excluded by project instruction.
+
 ## 2026-07-23 — Chapter 7 protagonist dialogue implementation
 
 - Added a dedicated Chapter 7 inner-voice module covering entry, home returns, relevant and wrong apps, FaceSpace noise, Mara's six ordinary posts, all three place clues, Mom's explanation, archive login mistakes, and successful completion.

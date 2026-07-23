@@ -71,6 +71,78 @@ export const LeaderboardPanel: React.FC<LeaderboardPanelProps> = ({
     }
   }, [beatPercentage]);
 
+  const renderLeaderboardEntry = (entry: PublicLeaderboardEntry) => {
+    const isPlayer = entry.kind === 'player';
+    const isFeatured = entry.kind === 'featured';
+    const isNamed = entry.kind === 'named';
+    const isSuspicious = suspiciousRunsEnabled && isSuspiciousLeaderboardEntry(entry);
+    const rowClassName = `relative grid grid-cols-[44px_1fr_58px] items-center min-h-9 w-full px-2.5 py-1.5 border-b text-[10px] ${
+      isPlayer
+        ? 'sticky top-0 bottom-0 z-10 border-cyan-300/40 bg-gradient-to-r from-cyan-500/25 via-violet-500/20 to-fuchsia-500/20 shadow-[0_0_18px_rgba(34,211,238,0.18)]'
+        : isFeatured
+          ? 'border-amber-300/30 bg-gradient-to-r from-amber-400/15 to-fuchsia-500/10'
+          : 'border-white/[0.05] odd:bg-white/[0.025]'
+    } ${isSuspicious ? 'cursor-pointer overflow-hidden text-left shadow-[inset_0_0_12px_rgba(139,92,246,0.09)] transition-[filter,background-color] duration-200 hover:brightness-125 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-cyan-300/80' : ''}`;
+
+    const rowContent = (
+      <>
+        {isSuspicious && (
+          <span
+            className="pointer-events-none absolute inset-y-1 left-0 w-0.5 rounded-full bg-cyan-200/70 shadow-[0_0_8px_rgba(103,232,249,0.9)] animate-pulse"
+            aria-hidden="true"
+          />
+        )}
+        <span className={`relative font-mono font-black ${isFeatured ? 'text-amber-300' : isPlayer ? 'text-cyan-300' : 'text-slate-500'}`}>
+          {rankLabel(entry.rank)}
+        </span>
+        <div className="relative flex items-center gap-1.5 min-w-0">
+          <span className={`w-5 h-5 rounded-full shrink-0 flex items-center justify-center text-[7px] font-black ${
+            isPlayer ? 'bg-cyan-300 text-slate-950' : isFeatured ? 'bg-amber-300 text-slate-950' : isNamed ? 'bg-violet-500/30 text-violet-200' : 'bg-slate-800 text-slate-500'
+          }`}>
+            {isPlayer ? 'YOU' : isFeatured ? <Crown className="w-3 h-3" /> : isNamed ? entry.name.slice(0, 2).toUpperCase() : 'AV'}
+          </span>
+          <span className={`truncate font-bold ${isPlayer ? 'text-white' : isFeatured ? 'text-amber-100' : isNamed ? 'text-violet-200' : 'text-slate-400'}`}>{entry.name}</span>
+          {isPlayer && <span className="text-[7px] px-1 py-0.5 rounded bg-cyan-300 text-slate-950 font-black">LIVE BEST</span>}
+          {isFeatured && <span className="text-[7px] px-1 py-0.5 rounded bg-amber-300/15 border border-amber-300/25 text-amber-200 font-black">TRENDING</span>}
+        </div>
+        <span className={`relative text-right text-sm font-black tabular-nums ${isPlayer ? 'text-cyan-200' : isFeatured ? 'text-amber-300' : isSuspicious ? 'text-violet-100 drop-shadow-[0_0_5px_rgba(196,181,253,0.8)]' : 'text-white'}`}>{entry.score}</span>
+      </>
+    );
+
+    if (isSuspicious) {
+      return (
+        <button
+          type="button"
+          key={entry.id}
+          className={rowClassName}
+          data-entry-kind={entry.kind}
+          data-row-key={entry.id}
+          data-suspicious-run="true"
+          aria-label={`Open rank ${entry.rank} run by ${entry.name}`}
+          onClick={() => {
+            if (selectedRun) return;
+            audio.play('ui.primaryTap');
+            setSelectedRun(entry);
+            setShowTitleIntro(false);
+          }}
+        >
+          {rowContent}
+        </button>
+      );
+    }
+
+    return (
+      <div
+        key={entry.id}
+        className={rowClassName}
+        data-entry-kind={entry.kind}
+        data-row-key={entry.id}
+      >
+        {rowContent}
+      </div>
+    );
+  };
+
   return (
   <div
     className="absolute inset-0 z-30 overflow-hidden bg-[#070511] text-slate-100 flex flex-col font-sans"
@@ -126,78 +198,15 @@ export const LeaderboardPanel: React.FC<LeaderboardPanelProps> = ({
       <div className="shrink-0 grid grid-cols-[44px_1fr_58px] items-center px-2.5 py-1.5 text-[8px] font-black tracking-widest text-slate-500 border-b border-white/10 bg-white/[0.03]">
         <span>RANK</span><span>FLYER ID</span><span className="text-right">SCORE</span>
       </div>
+      <div
+        className="relative z-10 shrink-0 border-b border-cyan-200/15 bg-[#090817]/95 shadow-[0_10px_22px_rgba(0,0,0,0.28)]"
+        id="leaderboard-pinned-runs"
+        data-pinned-ranks="1-6"
+      >
+        {entries.slice(0, 6).map(renderLeaderboardEntry)}
+      </div>
       <div ref={listRef} className="flex-1 min-h-0 overflow-y-auto overscroll-contain" id="leaderboard-scroll-list">
-        {entries.map((entry) => {
-          const isPlayer = entry.kind === 'player';
-          const isFeatured = entry.kind === 'featured';
-          const isNamed = entry.kind === 'named';
-          const isSuspicious = suspiciousRunsEnabled && isSuspiciousLeaderboardEntry(entry);
-          const rowClassName = `relative grid grid-cols-[44px_1fr_58px] items-center min-h-9 w-full px-2.5 py-1.5 border-b text-[10px] ${
-            isPlayer
-              ? 'sticky top-0 bottom-0 z-10 border-cyan-300/40 bg-gradient-to-r from-cyan-500/25 via-violet-500/20 to-fuchsia-500/20 shadow-[0_0_18px_rgba(34,211,238,0.18)]'
-              : isFeatured
-                ? 'border-amber-300/30 bg-gradient-to-r from-amber-400/15 to-fuchsia-500/10'
-                : 'border-white/[0.05] odd:bg-white/[0.025]'
-          } ${isSuspicious ? 'cursor-pointer overflow-hidden text-left shadow-[inset_0_0_12px_rgba(139,92,246,0.09)] transition-[filter,background-color] duration-200 hover:brightness-125 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-cyan-300/80' : ''}`;
-
-          const rowContent = (
-            <>
-              {isSuspicious && (
-                <span
-                  className="pointer-events-none absolute inset-y-1 left-0 w-0.5 rounded-full bg-cyan-200/70 shadow-[0_0_8px_rgba(103,232,249,0.9)] animate-pulse"
-                  aria-hidden="true"
-                />
-              )}
-              <span className={`relative font-mono font-black ${isFeatured ? 'text-amber-300' : isPlayer ? 'text-cyan-300' : 'text-slate-500'}`}>
-                {rankLabel(entry.rank)}
-              </span>
-              <div className="relative flex items-center gap-1.5 min-w-0">
-                <span className={`w-5 h-5 rounded-full shrink-0 flex items-center justify-center text-[7px] font-black ${
-                  isPlayer ? 'bg-cyan-300 text-slate-950' : isFeatured ? 'bg-amber-300 text-slate-950' : isNamed ? 'bg-violet-500/30 text-violet-200' : 'bg-slate-800 text-slate-500'
-                }`}>
-                  {isPlayer ? 'YOU' : isFeatured ? <Crown className="w-3 h-3" /> : isNamed ? entry.name.slice(0, 2).toUpperCase() : 'AV'}
-                </span>
-                <span className={`truncate font-bold ${isPlayer ? 'text-white' : isFeatured ? 'text-amber-100' : isNamed ? 'text-violet-200' : 'text-slate-400'}`}>{entry.name}</span>
-                {isPlayer && <span className="text-[7px] px-1 py-0.5 rounded bg-cyan-300 text-slate-950 font-black">LIVE BEST</span>}
-                {isFeatured && <span className="text-[7px] px-1 py-0.5 rounded bg-amber-300/15 border border-amber-300/25 text-amber-200 font-black">TRENDING</span>}
-              </div>
-              <span className={`relative text-right text-sm font-black tabular-nums ${isPlayer ? 'text-cyan-200' : isFeatured ? 'text-amber-300' : isSuspicious ? 'text-violet-100 drop-shadow-[0_0_5px_rgba(196,181,253,0.8)]' : 'text-white'}`}>{entry.score}</span>
-            </>
-          );
-
-          if (isSuspicious) {
-            return (
-              <button
-                type="button"
-                key={entry.id}
-                className={rowClassName}
-                data-entry-kind={entry.kind}
-                data-row-key={entry.id}
-                data-suspicious-run="true"
-                aria-label={`Open rank ${entry.rank} run by ${entry.name}`}
-                onClick={() => {
-                  if (selectedRun) return;
-                  audio.play('ui.primaryTap');
-                  setSelectedRun(entry);
-                  setShowTitleIntro(false);
-                }}
-              >
-                {rowContent}
-              </button>
-            );
-          }
-
-          return (
-            <div
-              key={entry.id}
-              className={rowClassName}
-              data-entry-kind={entry.kind}
-              data-row-key={entry.id}
-            >
-              {rowContent}
-            </div>
-          );
-        })}
+        {entries.slice(6).map(renderLeaderboardEntry)}
       </div>
     </div>
 
@@ -215,40 +224,46 @@ export const LeaderboardPanel: React.FC<LeaderboardPanelProps> = ({
 
     {selectedRun && !showTitleIntro && (
       <motion.div
-        className="absolute inset-0 z-50 flex items-center justify-center bg-[#030309]/95 p-5 text-center backdrop-blur-sm"
+        className="absolute inset-0 z-50 flex items-end justify-center bg-[#05080d]/70 p-5 pb-[7%] backdrop-blur-[2px]"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.24 }}
+        transition={{ duration: 0.32 }}
         role="dialog"
         aria-modal="true"
         aria-labelledby="anomaly-question"
         id="leaderboard-anomaly-prompt"
       >
         <motion.div
-          initial={{ opacity: 0, y: 8, scale: 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ delay: 0.08, duration: 0.28, ease: 'easeOut' }}
-          className="w-full max-w-[320px] rounded-2xl border border-white/10 bg-[#0b0a16] p-4 shadow-[0_18px_60px_rgba(0,0,0,0.65)]"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.08, duration: 0.38, ease: 'easeOut' }}
+          className="relative grid w-full max-w-[760px] grid-cols-[minmax(0,1fr)_150px] gap-6 overflow-hidden rounded-[6px] bg-[#0d131b]/95 px-7 py-5 text-left shadow-[0_18px_50px_rgba(0,0,0,0.5)]"
+          id="leaderboard-inner-monologue"
         >
-          <div className="mb-4 grid grid-cols-[42px_1fr_54px] items-center rounded-lg border border-violet-400/20 bg-violet-500/[0.07] px-2.5 py-2 text-left text-[10px]">
-            <span className="font-mono font-black text-slate-500">{rankLabel(selectedRun.rank)}</span>
-            <span className="truncate font-bold text-violet-100">{selectedRun.name}</span>
-            <span className="text-right text-sm font-black text-cyan-200">{selectedRun.score}</span>
+          <span aria-hidden="true" className="pointer-events-none absolute left-0 top-0 h-px w-[58%] bg-gradient-to-r from-[#61758a]/60 via-[#4a5a6b]/35 to-transparent" />
+          <span aria-hidden="true" className="pointer-events-none absolute bottom-0 right-0 h-px w-[42%] bg-gradient-to-l from-[#61758a]/45 via-[#4a5a6b]/25 to-transparent" />
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 font-mono text-[9px] font-bold tracking-[0.34em] text-[#91a7bb]">
+              <span className="h-1.5 w-1.5 rounded-[1px] border border-[#91a7bb]/60" aria-hidden="true" />
+              YOU · LOCAL PLAYER
+            </div>
+            <div className="mt-3 font-mono text-[9px] tracking-[0.16em] text-[#66798b]">
+              {rankLabel(selectedRun.rank)} · {selectedRun.name} · {selectedRun.score}
+            </div>
+            <p id="anomaly-question" className="mt-4 text-[clamp(0.95rem,2vw,1.2rem)] font-medium leading-relaxed text-[#d6e0e8]">
+              Those first few records look strange.
+              <span className="block text-[#b8c7d3]">Should I ignore them?</span>
+            </p>
           </div>
-          <p id="anomaly-question" className="text-sm font-black leading-snug text-white">
-            THE FIRST FEW RECORDS LOOK STRANGE.
-            <span className="mt-1 block text-cyan-200">IGNORE THEM?</span>
-          </p>
-          <div className="mt-5 flex flex-col gap-2">
+          <div className="flex flex-col justify-end gap-2.5">
             <button
               type="button"
-              autoFocus
               onClick={() => {
                 audio.play('ui.close');
                 setSelectedRun(null);
                 setShowTitleIntro(false);
               }}
-              className="min-h-11 w-full rounded-xl border border-white/10 bg-white/[0.06] text-xs font-black tracking-[0.22em] text-slate-300 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+              className="min-h-11 w-full rounded-[4px] border border-emerald-300/35 bg-emerald-400/10 font-mono text-xs font-bold tracking-[0.22em] text-emerald-100 transition-colors duration-150 hover:bg-emerald-400/16 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-200/70"
               id="ignore-anomaly-yes"
             >
               YES
@@ -259,7 +274,7 @@ export const LeaderboardPanel: React.FC<LeaderboardPanelProps> = ({
                 audio.play('ui.primaryTap');
                 setShowTitleIntro(true);
               }}
-              className="min-h-11 w-full rounded-xl border border-cyan-300/40 bg-cyan-300/[0.08] text-xs font-black tracking-[0.22em] text-cyan-100 shadow-[inset_0_0_14px_rgba(34,211,238,0.08)] transition-colors hover:bg-cyan-300/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/70"
+              className="min-h-11 w-full rounded-[4px] border border-red-300/35 bg-red-400/10 font-mono text-xs font-bold tracking-[0.22em] text-red-100 transition-colors duration-150 hover:bg-red-400/16 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-200/70"
               id="ignore-anomaly-no"
             >
               NO

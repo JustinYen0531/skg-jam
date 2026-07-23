@@ -18,9 +18,9 @@ const NAMED_PLAYERS = [
 const ANONYMOUS_LABELS = ['Anonymous Visitor', 'Guest Player', 'Unnamed Flyer'] as const;
 
 const getAnonymousScore = (index: number): number => {
-  if (index < 3) return 40;
-  if (index < 33) return 39;
-  return index % 3 === 0 ? 37 : 38;
+  if (index < 40) return 40;
+  if (index < 44) return 39;
+  return index % 2 === 0 ? 38 : 37;
 };
 
 export const createPublicLeaderboard = (

@@ -13,6 +13,7 @@ test('public leaderboard is long, sorted, and dominated by anonymous visitors ne
 
   assert.equal(entries.length, 55);
   assert.equal(anonymous.length, 48);
+  assert.equal(anonymous.filter((entry) => entry.score === 40).length, 40);
   assert.ok(anonymous.every((entry) => entry.score >= 37 && entry.score <= 40));
   assert.ok(anonymous.every((entry) => /Anonymous Visitor|Guest Player|Unnamed Flyer/.test(entry.name)));
   assert.ok(entries.every((entry, index) => index === 0 || entries[index - 1].score >= entry.score));
@@ -36,6 +37,9 @@ test('the six anomalous top runs are the only leaderboard story entry points', (
 
   const panelSource = readFileSync(new URL('../src/components/LeaderboardPanel.tsx', import.meta.url), 'utf8');
   assert.match(panelSource, /data-suspicious-run="true"/);
+  assert.match(panelSource, /id="leaderboard-pinned-runs"/);
+  assert.match(panelSource, /entries\.slice\(0, 6\)\.map\(renderLeaderboardEntry\)/);
+  assert.match(panelSource, /entries\.slice\(6\)\.map\(renderLeaderboardEntry\)/);
   assert.match(panelSource, /Game <span[^>]*>Quest<\/span>ing,/);
   assert.match(panelSource, /<span[^>]*>Quest<\/span>ioning Game/);
   assert.doesNotMatch(panelSource, /INVESTIGATE/);
@@ -45,10 +49,15 @@ test('selecting a suspicious run asks whether to ignore it before the title can 
   const panelSource = readFileSync(new URL('../src/components/LeaderboardPanel.tsx', import.meta.url), 'utf8');
 
   assert.match(panelSource, /id="leaderboard-anomaly-prompt"/);
-  assert.match(panelSource, /THE FIRST FEW RECORDS LOOK STRANGE\./);
-  assert.match(panelSource, /IGNORE THEM\?/);
+  assert.match(panelSource, /id="leaderboard-inner-monologue"/);
+  assert.match(panelSource, /YOU · LOCAL PLAYER/);
+  assert.match(panelSource, /Those first few records look strange\./);
+  assert.match(panelSource, /Should I ignore them\?/);
   assert.match(panelSource, /id="ignore-anomaly-yes"/);
   assert.match(panelSource, /id="ignore-anomaly-no"/);
+  assert.match(panelSource, /border-emerald-300\/35 bg-emerald-400\/10/);
+  assert.match(panelSource, /border-red-300\/35 bg-red-400\/10/);
+  assert.doesNotMatch(panelSource, /autoFocus/);
   assert.match(panelSource, /if \(!showTitleIntro\) return;/);
   assert.match(panelSource, /setSelectedRun\(null\);[\s\S]{0,100}setShowTitleIntro\(false\)/);
   assert.match(panelSource, /id="ignore-anomaly-no"[\s\S]{0,160}>[\s\S]{0,30}NO/);
