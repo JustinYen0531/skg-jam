@@ -1,5 +1,117 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-23 — Chapter 8 Mara memory restoration
+
+- Replaced the one-click Noah completion gate with eight Mara life threads, eight underlined collectible memories, and eight damaged Noah messages.
+- Added a persistent `Recovered memories` drawer and gentle source-based wrong-answer hints.
+- Kept the Chapter 9 flight-height attachment sealed; Chapter 8 contains no route values beyond the already-known 184 and does not reveal Arcane as the real `ARC_184`.
+- Recorded the accepted canon: Mara originated Silver Kite and the ending philosophy; 184, 40, and 256 are her life coordinates translated by Noah into the human ceiling, structural lock, and true ending.
+- Added and wired `chapterEightDialogue.ts` for archive entry, all life threads, first/repeated clues, progressive wrong-memory hints, every restored fragment, completion, and the still-sealed attachment.
+- Static verification passed: Chapter 8 focused tests 7/7, full suite 211/211, TypeScript, production build, and diff checks. Browser and Preview remain intentionally unused.
+
+## 2026-07-22 — Fullscreen-only Controls safeguard
+
+- Added a persistent `Fullscreen only` switch to the existing Controls popover.
+- When enabled, the game bypasses the Meta scene and its projected input relay while preserving the underlying story unlock state, so disabling the switch restores the normal Meta presentation.
+- Stored the preference locally so the direct-input safety mode survives reloads.
+- Browser verification remains intentionally excluded by project instruction; focused static tests, TypeScript, and production build are the verification gate.
+
+## 2026-07-22 — Chapter 5 bottom Noah trace recovery
+
+- Traced the blocked Chapter 5 completion to the footer `Noah Kade` reference: it is the third required archive trace, but its tiny projected-bottom hit target lacked the shared Meta recovery contract.
+- Marked all three archive-name trace buttons for immediate input and projected-hit recovery, and enlarged their inline hit area without changing the puzzle order or completion condition.
+- Added a focused regression contract proving the footer co-founder reference still invokes the same 3/3 completion handler.
+- Static verification passed: 170/170 clean-delivery tests, 171/171 active-desktop tests, TypeScript, production builds, and diff checks; Browser and Preview remain intentionally unused.
+
+## 2026-07-22 — Chapter 4 shock-to-resolve monologue and autonomous angry taps
+
+- Expanded the parcel reveal reaction into four timed emotional stages: disbelief, anger, defeated frustration, and a deliberate decision to work with the limited screenshot evidence.
+- Added a Meta-owned five-tap autonomous finger sequence. It varies the screen contact point, plays contact/release foley per tap, labels the hand `agitated-tapping`, and briefly rejects player pointer, keyboard, and wheel input so the protagonist visibly acts on their own.
+- Moved the monologue trigger to the exact angle where the layered-paper phone is exposed, allowing the dialogue to play over the visual betrayal instead of waiting for the reveal to close.
+- Reduced manual phone rotation sensitivity from `0.42` to `0.21` and doubled the jester, screenshot burst, downward drift, audio cues, and clear timing for a true 0.5x presentation speed.
+- Added regression coverage for dialogue order, five autonomous taps, player-control lock, reveal-time scaling, and the angle-triggered handoff. Focused tests, TypeScript, and diff checks pass; Browser and Preview remain intentionally unused.
+
+## 2026-07-22 — Screenshot detail Back control
+
+- Added a visible `BACK` control below every enlarged Chapter 4 screenshot.
+- The control closes only the selected screenshot and returns directly to the Lumen Arc screenshot pile; it never clears the selected parcel or returns to the delivery archive.
+- Reused the same close handler as the top-right X and marked the lower-edge button for immediate Meta input and projected-hit recovery.
+- Static verification passed: 164/164 clean-delivery tests, 163/163 active-desktop tests, TypeScript, production builds, and diff checks; Browser and Preview remain intentionally unused.
+
+## 2026-07-22 — Player-driven parcel scratch and paper-phone reveal
+
+- Replaced the high suspended box and `OPEN PARCEL` autoplay gate with a centered scratchable cardboard canvas; held pointer movement erases the cover along the real drag path and exposes the device underneath.
+- Added a restrained inspection-station frame, deterministic cardboard fibres, tape, label, live package-integrity meter, and contextual instructions for each interaction phase.
+- Added a second manual gate after the package is torn: the phone waits for a click, then follows horizontal drag input instead of rotating automatically.
+- Rebuilt the device as ten alternating paper-edge layers. Crossing the deliberate 58-degree inspection angle triggers the reveal, never elapsed time.
+- Added a brief jack-in-the-box jester sting and ten image cards that burst upward before drifting down into a loose pile.
+- Updated regression contracts for actual canvas erasure, manual inspection, angle gating, paper construction, jester sting, and top-to-bottom image drift. Focused tests, TypeScript, and diff checks pass; Browser and Preview remain intentionally unused.
+
+## 2026-07-22 — Click-gated 3D parcel collapse
+
+- Kept the unopened Lumen Arc parcel suspended until one explicit player click; mounting the package view no longer starts timers, sound, or motion automatically.
+- Enlarged the complete physical reveal stage to 1.5x and rebuilt the phone phantom from seven visible depth slices with a stronger rim, perspective, and cast shadow.
+- Recut the reveal into a readable physical sequence: parcel drop, lid opening, solid-device rise and hold, 140 ms depth collapse, forward fall, impact, and breakup into ten overlapping image cards.
+- Preserved keyboard activation and reduced-motion behavior behind the same manual opening gate.
+- Added source-level regression contracts for the input gate, 1.5x scale, solid-to-flat state, ordered fall/impact/shatter beats, and ten-card pile. Focused tests and TypeScript validation pass; Browser and Preview remain intentionally unused.
+
+## 2026-07-22 — Complete Chapter 4 protagonist dialogue coverage
+
+- Added the Chapter 4 dialogue module in the same data/function pattern as Chapters 1–3, with restrained English-only lines and explicit future-knowledge boundaries.
+- Wired direct chapter entry, Deliveries launch, home return, wrong apps, all six wrong parcels, all seven decoy screenshots, all three clue phrases, case assembly, completion, packet re-entry, and the immediate Chapter 5 revisit.
+- Wrong parcels, decoys, and already-found clues respond only twice before becoming silent; every third decoy without progress provides one rotating low-pressure hint.
+- Preserved the physical-phone-to-photo reveal and delayed its protagonist reaction until the reveal finishes; removed Chapter 3 wording that spoiled the result early.
+- Added regression coverage for completeness, anti-spam behavior, reveal ownership, runtime wiring, English-only text, and chapter knowledge boundaries. Static verification passed: 162/162 active-desktop tests, 162/162 clean-delivery tests, TypeScript, production builds, and diff checks; Browser and Preview remain intentionally unused.
+
+## 2026-07-22 — Shared projected-bottom input recovery
+
+- Traced the unresponsive Messages composer to the shared Meta click relay: it delayed input focus until after a hand/posture animation, while the projected bottom edge could move away from the browser's original target.
+- Expanded the shared pointer-down recovery from buttons to explicitly marked inputs and buttons. Direct hits and misrouted transparent-layer hits now resolve before posture movement.
+- Marked the Chapter 3 Messages composer and send control for immediate focus/submit recovery; focusing also opens the existing Meta virtual keyboard.
+- Added regression contracts for pointer-down focus, virtual-keyboard activation, submit recovery, and preservation of unmarked controls. Static verification passed: 157/157 post-rebase clean-delivery tests, 156/156 active-desktop tests, TypeScript in the clean worktree, and production builds in both; Browser and Preview remain intentionally unused.
+
+## 2026-07-22 — Chapter 3 Messages entry recovery
+
+- Changed both the AmazeMart `OPEN MESSAGES` control and the incoming-message banner to navigate on pointer-down, while retaining keyboard click activation.
+- Added projected-rectangle hit recovery to both controls so Meta camera/posture movement cannot lose edge presses.
+- Replaced the AmazeMart-like top-right alert with a centered system notification using the existing evidence banner's safe-zone placement and visual language; it remains explicitly an incoming-message notice rather than a chapter-completion notice.
+- Added focused regression coverage for both interaction paths and notification ownership. Static verification passed in the clean delivery worktree and active desktop: 151/151 tests and production builds in both, plus TypeScript in the clean worktree; Browser and Preview remain intentionally unused.
+
+## 2026-07-22 — Chapter 3 signature step removed
+
+- Removed the return-to-AmazeMart and signature requirement after the seller accepts `184`.
+- The correct Messages reply now completes Chapter 3 immediately, delivers the screenshot packet, and triggers the existing evidence-acquired transition into Chapter 4.
+- Preserved the newly wired Chapter 3 protagonist dialogue, wrong-code feedback, Messages notification, unread badge, and Meta virtual keyboard.
+- Updated the North Star GDD, chapter guide, and Chapter 3 flow contracts. Static verification passed: 150/150 tests, TypeScript lint in the clean delivery worktree, production builds in both worktrees, and diff checks; Browser and Preview remain intentionally unused.
+
+## 2026-07-22 — Chapter 3 verification moved into Messages
+
+- Replaced AmazeMart's embedded seller relay with a cross-app flow: accepting the scam warning raises a real Messages notification and unread badge for `coldboot_17`.
+- Messages now owns the `184` reply, wrong-code response, Meta virtual-keyboard input, verified delivery reply, and return-to-AmazeMart action.
+- AmazeMart now owns only discovery, risk acceptance, and final signature. The chapter advances only after that signature, so the existing evidence-acquired notification remains the single chapter-completion signal.
+- Updated the concise North Star GDD beat, developer chapter guide, and cross-app regression coverage. Static verification passed in both the delivery worktree and active desktop: 145/145 tests, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.
+
+## 2026-07-22 — Projected-edge recovery for Chapter 3 order
+
+- The prior pending-label fix was not sufficient because some projected bottom-edge presses never reached the button at all.
+- Extended the existing rectangle-based Home Dock recovery to explicitly marked edge controls, then marked `ORDER INSTANT` for that recovery path.
+- Increased the recovery hit slop from 12 to 16 pixels and enlarged/inset the visible order button so presses near the transformed phone bezel still resolve to the intended control.
+- Updated both the Chapter 3 and shared Dock regression contracts. Static verification passed: 145/145 tests, TypeScript lint, production build, and diff checks; no browser or Preview was used.
+
+## 2026-07-22 — Reliable Chapter 3 order interaction
+
+- Traced the hard-to-click `ORDER INSTANT` report to the Meta click relay: it consumed the native click, waited about 610 ms for the hand animation, and silently dropped repeated clicks while the first interaction was pending.
+- Kept the Meta hand animation but moved this button onto an explicit immediate-receipt path. Its first click now changes the label to `REACHING...`, disables duplicate input, and opens the risk confirmation when the hand reaches it.
+- Confirmed the coffee and foreground environment were already `pointer-events: none`; no physical-scene layer was intercepting the button.
+- Added source-level regression coverage for immediate receipt, pending feedback, and manual hand relay. Static verification passed: 141/141 tests, TypeScript lint, production build, and diff checks.
+
+## 2026-07-22 — Active desktop Chapter 3 synchronization
+
+- Confirmed from the user's screenshot that the running desktop worktree still contained the legacy direct-purchase AmazeMart card even though the new flow had already reached `origin/main`.
+- Integrated the Chapter 3 search-noise, suppressed-seller, risk-confirmation, relay, `184`, and signature flow into the active dirty desktop worktree without touching unrelated concurrent files.
+- Preserved the desktop worktree's four existing fake customer reviews by relocating them into the expanded unverified-seller details instead of discarding that local work.
+- Static verification in the actual desktop worktree passed: 141/141 tests, TypeScript lint, production build, and focused diff checks. Browser and Preview remained intentionally unused.
+
 ## 2026-07-21 — Perspective-aware phone collision quad
 
 - Replaced the too-strict background allowlist with a geometric collision quad matching the visible upright phone trapezoid.
@@ -519,14 +631,6 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Preserved the Chapter 1 transition and left later chapter navigation unchanged.
 - Browser verification remains intentionally omitted under the repository's static-analysis-only rule.
 
-## 2026-07-21 — Chapter 1 navigation/dialogue separation
-
-- Used the visible Chapter 1 wrong-app dialogue as evidence that launcher input arrived even though the app view remained on Home.
-- Split Chapter 1 app navigation from its parent Meta dialogue update: the app state now commits first and dialogue updates in the next task.
-- Made the bottom narrative panel explicitly display-only so its visible and transparent regions cannot intercept phone input.
-- Left other chapter launch behavior and the Chapter 1 transition unchanged.
-- Browser verification remains intentionally omitted under the repository's static-analysis-only rule.
-
 ## 2026-07-21 — Five-stage storm window and synchronized wall clock
 
 - Added a code-authored SVG/CSS window scene behind the supplied transparent wall panes: sparse clear-night cloud, gathering cloud, sealed overcast with first rain, deep-night downpour, and a darkest violent-storm stage.
@@ -537,13 +641,13 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Added regression coverage for monotonic weather escalation, SVG/CSS-only window authorship, corrected stage-one pane transparency, synchronized clock angles, and scene integration.
 - Browser Preview remains intentionally omitted under the repository's static-analysis-only rule; 102 static tests, TypeScript lint, production build, and diff checks pass after rebasing the concurrent home-input fixes.
 
-## 2026-07-21 — Scrollable Chapter 00–10 reminder
+## 2026-07-21 — Chapter 1 navigation/dialogue separation
 
-- Replaced the fixed four-item investigation checklist with an eleven-row Chapter 00–10 reminder timeline backed by the canonical chapter objectives.
-- The four-row viewport keeps the previous completed chapter, current clear task, and increasingly blurred future tasks in view; players can scroll through the complete sequence.
-- Completed chapters receive checkmarks, and chapter changes automatically align the current row without changing the launcher notification/underline signals.
-- Preserved the later LAOS visual takeover while keeping the reminder data, progress states, blur treatment, and scrolling behavior consistent.
-- Browser verification remains intentionally omitted under the repository rule; 119 static tests, TypeScript lint, production build, and diff checks pass.
+- Used the visible Chapter 1 wrong-app dialogue as evidence that launcher input arrived even though the app view remained on Home.
+- Split Chapter 1 app navigation from its parent Meta dialogue update: the app state now commits first and dialogue updates in the next task.
+- Made the bottom narrative panel explicitly display-only so its visible and transparent regions cannot intercept phone input.
+- Left other chapter launch behavior and the Chapter 1 transition unchanged.
+- Browser verification remains intentionally omitted under the repository's static-analysis-only rule.
 
 ## 2026-07-21 — Wall-clock face alignment
 
@@ -551,3 +655,259 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Recomputed the clock-face center from the source wall artwork and its scene transform: the rendered center is approximately 30.69% / 20.51%, so the overlay keeps left 30.8% and moves from top 26.2% to top 20.5%.
 - Kept hand angles, shared phone-time source, five weather stages, wall artwork, and every phone/desk transform unchanged.
 - Browser Preview remains intentionally omitted under the repository's static-analysis-only rule; 103 static tests, TypeScript lint, production build, and diff checks pass after rebasing the concurrent Chapter 1 navigation fix.
+
+## 2026-07-21 — Exhausting Agenda and ambient Harborview weather
+
+- Changed Agenda from a rolling three-row sample into a scrollable remainder of the fixed overnight timeline: Chapter 1 exposes 12 future rows, one elapsed row is permanently removed per chapter, and Chapters 9–10 end with four and three rows.
+- Past Agenda entries are absent from the chapter state rather than merely scrolled out of view, so the player cannot return to an elapsed time.
+- Reused the room window's five deterministic cloud/rain/wind stages inside Harborview, keeping both surfaces synchronized to the same chapter-owned weather stage.
+- Added a widget-only 1.1px soft focus, reduced saturation, radial mask, translucent haze, and a separate sharp text layer; reduced-motion freezes both room and widget weather.
+- Browser verification remains intentionally omitted under the repository rule; 120 static tests, TypeScript lint, production build, and diff checks pass.
+
+## 2026-07-22 — Chapter 2 archive investigation restored
+
+- SearchFinder now replaces one existing Trending Today row only during Chapter 2 with a quiet old-game-file lead; the layout and the other decoy rows stay unchanged.
+- The lead opens Archive Finder, where plausible package types conceal the preserved build until the player selects `.ipa`, then identifies `Skyline256_LAOS_Final.ipa`, LAOS 4.1, the Lumen Arc, and its native barometric altitude sensor requirement.
+- SKG, Silver Kite, and related direct searches remain intentionally unhelpful until the Chapter 5 company-history action has been earned.
+
+## 2026-07-22 — Chapter 2 archive website redesign
+
+- Replaced the artificial package-type quiz with a credible community archive landing page, filename search, five real format tags (`.ipa`, `.apk`, `.jar`, `.sis`, `.zip`), and populated file tables for every format.
+- Kept every filename row visually neutral; non-target mirrors are visible but disabled, while `Skyline256_LAOS_Final.ipa` must be found and opened without a colored answer highlight.
+- Opening the target no longer claims it was saved locally. It reports that the current device cannot open IPA packages and identifies the canonical Lumen Arc hardware requirement.
+- Browser verification remains intentionally omitted under the repository rule; static tests, TypeScript lint, and production build are required before delivery.
+
+## 2026-07-22 — Chapter 2 protagonist dialogue draft
+
+- Added a review-only Chapter 2 dialogue document modeled on the complete Chapter 1 specification; no runtime dialogue was wired yet.
+- Defined the protagonist's knowledge boundary, archive-format reactions, wrong-app companionship, premature-search responses, and the compatibility-error completion beat.
+- Offered three strengths for the first maternal-memory line, with the restrained concrete version marked as the current recommendation pending user review.
+
+## 2026-07-22 — Chapter 2 protagonist dialogue implementation
+
+- Promoted the Chapter 2 draft into a runtime dialogue helper after the user approved ending A: the silver Lumen Arc edge beside the kitchen sink.
+- Wired Chapter 2 entry, home returns, wrong apps, Browser/SearchFinder, the archive lead, archive filename input, all five real format tags, the target IPA record, the compatibility failure, and the delayed maternal-memory finish into `LIVE TRANSCRIPT`.
+- Extended the Meta virtual keyboard path to the Archive Finder filename input and added evidence-bound search responses that recognize the filename already shown in ViewTube without revealing SKG, Silver Kite, or future people.
+- Browser verification remains intentionally omitted under the repository rule; static dialogue tests, TypeScript lint, full tests, and production build are the acceptance boundary.
+
+## 2026-07-22 — SearchFinder and Archive commercial portal density
+
+- Expanded SearchFinder into a three-column commercial portal with a restrained central search/editorial feed plus left/right news, weather, market, community, sponsored, and service-status noise.
+- Gave Archive Finder its own preservation-specific side rails: articles, index health, browse years, community notes, recovery advertising, and rights notices rather than repeating SearchFinder content.
+- Enriched the archive's central catalog with index metrics, popular-search texture, collection counts, and volunteer/catalog notes while keeping the target IPA visually identical to other filename rows.
+- All added noise is non-progression texture: no `Recommended` badge, notification cue, or new chapter mutation was introduced.
+- Browser verification remains intentionally omitted under the repository rule; static UI tests, TypeScript lint, full tests, and production build are the acceptance boundary.
+
+## 2026-07-22 — SearchFinder distraction reactions and Meta tap feedback
+
+- Routed incorrect Trending Today choices and the commercial side-rail cards through the existing Meta finger tap animation before playing their response.
+- Grouped the protagonist's short Chapter 2 asides into trending, news, weather, market, community, sponsored, and archive-noise categories so related clutter can share writing without every click sounding identical.
+- Routed all five archive format tags through the same Meta tap path; ZIP, APK, JAR, and SIS retain their evidence-specific wrong-format lines, while IPA remains neutrally worded.
+- Kept every distraction non-progressing and visually secondary. No notification, recommendation marker, answer highlight, or chapter mutation was added.
+- Browser verification remains intentionally omitted under the repository rule; static interaction tests, TypeScript lint, full tests, and production build are the acceptance boundary.
+
+## 2026-07-22 — AmazeMart shopping sidebar
+
+- Replaced the storefront's horizontal five-tile category strip with a persistent two-column commerce layout: the product/search journey remains primary while a narrow right sidebar owns departments, quick filters, delivery context, and low-priority membership advertising.
+- Added working storefront department and price/rating filters without changing the deterministic recommendation feed or any Chapter 3 merchant state.
+- Disabled storefront filters during the broad Lumen Arc results mode so the full decoy feed and scroll-triggered suppressed seller remain reachable inside the original `am-body` scroll container.
+- Kept the sidebar visually secondary and free of notification, recommendation, or puzzle-answer cues.
+- Browser verification remains intentionally omitted under the repository rule; static layout tests, TypeScript lint, full tests, production build, and diff checks are the acceptance boundary.
+
+## 2026-07-22 — Chapter 3 protagonist dialogue review draft
+
+- Added `docs/CHAPTER_3_PROTAGONIST_DIALOGUE.md` as a review-only continuation of the Chapter 1 and Chapter 2 voice specifications; no runtime dialogue was wired.
+- Matched the current AmazeMart route exactly: storefront/search noise, filtered records, suppressed seller, Meta order reach, risk confirmation, seller relay, `184`, signature, and screenshot-packet delivery.
+- Kept the Chapter 3 knowledge boundary before screenshot inspection: the protagonist cannot name Silver Kite, interpret SKG, identify later people, or describe image contents.
+- Offered three ending strengths, with the restrained evidence-first version marked as the current draft preference pending user approval.
+- Browser verification remains intentionally omitted under the repository rule; document structure, English dialogue lines, source flow, and diff checks are the review boundary.
+
+## 2026-07-22 — Chapter 3 protagonist dialogue runtime (Ending A)
+
+- Promoted the reviewed Chapter 3 dialogue document to the approved A specification and added a dedicated dialogue helper with evidence-aware search, storefront, wrong-app, and seller-code responses.
+- Wired restrained protagonist reactions into Chapter 3 entry/home navigation, AmazeMart products and sidebar noise, the Lumen Arc search trail, suppressed seller, risk confirmation, Messages verification, signature, and screenshot-packet ending.
+- Preserved the knowledge boundary: pre-delivery dialogue cannot explain SKG, Silver Kite, later people, or the contents of the screenshot packet; only signing completes Chapter 3.
+- Added static tests for the A ending, English-only dialogue, evidence boundaries, grouped reactions, runtime connections, and the existing sign-only completion point.
+- Browser verification remains intentionally omitted under the repository rule; full tests, TypeScript lint, production build, and diff checks are the acceptance boundary.
+
+## 2026-07-22 — Coffee depth and desk anchoring correction
+
+- Rejected the earlier “stable top value means fixed” conclusion: removing Framer layout stopped runaway projection, but the cup remained an oversized `z-25` foreground object and could therefore sit stably over the phone screen.
+- Moved the coffee cup into the environment underlay (`z-9`) behind the phone camera frame (`z-10`), creating a stacking invariant that prevents it from rendering inside phone content.
+- Reduced the upright and resting cup scales and anchored each posture near the visible desk edge; the transparent PNG canvas no longer magnifies its opaque cup bounds into the center of the device.
+- Kept the CSS-only transitions and the no-Framer-layout regression rule for all moving desk objects.
+- Browser verification remains intentionally omitted under the repository rule; focused environment tests, full static tests, TypeScript checks, production build, and diff checks are the acceptance boundary.
+
+## 2026-07-22 — Coffee scale adjustment
+
+- Doubled the approved desk-anchored coffee presentation in both postures while retaining its underlay depth behind the phone.
+
+## 2026-07-22 — Coffee foreground correction
+
+- Restored the coffee cup as an intentional foreground totem over the phone surface and changed its primary upright scale from 1.2x to the user-approved 1.8x (1.5x), with matching proportional variants.
+
+## 2026-07-22 — Resting desk coffee scale
+
+- Increased only the desk-resting cup variants by 1.5x: normal 2.025 to 3.0375, tipped 2.1 to 3.15, and pushed-away 1.875 to 2.8125.
+
+## 2026-07-22 — Chapter 5 archived-name hunt
+
+- Hid the Snapshot reel everywhere except the opened SKG site and kept its initial position at 2026.
+- Made every unpreserved year from 2009 onward land on an explicit `NO SCREENSHOT AVAILABLE` state; reaching the real 2014 capture no longer completes the chapter.
+- Added three independently tracked, visibly underlined Noah Kade references in the preserved page body. The 2013 dated byline is intentionally non-interactive, and only recovering all three body references advances to Chapter 6.
+- Static verification passed on the clean delivery tree: 169/169 tests, TypeScript lint, production build, and focused diff checks; Browser and Preview remain intentionally unused.
+
+## 2026-07-22 — Resting mouse-depth desk camera
+
+- Extended mouse-height camera follow into the phone-on-desk resting posture without changing the existing handheld pitch behavior.
+- The upper pointer range compresses and lowers the desk to reveal more of the fireplace; the midpoint preserves the previous default composition; the lower range enlarges and raises the trapezoid to occlude the fireplace.
+- Recomputed the resting phone's projective quad throughout the spring motion and gave desk props plus resting hands one shared proportional scale/translation curve, preventing independent drift.
+- Static verification passed after replaying onto the latest main: 173/173 tests, TypeScript lint, production build, and focused diff checks; Browser and Preview remain intentionally unused.
+
+## 2026-07-22 — Resting desk lower-bound correction
+
+- Kept the upper mouse-height view unchanged and capped the lower endpoint at exactly two-thirds of the scene height.
+- Moving the pointer below that line no longer raises or enlarges the desk, preserving the requested lowest composition instead of the former extreme foreground view.
+- Static verification passed on the latest main: focused tests 38/38, full tests 178/178, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.
+
+## 2026-07-22 — Resting desk upper-view adjustment
+
+- Kept the midpoint and two-thirds lower cap unchanged, while flattening and lowering only the top mouse-height endpoint so more of the fireplace remains visible.
+- Applied the same restrained retreat to resting desk objects to preserve their shared desk-plane perspective.
+- Static verification passed on the latest main: focused tests 38/38, full tests 178/178, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.
+
+## 2026-07-22 — Maximum fireplace illumination
+
+- Added a restrained symbolic two-flame hearth with embers and a strong local halo, positioned inside the wall layer so the desk can occlude it naturally.
+- Added one broad warm room-light wash at fixed maximum intensity for every visible-room chapter (1–10), with gentle flicker and a stable reduced-motion state.
+- Chapter-based fading is intentionally deferred until a later request.
+- Static verification passed: focused tests 38/38, full tests 179/179, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.
+
+## 2026-07-22 — Fireplace position correction
+
+- Moved the complete flame group from 31% to 42% wall height so it sits inside the dark firebox instead of floating above the mantel.
+- Lowered the broad room-light origin with it while preserving the approved maximum intensity and flame size.
+- Static verification passed: focused tests 38/38, full tests 179/179, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.
+
+## 2026-07-22 — Chapter 6 FaceSpace investigation expansion
+
+- Rebuilt FaceSpace around a persistent three-column social layout: left-side friends/notifications, a central investigation feed, and right-side trends/sponsored noise. Removed the pre-search Noah recommendation.
+- Added six SKG Automation ads ahead of the default search results and a date sort that moves ten authored Noah posts into chronological order without completing the chapter.
+- Gave every Noah post two or three collapsed comments. Seven hopeful development posts precede the eighth target post containing the only Mara Kade clue.
+- Finding Mara now unlocks, but does not complete, a second Home page. That page reveals the approved protagonist name Arcane Kade; expanding linked accounts and selecting Mara Kade as Mother is the only Chapter 6 completion point.
+- Updated the Chapter 6 guide and GDD boundary so neither Arcane's surname nor the profile page can appear before the clue is earned.
+- Added the approved later-story truth that the original twelve-year-old `ARC_184` record belongs to a young Arcane Kade, while the present ViewTube uploader is a sympathetic traffic-seeking impersonator; Chapter 6 deliberately does not reveal this yet.
+- Static verification passed on the clean delivery tree: focused tests 38/38, full tests 183/183, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.
+
+## 2026-07-22 — Active desktop Chapter 5 dialogue synchronization
+
+- Confirmed the reported silence was not an interaction bug: the active desktop worktree did not contain `chapterFiveDialogue.ts` or any Chapter 5 dialogue imports, although the feature had already been pushed to remote `main`.
+- Synchronized the Chapter 5 dialogue module and tests into the actual desktop runtime, then added only the missing Browser, Phone, and Meta wiring while preserving the desktop worktree's later camera and Controls changes.
+- Chapter 5 now reacts on direct debug entry, Browser launch, search focus/submission, seven decoy results, portal noise, corporate details, support bot replies, empty snapshot years, archived-page fragments, wrong apps, and all three Noah Kade references.
+- Static verification in the active desktop worktree passed: 177/177 tests, TypeScript lint, production build, and focused wiring checks. Browser and Preview remain intentionally unused.
+
+## 2026-07-22 — Chapter 6 profile page constrained to the launcher region
+
+- Replaced the full-screen personal-settings overlay with a compact second page inside the right-side launcher region.
+- Kept Reminders, weather, Agenda, migration status, page dots, and the five-item Dock visible while Arcane's profile and linked accounts are open.
+- Preserved the existing clue gate, horizontal swipe, Arcane identity reveal, linked-account expansion, and Mara-only Chapter 6 completion rule.
+- Static verification passed: focused tests 28/28 in both worktrees, full tests 184/184 on the clean delivery tree, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.
+
+## 2026-07-22 — Chapter 6 protagonist dialogue runtime
+
+- Added `chapterSixDialogue.ts` with restrained English dialogue for chapter entry, home/incorrect apps, FaceSpace search variants, feed and sidebar noise, six SKG Automation ads, date sorting, Noah posts, comment threads, Mara discovery, the embedded Arcane profile, and final family confirmation.
+- Adapted the draft to the current three-stage reveal: expanding the 2014 thread recognizes Mara, selecting her comment raises the device/child question and unlocks Home page two, and only confirming `Mara Kade · Mother` identifies Arcane as the child and Noah as his father.
+- Added static knowledge-boundary tests that forbid Chapter 7 coordinates/password material and the later ARC_184 identity reveal from Chapter 6 dialogue.
+- Wired the dialogue through `MetaInteractionScene`, `PhoneSimulator`, and `SocialApp` without changing any Chapter 6 progression gate.
+- Updated the original Chapter 6 dialogue specification to match the implemented runtime instead of trusting its obsolete comment-click completion point.
+- Static verification passed on the clean delivery tree: focused tests 32/32, full tests 188/188, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.
+
+## 2026-07-22 — Chapter 6 relevance-limited Noah timeline
+
+- Limited the default sponsored timeline to six SKG Automation ads and three relevance-selected late Noah posts; the low-engagement 2014 recall post containing Mara is not available in this mode.
+- Added a diegetic archive-limit card stating that seven older posts were excluded by relevance sorting.
+- `Oldest First` now acts as the sole route to all ten posts, preserving the intended 2010-to-2014 emotional read before Mara appears in the eighth oldest post.
+- Static verification passed: focused tests 11/11 in both worktrees, full tests 188/188 on the clean delivery tree, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.
+
+## 2026-07-22 — First Gate 40 death unlocks the Meta reveal
+
+- Reduced the Chapter 0 story threshold from two Gate 40 deaths to one while preserving the requirement that the player actively opens the leaderboard.
+- A Gate 40 death alone still leaves the cheap game fullscreen; opening the leaderboard without first reaching Gate 40 also does not reveal Meta.
+- Updated the developer Chapter 1 baseline, source-wiring regression coverage, GDD, environment evolution, implementation checklist, and sound-event notes to the same one-death rule.
+- Static verification passed: focused tests 35/35 in both worktrees, full tests 188/188 on the clean delivery tree, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.
+
+## 2026-07-22 — Chapter 7 Mara coordinate trail and archive login
+
+- Reassigned `184`, `40`, and `256` from Noah's single Q&A answer to three separate memories in Mara Kade's nine-post FaceSpace timeline.
+- Chapter 7 now begins from FaceSpace `Recently viewed`, persists each Mara clue separately, rejects the archive password until all three are found, and completes only after the player logs into `MARA_KADE`.
+- Chapter 8 now begins inside the restored archive index and advances only when the player opens the Mara Kade and Noah Kade private thread; Chapters 9–10 keep their existing boundaries.
+- Removed the premature full `184-40-256` string from the Chapter 4 screenshot pile and replaced it with the old `SilverKite_Games` backup-account clue.
+- Static verification passed: focused tests 40/40 and full tests 192/192 in both worktrees, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.
+
+## 2026-07-22 — Player-chosen leaderboard reveal and formal title
+
+- Opening the leaderboard now only records that it was seen; it no longer unlocks Meta by itself.
+- After the Gate 40 condition, the anomalous top six runs become subtly highlighted, accessible buttons.
+- Selecting any of those runs plays the fullscreen title `Game Questing, Questioning Game`, then returns to the phone home screen and unlocks Meta.
+- Removed the explicit leaderboard investigation callout and replaced the landing-page Learn More modal with a deliberately inert gold `UNLOCK` upsell.
+- Updated the North Star title and prologue handoff. Verification remains static-only per project instructions.
+
+## 2026-07-22 — Chapter 7 developer login and universal Meta keyboard
+
+- Developer Chapter 7 snapshots now retain preview authorization after the debug panel closes, so the correct archive password can be exercised without weakening the normal three-clue gate.
+- Every enabled text-like input now opens the embedded Meta keyboard; unregistered React-controlled inputs receive native input events and Enter submits their form.
+- Centered the Mara archive credential form away from the gripping hands and added restored-account, backup, access, and safety context above it.
+- Static verification passed: full tests 196/196 in the active worktree and 198/198 after integrating the latest remote delivery, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.
+
+## 2026-07-23 — Refuse-to-ignore Meta decision
+
+- Selecting a suspicious top-six score now opens a contextual confirmation instead of starting the title timer.
+- The prompt asks `THE FIRST FEW RECORDS LOOK STRANGE. IGNORE THEM?` with `YES` above `NO`.
+- `YES` closes the prompt and returns to the leaderboard; only `NO` starts the formal title and Meta reveal.
+- The deliberately inverted wording makes investigation an explicit refusal to ignore the anomaly.
+- Verification remains static-only per project instructions.
+
+## 2026-07-23 — Quiet inner-monologue decision and pinned anomaly block
+
+- Reframed the anomaly decision as the protagonist's calm gray-blue inner monologue instead of a neon game-system modal.
+- `YES` and `NO` now use equally weighted green and red treatments with no default focus or animated preference.
+- Ranks 1–6 remain fixed beneath the leaderboard header while only rank 7 onward scrolls.
+- Forty of the forty-eight anonymous visitors now sit at score 40, making the six scores above 40 read as a deliberate break.
+- Browser and Preview remain intentionally excluded by project instruction.
+
+## 2026-07-23 — Two-step leaderboard motive and decision
+
+- Opening the leaderboard now adds a small, non-blocking protagonist thought about wanting first place, the 40-point ceiling, and the six impossible scores.
+- The thought never dims or blurs the leaderboard; it can be clicked away and also fades after seven seconds.
+- Selecting a top-six record remains the separate, blocking `YES` / `NO` decision.
+- Both thought surfaces now use the existing Meta `font-thought` gray-blue typography for one continuous protagonist voice.
+- Browser and Preview remain intentionally excluded by project instruction.
+
+## 2026-07-23 — Centered leaderboard motive card
+
+- Moved the non-blocking opening thought from the left edge to the centered lower composition axis shared by the later decision frame.
+- Kept its smaller, undimmed treatment so it reads as a passing thought rather than a second modal.
+
+## 2026-07-23 — Chapter 7 protagonist dialogue implementation
+
+- Added a dedicated Chapter 7 inner-voice module covering entry, home returns, relevant and wrong apps, FaceSpace noise, Mara's six ordinary posts, all three place clues, Mom's explanation, archive login mistakes, and successful completion.
+- Preserved the knowledge boundary: individual number meanings appear only after their matching place is selected, and the altitude/gate/end arrangement is not spoken before the player reads Mom's explanation.
+- Corrected the runtime wording around the `MARA_KADE` node so the preserved Silver Kite archive is described as the parents' shared trail instead of inconsistently calling it only the father's account.
+- Chapter 6 now hands off to the Chapter 7 entry after a short pause, while developer snapshots receive the same entry immediately.
+- Static verification passed: focused tests 12/12 and full tests 203/203 in both the active worktree and the latest integrated delivery, TypeScript lint, production build, and clean diff checks; Browser and Preview remain intentionally unused.
+
+## 2026-07-23 — Chapter 7 collected-number mapping puzzle
+
+- Replaced the separate `Remember this place` controls with underlined, clickable `184`, `40`, and `256` fragments embedded directly in Mara's FaceSpace post text; collected fragments remain visibly marked in place.
+- Split the archive gate into three persistent stages: collect all three numbers, assign them to `ALT`, `GATE`, and `END`, then manually type the coordinate password.
+- Collecting all three numbers no longer unlocks the password field. Only a correct mapping sets `unlockedAdminLogin`; the password is never auto-filled.
+- Before collection, the archive shows a locked fragment counter. Developer Chapter 7 previews retain direct password access for testing without weakening the normal player path.
+- Static verification passed: focused tests 25/25 and full tests 204/204 in both worktrees, TypeScript lint, production build, and clean diff checks; Browser and Preview remain intentionally unused.
+
+## 2026-07-23 — Recorded Chapter 9 ARC_184 memory-route design
+
+- Added the Chapter 9–10 handoff to the North Star GDD without implementing runtime behavior yet.
+- Noah's authenticated guidance mode places one silent route point in every pre-40 section; the player must personally collect the complete chain, and missing any point leaves Gate 40 impassable.
+- Once the chain is complete, Arcane takes control at Gate 40. Player input becomes inert while the Meta finger visibly performs the taps, distinguishing protagonist agency from an ordinary autoplay video.
+- The autonomous run restores Arcane's childhood memory at 184 and cross-checks that he was the real `ARC_184`, then continues to 256 so the ending is not gated behind two hundred additional execution checks.
+- The existing final height `0` remains intact, but Arcane performs it during the autonomous run before the completion screen and ending choice.

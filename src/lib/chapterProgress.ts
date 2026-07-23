@@ -1,4 +1,5 @@
 import type { ActiveApp, GameProgress, PuzzleChapter } from '../types';
+import { hasAllMaraNumberClues } from './chapterSevenSocial';
 
 export type ProgressionAction =
   | 'viewtube-arc-search'
@@ -51,22 +52,21 @@ const CHAPTER_ADVANCE_GUIDES: Record<PuzzleChapter, ChapterAdvanceGuide> = {
     nextLabel: 'CHAPTER 04',
     objective: 'Obtain a Lumen Arc that can run the archived build.',
     steps: [
-      'Open AmazeMart and search for Lumen Arc.',
-      'Open the recalled-device listing.',
-      'Buy the device and wait for the delivery to finish.',
+      'Search AmazeMart for Lumen Arc, then scroll to and expand the suppressed seller.',
+      'Accept the scam warning, open Messages, and reply to coldboot_17 with ARC_184\'s impossible score: 184.',
     ],
-    completion: 'The delivery arrives and unlocks the screenshot bundle.',
+    completion: 'The accepted score reply delivers and unlocks the screenshot bundle.',
   },
   4: {
     chapter: 4,
     nextLabel: 'CHAPTER 05',
     objective: 'Identify the original game and its developer.',
     steps: [
-      'Open the newly unlocked Screenshots app.',
-      'Select and enlarge the first printed screenshot.',
-      'Read the old title and the SilverKite_Games account name.',
+      'Open Deliveries and inspect the signed purchase history.',
+      'Find the Lumen Arc Recovery Lot, then open its image packet.',
+      'Collect all three key details hidden across the attached screenshots.',
     ],
-    completion: 'SKG: Skyline 256 is identified.',
+    completion: 'The three details assemble the Skyline 256 case.',
   },
   5: {
     chapter: 5,
@@ -76,41 +76,47 @@ const CHAPTER_ADVANCE_GUIDES: Record<PuzzleChapter, ChapterAdvanceGuide> = {
       'Open Browser and search for SKG.',
       'Review the current SKG Automation page.',
       'Switch the Snapshot control from 2026 to 2014.',
+      'Find and select all three highlighted Noah Kade references in the preserved page body.',
     ],
-    completion: 'The Silver Kite Games archive and Noah Kade are revealed.',
+    completion: 'All three Noah Kade references in the Silver Kite Games archive are recovered.',
   },
   6: {
     chapter: 6,
     nextLabel: 'CHAPTER 07',
-    objective: 'Find Noah Kade\'s earliest surviving posts.',
+    objective: 'Connect Noah Kade\'s oldest posts to the restored phone owner.',
     steps: [
       'Open FaceSpace and search for Noah Kade.',
-      'Open his profile results.',
-      'Change the post order to Oldest First.',
+      'Change the noisy sponsored timeline to Oldest First.',
+      'Read down through the early hopeful posts and expand their comments.',
+      'Select Mara Kade\'s comment in the eighth oldest post.',
+      'Return Home, swipe to the second page, and open Arcane Kade\'s linked accounts.',
+      'Confirm the related Mara Kade account.',
     ],
-    completion: 'Mara\'s old comment and the family connection are found.',
+    completion: 'Arcane confirms that Mara Kade is the mother linked to this restored profile.',
   },
   7: {
     chapter: 7,
     nextLabel: 'CHAPTER 08',
-    objective: 'Turn Noah\'s favorite numbers into an archive key.',
+    objective: 'Recover Mara\'s three favorite numbers and enter her preserved account.',
     steps: [
-      'Open Noah Kade\'s About tab in FaceSpace.',
-      'Find the number sequence 184-40-256.',
-      'Open Messages, return to Mom, and select ASSEMBLE COORDINATE KEY.',
+      'Open FaceSpace and use Recently viewed to open Mara Kade.',
+      'Read her timeline and select the three posts that preserve a coordinate value.',
+      'Return to Messages and open SILVER_KITE_ARCHIVE.',
+      'Use the coordinate hint to enter Mara\'s archive password.',
     ],
-    completion: 'The Silver Kite archive login is unlocked.',
+    completion: 'Mara\'s preserved Silver Kite account accepts the coordinate password.',
   },
   8: {
     chapter: 8,
     nextLabel: 'CHAPTER 09',
-    objective: 'Log in to Mara\'s preserved Silver Kite account.',
+    objective: 'Learn Mara\'s life and restore the damaged human record she kept with Noah.',
     steps: [
       'Open Messages and select SILVER_KITE_ARCHIVE.',
-      'Enter ALT184GATE40END256 as the coordinate password.',
-      'Submit the archive login form.',
+      'Read Mara\'s eight ordinary conversations and collect the underlined memory in each.',
+      'Open the damaged Noah thread at the bottom of the archive.',
+      'Use the recovered-memory drawer to restore all eight missing messages.',
     ],
-    completion: 'The private 2014 message archive opens.',
+    completion: 'The human conversation is restored; its flight-sequence attachment remains locked for Chapter 9.',
   },
   9: {
     chapter: 9,
@@ -146,6 +152,9 @@ type ChapterEvidence = Partial<Pick<GameProgress,
   | 'discoveredSKGHistory'
   | 'discoveredNoahQA'
   | 'discoveredMotherComment'
+  | 'discoveredMaraAltitude184'
+  | 'discoveredMaraGate40'
+  | 'discoveredMaraEnd256'
   | 'unlockedAdminLogin'
   | 'loggedIntoAdmin'
   | 'unlockedCodeRoute'
@@ -154,7 +163,7 @@ type ChapterEvidence = Partial<Pick<GameProgress,
 const BASE_PROGRESS: GameProgress = {
   currentChapter: 1,
   phase: 'os_unlocked',
-  deathsAt40: 2,
+  deathsAt40: 1,
   seenLeaderboard: true,
   bestScore: 40,
   viewTubeSearchedArc: false,
@@ -166,8 +175,13 @@ const BASE_PROGRESS: GameProgress = {
   discoveredSKGHistory: false,
   discoveredNoahQA: false,
   discoveredMotherComment: false,
+  discoveredMaraAltitude184: false,
+  discoveredMaraGate40: false,
+  discoveredMaraEnd256: false,
   unlockedAdminLogin: false,
   loggedIntoAdmin: false,
+  chapterEightMemoryIds: [],
+  chapterEightRestoredMessageIds: [],
   unlockedCodeRoute: false,
   completedGame: false,
   selectedEnding: null,
@@ -180,8 +194,8 @@ export const DEBUG_CHAPTERS: readonly DebugChapter[] = [
   { id: 4, shortTitle: '解讀 SKG', title: '謎題 4：解讀 SKG', description: '收到的截圖揭露舊名稱與 SilverKite_Games。', targetApp: 'screenshots' },
   { id: 5, shortTitle: '被覆蓋的公司', title: '謎題 5：被機器覆蓋的公司', description: '回溯 SKG Automation，追查被覆蓋的公司歷史。', targetApp: 'browser' },
   { id: 6, shortTitle: '開發者帳號', title: '謎題 6：開發者的社群帳號', description: 'Silver Kite Games 的舊資料指向設計師 Noah Kade。', targetApp: 'social' },
-  { id: 7, shortTitle: '最喜歡的數字', title: '謎題 7：最喜歡的數字', description: 'Noah 的舊 Q&A 與 Mara 的訊息留下數字線索。', targetApp: 'social' },
-  { id: 8, shortTitle: '登入舊帳號', title: '謎題 8：登入母親的舊帳號', description: '把數字理解為 ALT、GATE 與 END，而不是分數。', targetApp: 'messages' },
+  { id: 7, shortTitle: '最喜歡的數字', title: '謎題 7：最喜歡的數字', description: 'Mara 的生活貼文分別留下三個座標數字。', targetApp: 'social' },
+  { id: 8, shortTitle: '尋回母親', title: '謎題 8：母親的舊帳號', description: '從 Mara 的生活對話尋回記憶，修復她與 Noah 的損壞訊息。', targetApp: 'messages' },
   { id: 9, shortTitle: '母親與 Noah', title: '謎題 9：母親與 Noah 的對話', description: '登入舊帳號，讀取關於最後更新與秘密路線的對話。', targetApp: 'messages' },
   { id: 10, shortTitle: '名字中的路線', title: '謎題 10：找到名字中的路線', description: '從開發者帳號辨識八個高度，準備返回遊戲驗證。', targetApp: 'flappy' },
 ] as const;
@@ -194,9 +208,9 @@ const CHAPTER_OVERRIDES: Record<PuzzleChapter, Partial<GameProgress>> = {
   5: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true },
   6: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true },
   7: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredMotherComment: true },
-  8: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true, unlockedAdminLogin: true },
-  9: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true, unlockedAdminLogin: true, loggedIntoAdmin: true },
-  10: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true, unlockedAdminLogin: true, loggedIntoAdmin: true, unlockedCodeRoute: true },
+  8: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true, discoveredMaraAltitude184: true, discoveredMaraGate40: true, discoveredMaraEnd256: true, unlockedAdminLogin: true, loggedIntoAdmin: true },
+  9: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true, discoveredMaraAltitude184: true, discoveredMaraGate40: true, discoveredMaraEnd256: true, unlockedAdminLogin: true, loggedIntoAdmin: true },
+  10: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true, discoveredMaraAltitude184: true, discoveredMaraGate40: true, discoveredMaraEnd256: true, unlockedAdminLogin: true, loggedIntoAdmin: true, unlockedCodeRoute: true },
 };
 
 export function getChapterById(chapter: PuzzleChapter): DebugChapter {
@@ -242,7 +256,7 @@ export function canUseProgressionAction(action: ProgressionAction, progress: Gam
     'amazemart-lumen-search': progress.watchedVideo,
     'browser-skg-history': progress.discoveredOriginalTitle,
     'social-noah-search': progress.discoveredSKGHistory,
-    'admin-login': progress.unlockedAdminLogin,
+    'admin-login': hasAllMaraNumberClues(progress) && progress.unlockedAdminLogin,
   };
 
   return requirements[action];

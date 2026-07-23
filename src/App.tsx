@@ -31,12 +31,19 @@ const INITIAL_PROGRESS: GameProgress = {
   discoveredSKGHistory: false,
   discoveredNoahQA: false,
   discoveredMotherComment: false,
+  discoveredMaraAltitude184: false,
+  discoveredMaraGate40: false,
+  discoveredMaraEnd256: false,
   unlockedAdminLogin: false,
   loggedIntoAdmin: false,
+  chapterEightMemoryIds: [],
+  chapterEightRestoredMessageIds: [],
   unlockedCodeRoute: false,
   completedGame: false,
   selectedEnding: null,
 };
+
+const FULLSCREEN_ONLY_STORAGE_KEY = 'skg.fullscreenOnly';
 
 export default function App() {
   const [progress, setProgress] = useState<GameProgress>(INITIAL_PROGRESS);
@@ -47,6 +54,10 @@ export default function App() {
   const [screenContrast, setScreenContrast] = useState(1);
   const [cameraPitchEnabled, setCameraPitchEnabled] = useState(true);
   const [postureControlEnabled, setPostureControlEnabled] = useState(true);
+  const [fullscreenOnly, setFullscreenOnly] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.localStorage.getItem(FULLSCREEN_ONLY_STORAGE_KEY) === 'true';
+  });
   const [deskLamp, setDeskLamp] = useState(true);
   const [metaViewActive, setMetaViewActive] = useState(() => {
     if (typeof window === 'undefined') return false;
@@ -81,6 +92,10 @@ export default function App() {
 
   useEffect(() => audio.armUnlock(), []);
 
+  useEffect(() => {
+    window.localStorage.setItem(FULLSCREEN_ONLY_STORAGE_KEY, String(fullscreenOnly));
+  }, [fullscreenOnly]);
+
   const jumpToChapter = (chapter: PuzzleChapter) => {
     const chapterInfo = getChapterById(chapter);
     setProgress(getChapterSnapshot(chapter));
@@ -89,7 +104,7 @@ export default function App() {
     audio.playUnlock();
   };
 
-  const handleLeaderboardOpened = () => {
+  const handleSuspiciousRunSelected = () => {
     if (shouldRevealMetaView(progress.deathsAt40, true)) {
       setMetaViewActive(true);
       setProgress((previous) => ({ ...previous, phase: 'os_unlocked' }));
@@ -174,7 +189,9 @@ export default function App() {
   };
 
   const chapterAdvanceGuide = getChapterAdvanceGuide(progress.currentChapter);
-  const metaSceneActive = shouldShowMetaScene(metaViewActive, debugMode, progress.phase);
+  // Fullscreen-only is a player-owned safety override. Meta may remain unlocked
+  // underneath, but its projected camera and input relay are completely bypassed.
+  const metaSceneActive = !fullscreenOnly && shouldShowMetaScene(metaViewActive, debugMode, progress.phase);
 
   return (
     <div className={`h-screen w-full flex flex-col md:flex-row relative overflow-hidden transition-all duration-700 ${
@@ -343,13 +360,14 @@ export default function App() {
             isMuted={isMuted}
             immersiveIntro={!metaSceneActive}
             debugTargetApp={debugTargetApp}
-            onLeaderboardOpened={handleLeaderboardOpened}
+            onSuspiciousRunSelected={handleSuspiciousRunSelected}
             soundVolume={soundVolume}
             musicVolume={musicVolume}
             screenBrightness={screenBrightness}
             screenContrast={screenContrast}
             cameraPitchEnabled={cameraPitchEnabled}
             postureControlEnabled={postureControlEnabled}
+            fullscreenOnly={fullscreenOnly}
             developerToolsOpen={debugMode}
             onSoundVolumeChange={setSoundVolume}
             onMusicVolumeChange={setMusicVolume}
@@ -357,6 +375,7 @@ export default function App() {
             onScreenContrastChange={setScreenContrast}
             onCameraPitchEnabledChange={setCameraPitchEnabled}
             onPostureControlEnabledChange={setPostureControlEnabled}
+            onFullscreenOnlyChange={setFullscreenOnly}
             onOpenDeveloperTools={openDeveloperTools}
             onRestartCurrentChapter={restartCurrentChapter}
             onRestartLoop={restartLoop}
