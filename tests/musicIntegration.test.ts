@@ -56,3 +56,13 @@ test('every track fades and repeats only after a short silent gap', () => {
   assert.match(musicSource, /}, MUSIC_LOOP_GAP_MS\)/);
   assert.match(musicSource, /phase === this\.currentPhase/);
 });
+
+test('the title logo suppresses only background music while it is mounted', () => {
+  const logoSource = readFileSync(new URL('../src/components/GameLogoIntro.tsx', import.meta.url), 'utf8');
+  const musicSource = readFileSync(new URL('../src/lib/music.ts', import.meta.url), 'utf8');
+
+  assert.match(logoSource, /music\.setSuppressed\(true\)/);
+  assert.match(logoSource, /return \(\) => music\.setSuppressed\(false\)/);
+  assert.match(musicSource, /private suppressed = false/);
+  assert.match(musicSource, /this\.current\.muted = this\.muted \|\| this\.suppressed/);
+});

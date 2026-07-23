@@ -33,6 +33,7 @@ class MusicManager {
   private current: HTMLAudioElement | null = null;
   private currentPhase: MusicPhase | null = null;
   private muted = false;
+  private suppressed = false;
   private fadeTimer: number | null = null;
   private loopGapTimer: number | null = null;
   private loopFading = false;
@@ -51,7 +52,7 @@ class MusicManager {
     const next = new Audio(MUSIC_TRACKS[phase]);
     next.loop = false;
     next.preload = 'auto';
-    next.muted = this.muted;
+    next.muted = this.muted || this.suppressed;
     next.volume = 0;
 
     this.current = next;
@@ -71,8 +72,15 @@ class MusicManager {
   setMuted(muted: boolean) {
     this.muted = muted;
     if (!this.current) return;
-    this.current.muted = muted;
-    if (!muted && !this.inLoopGap) this.tryPlay(this.current);
+    this.current.muted = this.muted || this.suppressed;
+    if (!this.current.muted && !this.inLoopGap) this.tryPlay(this.current);
+  }
+
+  setSuppressed(suppressed: boolean) {
+    this.suppressed = suppressed;
+    if (!this.current) return;
+    this.current.muted = this.muted || this.suppressed;
+    if (!this.current.muted && !this.inLoopGap) this.tryPlay(this.current);
   }
 
   setVolume(volume: number) {

@@ -1,6 +1,7 @@
 import React, { useLayoutEffect, useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import audio from '../lib/audio';
+import music from '../lib/music';
 import { useReducedMotion } from '../lib/useReducedMotion';
 
 /**
@@ -40,7 +41,7 @@ const LOGO_TEXT: React.CSSProperties = {
 
 type Phase = 'idle' | 'split' | 'collide' | 'burst' | 'center' | 'ready';
 
-const SEQ = { collide: 650, burst: 950, center: 1300, ready: 1650 } as const;
+const SEQ = { collide: 650, burst: 950, center: 2000, ready: 2350 } as const;
 const Y = { split: 0.78, near: 0.16, final: 0.98 } as const;
 
 interface LogoLineProps {
@@ -172,6 +173,11 @@ export const GameLogoIntro: React.FC<{
     setPhase('center');
     push(() => setPhase('ready'), 350);
   };
+
+  useLayoutEffect(() => {
+    music.setSuppressed(true);
+    return () => music.setSuppressed(false);
+  }, []);
 
   useEffect(() => () => clearTimers(), []);
 
