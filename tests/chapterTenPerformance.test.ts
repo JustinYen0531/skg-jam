@@ -3,6 +3,8 @@ import test from 'node:test';
 import { readFileSync } from 'node:fs';
 import {
   PERFORMANCE_CONFIG,
+  PERFORMANCE_PIPE_SPACING_FRAMES,
+  PERFORMANCE_SPEED_MULTIPLIER,
   buildPerformanceRoute,
   computePerformance,
   computePerformancePlan,
@@ -13,6 +15,7 @@ import {
   type PerformanceObstacle,
 } from '../src/lib/chapterTenPerformance';
 import { CHAPTER_TEN_NODES } from '../src/lib/chapterTenFlight';
+import { EASY_FLAPPY_SETTINGS } from '../src/lib/flappyPhysics';
 
 const plan = computePerformancePlan();
 
@@ -90,6 +93,29 @@ test('the run threads all seven phases and maps its beats onto the score nodes',
   assert.ok(Math.min(...scores) <= 184 && Math.max(...scores) >= 184, 'record-climb spans score 184');
 });
 
+test('the performance pipe cadence stays at or below 1.2x the player flight', () => {
+  const normalPipeDistance =
+    EASY_FLAPPY_SETTINGS.pipeSpeed * EASY_FLAPPY_SETTINGS.spawnIntervalFrames;
+  const performedPipeDistance =
+    PERFORMANCE_CONFIG.worldSpeed * PERFORMANCE_PIPE_SPACING_FRAMES;
+  const passageRate =
+    EASY_FLAPPY_SETTINGS.spawnIntervalFrames / PERFORMANCE_PIPE_SPACING_FRAMES;
+  const frameAt184 = Array.from(
+    { length: PERFORMANCE_CONFIG.frames + 1 },
+    (_, frame) => frame,
+  ).find((frame) => performanceScoreAtFrame(frame, PERFORMANCE_CONFIG) >= 184);
+  const normalFramesTo184 =
+    ((184 - CHAPTER_TEN_NODES.takeover) / 2) * EASY_FLAPPY_SETTINGS.spawnIntervalFrames;
+
+  assert.equal(PERFORMANCE_SPEED_MULTIPLIER, 1.2);
+  assert.equal(PERFORMANCE_CONFIG.worldSpeed, EASY_FLAPPY_SETTINGS.pipeSpeed * 1.2);
+  assert.ok(performedPipeDistance >= normalPipeDistance);
+  assert.ok(passageRate <= 1.2);
+  assert.ok(passageRate >= 1.15);
+  assert.ok(frameAt184 !== undefined);
+  assert.ok(normalFramesTo184 / (frameAt184 as number) <= 1.2);
+});
+
 test('rebuilding the route around the trajectory is what guarantees a clear run', () => {
   const { inputs, samples } = computePerformance();
   const obstacles = buildPerformanceRoute(samples);
@@ -114,4 +140,12 @@ test('the score-42 performance layer keeps the restored arcade palette', () => {
   assert.match(source, /PIPE_EDGE = '#2d6f32'/);
   assert.match(source, /2013 mobile game/);
   assert.doesNotMatch(source, /#3f6d63|#8fd0bf|CRT|terminal HUD|JetBrains Mono/);
+});
+
+test('pipe lip spikes point out of the pipe bodies and into the flight gap', () => {
+  const source = readFileSync(new URL('../src/components/chapterTenPerformanceCanvas.ts', import.meta.url), 'utf8');
+  assert.match(source, /PIPE_TOP_GAP_SPIKE_HEIGHT = -8/);
+  assert.match(source, /PIPE_BOTTOM_GAP_SPIKE_HEIGHT = 8/);
+  assert.match(source, /top, 5, PIPE_TOP_GAP_SPIKE_HEIGHT/);
+  assert.match(source, /bottom, 5, PIPE_BOTTOM_GAP_SPIKE_HEIGHT/);
 });

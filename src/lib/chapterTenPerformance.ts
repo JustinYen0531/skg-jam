@@ -26,6 +26,7 @@
  */
 
 import { CHAPTER_TEN_NODES } from './chapterTenFlight';
+import { EASY_FLAPPY_SETTINGS } from './flappyPhysics';
 
 export interface PerformanceConfig {
   canvasHeight: number;
@@ -40,15 +41,31 @@ export interface PerformanceConfig {
   frames: number;
 }
 
+export const PERFORMANCE_SPEED_MULTIPLIER = 1.2;
+
+const PLAYER_PIPE_DISTANCE =
+  EASY_FLAPPY_SETTINGS.pipeSpeed * EASY_FLAPPY_SETTINGS.spawnIntervalFrames;
+
+/**
+ * Keep each performed pipe roughly one normal pipe-distance apart. Rounding up
+ * ensures the discrete frame cadence never exceeds the requested 1.2x pace.
+ */
+export const PERFORMANCE_PIPE_SPACING_FRAMES = Math.ceil(
+  PLAYER_PIPE_DISTANCE / (EASY_FLAPPY_SETTINGS.pipeSpeed * PERFORMANCE_SPEED_MULTIPLIER),
+);
+
+const PERFORMANCE_SCORE_STEPS =
+  (CHAPTER_TEN_NODES.terminal - CHAPTER_TEN_NODES.takeover) / 2;
+
 export const PERFORMANCE_CONFIG: PerformanceConfig = {
   canvasHeight: 320,
   birdRadius: 12,
   gravity: 0.62,
   tapImpulse: 7.4,
   maxFall: 9.2,
-  worldSpeed: 5,
+  worldSpeed: EASY_FLAPPY_SETTINGS.pipeSpeed * PERFORMANCE_SPEED_MULTIPLIER,
   birdX: 80,
-  frames: 1500,
+  frames: PERFORMANCE_SCORE_STEPS * PERFORMANCE_PIPE_SPACING_FRAMES,
 };
 
 export interface PerformanceInputs {
@@ -340,7 +357,7 @@ export const buildPerformanceRoute = (
   // Tight tracking pipes on a steady cadence. The opening hugs Arcane's height
   // *range* over the crossing; the extra margin tightens through the run.
   const pipeHalf = pipeFrameHalfWidth(config);
-  const pipeSpacingFrames = 26;
+  const pipeSpacingFrames = PERFORMANCE_PIPE_SPACING_FRAMES;
   for (let frame = 40; frame <= config.frames - 20; frame += pipeSpacingFrames) {
     const { minY, maxY } = birdRangeOver(samples, frame, pipeHalf);
     const t = frame / config.frames;
@@ -367,7 +384,8 @@ export const buildPerformanceRoute = (
   // over their window, so they crowd the screen without touching his line.
   const spikeRadius = 9;
   const spikeHalf = pointFrameHalfWidth(spikeRadius, config);
-  for (let frame = 55; frame <= config.frames - 30; frame += 19) {
+  const floatingSpikeSpacingFrames = Math.round(PERFORMANCE_PIPE_SPACING_FRAMES * 0.74);
+  for (let frame = 55; frame <= config.frames - 30; frame += floatingSpikeSpacingFrames) {
     const { minY, maxY } = birdRangeOver(samples, frame, spikeHalf);
     const centre = (minY + maxY) / 2;
     const clear = r + spikeRadius + 10;
@@ -385,7 +403,8 @@ export const buildPerformanceRoute = (
   // stopping short of his whole range over the strike window.
   const ambushRadius = 12;
   const ambushHalf = pointFrameHalfWidth(ambushRadius, config);
-  for (let frame = 120; frame <= config.frames - 40; frame += 63) {
+  const ambushSpacingFrames = Math.round(PERFORMANCE_PIPE_SPACING_FRAMES * 2.42);
+  for (let frame = 120; frame <= config.frames - 40; frame += ambushSpacingFrames) {
     const { minY, maxY } = birdRangeOver(samples, frame, ambushHalf);
     const distTop = minY - r;
     const distBottom = H - r - maxY;

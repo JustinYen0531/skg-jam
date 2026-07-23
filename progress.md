@@ -1,5 +1,14 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-24 — Chapter 10 readable performance pace and outward pipe spikes
+
+- Corrected both pipe-lip spike rows: upper spikes now extend down into the flight gap and lower spikes extend up into it, rather than disappearing into the solid pipe bodies.
+- Derived the performance pace from the player route's 192px pipe distance instead of the former arbitrary 26-frame cadence.
+- Arcane's world scroll is exactly 1.2x the player speed; integer pipe spacing rounds up to 34 frames, making the actual passage rate about 1.18x rather than the former 1.54x.
+- Score 42–256 now advances one two-point step per performed pipe interval, giving score 40–184 enough time to remain readable.
+- Floating-spike and ambush intervals scale with the slower pipe cadence so the spectacle does not retain an unrelated rapid-fire layer.
+- Browser and Preview remain intentionally unused by project instruction.
+
 ## 2026-07-24 — Chapter 10 paused Meta takeover
 
 - Gate 40 now freezes on a visible retro `PAUSED` frame instead of launching Arcane's performance in the same update.

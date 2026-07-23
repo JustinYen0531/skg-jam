@@ -20,6 +20,8 @@ const SPIKE_EDGE = '#7e3025';
 const PORTAL = '#f1c84b';
 const AMBUSH = '#c84a2f';
 const AMBUSH_EDGE = '#78281f';
+export const PIPE_TOP_GAP_SPIKE_HEIGHT = -8;
+export const PIPE_BOTTOM_GAP_SPIKE_HEIGHT = 8;
 
 const drawSpikeTri = (
   ctx: CanvasRenderingContext2D,
@@ -70,12 +72,16 @@ const drawPipe = (
   }
 
   if (obs.spiked) {
-    // Spikes on the inner lips, pointing into the gap — dangerous look only.
+    // Both rows grow away from the solid pipe body and into the open flight gap.
     const spikes = 4;
     for (let i = 0; i < spikes; i += 1) {
       const sx = x + 7 + i * ((PIPE_WIDTH - 14) / (spikes - 1));
-      if (top > 0) drawSpikeTri(ctx, sx, top, 5, 8, SPIKE, SPIKE_EDGE);
-      if (bottom < height) drawSpikeTri(ctx, sx, bottom, 5, -8, SPIKE, SPIKE_EDGE);
+      if (top > 0) {
+        drawSpikeTri(ctx, sx, top, 5, PIPE_TOP_GAP_SPIKE_HEIGHT, SPIKE, SPIKE_EDGE);
+      }
+      if (bottom < height) {
+        drawSpikeTri(ctx, sx, bottom, 5, PIPE_BOTTOM_GAP_SPIKE_HEIGHT, SPIKE, SPIKE_EDGE);
+      }
     }
   }
   ctx.restore();
