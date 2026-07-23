@@ -33,6 +33,13 @@ import {
   getPeelStage,
 } from '../src/lib/chapterTenVisualPhases';
 import { GATE_40_INDEX, getGateHeights, getGateOpeningBounds } from '../src/lib/flappyPhysics';
+import {
+  ARCANE_FLIGHT_REFLECTIONS,
+  CHAPTER_TEN_FLIGHT_CREDITS,
+  getCompletionScoreAtFrame,
+  getFlightCreditsAtScore,
+  NOAH_FINAL_TRANSMISSION,
+} from '../src/lib/chapterTenCredits';
 
 const CANVAS_HEIGHT = 320;
 const BIRD_RADIUS = 12;
@@ -347,7 +354,7 @@ test('the live Chapter 10 renderer keeps the memory, terminal and finish beats',
   assert.match(source, /CHAPTER_TEN_MEMORY_LINES/);
   assert.match(source, /CHAPTER_TEN_TERMINAL_LABEL/);
   assert.match(source, /CHAPTER_TEN_COMPLETE_LINES/);
-  assert.match(source, /CHAPTER_TEN_SCORE_OVERFLOW/);
+  assert.match(source, /getCompletionScoreAtFrame/);
   assert.match(source, /distanceToEnd/);
 });
 
@@ -360,11 +367,39 @@ test('Meta input is blocked while Arcane owns the flight', () => {
   assert.match(source, /if \(autonomousTappingRef\.current\)/);
 });
 
-test('Chapter 10 keeps Arcane terse: one takeover line, then only typing dots', () => {
+test('Chapter 10 lets Arcane reflect before 184 and starts Finale only after it', () => {
   const source = readFileSync(new URL('../src/components/FlappyGame.tsx', import.meta.url), 'utf8');
   assert.match(source, /speak\(\['My turn\.'\]\)/);
-  assert.match(source, /speak\(\['\.\.\.'\]\)/);
   assert.match(source, /chapterTenTakeoverSpoken/);
-  assert.match(source, /chapterTenMemoryDotsSpoken/);
-  assert.match(source, /chapterTenTerminalDotsSpoken/);
+  assert.match(source, /ARCANE_FLIGHT_REFLECTIONS/);
+  assert.match(source, /CHAPTER_TEN_NODES\.distanceHudFrom/);
+  assert.match(source, /music\.playFinaleOnce\(\)/);
+  assert.equal(ARCANE_FLIGHT_REFLECTIONS.length, 5);
+  assert.ok(ARCANE_FLIGHT_REFLECTIONS.every((reflection) => reflection.score > 40 && reflection.score < 184));
+});
+
+test('flight credits stay sparse, leave 184 clear, and continue after the reveal', () => {
+  assert.ok(CHAPTER_TEN_FLIGHT_CREDITS.some((credit) => credit.startScore < 184));
+  assert.ok(CHAPTER_TEN_FLIGHT_CREDITS.some((credit) => credit.startScore > 184));
+  assert.deepEqual(getFlightCreditsAtScore(184), []);
+  for (let score = 40; score <= 256; score += 1) {
+    assert.ok(getFlightCreditsAtScore(score).length <= 1, `score ${score} stays readable`);
+  }
+});
+
+test('completion score climbs to the unsigned ceiling and then overflows at once', () => {
+  assert.equal(getCompletionScoreAtFrame(0), 256);
+  assert.equal(getCompletionScoreAtFrame(24), 256);
+  assert.ok(getCompletionScoreAtFrame(80) > 256);
+  assert.ok(getCompletionScoreAtFrame(143) < 65535);
+  assert.equal(getCompletionScoreAtFrame(144), 65535);
+  assert.equal(getCompletionScoreAtFrame(156), -65535);
+});
+
+test('Noah final transmission closes established canon without adding another puzzle', () => {
+  const message = NOAH_FINAL_TRANSMISSION.join(' ');
+  assert.match(message, /184, 40, and 256/);
+  assert.match(message, /counter overflowed/);
+  assert.match(message, /Devices stop working/);
+  assert.match(message, /You reached the end/);
 });

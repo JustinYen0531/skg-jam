@@ -921,3 +921,12 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Chapter 10 focused verification passed 24/24 and diff checks passed. The complete runtime worktree production build also passed.
 - Full-project lint/test remain blocked by the pre-existing undefined `NOAH_ARCHIVE_FRAGMENTS` reference in `src/lib/chapterProgress.test.ts`; this iteration deliberately did not modify that unrelated test.
 - Browser and Preview remain intentionally unused by project instruction.
+
+## 2026-07-24 — Chapter 10 in-flight credits and Finale tail
+
+- Added five short Arcane reflections between Gate 40 and score 184, with sparse archival acknowledgements travelling through the canvas.
+- Score 184 clears the acknowledgements for the identity match. Score 185 starts `Phase 10 (Finale).mp3` once, without looping.
+- The 256 completion readout now holds at 256, visibly climbs to 65535, and then overflows instantly to -65535.
+- The remaining song runtime carries Noah's final transmission and corrected canonical credits; the final-choice button stays unavailable until the song ends.
+- Verification passed: Chapter 10 and music integration tests 32/32; complete runtime tests 255/255; TypeScript lint, production build, and diff checks all passed.
+- Browser and Preview remain intentionally unused by project instruction.

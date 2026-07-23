@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { GameProgress, ActiveApp } from '../types';
 import audio from '../lib/audio';
+import music from '../lib/music';
 import { EASY_FLAPPY_SETTINGS, FlappyDeathCause, GATE_40_INDEX, getCheapTelemetry, getFlappyNightMix, getGateHeights, getGateSpawnX, getGateVisualStyle, getScoreAfterPassingGate, nextGate40DeathCount, resolvePipeCollision } from '../lib/flappyPhysics';
 import { calculateBeatPercentage, createPublicLeaderboard } from '../lib/leaderboard';
 import { RefreshCw, Play, Volume2, VolumeX, CheckCircle, Zap, Crown, Sparkles, Rocket, Brain, Activity } from 'lucide-react';
@@ -22,12 +23,16 @@ import {
   drawChapterTenBeat,
   drawChapterTenBird,
   drawChapterTenComplete,
+  drawChapterTenFlightCredits,
   drawChapterTenHud,
   drawChapterTenPipe,
   drawChapterTenRoutePoint,
   drawChapterTenWorld,
 } from './chapterTenCanvas';
 import { useMetaInteraction } from './MetaInteractionScene';
+import {
+  ARCANE_FLIGHT_REFLECTIONS,
+} from '../lib/chapterTenCredits';
 
 interface FlappyGameProps {
   progress: GameProgress;
@@ -94,6 +99,8 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
     chapterTenTakeoverSpoken: false,
     chapterTenMemoryDotsSpoken: false,
     chapterTenTerminalDotsSpoken: false,
+    chapterTenReflectionIndex: 0,
+    chapterTenFinaleStarted: false,
   });
 
   const resetGame = () => {
@@ -129,8 +136,11 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
       chapterTenTakeoverSpoken: false,
       chapterTenMemoryDotsSpoken: false,
       chapterTenTerminalDotsSpoken: false,
+      chapterTenReflectionIndex: 0,
+      chapterTenFinaleStarted: false,
     };
     endAutonomousControl();
+    if (chapterTenActive) music.setPhase(10);
     setScore(0);
     setSeqIndex(0);
     setSeqMatched(new Array(8).fill(false));
@@ -377,6 +387,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
             state.chapterTenCompleteFrames += 1;
             if (state.chapterTenCompleteFrames >= 180) triggerCompletion();
           } else {
+            const previousFlightScore = state.chapterTenFlight.score;
             const flightStep = stepFlight(state.chapterTenFlight, {
               canvasHeight: height,
               birdRadius: 12,
@@ -393,6 +404,23 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
             state.birdVelocity = flightStep.state.velocityY;
             state.score = flightStep.state.score;
             setScore(state.score);
+            const reflection = ARCANE_FLIGHT_REFLECTIONS[state.chapterTenReflectionIndex];
+            if (
+              reflection
+              && previousFlightScore < reflection.score
+              && state.score >= reflection.score
+            ) {
+              speak([...reflection.lines]);
+              state.chapterTenReflectionIndex += 1;
+            }
+            if (
+              !state.chapterTenFinaleStarted
+              && previousFlightScore < CHAPTER_TEN_NODES.distanceHudFrom
+              && state.score >= CHAPTER_TEN_NODES.distanceHudFrom
+            ) {
+              state.chapterTenFinaleStarted = true;
+              music.playFinaleOnce();
+            }
             setCurrentAlt(Math.max(0, Math.min(256, Math.round(((height - state.birdY) / height) * 256))));
             if (flightStep.events.includes('flap')) {
               state.lastJumpFrame = state.frameCount;
@@ -986,6 +1014,13 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
           state.chapterTenPhase,
           state.score,
           state.chapterTenBeatFrames,
+        );
+        drawChapterTenFlightCredits(
+          ctx,
+          width,
+          height,
+          state.score,
+          state.frameCount,
         );
         if (state.chapterTenFlight.completed) {
           drawChapterTenComplete(ctx, width, height, state.chapterTenCompleteFrames);

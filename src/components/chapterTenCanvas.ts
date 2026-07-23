@@ -1,5 +1,4 @@
 import {
-  CHAPTER_TEN_SCORE_OVERFLOW,
   distanceToEnd,
   type ChapterTenPhase,
   type RoutePoint,
@@ -17,6 +16,10 @@ import {
   getShellOpacity,
   getTerminalDrain,
 } from '../lib/chapterTenVisualPhases';
+import {
+  getCompletionScoreAtFrame,
+  getFlightCreditsAtScore,
+} from '../lib/chapterTenCredits';
 
 interface PipeShape {
   x: number;
@@ -173,6 +176,30 @@ export const drawChapterTenBeat = (
   }
 };
 
+export const drawChapterTenFlightCredits = (
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+  score: number,
+  frame: number,
+): void => {
+  if (score === 184) return;
+  const credits = getFlightCreditsAtScore(score);
+  credits.forEach((credit) => {
+    const span = Math.max(1, credit.endScore - credit.startScore);
+    const progress = (score - credit.startScore) / span;
+    const edgeFade = Math.min(1, progress * 5, (1 - progress) * 5);
+    const x = width + 80 - progress * (width + 300) - (frame % 8);
+    const y = credit.lane === 'upper' ? height * 0.22 : height * 0.82;
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, edgeFade) * 0.58;
+    ctx.fillStyle = '#d8e1dd';
+    ctx.font = '9px "JetBrains Mono"';
+    ctx.fillText(credit.text, x, y);
+    ctx.restore();
+  });
+};
+
 export const drawChapterTenComplete = (
   ctx: CanvasRenderingContext2D,
   width: number,
@@ -184,6 +211,6 @@ export const drawChapterTenComplete = (
   ctx.fillText(CHAPTER_TEN_COMPLETE_LINES[0], width / 2, height / 2 - 20);
   ctx.font = '10px "JetBrains Mono"'; ctx.fillStyle = '#8fa8a0';
   ctx.fillText(CHAPTER_TEN_COMPLETE_LINES[1], width / 2, height / 2 + 8);
-  const overflow = CHAPTER_TEN_SCORE_OVERFLOW[Math.min(2, Math.floor(frame / 45))];
+  const overflow = getCompletionScoreAtFrame(frame);
   ctx.fillText(`SCORE ${overflow}`, width / 2, height / 2 + 36);
 };
