@@ -90,11 +90,11 @@ test('route points form a deterministic varied path through gates and between th
 });
 
 test('route collection requires physical contact with each light point', () => {
-  assert.equal(CHAPTER_TEN_ROUTE_COLLECTION_RADIUS, 25.5);
+  assert.equal(CHAPTER_TEN_ROUTE_COLLECTION_RADIUS, 20.4);
   assert.equal(touchesRoutePoint(80, 120, 80, 120), true);
-  assert.equal(touchesRoutePoint(80, 120, 105.5, 120), true);
-  assert.equal(touchesRoutePoint(80, 120, 106, 120), false);
-  assert.equal(touchesRoutePoint(80, 120, 80, 146), false);
+  assert.equal(touchesRoutePoint(80, 120, 100.39, 120), true);
+  assert.equal(touchesRoutePoint(80, 120, 100.41, 120), false);
+  assert.equal(touchesRoutePoint(80, 120, 80, 140.41), false);
 });
 
 // 2. Missing any single route point keeps Gate 40 sealed.
@@ -416,15 +416,16 @@ test('Meta input is blocked while Arcane owns the flight', () => {
   assert.match(source, /if \(autonomousTappingRef\.current\)/);
 });
 
-test('Chapter 10 lets Arcane reflect before 184 and starts Finale only after it', () => {
+test('Chapter 10 lets Arcane keep reflecting after 184 and starts Finale at takeover', () => {
   const source = readFileSync(new URL('../src/components/FlappyGame.tsx', import.meta.url), 'utf8');
   assert.match(source, /speak\(\['My turn\.'\]\)/);
   assert.match(source, /chapterTenTakeoverSpoken/);
   assert.match(source, /ARCANE_FLIGHT_REFLECTIONS/);
-  assert.match(source, /CHAPTER_TEN_NODES\.distanceHudFrom/);
+  assert.match(source, /state\.chapterTenFinaleStarted = true;\s+music\.playFinaleOnce\(\)/);
   assert.match(source, /music\.playFinaleOnce\(\)/);
-  assert.equal(ARCANE_FLIGHT_REFLECTIONS.length, 5);
-  assert.ok(ARCANE_FLIGHT_REFLECTIONS.every((reflection) => reflection.score > 40 && reflection.score < 184));
+  assert.equal(ARCANE_FLIGHT_REFLECTIONS.length, 9);
+  assert.ok(ARCANE_FLIGHT_REFLECTIONS.some((reflection) => reflection.score > 184));
+  assert.ok(ARCANE_FLIGHT_REFLECTIONS.every((reflection) => reflection.score > 40 && reflection.score < 256));
 });
 
 test('flight credits stay sparse, leave 184 clear, and continue after the reveal', () => {

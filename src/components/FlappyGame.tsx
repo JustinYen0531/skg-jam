@@ -470,14 +470,6 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
               speak([...reflection.lines]);
               state.chapterTenReflectionIndex += 1;
             }
-            if (
-              !state.chapterTenFinaleStarted
-              && previousFlightScore < CHAPTER_TEN_NODES.distanceHudFrom
-              && state.score >= CHAPTER_TEN_NODES.distanceHudFrom
-            ) {
-              state.chapterTenFinaleStarted = true;
-              music.playFinaleOnce();
-            }
             setCurrentAlt(Math.max(0, Math.min(256, Math.round(((height - state.birdY) / height) * 256))));
             if (flightStep.events.includes('flap')) {
               state.lastJumpFrame = state.frameCount;
@@ -675,6 +667,10 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
                 if (!state.chapterTenTakeoverSpoken) {
                   state.chapterTenTakeoverSpoken = true;
                   speak(['My turn.']);
+                }
+                if (!state.chapterTenFinaleStarted) {
+                  state.chapterTenFinaleStarted = true;
+                  music.playFinaleOnce();
                 }
                 chapterTenFailsRef.current = 0; // cleared the gate → streak resets
                 audio.play('flight.level2Connect');

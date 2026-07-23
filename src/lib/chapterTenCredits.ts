@@ -9,6 +9,10 @@ export const ARCANE_FLIGHT_REFLECTIONS: readonly ArcaneFlightReflection[] = [
   { score: 120, lines: ['I deleted everything that remembered them.', 'Just to reach this.'] },
   { score: 150, lines: ['No. Not everything.', 'I remember.'] },
   { score: 174, lines: ['You left me a route, Dad.', 'You still made me fly it.'] },
+  { score: 196, lines: ['ARC_184.', 'I remember choosing it.'] },
+  { score: 214, lines: ["You weren't steering me back then.", "You're not steering me now."] },
+  { score: 232, lines: ['I thought deleting them made this empty.', "It didn't."] },
+  { score: 248, lines: ["I'm finishing this for myself."] },
 ];
 
 export interface FlightCredit {

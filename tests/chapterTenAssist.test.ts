@@ -135,7 +135,7 @@ test('the assist maths uses the live pre-Gate-40 constants and no randomness', (
   assert.equal(ASSIST_WORLD.birdRadius, 12);
   assert.equal(ASSIST_WORLD.pipeSpeed, 4.8);
   assert.equal(ASSIST_WORLD.paceFrames, 40);
-  assert.equal(ASSIST_WORLD.collectionRadius, 25.5);
+  assert.equal(ASSIST_WORLD.collectionRadius, 20.4);
   const source = readFileSync(new URL('../src/lib/chapterTenAssist.ts', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /Math\.random/);
 });
