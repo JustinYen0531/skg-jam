@@ -1,5 +1,13 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-24 — Chapter 10 paused Meta takeover
+
+- Gate 40 now freezes on a visible retro `PAUSED` frame instead of launching Arcane's performance in the same update.
+- The existing fullscreen-to-Meta projection now has time to pull back while `My turn.` types into the bottom thought layer.
+- Arcane's autonomous hand, hard performance, Finale track, and Level 2 connection begin only after the final typed character.
+- A 1.6-second fallback resumes fullscreen-only/reduced presentation paths so the pause cannot deadlock.
+- Browser and Preview remain intentionally unused by project instruction.
+
 ## 2026-07-24 — Chapter 10 route-point scale alignment
 
 - Restored the pickup radius to 25.5px, exactly 150% of the original 17px radius.

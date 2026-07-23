@@ -65,7 +65,7 @@ interface MetaInteractionContextValue {
   active: boolean;
   deviceResting: boolean;
   registerInput: (id: string, controller: MetaInputController) => () => void;
-  speak: (lines: DialogueLines) => void;
+  speak: (lines: DialogueLines, onComplete?: () => void) => void;
   tapElement: (id: string, onActivate: () => void) => void;
   tapSequence: (id: string, count: number, onComplete: () => void) => void;
   pulsePlayerTap: (id: string) => void;
@@ -600,7 +600,11 @@ interface ThoughtProgress {
   chars: number;
 }
 
-const TypewriterThoughts: React.FC<{ lines: DialogueLines; instant: boolean }> = ({ lines, instant }) => {
+const TypewriterThoughts: React.FC<{
+  lines: DialogueLines;
+  instant: boolean;
+  onComplete?: () => void;
+}> = ({ lines, instant, onComplete }) => {
   const [progress, setProgress] = useState<ThoughtProgress>({ line: 0, chars: 0 });
   const doneRef = useRef(true);
 
@@ -608,6 +612,7 @@ const TypewriterThoughts: React.FC<{ lines: DialogueLines; instant: boolean }> =
     if (instant) {
       setProgress({ line: Math.max(0, lines.length - 1), chars: lines[lines.length - 1]?.length ?? 0 });
       doneRef.current = true;
+      onComplete?.();
       return;
     }
     // A new thought arriving mid-sentence cuts the old one off (§4.5).
@@ -638,11 +643,12 @@ const TypewriterThoughts: React.FC<{ lines: DialogueLines; instant: boolean }> =
       } else {
         audio.play('narrative.lineEnd');
         doneRef.current = true;
+        onComplete?.();
       }
     };
     timer = window.setTimeout(step, THOUGHT_START_DELAY_MS);
     return () => window.clearTimeout(timer);
-  }, [lines, instant]);
+  }, [instant, lines, onComplete]);
 
   const lastLine = lines[lines.length - 1] ?? '';
   const done = progress.line >= lines.length - 1 && progress.chars >= lastLine.length;
@@ -841,13 +847,22 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [dialogueLines, setDialogueLines] = useState<DialogueLines>(CHAPTER_ONE_DIALOGUE.entry);
+  const dialogueCompletionRef = useRef<(() => void) | null>(null);
   const previousDialogueChapterRef = useRef(chapter);
   const chapterDialogueTimerRef = useRef<number | null>(null);
   const [scrollGesture, setScrollGesture] = useState<ScrollGesture | null>(null);
   const [deviceResting, setDeviceResting] = useState(false);
 
-  const speak = useCallback((lines: DialogueLines) => {
-    if (lines.length > 0) setDialogueLines(lines);
+  const speak = useCallback((lines: DialogueLines, onComplete?: () => void) => {
+    if (lines.length === 0) return;
+    dialogueCompletionRef.current = onComplete ?? null;
+    setDialogueLines(lines);
+  }, []);
+
+  const handleDialogueComplete = useCallback(() => {
+    const complete = dialogueCompletionRef.current;
+    dialogueCompletionRef.current = null;
+    complete?.();
   }, []);
 
   const clearTimers = useCallback(() => {
@@ -2188,7 +2203,11 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
               </div>
 
               {/* The thought, arriving one keystroke at a time */}
-              <TypewriterThoughts lines={dialogueLines} instant={reducedMotion} />
+              <TypewriterThoughts
+                lines={dialogueLines}
+                instant={reducedMotion}
+                onComplete={handleDialogueComplete}
+              />
             </motion.div>
           </>
         )}

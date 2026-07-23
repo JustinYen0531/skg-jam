@@ -194,6 +194,26 @@ export const drawChapterTenHud = (
   ctx.restore();
 };
 
+export const drawChapterTenTakeoverPause = (
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+): void => {
+  ctx.save();
+  ctx.fillStyle = 'rgba(7, 16, 22, 0.34)';
+  ctx.fillRect(0, 0, width, height);
+
+  const centerX = width / 2;
+  const centerY = height / 2;
+  ctx.fillStyle = 'rgba(255, 253, 227, 0.92)';
+  ctx.fillRect(centerX - 10, centerY - 20, 7, 27);
+  ctx.fillRect(centerX + 3, centerY - 20, 7, 27);
+  ctx.textAlign = 'center';
+  ctx.font = 'bold 10px "Courier New", monospace';
+  ctx.fillText('PAUSED', centerX, centerY + 27);
+  ctx.restore();
+};
+
 export const drawChapterTenBeat = (
   ctx: CanvasRenderingContext2D,
   width: number,

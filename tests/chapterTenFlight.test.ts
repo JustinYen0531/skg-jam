@@ -390,7 +390,7 @@ test('the live game wires Gate 40 to the deterministic Chapter 10 flight', () =>
   assert.match(source, /computePerformancePlan\(\)/);
   assert.match(source, /performanceSampleAt\(plan, state\.chapterTenPerfFrame\)/);
   assert.match(source, /shouldAcceptPlayerInput\(stateRef\.current\.chapterTenPhase\)/);
-  assert.match(source, /beginAutonomousControl\('flappy-canvas'\)/);
+  assert.match(source, /beginAutonomousControlRef\.current\('flappy-canvas'\)/);
   assert.match(source, /pulsePlayerTap\('flappy-canvas'\)/);
   assert.match(source, /pulseAutonomousTap\(\)/);
 });
@@ -416,13 +416,39 @@ test('Arcane stays silent before Gate 40 and the player tap uses the visible han
   const metaSource = readFileSync(new URL('../src/components/MetaInteractionScene.tsx', import.meta.url), 'utf8');
   assert.match(gameSource, /chapterTenEntryDotsSpokenRef/);
   assert.match(gameSource, /chapterTenActive && state\.score < CHAPTER_TEN_NODES\.takeover[\s\S]*?speak\(\['\.\.\.'\]\)/);
-  assert.match(gameSource, /speak\(\['My turn\.'\]\)/);
+  assert.match(gameSource, /speak\(\['My turn\.'\], resumeChapterTenTakeover\)/);
   assert.match(metaSource, /const pulsePlayerTap = useCallback/);
   assert.match(metaSource, /this only[\s\S]*lets Arcane's finger visibly perform/);
   assert.doesNotMatch(
     metaSource.match(/const pulsePlayerTap = useCallback[\s\S]*?\}, \[active, clearPlayerTapTimers, getRestPosition\]\);/)?.[0] ?? '',
     /dispatchEvent|\.click\(\)/,
   );
+});
+
+test('Gate 40 pauses for the Meta pullback and resumes only after My turn finishes typing', () => {
+  const gameSource = readFileSync(new URL('../src/components/FlappyGame.tsx', import.meta.url), 'utf8');
+  const metaSource = readFileSync(new URL('../src/components/MetaInteractionScene.tsx', import.meta.url), 'utf8');
+  const canvasSource = readFileSync(new URL('../src/components/chapterTenCanvas.ts', import.meta.url), 'utf8');
+  const gate40 = gameSource.slice(
+    gameSource.indexOf('state.chapterTenTakeoverPaused = true'),
+    gameSource.indexOf("// Arcane's hard performance"),
+  );
+  const resume = gameSource.slice(
+    gameSource.indexOf('const resumeChapterTenTakeover'),
+    gameSource.indexOf('const restartRun'),
+  );
+
+  assert.match(gate40, /state\.chapterTenTakeoverPaused = true/);
+  assert.match(gate40, /onChapterTenTakeover\(\)/);
+  assert.match(gate40, /speak\(\['My turn\.'\], resumeChapterTenTakeover\)/);
+  assert.doesNotMatch(gate40, /beginAutonomousControl/);
+  assert.match(resume, /state\.chapterTenTakeoverPaused = false/);
+  assert.match(resume, /beginAutonomousControlRef\.current\('flappy-canvas'\)/);
+  assert.match(resume, /music\.playFinaleOnce\(\)/);
+  assert.match(gameSource, /drawChapterTenTakeoverPause\(ctx, width, height\)/);
+  assert.match(canvasSource, /fillText\('PAUSED'/);
+  assert.match(metaSource, /onComplete=\{handleDialogueComplete\}/);
+  assert.match(metaSource, /doneRef\.current = true;\s+onComplete\?\.\(\)/);
 });
 
 test('the live Chapter 10 renderer keeps the memory, terminal and finish beats', () => {
@@ -443,9 +469,9 @@ test('Meta input is blocked while Arcane owns the flight', () => {
   assert.match(source, /if \(autonomousTappingRef\.current\)/);
 });
 
-test('Chapter 10 lets Arcane keep reflecting after 184 and starts Finale at takeover', () => {
+test('Chapter 10 lets Arcane keep reflecting after 184 and starts Finale after the typed takeover', () => {
   const source = readFileSync(new URL('../src/components/FlappyGame.tsx', import.meta.url), 'utf8');
-  assert.match(source, /speak\(\['My turn\.'\]\)/);
+  assert.match(source, /speak\(\['My turn\.'\], resumeChapterTenTakeover\)/);
   assert.match(source, /chapterTenTakeoverSpoken/);
   assert.match(source, /ARCANE_FLIGHT_REFLECTIONS/);
   assert.match(source, /state\.chapterTenFinaleStarted = true;\s+music\.playFinaleOnce\(\)/);

@@ -73,8 +73,8 @@ test('Chapter 10 hides Meta only for the player flight and restores it at Gate 4
   assert.match(appSource, /const \[chapterTenPlayerFullscreen, setChapterTenPlayerFullscreen\] = useState\(false\)/);
   assert.match(appSource, /const metaSceneActive = !chapterTenPlayerFullscreen[\s\S]*?shouldShowMetaScene/);
   assert.match(phoneSource, /progress\.currentChapter === 10 && app === 'flappy'[\s\S]*?onChapterTenPlayerFlightStart\(\)/);
-  assert.match(flappySource, /chapterTenTakeoverHandPendingRef\.current = true;\s+onChapterTenTakeover\(\);\s+beginAutonomousControl\('flappy-canvas'\)/);
-  assert.match(flappySource, /metaInteractionActive[\s\S]*?chapterTenTakeoverHandPendingRef\.current[\s\S]*?beginAutonomousControl\('flappy-canvas'\)/);
+  assert.match(flappySource, /state\.chapterTenTakeoverPaused = true;[\s\S]*?onChapterTenTakeover\(\);[\s\S]*?speak\(\['My turn\.'\], resumeChapterTenTakeover\)/);
+  assert.match(flappySource, /const resumeChapterTenTakeover[\s\S]*?beginAutonomousControlRef\.current\('flappy-canvas'\)/);
 });
 
 test('the Chapter 10 fullscreen player flight keeps only a translucent bottom thought', () => {

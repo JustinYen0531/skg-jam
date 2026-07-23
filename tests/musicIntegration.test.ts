@@ -57,14 +57,15 @@ test('every track fades and repeats only after a short silent gap', () => {
   assert.match(musicSource, /phase === this\.currentPhase/);
 });
 
-test('Chapter 10 Finale starts at Gate 40 takeover, plays once, and gates the final choice', () => {
+test('Chapter 10 Finale starts after the typed Gate 40 takeover, plays once, and gates the final choice', () => {
   const flappySource = readFileSync(new URL('../src/components/FlappyGame.tsx', import.meta.url), 'utf8');
   const appSource = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
   const musicSource = readFileSync(new URL('../src/lib/music.ts', import.meta.url), 'utf8');
 
+  assert.match(flappySource, /speak\(\['My turn\.'\], resumeChapterTenTakeover\)/);
   assert.match(
     flappySource,
-    /beginAutonomousControl\('flappy-canvas'\)[\s\S]*?speak\(\['My turn\.'\]\)[\s\S]*?music\.playFinaleOnce\(\)/,
+    /const resumeChapterTenTakeover[\s\S]*?beginAutonomousControlRef\.current\('flappy-canvas'\)[\s\S]*?music\.playFinaleOnce\(\)/,
   );
   assert.match(musicSource, /private playCurrentOnce = false/);
   assert.match(musicSource, /if \(this\.playCurrentOnce\)/);

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { GameProgress, ActiveApp } from '../types';
 import audio from '../lib/audio';
 import music from '../lib/music';
@@ -26,6 +26,7 @@ import {
   drawChapterTenHud,
   drawChapterTenPipe,
   drawChapterTenRoutePoint,
+  drawChapterTenTakeoverPause,
   drawChapterTenWorld,
 } from './chapterTenCanvas';
 import {
@@ -101,7 +102,11 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
   } = useMetaInteraction();
   const chapterTenActive = progress.currentChapter === 10;
   const chapterTenEntryDotsSpokenRef = useRef(false);
-  const chapterTenTakeoverHandPendingRef = useRef(false);
+  const beginAutonomousControlRef = useRef(beginAutonomousControl);
+  const metaInteractionActiveRef = useRef(metaInteractionActive);
+  const chapterTenTakeoverFallbackTimerRef = useRef<number | null>(null);
+  beginAutonomousControlRef.current = beginAutonomousControl;
+  metaInteractionActiveRef.current = metaInteractionActive;
 
   useEffect(() => {
     if (!chapterTenActive) {
@@ -113,16 +118,6 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
       speak(['...']);
     }
   }, [chapterTenActive, speak]);
-
-  useEffect(() => {
-    if (
-      !chapterTenActive
-      || !metaInteractionActive
-      || !chapterTenTakeoverHandPendingRef.current
-    ) return;
-    chapterTenTakeoverHandPendingRef.current = false;
-    beginAutonomousControl('flappy-canvas');
-  }, [beginAutonomousControl, chapterTenActive, metaInteractionActive]);
 
   // Chapter 10 route-point assist. After five straight sub-41 runs the game
   // offers a precise, deterministic click pattern (see chapterTenAssist.ts) that
@@ -163,6 +158,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
     chapterTenTerminalDotsSpoken: false,
     chapterTenReflectionIndex: 0,
     chapterTenFinaleStarted: false,
+    chapterTenTakeoverPaused: false,
     chapterTenPerf: null as PerformancePlan | null,
     chapterTenPerfFrame: 0,
     chapterTenGravitySign: 1 as 1 | -1,
@@ -204,12 +200,17 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
       chapterTenTerminalDotsSpoken: false,
       chapterTenReflectionIndex: 0,
       chapterTenFinaleStarted: false,
+      chapterTenTakeoverPaused: false,
       chapterTenPerf: null,
       chapterTenPerfFrame: 0,
       chapterTenGravitySign: 1,
       chapterTenDiving: false,
     };
     endAutonomousControl();
+    if (chapterTenTakeoverFallbackTimerRef.current !== null) {
+      window.clearTimeout(chapterTenTakeoverFallbackTimerRef.current);
+      chapterTenTakeoverFallbackTimerRef.current = null;
+    }
     if (chapterTenActive) music.setPhase(10);
     setScore(0);
     setSeqIndex(0);
@@ -219,6 +220,30 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
     setShowLeaderboard(false);
     setShowResults(false);
   };
+
+  const resumeChapterTenTakeover = useCallback(() => {
+    const state = stateRef.current;
+    if (!state.chapterTenTakeoverPaused || state.gameOver) return;
+    state.chapterTenTakeoverPaused = false;
+    if (chapterTenTakeoverFallbackTimerRef.current !== null) {
+      window.clearTimeout(chapterTenTakeoverFallbackTimerRef.current);
+      chapterTenTakeoverFallbackTimerRef.current = null;
+    }
+    if (metaInteractionActiveRef.current) {
+      beginAutonomousControlRef.current('flappy-canvas');
+    }
+    if (!state.chapterTenFinaleStarted) {
+      state.chapterTenFinaleStarted = true;
+      music.playFinaleOnce();
+    }
+    audio.play('flight.level2Connect');
+  }, []);
+
+  useEffect(() => () => {
+    if (chapterTenTakeoverFallbackTimerRef.current !== null) {
+      window.clearTimeout(chapterTenTakeoverFallbackTimerRef.current);
+    }
+  }, []);
 
   // Retry is a reset-suction, never the clue-unlock chord (§4.1).
   const restartRun = () => {
@@ -474,9 +499,12 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
 
       // --- Game Physics (Only update when playing) ---
       if (isPlaying && !state.gameOver) {
-        state.frameCount++;
+        if (!(chapterTenActive && state.chapterTenTakeoverPaused)) state.frameCount++;
         if (chapterTenActive && state.chapterTenFlight) {
-          if (state.chapterTenFlight.completed) {
+          if (state.chapterTenTakeoverPaused) {
+            // Gate 40 freezes on contact while the camera pulls back and
+            // Arcane finishes typing before the performance advances.
+          } else if (state.chapterTenFlight.completed) {
             state.chapterTenCompleteFrames += 1;
             if (state.chapterTenCompleteFrames >= 180) triggerCompletion();
           } else if (state.chapterTenPerf && !state.chapterTenDiving) {
@@ -704,19 +732,18 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
                 state.score = CHAPTER_TEN_NODES.takeover;
                 setScore(state.score);
                 setHackedMode(true);
-                chapterTenTakeoverHandPendingRef.current = true;
+                state.chapterTenTakeoverPaused = true;
+                audio.play('ui.toggle', { variant: 0 });
                 onChapterTenTakeover();
-                beginAutonomousControl('flappy-canvas');
                 if (!state.chapterTenTakeoverSpoken) {
                   state.chapterTenTakeoverSpoken = true;
-                  speak(['My turn.']);
-                }
-                if (!state.chapterTenFinaleStarted) {
-                  state.chapterTenFinaleStarted = true;
-                  music.playFinaleOnce();
+                  chapterTenTakeoverFallbackTimerRef.current = window.setTimeout(
+                    resumeChapterTenTakeover,
+                    1600,
+                  );
+                  speak(['My turn.'], resumeChapterTenTakeover);
                 }
                 chapterTenFailsRef.current = 0; // cleared the gate → streak resets
-                audio.play('flight.level2Connect');
                 // Arcane's hard performance: a verified click pattern + gauntlet.
                 state.chapterTenPerf = computePerformancePlan();
                 state.chapterTenPerfFrame = 0;
@@ -1180,6 +1207,8 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
         );
         if (state.chapterTenFlight.completed) {
           drawChapterTenComplete(ctx, width, height, state.chapterTenCompleteFrames);
+        } else if (state.chapterTenTakeoverPaused) {
+          drawChapterTenTakeoverPause(ctx, width, height);
         }
       } else if (!hackedMode) {
         // Glassmorphism score card (radius 24) with glow
@@ -1418,6 +1447,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
     progress.unlockedCodeRoute,
     pulsePlayerTap,
     pulseAutonomousTap,
+    resumeChapterTenTakeover,
     speak,
   ]);
 
