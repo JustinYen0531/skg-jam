@@ -920,6 +920,11 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Both thought surfaces now use the existing Meta `font-thought` gray-blue typography for one continuous protagonist voice.
 - Browser and Preview remain intentionally excluded by project instruction.
 
+## 2026-07-23 — Centered leaderboard motive card
+
+- Moved the non-blocking opening thought from the left edge to the centered lower composition axis shared by the later decision frame.
+- Kept its smaller, undimmed treatment so it reads as a passing thought rather than a second modal.
+
 ## 2026-07-23 — Chapter 7 protagonist dialogue implementation
 
 - Added a dedicated Chapter 7 inner-voice module covering entry, home returns, relevant and wrong apps, FaceSpace noise, Mara's six ordinary posts, all three place clues, Mom's explanation, archive login mistakes, and successful completion.

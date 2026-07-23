@@ -238,7 +238,7 @@ export const LeaderboardPanel: React.FC<LeaderboardPanelProps> = ({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: 5 }}
           transition={{ duration: 0.3, ease: 'easeOut' }}
-          className="absolute bottom-16 left-4 z-20 w-[min(22rem,calc(100%-2rem))] cursor-pointer overflow-hidden rounded-[5px] bg-[#0d131b]/88 px-4 py-3 text-left shadow-[0_10px_26px_rgba(0,0,0,0.24)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8fa8c0]/70"
+          className="absolute bottom-[7%] left-1/2 z-20 w-[min(32rem,calc(100%-2.5rem))] -translate-x-1/2 cursor-pointer overflow-hidden rounded-[5px] bg-[#0d131b]/88 px-5 py-3.5 text-left shadow-[0_10px_26px_rgba(0,0,0,0.24)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#8fa8c0]/70"
           aria-label="Dismiss opening thought"
           id="leaderboard-entry-thought"
         >

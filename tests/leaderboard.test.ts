@@ -49,6 +49,7 @@ test('selecting a suspicious run asks whether to ignore it before the title can 
   const panelSource = readFileSync(new URL('../src/components/LeaderboardPanel.tsx', import.meta.url), 'utf8');
 
   assert.match(panelSource, /id="leaderboard-entry-thought"/);
+  assert.match(panelSource, /bottom-\[7%\] left-1\/2[\s\S]{0,100}-translate-x-1\/2/);
   assert.match(panelSource, /I only wanted to be first\. That was all\./);
   assert.match(panelSource, /Most of the board is stuck at 40\./);
   assert.match(panelSource, /Then why are there six scores above it\?/);
