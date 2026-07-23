@@ -56,3 +56,28 @@ test('every track fades and repeats only after a short silent gap', () => {
   assert.match(musicSource, /}, MUSIC_LOOP_GAP_MS\)/);
   assert.match(musicSource, /phase === this\.currentPhase/);
 });
+
+test('Chapter 10 Finale starts during flight, plays once, and gates the final choice', () => {
+  const flappySource = readFileSync(new URL('../src/components/FlappyGame.tsx', import.meta.url), 'utf8');
+  const appSource = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
+  const musicSource = readFileSync(new URL('../src/lib/music.ts', import.meta.url), 'utf8');
+
+  assert.match(flappySource, /CHAPTER_TEN_NODES\.distanceHudFrom/);
+  assert.match(flappySource, /music\.playFinaleOnce\(\)/);
+  assert.match(musicSource, /private playCurrentOnce = false/);
+  assert.match(musicSource, /if \(this\.playCurrentOnce\)/);
+  assert.match(musicSource, /this\.finaleEnded = true/);
+  assert.match(appSource, /music\.onFinaleEnded\(setFinaleTrackEnded\)/);
+  assert.match(appSource, /finaleTrackEnded \?/);
+  assert.match(appSource, /FINAL TRANSMISSION CONTINUES WITH THE SONG/);
+});
+
+test('the title logo suppresses only background music while it is mounted', () => {
+  const logoSource = readFileSync(new URL('../src/components/GameLogoIntro.tsx', import.meta.url), 'utf8');
+  const musicSource = readFileSync(new URL('../src/lib/music.ts', import.meta.url), 'utf8');
+
+  assert.match(logoSource, /music\.setSuppressed\(true\)/);
+  assert.match(logoSource, /return \(\) => music\.setSuppressed\(false\)/);
+  assert.match(musicSource, /private suppressed = false/);
+  assert.match(musicSource, /this\.current\.muted = this\.muted \|\| this\.suppressed/);
+});

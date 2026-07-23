@@ -3,6 +3,7 @@ import { Crown, RefreshCw, Sparkles, Trophy, X } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import audio from '../lib/audio';
 import { isSuspiciousLeaderboardEntry, type PublicLeaderboardEntry } from '../lib/leaderboard';
+import { GameLogoIntro } from './GameLogoIntro';
 
 interface LeaderboardPanelProps {
   entries: PublicLeaderboardEntry[];
@@ -33,11 +34,8 @@ export const LeaderboardPanel: React.FC<LeaderboardPanelProps> = ({
   const [showTitleIntro, setShowTitleIntro] = useState(false);
   const [showEntryThought, setShowEntryThought] = useState(true);
 
-  useEffect(() => {
-    if (!showTitleIntro) return;
-    const timer = window.setTimeout(onSuspiciousRunSelected, 2200);
-    return () => window.clearTimeout(timer);
-  }, [showTitleIntro, onSuspiciousRunSelected]);
+  // The title intro is the animated wordmark logo; it drives the hand-off into
+  // Chapter 1 when its sequence completes, rather than a fixed timer.
 
   useEffect(() => {
     if (!showEntryThought || selectedRun) return;
@@ -320,24 +318,9 @@ export const LeaderboardPanel: React.FC<LeaderboardPanelProps> = ({
     )}
 
     {selectedRun && showTitleIntro && (
-      <motion.div
-        className="absolute inset-0 z-50 flex items-center justify-center overflow-hidden bg-[#030309] text-center"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.35 }}
-        id="game-title-intro"
-      >
-        <motion.div
-          initial={{ opacity: 0, scale: 0.96, letterSpacing: '0.08em' }}
-          animate={{ opacity: 1, scale: 1, letterSpacing: '0.02em' }}
-          transition={{ delay: 0.25, duration: 0.85, ease: 'easeOut' }}
-          className="relative px-6 font-black uppercase leading-[0.9] text-white"
-        >
-          <div className="text-[clamp(1.7rem,6vw,4.5rem)]">Game <span className="text-cyan-300">Quest</span>ing,</div>
-          <div className="mt-2 text-[clamp(1.7rem,6vw,4.5rem)]"><span className="text-cyan-300">Quest</span>ioning Game</div>
-          <div className="mx-auto mt-6 h-px w-20 bg-gradient-to-r from-transparent via-cyan-300/80 to-transparent" />
-        </motion.div>
-      </motion.div>
+      <div id="game-title-intro" className="absolute inset-0 z-50">
+        <GameLogoIntro onComplete={onSuspiciousRunSelected} />
+      </div>
     )}
   </div>
   );

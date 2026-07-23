@@ -40,8 +40,10 @@ test('the six anomalous top runs are the only leaderboard story entry points', (
   assert.match(panelSource, /id="leaderboard-pinned-runs"/);
   assert.match(panelSource, /entries\.slice\(0, 6\)\.map\(renderLeaderboardEntry\)/);
   assert.match(panelSource, /entries\.slice\(6\)\.map\(renderLeaderboardEntry\)/);
-  assert.match(panelSource, /Game <span[^>]*>Quest<\/span>ing,/);
-  assert.match(panelSource, /<span[^>]*>Quest<\/span>ioning Game/);
+  // The wordmark now lives in the animated logo the title intro renders.
+  const logoSource = readFileSync(new URL('../src/components/GameLogoIntro.tsx', import.meta.url), 'utf8');
+  assert.match(logoSource, /prefix=\{'game[\s\S]{0,3}'\}[\s\S]{0,80}core="quest"[\s\S]{0,80}suffix="ing,"/);
+  assert.match(logoSource, /core="quest"[\s\S]{0,80}suffix="ioning game"/);
   assert.doesNotMatch(panelSource, /INVESTIGATE/);
 });
 
@@ -67,7 +69,7 @@ test('selecting a suspicious run asks whether to ignore it before the title can 
   assert.match(panelSource, /border-emerald-300\/35 bg-emerald-400\/10/);
   assert.match(panelSource, /border-red-300\/35 bg-red-400\/10/);
   assert.doesNotMatch(panelSource, /autoFocus/);
-  assert.match(panelSource, /if \(!showTitleIntro\) return;/);
+  assert.match(panelSource, /<GameLogoIntro[\s\S]{0,60}onComplete=\{onSuspiciousRunSelected\}/);
   assert.match(panelSource, /setSelectedRun\(null\);[\s\S]{0,100}setShowTitleIntro\(false\)/);
   assert.match(panelSource, /id="ignore-anomaly-no"[\s\S]{0,160}>[\s\S]{0,30}NO/);
   assert.match(panelSource, /setShowTitleIntro\(true\)/);

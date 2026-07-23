@@ -33,7 +33,9 @@ test('meta camera reveal requires the first Gate 40 death and a selected suspici
 
   assert.doesNotMatch(openLeaderboardBody, /onSuspiciousRunSelected/);
   assert.match(flappySource, /suspiciousRunsEnabled=\{progress\.deathsAt40 >= 1\}/);
-  assert.match(leaderboardSource, /window\.setTimeout\(onSuspiciousRunSelected, 2200\)/);
+  // The title intro is the animated logo; it hands off to Chapter 1 when its
+  // sequence completes, rather than on a fixed timer.
+  assert.match(leaderboardSource, /<GameLogoIntro[\s\S]{0,60}onComplete=\{onSuspiciousRunSelected\}/);
 });
 
 test('developer chapter tools preview the meta scene without changing the story unlock rule', () => {
@@ -107,16 +109,6 @@ test('mouse height maps to a clamped camera pitch from desk-flat to upright', ()
   assert.equal(getMetaCameraPitch(20, 0), META_CAMERA_PITCH.restDeg);
 });
 
-test('mouse height maps the resting desk from fireplace reveal to raised foreground', () => {
-  assert.equal(META_IDLE_DESK_VIEW.bottom, 2 / 3);
-  assert.equal(getMetaIdleDeskView(0, 1000), META_IDLE_DESK_VIEW.top);
-  assert.equal(getMetaIdleDeskView(500, 1000), META_IDLE_DESK_VIEW.rest);
-  assert.equal(getMetaIdleDeskView(1000, 1000), META_IDLE_DESK_VIEW.bottom);
-  assert.equal(getMetaIdleDeskView(-200, 1000), META_IDLE_DESK_VIEW.top);
-  assert.equal(getMetaIdleDeskView(1200, 1000), META_IDLE_DESK_VIEW.bottom);
-  assert.equal(getMetaIdleDeskView(20, 0), META_IDLE_DESK_VIEW.rest);
-});
-
 test('the visible phone trapezoid is the only upright no-rest collision area', () => {
   const phoneQuad = [
     { x: 120, y: 75 },
@@ -137,6 +129,16 @@ test('the visible phone trapezoid is the only upright no-rest collision area', (
   assert.equal(getMetaDevicePostureAction(true, false, true, true), 'wake');
   assert.equal(getMetaDevicePostureAction(true, true, false, false), null);
   assert.equal(getMetaDevicePostureAction(false, false, false, false), null);
+});
+
+test('mouse height maps the resting desk from fireplace reveal to raised foreground', () => {
+  assert.equal(META_IDLE_DESK_VIEW.bottom, 2 / 3);
+  assert.equal(getMetaIdleDeskView(0, 1000), META_IDLE_DESK_VIEW.top);
+  assert.equal(getMetaIdleDeskView(500, 1000), META_IDLE_DESK_VIEW.rest);
+  assert.equal(getMetaIdleDeskView(1000, 1000), META_IDLE_DESK_VIEW.bottom);
+  assert.equal(getMetaIdleDeskView(-200, 1000), META_IDLE_DESK_VIEW.top);
+  assert.equal(getMetaIdleDeskView(1200, 1000), META_IDLE_DESK_VIEW.bottom);
+  assert.equal(getMetaIdleDeskView(20, 0), META_IDLE_DESK_VIEW.rest);
 });
 
 test('rest posture lays down the phone and swaps the grip for desk-plane hands', () => {

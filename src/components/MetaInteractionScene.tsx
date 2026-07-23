@@ -1,4 +1,4 @@
-﻿import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion, useMotionValue, useMotionValueEvent, useSpring, useTransform } from 'motion/react';
 import {
   applyVirtualKey,
@@ -68,6 +68,9 @@ interface MetaInteractionContextValue {
   speak: (lines: DialogueLines) => void;
   tapElement: (id: string, onActivate: () => void) => void;
   tapSequence: (id: string, count: number, onComplete: () => void) => void;
+  beginAutonomousControl: (id: string) => void;
+  pulseAutonomousTap: () => void;
+  endAutonomousControl: () => void;
 }
 
 const MetaInteractionContext = createContext<MetaInteractionContextValue>({
@@ -77,6 +80,9 @@ const MetaInteractionContext = createContext<MetaInteractionContextValue>({
   speak: () => undefined,
   tapElement: (_id, onActivate) => onActivate(),
   tapSequence: (_id, _count, onComplete) => onComplete(),
+  beginAutonomousControl: () => undefined,
+  pulseAutonomousTap: () => undefined,
+  endAutonomousControl: () => undefined,
 });
 
 export const useMetaInteraction = () => useContext(MetaInteractionContext);
@@ -709,6 +715,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   const updateRestingProjectionRef = useRef<() => void>(() => undefined);
   const pendingRef = useRef(false);
   const autonomousTappingRef = useRef(false);
+  const autonomousPulseTimerRef = useRef<number | null>(null);
   const keyQueueRef = useRef<QueuedKey[]>([]);
   const queueRunningRef = useRef(false);
   const keyboardScopeRef = useRef(0);
@@ -770,6 +777,50 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     return rect
       ? { x: rect.width * 0.85, y: rect.height * 0.46 }
       : { x: 0, y: 0 };
+  }, []);
+
+  const endAutonomousControl = useCallback(() => {
+    autonomousTappingRef.current = false;
+    if (autonomousPulseTimerRef.current !== null) {
+      window.clearTimeout(autonomousPulseTimerRef.current);
+      autonomousPulseTimerRef.current = null;
+    }
+    setPressed(false);
+    setAutonomousTapping(false);
+    pendingRef.current = false;
+    setInteractionPending(false);
+    setPointer(getRestPosition());
+  }, [getRestPosition]);
+
+  const beginAutonomousControl = useCallback((id: string) => {
+    const target = document.getElementById(id);
+    const sceneRect = sceneRef.current?.getBoundingClientRect();
+    if (!active || !target || !sceneRect || autonomousTappingRef.current) return;
+    const targetRect = target.getBoundingClientRect();
+    autonomousTappingRef.current = true;
+    pendingRef.current = true;
+    setAutonomousTapping(true);
+    setInteractionPending(true);
+    setScrollGesture(null);
+    setPointer({
+      x: targetRect.left - sceneRect.left + targetRect.width * 0.28,
+      y: targetRect.top - sceneRect.top + targetRect.height * 0.72,
+    });
+    audio.play('meta.handDepart');
+  }, [active]);
+
+  const pulseAutonomousTap = useCallback(() => {
+    if (!autonomousTappingRef.current) return;
+    if (autonomousPulseTimerRef.current !== null) {
+      window.clearTimeout(autonomousPulseTimerRef.current);
+    }
+    setPressed(true);
+    audio.play('meta.fingerContact');
+    autonomousPulseTimerRef.current = window.setTimeout(() => {
+      setPressed(false);
+      audio.play('meta.fingerRelease');
+      autonomousPulseTimerRef.current = null;
+    }, 72);
   }, []);
 
   useEffect(() => {
@@ -1367,7 +1418,20 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     speak,
     tapElement,
     tapSequence,
-  }), [active, deviceResting, registerInput, speak, tapElement, tapSequence]);
+    beginAutonomousControl,
+    pulseAutonomousTap,
+    endAutonomousControl,
+  }), [
+    active,
+    beginAutonomousControl,
+    deviceResting,
+    endAutonomousControl,
+    pulseAutonomousTap,
+    registerInput,
+    speak,
+    tapElement,
+    tapSequence,
+  ]);
 
   // Hands are never perfectly still: a slow breathing drift applied inside
   // the entrance containers, mirrored per hand so both layers stay fused.
@@ -1426,6 +1490,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
       data-device-posture={deviceResting ? 'table-rest' : 'upright'}
       data-meta-pending={interactionPending ? 'true' : 'false'}
       data-autonomous-hand={autonomousTapping ? 'locked' : 'player-led'}
+      data-autonomous-control={autonomousTapping ? 'true' : 'false'}
       data-hand-pose={autonomousTapping ? 'agitated-tapping' : interactionPending ? 'reaching' : 'holding'}
       data-environment-chapter={chapter}
       id="meta-interaction-scene"

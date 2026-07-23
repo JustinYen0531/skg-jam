@@ -1,10 +1,44 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { GameProgress, ActiveApp } from '../types';
 import audio from '../lib/audio';
+import music from '../lib/music';
 import { EASY_FLAPPY_SETTINGS, FlappyDeathCause, GATE_40_INDEX, getCheapTelemetry, getFlappyNightMix, getGateHeights, getGateSpawnX, getGateVisualStyle, getScoreAfterPassingGate, nextGate40DeathCount, resolvePipeCollision } from '../lib/flappyPhysics';
 import { calculateBeatPercentage, createPublicLeaderboard } from '../lib/leaderboard';
 import { RefreshCw, Play, Volume2, VolumeX, CheckCircle, Zap, Crown, Sparkles, Rocket, Brain, Activity } from 'lucide-react';
 import { LeaderboardPanel } from './LeaderboardPanel';
+import {
+  CHAPTER_TEN_NODES,
+  createFlightState,
+  createRunRouteState,
+  deriveRoutePoints,
+  isGate40Passable,
+  requiredRoutePointCount,
+  shouldAcceptPlayerInput,
+  stepFlight,
+  touchesRoutePoint,
+  type ChapterTenPhase,
+  type FlightState,
+} from '../lib/chapterTenFlight';
+import {
+  drawChapterTenBeat,
+  drawChapterTenBird,
+  drawChapterTenComplete,
+  drawChapterTenFlightCredits,
+  drawChapterTenHud,
+  drawChapterTenPipe,
+  drawChapterTenRoutePoint,
+  drawChapterTenWorld,
+} from './chapterTenCanvas';
+import {
+  CHAPTER_TEN_ASSIST_FAIL_THRESHOLD,
+  CHAPTER_TEN_ASSIST_NOTE,
+  CHAPTER_TEN_ASSIST_PROMPT,
+  computeAssistPlan,
+  getAssistMarkPositions,
+  type AssistPlan,
+} from '../lib/chapterTenAssist';
+import { useMetaInteraction } from './MetaInteractionScene';
+import { ARCANE_FLIGHT_REFLECTIONS } from '../lib/chapterTenCredits';
 
 interface FlappyGameProps {
   progress: GameProgress;
@@ -36,6 +70,23 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
   const [seqIndex, setSeqIndex] = useState(0); // index in altitude matching
   const [seqMatched, setSeqMatched] = useState<boolean[]>(new Array(8).fill(false));
   const [hackedMode, setHackedMode] = useState(false);
+  const {
+    beginAutonomousControl,
+    pulseAutonomousTap,
+    endAutonomousControl,
+    speak,
+  } = useMetaInteraction();
+  const chapterTenActive = progress.currentChapter === 10;
+
+  // Chapter 10 route-point assist. After five straight sub-41 runs the game
+  // offers a precise, deterministic click pattern (see chapterTenAssist.ts) that
+  // threads every light point. Refs mirror the state so the canvas loop reads
+  // them without re-subscribing.
+  const [assistOffered, setAssistOffered] = useState(false);
+  const [assistEnabled, setAssistEnabled] = useState(false);
+  const assistEnabledRef = useRef(false);
+  const assistPlanRef = useRef<AssistPlan | null>(null);
+  const chapterTenFailsRef = useRef(0);
 
   // Core physics references to prevent state lag in canvas loop
   const stateRef = useRef({
@@ -56,6 +107,16 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
     trail: [] as number[], // visual-only motion residue for the wireframe layer
     popups: [] as Array<{ x: number; y: number; text: string; life: number }>, // slop praise popups
     lastJumpFrame: -100, // visual-only tap ripple timing
+    chapterTenRoute: createRunRouteState(),
+    chapterTenFlight: null as FlightState | null,
+    chapterTenPhase: 'player-route' as ChapterTenPhase,
+    chapterTenBeatFrames: 0,
+    chapterTenCompleteFrames: 0,
+    chapterTenTakeoverSpoken: false,
+    chapterTenMemoryDotsSpoken: false,
+    chapterTenTerminalDotsSpoken: false,
+    chapterTenReflectionIndex: 0,
+    chapterTenFinaleStarted: false,
   });
 
   const resetGame = () => {
@@ -83,7 +144,19 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
       trail: [],
       popups: [],
       lastJumpFrame: -100,
+      chapterTenRoute: createRunRouteState(),
+      chapterTenFlight: null,
+      chapterTenPhase: 'player-route',
+      chapterTenBeatFrames: 0,
+      chapterTenCompleteFrames: 0,
+      chapterTenTakeoverSpoken: false,
+      chapterTenMemoryDotsSpoken: false,
+      chapterTenTerminalDotsSpoken: false,
+      chapterTenReflectionIndex: 0,
+      chapterTenFinaleStarted: false,
     };
+    endAutonomousControl();
+    if (chapterTenActive) music.setPhase(10);
     setScore(0);
     setSeqIndex(0);
     setSeqMatched(new Array(8).fill(false));
@@ -110,6 +183,22 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
     onSuspiciousRunSelected();
   };
 
+  // Accept the offered help: compute the pattern once (deterministic, ~0.5s),
+  // switch the crosses on, and immediately start a fresh guided run.
+  const acceptAssist = () => {
+    if (!assistPlanRef.current) assistPlanRef.current = computeAssistPlan();
+    assistEnabledRef.current = true;
+    setAssistEnabled(true);
+    setAssistOffered(false);
+    audio.play('ui.toggle', { variant: 1 });
+    restartRun();
+  };
+
+  const declineAssist = () => {
+    setAssistOffered(false);
+    audio.play('ui.close');
+  };
+
   const handleJump = (e: React.MouseEvent | React.TouchEvent | KeyboardEvent) => {
     if (e.type === 'keydown' && (e as KeyboardEvent).code !== 'Space') return;
     if (e.cancelable) e.preventDefault();
@@ -129,6 +218,10 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
       return;
     }
 
+    if (
+      chapterTenActive
+      && !shouldAcceptPlayerInput(stateRef.current.chapterTenPhase)
+    ) return;
     stateRef.current.birdVelocity = stateRef.current.birdJump;
     stateRef.current.lastJumpFrame = stateRef.current.frameCount; // tap ripple
     audio.play('flight.flap');
@@ -142,7 +235,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isPlaying, showLeaderboard]);
+  }, [chapterTenActive, isPlaying, showLeaderboard]);
 
   // Main Canvas Render Loop
   useEffect(() => {
@@ -165,7 +258,9 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
       ctx.clearRect(0, 0, width, height);
 
       // --- Background Rendering ---
-      if (!hackedMode) {
+      if (chapterTenActive && state.chapterTenFlight) {
+        drawChapterTenWorld(ctx, width, height, state.score, state.frameCount);
+      } else if (!hackedMode) {
         // Level 1 begins in bright daylight. The night overlay only fades in at
         // score 36 and becomes complete at the sealed Level 2 boundary.
         const nightMix = getFlappyNightMix(state.score);
@@ -319,6 +414,82 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
       // --- Game Physics (Only update when playing) ---
       if (isPlaying && !state.gameOver) {
         state.frameCount++;
+        if (chapterTenActive && state.chapterTenFlight) {
+          if (state.chapterTenFlight.completed) {
+            state.chapterTenCompleteFrames += 1;
+            if (state.chapterTenCompleteFrames >= 180) triggerCompletion();
+          } else {
+            const previousFlightScore = state.chapterTenFlight.score;
+            const flightStep = stepFlight(state.chapterTenFlight, {
+              canvasHeight: height,
+              birdRadius: 12,
+              gravity: state.birdGravity,
+              jump: state.birdJump,
+              maxFall: EASY_FLAPPY_SETTINGS.maxFallSpeed,
+              cruisePaceFrames: 42,
+              sprintPaceFrames: 24,
+              scorePerPipe: 2,
+            });
+            state.chapterTenFlight = flightStep.state;
+            state.chapterTenPhase = flightStep.state.phase;
+            state.birdY = flightStep.state.birdY;
+            state.birdVelocity = flightStep.state.velocityY;
+            state.score = flightStep.state.score;
+            setScore(state.score);
+            const reflection = ARCANE_FLIGHT_REFLECTIONS[state.chapterTenReflectionIndex];
+            if (
+              reflection
+              && previousFlightScore < reflection.score
+              && state.score >= reflection.score
+            ) {
+              speak([...reflection.lines]);
+              state.chapterTenReflectionIndex += 1;
+            }
+            if (
+              !state.chapterTenFinaleStarted
+              && previousFlightScore < CHAPTER_TEN_NODES.distanceHudFrom
+              && state.score >= CHAPTER_TEN_NODES.distanceHudFrom
+            ) {
+              state.chapterTenFinaleStarted = true;
+              music.playFinaleOnce();
+            }
+            setCurrentAlt(Math.max(0, Math.min(256, Math.round(((height - state.birdY) / height) * 256))));
+            if (flightStep.events.includes('flap')) {
+              state.lastJumpFrame = state.frameCount;
+              pulseAutonomousTap();
+              audio.play('flight.flap');
+            }
+            if (flightStep.events.includes('memory-184')) {
+              state.chapterTenBeatFrames = 1;
+              audio.play('flight.altitudeStep', { variant: 0 });
+              if (!state.chapterTenMemoryDotsSpoken) {
+                state.chapterTenMemoryDotsSpoken = true;
+                speak(['...']);
+              }
+            } else if (state.chapterTenBeatFrames > 0) {
+              state.chapterTenBeatFrames += 1;
+            }
+            if (flightStep.events.includes('terminal-256')) {
+              endAutonomousControl();
+              audio.play('story.serviceTerminated');
+              if (!state.chapterTenTerminalDotsSpoken) {
+                state.chapterTenTerminalDotsSpoken = true;
+                speak(['...']);
+              }
+            }
+            if (flightStep.events.includes('complete')) {
+              state.chapterTenCompleteFrames = 1;
+              audio.play('flight.complete');
+            }
+          }
+          if (state.frameCount % 64 === 0 && !state.chapterTenFlight.completed) {
+            const gateIndex = state.pipeIndexCounter++;
+            const { topHeight, bottomHeight } = getGateHeights(gateIndex, height);
+            state.pipes.push({ x: width + 40, topHeight, bottomHeight, passed: false, index: gateIndex });
+          }
+          state.pipes.forEach((pipe) => { pipe.x -= 2; });
+          state.pipes = state.pipes.filter((pipe) => pipe.x > -60);
+        } else {
         const previousBirdY = state.birdY;
         state.birdVelocity = Math.min(
           state.birdVelocity + state.birdGravity,
@@ -361,6 +532,23 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
         state.pipes.forEach((pipe) => {
           pipe.x -= EASY_FLAPPY_SETTINGS.pipeSpeed;
         });
+
+        if (chapterTenActive) {
+          const routePoints = deriveRoutePoints(height, 12);
+          state.pipes.forEach((pipe) => {
+            routePoints
+              .filter((point) => point.gateIndex === pipe.index)
+              .forEach((point) => {
+                if (
+                  !state.chapterTenRoute.has(point.id)
+                  && touchesRoutePoint(80, state.birdY, pipe.x + point.offsetX, point.y)
+                ) {
+                  state.chapterTenRoute.add(point.id);
+                  audio.play('flight.altitudeStep', { variant: point.id % ALTITUDE_SEQUENCE.length });
+                }
+              });
+          });
+        }
 
         // Delete Offscreen Pipes
         state.pipes = state.pipes.filter((p) => p.x > -60);
@@ -438,7 +626,34 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
             // Gate 40 is the visible Level 2 seal. The secret route is only
             // evaluated when the bird actually hits its rendered pipe body.
             if (pipe.index === GATE_40_INDEX && !state.bypassActive && collision.fatal) {
-              if (progress.unlockedCodeRoute) {
+              if (
+                chapterTenActive
+                && progress.unlockedCodeRoute
+                && isGate40Passable(state.chapterTenRoute)
+              ) {
+                state.bypassActive = true;
+                state.chapterTenFlight = createFlightState(state.birdY, {
+                  canvasHeight: height,
+                  birdRadius: birdSize,
+                  gravity: state.birdGravity,
+                  jump: state.birdJump,
+                  maxFall: EASY_FLAPPY_SETTINGS.maxFallSpeed,
+                  cruisePaceFrames: 42,
+                  sprintPaceFrames: 24,
+                  scorePerPipe: 2,
+                });
+                state.chapterTenPhase = state.chapterTenFlight.phase;
+                state.score = CHAPTER_TEN_NODES.takeover;
+                setScore(state.score);
+                setHackedMode(true);
+                beginAutonomousControl('flappy-canvas');
+                if (!state.chapterTenTakeoverSpoken) {
+                  state.chapterTenTakeoverSpoken = true;
+                  speak(['My turn.']);
+                }
+                chapterTenFailsRef.current = 0; // cleared the gate → streak resets
+                audio.play('flight.level2Connect');
+              } else if (progress.unlockedCodeRoute) {
                 // If the player knows the code, let's track real-time sequence matching!
                 // Let's check the current altitude against target altitude sequence at index 0 (184)
                 const currentAltitude = Math.round(((height - state.birdY) / height) * 256);
@@ -515,11 +730,14 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
             handleDeath('Boundaries Error', 'boundary');
           }
         }
+        }
       }
 
       // --- Draw Pipes ---
       state.pipes.forEach((pipe) => {
-        if (!hackedMode) {
+        if (chapterTenActive && state.chapterTenFlight) {
+          drawChapterTenPipe(ctx, pipe, height, state.score);
+        } else if (!hackedMode) {
           // Glassmorphism obstacle columns: translucent gradient, neon core,
           // meaningless stability telemetry. Same geometry as before.
           const bottomY = height - pipe.bottomHeight;
@@ -643,12 +861,57 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
         }
       });
 
+      if (chapterTenActive && !state.chapterTenFlight) {
+        const routePoints = deriveRoutePoints(height, 12);
+        state.pipes.forEach((pipe) => {
+          routePoints
+            .filter((point) => point.gateIndex === pipe.index)
+            .forEach((point) => {
+              drawChapterTenRoutePoint(ctx, pipe.x, point, state.chapterTenRoute.has(point.id));
+            });
+        });
+
+        // Assist crosses: each cross marks a frame to press Space. They drift
+        // toward the bird at the world's speed; press when a cross reaches the
+        // bird's column (x = 80). Imminent crosses brighten so timing is clear.
+        if (assistEnabledRef.current && assistPlanRef.current && isPlaying && !state.gameOver) {
+          const marks = getAssistMarkPositions(assistPlanRef.current, state.frameCount);
+          for (const mark of marks) {
+            const r = mark.imminent ? 9 : 6;
+            ctx.save();
+            ctx.strokeStyle = mark.imminent ? 'rgba(253, 224, 71, 0.95)' : 'rgba(148, 197, 255, 0.6)';
+            ctx.lineWidth = mark.imminent ? 3 : 2;
+            ctx.shadowColor = mark.imminent ? 'rgba(253, 224, 71, 0.8)' : 'transparent';
+            ctx.shadowBlur = mark.imminent ? 8 : 0;
+            ctx.beginPath();
+            ctx.moveTo(mark.x - r, mark.y - r);
+            ctx.lineTo(mark.x + r, mark.y + r);
+            ctx.moveTo(mark.x + r, mark.y - r);
+            ctx.lineTo(mark.x - r, mark.y + r);
+            ctx.stroke();
+            ctx.restore();
+          }
+          // A vertical "press line" at the bird's column clarifies the trigger.
+          ctx.save();
+          ctx.strokeStyle = 'rgba(253, 224, 71, 0.25)';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.moveTo(80, 0);
+          ctx.lineTo(80, height);
+          ctx.stroke();
+          ctx.restore();
+        }
+      }
+
       // --- Draw Bird ---
       const birdX = 80;
       const birdY = state.birdY;
       const angle = Math.min(Math.PI / 6, Math.max(-Math.PI / 7, state.birdVelocity * 0.06));
 
-      if (hackedMode) {
+      if (chapterTenActive && state.chapterTenFlight) {
+        drawChapterTenBird(ctx, birdX, birdY, state.score);
+      } else if (hackedMode) {
         // Sampled-path residue: the bird leaves its recent coordinates behind
         ctx.save();
         state.trail.forEach((ty, i) => {
@@ -671,9 +934,10 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
         ctx.restore();
       }
 
-      ctx.save();
-      ctx.translate(birdX, birdY);
-      ctx.rotate(angle);
+      if (!(chapterTenActive && state.chapterTenFlight)) {
+        ctx.save();
+        ctx.translate(birdX, birdY);
+        ctx.rotate(angle);
 
       if (!hackedMode) {
         // NeuroBird: purple gradient glowing orb, giant cartoon eye, fake
@@ -796,10 +1060,37 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
         ctx.stroke();
       }
 
-      ctx.restore();
+        ctx.restore();
+      }
 
       // --- Draw Score HUD ---
-      if (!hackedMode) {
+      if (chapterTenActive && state.chapterTenFlight) {
+        drawChapterTenHud(
+          ctx,
+          width,
+          state.score,
+          state.chapterTenRoute.size,
+          requiredRoutePointCount(),
+        );
+        drawChapterTenBeat(
+          ctx,
+          width,
+          height,
+          state.chapterTenPhase,
+          state.score,
+          state.chapterTenBeatFrames,
+        );
+        drawChapterTenFlightCredits(
+          ctx,
+          width,
+          height,
+          state.score,
+          state.frameCount,
+        );
+        if (state.chapterTenFlight.completed) {
+          drawChapterTenComplete(ctx, width, height, state.chapterTenCompleteFrames);
+        }
+      } else if (!hackedMode) {
         // Glassmorphism score card (radius 24) with glow
         ctx.save();
         ctx.shadowColor = 'rgba(139, 92, 246, 0.45)';
@@ -968,6 +1259,19 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
         };
       });
 
+      // Count consecutive Chapter 10 runs that never got past Gate 40, and
+      // offer the route-point assist on the fifth. Passing Gate 40 (takeover)
+      // resets this, so the offer only follows a genuine losing streak.
+      if (chapterTenActive && state.score < CHAPTER_TEN_NODES.takeover) {
+        chapterTenFailsRef.current += 1;
+        if (
+          chapterTenFailsRef.current >= CHAPTER_TEN_ASSIST_FAIL_THRESHOLD
+          && !assistEnabledRef.current
+        ) {
+          setAssistOffered(true);
+        }
+      }
+
       // Show the cheap results screen; the leaderboard is behind a button
       setShowResults(true);
     };
@@ -1013,7 +1317,16 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, [isPlaying, hackedMode]);
+  }, [
+    beginAutonomousControl,
+    chapterTenActive,
+    endAutonomousControl,
+    hackedMode,
+    isPlaying,
+    progress.unlockedCodeRoute,
+    pulseAutonomousTap,
+    speak,
+  ]);
 
   const playerBestScore = Math.max(progress.bestScore, highScore, score);
   const publicLeaderboard = createPublicLeaderboard(playerBestScore);
@@ -1022,8 +1335,9 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
   return (
     <div className="flex flex-col h-full bg-slate-950 font-sans select-none overflow-hidden" id="flappy-root">
       
-      {/* Top App Header bar */}
-      <div className="bg-purple-900/60 border-b border-purple-800/50 px-3 py-1.5 flex items-center justify-between text-xs" id="game-header">
+      {/* Top App Header bar — hidden while the leaderboard/title intro owns the
+          screen, so the intro is just the black backdrop and the logo. */}
+      <div className={`bg-purple-900/60 border-b border-purple-800/50 px-3 py-1.5 flex items-center justify-between text-xs ${showLeaderboard ? 'hidden' : ''}`} id="game-header">
         <div className="flex items-center gap-1.5 font-display font-medium text-purple-200">
           <Zap className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
           <span>{hackedMode ? 'SKG: Skyline 256 (v1.04_Final)' : 'Flappy Something (New Version)'}</span>
@@ -1068,7 +1382,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
         />
 
         {/* Debug panel: Shown when player has unlocked the code route */}
-        {progress.unlockedCodeRoute && isPlaying && !showLeaderboard && (
+        {progress.unlockedCodeRoute && isPlaying && !showLeaderboard && !chapterTenActive && (
           <div className="absolute left-3 top-3 bottom-3 w-40 bg-[var(--laos-bg)]/[0.94] border border-[var(--laos-line)] p-2 text-[10px] font-laos text-[var(--laos-text)] flex flex-col justify-between pointer-events-none z-10" id="altitude-sensor-panel">
             <div>
               <div className="flex items-center gap-1.5 laos-label text-[8px] border-b border-[var(--laos-line-dim)] pb-1.5 mb-1.5">
@@ -1280,6 +1594,32 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
           </div>
         )}
 
+        {/* Chapter 10 route-point assist offer, after a five-run losing streak. */}
+        {assistOffered && chapterTenActive && (
+          <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/70 p-6" id="chapter-ten-assist-offer">
+            <div className="max-w-[300px] rounded-2xl border border-cyan-400/40 bg-[#0c1118] px-5 py-4 text-center shadow-[0_0_30px_rgba(56,189,248,0.25)]">
+              <div className="text-base font-bold text-cyan-100">{CHAPTER_TEN_ASSIST_PROMPT}</div>
+              <div className="mt-2 text-[11px] leading-relaxed text-slate-300">（{CHAPTER_TEN_ASSIST_NOTE}）</div>
+              <div className="mt-4 flex items-center justify-center gap-3">
+                <button
+                  onClick={acceptAssist}
+                  id="assist-accept"
+                  className="px-4 py-1.5 rounded-lg bg-cyan-500 text-[#04121f] text-xs font-bold hover:bg-cyan-400 transition-colors"
+                >
+                  好，幫我
+                </button>
+                <button
+                  onClick={declineAssist}
+                  id="assist-decline"
+                  className="px-4 py-1.5 rounded-lg border border-slate-500/50 text-slate-300 text-xs hover:bg-white/5 transition-colors"
+                >
+                  不用，我再試試
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {showLeaderboard && (
           <LeaderboardPanel
             entries={publicLeaderboard}
@@ -1293,8 +1633,9 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
         )}
       </div>
 
-      {/* Ads footer bar when in slop mode */}
-      {!hackedMode && (
+      {/* Ads footer bar when in slop mode — also hidden under the leaderboard/
+          title intro so nothing pokes out below the black backdrop. */}
+      {!hackedMode && !showLeaderboard && (
         <div className="bg-amber-400 text-black text-[9px] py-1 text-center font-bold tracking-wider animate-pulse flex items-center justify-center gap-2 border-t border-yellow-500" id="ad-banner">
           <span>⚠️ LOSE WEIGHT FAST BY FLAPPING YOUR ARMS! CLOCK TICKING! ⚠️</span>
         </div>

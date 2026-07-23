@@ -970,3 +970,12 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - The initial archive hint asks who once held first place. Entering `ARC-184` triggers a story reveal instead of a generic wrong-password joke: it was the protagonist’s childhood leaderboard name, while the recovered account owner is `ARCANE KADE`.
 - After that reveal, the field asks for the owner’s first name; entering `Arcane` starts the same download and surprise 58% storage failure.
 - Static verification only; Browser and Preview remain intentionally excluded by project instruction.
+
+## 2026-07-24 — Chapter 10 precision integration onto current main
+
+- Transplanted only the Chapter 10 flight core, 28-point route, autonomous Meta hand, in-flight credits, Finale tail, and five-failure route assist onto the latest `origin/main`.
+- Avoided merging the older feature branch history, which would have produced 21 cross-chapter conflicts.
+- Preserved current-main Chapter 1–9 behavior and maximum fireplace illumination; excluded the canonical runtime's unrelated uncommitted files and experimental chapter-varying fire.
+- Added the title-logo files already required by current-main tests so the suspicious-run transition and music suppression remain internally consistent.
+- Static verification passed: full tests 256/256, TypeScript lint, production build, and diff checks. The existing non-fatal 500 kB chunk advisory remains.
+- Browser and Preview remain intentionally unused by project instruction.
