@@ -53,8 +53,9 @@ test('the legacy assistant separates its ARC-184 authorization record from its m
   assert.equal(getChapterNinePasswordResult('wrong'), 'rejected');
   assert.equal(canRecoverChapterNineChildProfile('Arcane'), true);
   assert.match(CHAPTER_NINE_DIALOGUE.authorizationLocated.join(' '), /official assistant tool/);
-  assert.match(CHAPTER_NINE_DIALOGUE.recordClarified.join(' '), /ARC-184 is not the answer/);
+  assert.match(CHAPTER_NINE_DIALOGUE.recordClarified.join(' '), /When was I ARC-184/);
   assert.match(CHAPTER_NINE_DIALOGUE.operatorIdentityRestored.join(' '), /score and the name belonged to the same person/);
+  assert.deepEqual(CHAPTER_NINE_DIALOGUE.poweredDown, ['You win.']);
 });
 
 test('Messages standoff is available only after every other app has been removed', () => {
@@ -94,6 +95,7 @@ test('runtime connects storage cleanup, the unresolved power loss, and silent Ch
   assert.match(messages, /CHAPTER_NINE_DIALOGUE\.operatorNameRejected/);
   assert.match(messages, /CHAPTER_NINE_DIALOGUE\.operatorIdentityRestored/);
   assert.match(messages, /CHAPTER_NINE_DIALOGUE\.storageBlocked/);
+  assert.match(messages, /\}, 8400\)\);/);
   assert.doesNotMatch(messages, /Who once held first place in this game/);
   assert.doesNotMatch(messages, /ARCHIVE PASSWORD/);
   assert.match(messages, /id="chapter-nine-player-password"/);
@@ -110,6 +112,7 @@ test('runtime connects storage cleanup, the unresolved power loss, and silent Ch
   assert.match(phone, /chapterNineRestorePhase: 'blackout'/);
   assert.match(phone, /metaInteraction\.active && !metaInteraction\.deviceResting/);
   assert.match(phone, /chapterNineArcaneSilent: true/);
+  assert.match(phone, /CHAPTER_NINE_DIALOGUE\.poweredDown/);
   assert.match(phone, /completePuzzleChapter\(poweredDownState, 9/);
 
   assert.match(home, /id="chapter-nine-messages-standoff"/);

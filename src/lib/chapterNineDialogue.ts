@@ -7,8 +7,8 @@ export const CHAPTER_NINE_DIALOGUE = {
     'It is an official assistant tool. It still recognizes ARC-184, but not the person it was licensed to help.',
   ],
   recordClarified: [
-    'ARC-184 is not the answer.',
-    'It is the record the assistant is trying to connect to someone.',
+    'When was I ARC-184?',
+    'That has to be a coincidence.',
   ],
   operatorNameRejected: [
     'It has the score. It has the device.',
@@ -21,6 +21,9 @@ export const CHAPTER_NINE_DIALOGUE = {
   storageBlocked: [
     'It found him, and now it cannot finish waking up.',
     'The authorization is intact. The phone is not.',
+  ],
+  poweredDown: [
+    'You win.',
   ],
   restoreBlocked: [
     'The authorization is intact. The phone is not.',

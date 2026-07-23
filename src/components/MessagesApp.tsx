@@ -186,10 +186,10 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
     chapterNineDownloadTimers.current.forEach(clearTimeout);
     setChapterNineDownloadProgress(0);
     const checkpoints = [
-      { delay: 260, value: 9 },
-      { delay: 720, value: 24 },
-      { delay: 1240, value: 41 },
-      { delay: 1900, value: 58 },
+      { delay: 900, value: 9 },
+      { delay: 2500, value: 24 },
+      { delay: 4400, value: 41 },
+      { delay: 6100, value: 58 },
     ];
     chapterNineDownloadTimers.current = checkpoints.map(({ delay, value }) => setTimeout(
       () => setChapterNineDownloadProgress(value),
@@ -200,7 +200,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
       updateProgress((previous) => previous.currentChapter === 9
         ? { ...previous, chapterNineDownloadState: 'storage-error' }
         : previous);
-    }, 2550));
+    }, 8400));
     return () => {
       chapterNineDownloadTimers.current.forEach(clearTimeout);
       chapterNineDownloadTimers.current = [];

@@ -316,6 +316,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
     if (chapterNinePowerTimer.current) return;
     chapterNinePowerTimer.current = setTimeout(() => {
       audio.play('story.serviceTerminated');
+      if (metaInteraction.active) metaInteraction.speak(CHAPTER_NINE_DIALOGUE.poweredDown);
       updateProgress((previous) => previous.currentChapter === 9
         ? { ...previous, chapterNineRestorePhase: 'blackout' }
         : previous);
