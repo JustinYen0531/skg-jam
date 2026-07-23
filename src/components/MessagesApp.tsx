@@ -5,7 +5,7 @@ import { canUseProgressionAction, completePuzzleChapter } from '../lib/chapterPr
 import { isSellerCodeAccepted, type AmazeMartOrderPhase } from '../lib/amazemartPuzzle';
 import { useMetaInteraction } from './MetaInteractionScene';
 import { CHAPTER_THREE_DIALOGUE, getChapterThreeSellerCodeResponse } from '../lib/chapterThreeDialogue';
-import { Check, ChevronLeft, ChevronRight, KeyRound, LockKeyhole, MessageCircle, MicOff, PhoneMissed, Send, ShieldAlert, Trash2, UserCircle2, Users } from 'lucide-react';
+import { AlertTriangle, Check, ChevronLeft, ChevronRight, Download, KeyRound, Loader2, LockKeyhole, MessageCircle, MicOff, PhoneMissed, Send, ShieldAlert, Trash2, UserCircle2, Users } from 'lucide-react';
 import {
   hasAllMaraNumberClues,
   isMaraCoordinateMappingCorrect,
@@ -17,9 +17,11 @@ import {
   MARA_ARCHIVE_THREADS,
   NOAH_ARCHIVE_FRAGMENTS,
   addUniqueChapterEightId,
+  canRestoreNoahFragmentInOrder,
+  getAvailableChapterEightMemoryIds,
   getChapterEightMemory,
   getMaraArchiveThread,
-  getNoahArchiveFragment,
+  getNextNoahArchiveFragment,
   hasRestoredAllNoahFragments,
   isCorrectNoahMemory,
   type ChapterEightMemoryId,
@@ -38,12 +40,19 @@ import {
   getChapterEightMemorySelectionDialogue,
   getChapterEightThreadDialogue,
 } from '../lib/chapterEightDialogue';
+import {
+  CHAPTER_NINE_CHILD_PROFILE,
+  canRecoverChapterNineChildProfile,
+  getChapterNinePasswordResult,
+} from '../lib/chapterNineRecovery';
+import { CHAPTER_NINE_DIALOGUE } from '../lib/chapterNineDialogue';
 
 interface MessagesAppProps {
   progress: GameProgress;
   updateProgress: (updater: (prev: GameProgress) => GameProgress) => void;
   chapterThreeOrderPhase: AmazeMartOrderPhase;
   onSellerVerified: () => void;
+  onBeginChapterNineCleanup: () => void;
   developerPreview?: boolean;
 }
 
@@ -133,6 +142,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
   updateProgress,
   chapterThreeOrderPhase,
   onSellerVerified,
+  onBeginChapterNineCleanup,
   developerPreview = false,
 }) => {
   const metaInteraction = useMetaInteraction();
@@ -153,13 +163,49 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
   const [mappingError, setMappingError] = useState('');
   const [sellerCode, setSellerCode] = useState('');
   const [sellerCodeError, setSellerCodeError] = useState('');
+  const [chapterNinePassword, setChapterNinePassword] = useState('');
+  const [chapterNineRecoveryError, setChapterNineRecoveryError] = useState('');
+  const [chapterNineDownloadProgress, setChapterNineDownloadProgress] = useState(0);
+  const chapterNineDownloadTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const chapterNineAuthorizationSpoken = useRef(false);
+  const chapterNineStorageSpoken = useRef(false);
   // Which of Mara's own conversations is open, once you are inside her account.
   const [archiveThread, setArchiveThread] = useState<MaraArchiveThreadId | null>(null);
-  const [activeNoahFragment, setActiveNoahFragment] = useState<NoahArchiveFragmentId | null>(null);
   const [noahRestoreError, setNoahRestoreError] = useState('');
   const memoryRepeatAttempts = useRef(new Map<ChapterEightMemoryId, number>());
   const noahFailureAttempts = useRef(new Map<NoahArchiveFragmentId, number>());
   const firstNoahFragmentSpoken = useRef(false);
+
+  useEffect(() => () => {
+    chapterNineDownloadTimers.current.forEach(clearTimeout);
+    chapterNineDownloadTimers.current = [];
+  }, []);
+
+  useEffect(() => {
+    if (progress.currentChapter !== 9 || progress.chapterNineDownloadState !== 'downloading') return;
+    chapterNineDownloadTimers.current.forEach(clearTimeout);
+    setChapterNineDownloadProgress(0);
+    const checkpoints = [
+      { delay: 260, value: 9 },
+      { delay: 720, value: 24 },
+      { delay: 1240, value: 41 },
+      { delay: 1900, value: 58 },
+    ];
+    chapterNineDownloadTimers.current = checkpoints.map(({ delay, value }) => setTimeout(
+      () => setChapterNineDownloadProgress(value),
+      delay,
+    ));
+    chapterNineDownloadTimers.current.push(setTimeout(() => {
+      audio.playGlitch();
+      updateProgress((previous) => previous.currentChapter === 9
+        ? { ...previous, chapterNineDownloadState: 'storage-error' }
+        : previous);
+    }, 2550));
+    return () => {
+      chapterNineDownloadTimers.current.forEach(clearTimeout);
+      chapterNineDownloadTimers.current = [];
+    };
+  }, [progress.chapterNineDownloadState, progress.currentChapter, updateProgress]);
 
   const sellerThreadAvailable = chapterThreeOrderPhase !== 'idle';
 
@@ -197,6 +243,28 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
   const speakChapterEight = (lines: readonly string[]) => {
     if (progress.currentChapter === 8 && metaInteraction.active) metaInteraction.speak(lines);
   };
+
+  const speakChapterNine = (lines: readonly string[]) => {
+    if (progress.currentChapter === 9 && metaInteraction.active) metaInteraction.speak(lines);
+  };
+
+  useEffect(() => {
+    if (progress.currentChapter !== 9) {
+      chapterNineAuthorizationSpoken.current = false;
+      chapterNineStorageSpoken.current = false;
+      return;
+    }
+
+    if (progress.chapterNineDownloadState === 'idle' && !chapterNineAuthorizationSpoken.current) {
+      chapterNineAuthorizationSpoken.current = true;
+      speakChapterNine(CHAPTER_NINE_DIALOGUE.authorizationLocated);
+    }
+
+    if (progress.chapterNineDownloadState === 'storage-error' && !chapterNineStorageSpoken.current) {
+      chapterNineStorageSpoken.current = true;
+      speakChapterNine(CHAPTER_NINE_DIALOGUE.storageBlocked);
+    }
+  }, [metaInteraction.active, progress.chapterNineDownloadState, progress.currentChapter]);
 
   const allMaraNumbersCollected = hasAllMaraNumberClues(progress);
   const collectionRequired = !developerPreview && !allMaraNumbersCollected;
@@ -270,9 +338,45 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
     }
   };
 
+  const handleChapterNineRecoveryLogin = (event: React.FormEvent) => {
+    event.preventDefault();
+    const passwordResult = getChapterNinePasswordResult(chapterNinePassword);
+    if (!canRecoverChapterNineChildProfile(chapterNinePassword)) {
+      audio.play('auth.wrong');
+      setChapterNineRecoveryError(
+        passwordResult === 'record-alias'
+          ? 'RECORD CONFIRMED · ARC-184 IS THE AUTHORIZED PLAYER RECORD. ORIGINAL OPERATOR NAME STILL UNRESOLVED.'
+          : 'OPERATOR NAME NOT FOUND IN THE LOCAL AUTHORIZATION RECORD.',
+      );
+      speakChapterNine(
+        passwordResult === 'record-alias'
+          ? CHAPTER_NINE_DIALOGUE.recordClarified
+          : CHAPTER_NINE_DIALOGUE.operatorNameRejected,
+      );
+      return;
+    }
+
+    audio.play('auth.correct');
+    setChapterNineRecoveryError('');
+    speakChapterNine(CHAPTER_NINE_DIALOGUE.operatorIdentityRestored);
+    updateProgress((previous) => previous.currentChapter === 9
+      ? {
+          ...previous,
+          chapterNineProfileChoice: 'child',
+          chapterNinePasswordVerified: true,
+          chapterNineDownloadState: 'downloading',
+        }
+      : previous);
+  };
+
   const collectedChapterEightMemories = progress.chapterEightMemoryIds ?? [];
   const restoredNoahMessages = progress.chapterEightRestoredMessageIds ?? [];
   const allNoahMessagesRestored = hasRestoredAllNoahFragments(restoredNoahMessages);
+  const nextNoahFragment = getNextNoahArchiveFragment(restoredNoahMessages);
+  const availableChapterEightMemories = getAvailableChapterEightMemoryIds(
+    collectedChapterEightMemories,
+    restoredNoahMessages,
+  );
 
   const handleCollectChapterEightMemory = (memoryId: ChapterEightMemoryId) => {
     const alreadyCollected = collectedChapterEightMemories.includes(memoryId);
@@ -301,7 +405,6 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
   const handleOpenArchiveThread = () => {
     audio.play('phone.tab');
     setArchiveThread('noah');
-    setActiveNoahFragment(null);
     setNoahRestoreError('');
     speakChapterEight(collectedChapterEightMemories.length === 0
       ? CHAPTER_EIGHT_DIALOGUE.noahOpenedTooEarly
@@ -309,8 +412,8 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
   };
 
   const handleOpenNoahFragment = (fragmentId: NoahArchiveFragmentId) => {
+    if (!canRestoreNoahFragmentInOrder(fragmentId, restoredNoahMessages)) return;
     audio.play('phone.tab');
-    setActiveNoahFragment(fragmentId);
     setNoahRestoreError('');
     if (!firstNoahFragmentSpoken.current) {
       firstNoahFragmentSpoken.current = true;
@@ -319,15 +422,15 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
   };
 
   const handleRestoreNoahFragment = (memoryId: ChapterEightMemoryId) => {
-    if (!activeNoahFragment) return;
-    const fragment = getNoahArchiveFragment(activeNoahFragment);
-    if (!fragment || !isCorrectNoahMemory(activeNoahFragment, memoryId)) {
+    const targetFragment = nextNoahFragment;
+    if (!targetFragment || !availableChapterEightMemories.includes(memoryId)) return;
+    if (!isCorrectNoahMemory(targetFragment.id, memoryId)) {
       audio.play('auth.wrong');
-      const failureCount = noahFailureAttempts.current.get(activeNoahFragment) ?? 0;
-      noahFailureAttempts.current.set(activeNoahFragment, failureCount + 1);
-      setNoahRestoreError(fragment?.hint ?? 'This memory belongs somewhere else.');
+      const failureCount = noahFailureAttempts.current.get(targetFragment.id) ?? 0;
+      noahFailureAttempts.current.set(targetFragment.id, failureCount + 1);
+      setNoahRestoreError(targetFragment.hint);
       speakChapterEight(getChapterEightMemorySelectionDialogue(
-        activeNoahFragment,
+        targetFragment.id,
         memoryId,
         false,
         failureCount,
@@ -336,7 +439,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
     }
 
     audio.play('auth.correct');
-    speakChapterEight(getChapterEightFragmentRestoredDialogue(activeNoahFragment));
+    speakChapterEight(getChapterEightFragmentRestoredDialogue(targetFragment.id));
     if (restoredNoahMessages.length === NOAH_ARCHIVE_FRAGMENTS.length - 1) {
       speakChapterEight([
         ...CHAPTER_EIGHT_DIALOGUE.allFragmentsRestored,
@@ -348,23 +451,17 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
           ...previous,
           chapterEightRestoredMessageIds: [...addUniqueChapterEightId(
             previous.chapterEightRestoredMessageIds ?? [],
-            activeNoahFragment,
+            targetFragment.id,
           )],
         }
       : previous);
-    setActiveNoahFragment(null);
     setNoahRestoreError('');
   };
 
-  const handleCompleteChapterEight = () => {
+  const handleOpenLegacyChildProfile = () => {
     if (!allNoahMessagesRestored) return;
     audio.playUnlock();
     updateProgress((prev) => completePuzzleChapter(prev, 8));
-  };
-
-  const handleRecoverRoute = () => {
-    audio.playSuccess();
-    updateProgress((prev) => completePuzzleChapter(prev, 9, { unlockedCodeRoute: true }));
   };
 
   const verifySellerCode = () => {
@@ -731,6 +828,142 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                   {collectionRequired ? 'COLLECT THREE NUMBER FRAGMENTS' : mappingRequired ? 'VERIFY COORDINATE MAPPING' : 'DECRYPT ENCRYPTED NODES'}
                 </button>
               </form>
+            ) : progress.currentChapter === 9 ? (
+              <section
+                className="laos-panel mx-auto max-w-[720px] space-y-4 p-4"
+                id="chapter-nine-legacy-restore"
+              >
+                <div className="flex items-start justify-between gap-3 border-b border-[var(--laos-line-dim)] pb-3">
+                  <div>
+                    <div className="laos-label text-[8px]">SILVER KITE LEGACY ASSISTANT</div>
+                    <h3 className="mt-1 font-laos text-sm font-semibold text-[var(--laos-text)]">Local authorization recovery</h3>
+                  </div>
+                  <LockKeyhole className="h-5 w-5 text-[var(--laos-warm)]" />
+                </div>
+
+                {progress.chapterNineDownloadState === 'downloading' ? (
+                  <div className="space-y-4 py-4" id="chapter-nine-download-progress">
+                    <div className="flex items-center gap-3">
+                      <Loader2 className="h-5 w-5 animate-spin text-emerald-300" />
+                      <div>
+                        <div className="text-[10px] font-semibold text-[var(--laos-text)]">Restoring legacy assistant tools...</div>
+                        <div className="mt-0.5 font-mono text-[7px] text-[var(--laos-faint)]">ARC-184 · LOCAL AUTHORIZATION · INPUT TRACE</div>
+                      </div>
+                    </div>
+                    <div className="h-2 overflow-hidden border border-[var(--laos-line)] bg-[var(--laos-bg)]">
+                      <div
+                        className="h-full bg-emerald-300/70 transition-[width] duration-500"
+                        style={{ width: `${chapterNineDownloadProgress}%` }}
+                      />
+                    </div>
+                    <div className="flex justify-between font-mono text-[8px] text-[var(--laos-dim)]">
+                      <span>RESTORING AUTHORIZED TOOLSET</span>
+                      <span>{chapterNineDownloadProgress}%</span>
+                    </div>
+                  </div>
+                ) : progress.chapterNineDownloadState === 'storage-error' ? (
+                  <div className="space-y-4" id="chapter-nine-storage-error">
+                    <div className="border border-red-300/35 bg-red-300/[0.07] p-3">
+                      <div className="flex items-center gap-2 text-red-200">
+                        <AlertTriangle className="h-4 w-4" />
+                        <span className="font-mono text-[9px] font-bold tracking-[0.12em]">ERROR · NOT ENOUGH STORAGE</span>
+                      </div>
+                      <p className="mt-2 text-[9px] leading-relaxed text-[var(--laos-dim)]">
+                        Restore stopped at 58%. Free 18.0 GB of local app data, then resume the interrupted assistant recovery.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={onBeginChapterNineCleanup}
+                      className="laos-slow w-full border border-[var(--laos-warm)]/60 bg-[var(--laos-surface-2)] px-3 py-2 font-laos text-[10px] font-semibold tracking-[0.14em] text-[var(--laos-warm)] hover:bg-[var(--laos-line-dim)]"
+                      id="chapter-nine-make-space"
+                      data-meta-immediate="true"
+                      data-meta-hit-recovery="true"
+                    >
+                      RETURN HOME · MAKE ROOM
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <div className="border border-[var(--laos-line)] bg-[var(--laos-bg)]" id="chapter-nine-child-profile">
+                      <div className="flex items-center justify-between border-b border-[var(--laos-line-dim)] px-3 py-2.5">
+                        <div>
+                          <div className="font-mono text-[8px] font-bold tracking-[0.12em] text-[var(--laos-text)]">LEGACY OPERATOR RECORD</div>
+                          <div className="mt-1 text-[7px] text-[var(--laos-faint)]">{CHAPTER_NINE_CHILD_PROFILE.title}</div>
+                        </div>
+                        <span className="border border-emerald-300/30 bg-emerald-300/[0.07] px-2 py-1 font-mono text-[7px] text-emerald-200">
+                          LOCAL COPY FOUND
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-x-5 gap-y-2.5 p-3 font-mono text-[7px]">
+                        <div>
+                          <div className="text-[var(--laos-faint)]">AUTHORIZED PLAYER RECORD</div>
+                          <div className="mt-1 text-[var(--laos-text)]">ARC-184</div>
+                        </div>
+                        <div>
+                          <div className="text-[var(--laos-faint)]">ORIGINAL OPERATOR</div>
+                          <div className="mt-1 text-[var(--laos-text)]">{CHAPTER_NINE_CHILD_PROFILE.owner}</div>
+                        </div>
+                        <div>
+                          <div className="text-[var(--laos-faint)]">LAST VERIFIED SCORE</div>
+                          <div className="mt-1 text-[var(--laos-text)]">{CHAPTER_NINE_CHILD_PROFILE.score}</div>
+                        </div>
+                        <div>
+                          <div className="text-[var(--laos-faint)]">LOCAL PACKAGE</div>
+                          <div className="mt-1 text-[var(--laos-text)]">{CHAPTER_NINE_CHILD_PROFILE.packageSize} · {CHAPTER_NINE_CHILD_PROFILE.age}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between border-t border-[var(--laos-line-dim)] px-3 py-2 text-[7px]">
+                        <span className="text-[var(--laos-faint)]">{CHAPTER_NINE_CHILD_PROFILE.detail}</span>
+                        <span className="font-mono text-emerald-200/80">{CHAPTER_NINE_CHILD_PROFILE.signature}</span>
+                      </div>
+                    </div>
+
+                    <form onSubmit={handleChapterNineRecoveryLogin} className="border-t border-[var(--laos-line-dim)] pt-3" id="chapter-nine-player-login">
+                      <div className="mb-2 border-l-2 border-[var(--laos-warm)]/50 pl-2">
+                        <div className="laos-label text-[7px]">ORIGINAL OPERATOR UNRESOLVED</div>
+                        <div className="mt-1 text-[8px] text-[var(--laos-dim)]">This assistant is licensed to ARC-184. Its original operator name is missing from the local authorization record.</div>
+                      </div>
+                      <div className="flex items-end gap-2">
+                        <label className="min-w-0 flex-1">
+                          <span className="laos-label block text-[7px]">RESTORE OPERATOR NAME</span>
+                          <input
+                            type="text"
+                            value={chapterNinePassword}
+                            onChange={(event) => setChapterNinePassword(event.target.value)}
+                            placeholder="First name"
+                            autoComplete="off"
+                            data-meta-hit-recovery="true"
+                            id="chapter-nine-player-password"
+                            className="mt-1 w-full border border-[var(--laos-line)] bg-[var(--laos-bg)] px-2.5 py-2 font-mono text-[10px] uppercase text-[var(--laos-text)] outline-none focus:border-[var(--laos-warm)]"
+                          />
+                        </label>
+                        <button
+                          type="submit"
+                          className="flex h-[34px] items-center gap-1.5 border border-emerald-300/35 bg-emerald-300/10 px-3 font-mono text-[8px] text-emerald-200"
+                          data-meta-immediate="true"
+                          data-meta-hit-recovery="true"
+                          id="chapter-nine-player-login-submit"
+                        >
+                          <Download className="h-3 w-3" /> RESTORE AUTHORIZATION
+                        </button>
+                      </div>
+                      {chapterNineRecoveryError && (
+                        <div
+                          className={`mt-2 border px-2.5 py-2 font-mono text-[8px] leading-relaxed ${
+                            chapterNineRecoveryError.includes('RECORD CONFIRMED')
+                              ? 'border-amber-200/30 bg-amber-100/[0.06] text-amber-100'
+                              : 'border-red-300/20 bg-red-300/[0.04] text-red-300'
+                          }`}
+                          id="chapter-nine-recovery-error"
+                        >
+                          {chapterNineRecoveryError}
+                        </div>
+                      )}
+                    </form>
+                  </>
+                )}
+              </section>
             ) : progress.currentChapter === 8 ? (
               activeArchive ? (
                 /* Reading one of Mara's own conversations. Her bubbles are the
@@ -752,16 +985,29 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                       <div className="rounded-lg border border-amber-300/20 bg-amber-200/[0.04] p-2.5" id="chapter-eight-memory-drawer">
                         <div className="flex items-center justify-between gap-2">
                           <span className="text-[8px] font-semibold uppercase tracking-[0.14em] text-amber-200">Recovered memories</span>
-                          <span className="font-mono text-[8px] text-slate-500">{collectedChapterEightMemories.length}/8</span>
+                          <span className="font-mono text-[8px] text-slate-500">
+                            {collectedChapterEightMemories.length} found · {availableChapterEightMemories.length} available
+                          </span>
                         </div>
                         <div className="mt-2 flex flex-wrap gap-1.5">
                           {collectedChapterEightMemories.length === 0 ? (
                             <span className="text-[8px] italic text-slate-500">Read Mara’s other conversations. Underlined memories will remain here.</span>
                           ) : collectedChapterEightMemories.map((memoryId) => {
                             const recovered = getChapterEightMemory(memoryId as ChapterEightMemoryId);
+                            const used = NOAH_ARCHIVE_FRAGMENTS.some((fragment) =>
+                              fragment.memoryId === memoryId && restoredNoahMessages.includes(fragment.id));
                             return recovered ? (
-                              <span key={memoryId} className="rounded border border-amber-200/20 bg-black/20 px-1.5 py-1 text-[8px] text-amber-100" data-recovered-memory={memoryId}>
-                                {recovered.label}
+                              <span
+                                key={memoryId}
+                                className={`rounded border px-1.5 py-1 text-[8px] ${
+                                  used
+                                    ? 'border-white/[0.06] bg-black/10 text-slate-600 line-through'
+                                    : 'border-amber-200/20 bg-black/20 text-amber-100'
+                                }`}
+                                data-recovered-memory={memoryId}
+                                data-memory-used={used}
+                              >
+                                {used ? 'USED · ' : ''}{recovered.label}
                               </span>
                             ) : null;
                           })}
@@ -769,53 +1015,23 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                       </div>
 
                       <div className="text-center text-[8px] leading-relaxed text-slate-500">
-                        Select a damaged slot, then choose the memory that authenticates it.
+                        Messages restore from oldest to newest. Each accepted memory is consumed as an answer.
                       </div>
 
-                      {NOAH_ARCHIVE_FRAGMENTS.map((fragment) => {
-                        const restored = restoredNoahMessages.includes(fragment.id);
-                        return (
-                          <div
-                            key={fragment.id}
-                            className={`rounded-lg border p-2.5 ${
-                              restored
-                                ? 'border-white/[0.06] bg-[#171a21]'
-                                : 'border-dashed border-amber-200/20 bg-black/10'
-                            }`}
-                            data-noah-fragment={fragment.id}
-                            data-restored={restored}
-                          >
-                            <div className="flex items-center justify-between gap-2 text-[8px]">
-                              <span className={fragment.from === 'noah' ? 'text-[#e59b87]' : 'text-[#71bc94]'}>
-                                {fragment.from === 'noah' ? 'Noah Kade' : 'Mara Kade'}
-                              </span>
-                              <span className="font-mono text-slate-600">{fragment.time}</span>
-                            </div>
-                            {restored ? (
-                              <p className="mt-1.5 text-[11px] leading-relaxed text-slate-200">{fragment.restoredText}</p>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={() => handleOpenNoahFragment(fragment.id)}
-                                className="mt-1.5 flex w-full items-center gap-2 rounded border border-dashed border-slate-700 px-2.5 py-2 text-left text-[9px] text-slate-500 hover:border-amber-200/40 hover:text-amber-100"
-                                id={`chapter-eight-damaged-${fragment.id}`}
-                              >
-                                <LockKeyhole className="h-3 w-3 shrink-0" />
-                                <span>[damaged message · select to restore]</span>
-                              </button>
-                            )}
+                      {nextNoahFragment && (
+                        <div className="sticky top-0 z-20 rounded-lg border border-amber-200/30 bg-[#171a21]/95 p-3 shadow-[0_8px_24px_rgba(0,0,0,0.45)] backdrop-blur-sm" id="chapter-eight-restore-prompt">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-[7px] uppercase tracking-[0.14em] text-slate-500">
+                              Next message · {restoredNoahMessages.length + 1}/8
+                            </span>
+                            <span className="font-mono text-[7px] text-slate-600">{nextNoahFragment.time}</span>
                           </div>
-                        );
-                      })}
-
-                      {activeNoahFragment && (
-                        <div className="rounded-lg border border-amber-200/30 bg-[#171a21] p-3" id="chapter-eight-restore-prompt">
-                          <div className="text-[9px] font-semibold text-amber-100">
-                            {getNoahArchiveFragment(activeNoahFragment)?.prompt}
+                          <div className="mt-1 text-[9px] font-semibold text-amber-100">
+                            {nextNoahFragment.prompt}
                           </div>
-                          <div className="mt-2 grid grid-cols-2 gap-1.5">
-                            {collectedChapterEightMemories.map((memoryId) => {
-                              const recovered = getChapterEightMemory(memoryId as ChapterEightMemoryId);
+                          <div className="mt-2 grid grid-cols-2 gap-1.5" data-available-answer-count={availableChapterEightMemories.length}>
+                            {availableChapterEightMemories.map((memoryId) => {
+                              const recovered = getChapterEightMemory(memoryId);
                               return recovered ? (
                                 <button
                                   type="button"
@@ -829,8 +1045,8 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                               ) : null;
                             })}
                           </div>
-                          {collectedChapterEightMemories.length === 0 && (
-                            <p className="mt-2 text-[8px] italic text-slate-500">No recovered memories are available yet.</p>
+                          {availableChapterEightMemories.length === 0 && (
+                            <p className="mt-2 text-[8px] italic text-slate-500">No unused memory is available. Read another conversation and collect its underlined memory.</p>
                           )}
                           {noahRestoreError && (
                             <p className="mt-2 border-l border-amber-300/50 pl-2 text-[8px] leading-relaxed text-amber-200" id="chapter-eight-restore-hint">
@@ -840,23 +1056,79 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                         </div>
                       )}
 
-                      <div className="rounded-lg border border-dashed border-slate-700 bg-black/20 p-3 text-center" id="chapter-eight-route-attachment">
-                        <LockKeyhole className="mx-auto h-4 w-4 text-slate-500" />
-                        <div className="mt-1.5 text-[8px] font-semibold tracking-[0.12em] text-slate-400">FLIGHT HEIGHTS · SEALED ATTACHMENT</div>
-                        <p className="mt-1 text-[8px] leading-relaxed text-slate-600">
-                          The human record must be complete before the route can be examined. Its values remain outside this chapter.
-                        </p>
-                      </div>
+                      {NOAH_ARCHIVE_FRAGMENTS.map((fragment) => {
+                        const restored = restoredNoahMessages.includes(fragment.id);
+                        const current = nextNoahFragment?.id === fragment.id;
+                        return (
+                          <div
+                            key={fragment.id}
+                            className={`rounded-lg border p-2.5 ${
+                              restored
+                                ? 'border-white/[0.06] bg-[#171a21]'
+                                : 'border-dashed border-amber-200/20 bg-black/10'
+                            }`}
+                            data-noah-fragment={fragment.id}
+                            data-restored={restored}
+                            data-restoration-order={restored ? 'restored' : current ? 'current' : 'future'}
+                          >
+                            <div className="flex items-center justify-between gap-2 text-[8px]">
+                              <span className={fragment.from === 'noah' ? 'text-[#e59b87]' : 'text-[#71bc94]'}>
+                                {fragment.from === 'noah' ? 'Noah Kade' : 'Mara Kade'}
+                              </span>
+                              <span className="font-mono text-slate-600">{fragment.time}</span>
+                            </div>
+                            {restored ? (
+                              <p className="mt-1.5 text-[11px] leading-relaxed text-slate-200">{fragment.restoredText}</p>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => handleOpenNoahFragment(fragment.id)}
+                                disabled={!current}
+                                className={`mt-1.5 flex w-full items-center gap-2 rounded border border-dashed px-2.5 py-2 text-left text-[9px] ${
+                                  current
+                                    ? 'border-amber-200/30 text-amber-100 hover:border-amber-200/50'
+                                    : 'cursor-not-allowed border-slate-800 text-slate-700'
+                                }`}
+                                id={`chapter-eight-damaged-${fragment.id}`}
+                              >
+                                <LockKeyhole className="h-3 w-3 shrink-0" />
+                                <span>{current ? '[current damaged message · answer above]' : '[sequence locked · restore earlier message first]'}</span>
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
 
-                      {allNoahMessagesRestored && (
+                      {allNoahMessagesRestored ? (
                         <button
                           type="button"
-                          onClick={handleCompleteChapterEight}
-                          className="w-full rounded border border-emerald-300/40 bg-emerald-300/10 px-3 py-2 text-[9px] font-semibold tracking-[0.12em] text-emerald-200 hover:bg-emerald-300/15"
-                          id="chapter-eight-complete"
+                          onClick={handleOpenLegacyChildProfile}
+                          data-meta-immediate="true"
+                          data-meta-hit-recovery="true"
+                          className="w-full rounded-lg border border-emerald-300/40 bg-emerald-300/10 p-3 text-center transition-colors hover:bg-emerald-300/15"
+                          id="chapter-eight-legacy-profile-attachment"
                         >
-                          PRESERVE RESTORED HUMAN RECORD
+                          <UserCircle2 className="mx-auto h-5 w-5 text-emerald-300" />
+                          <div className="mt-1.5 text-[8px] font-semibold tracking-[0.12em] text-emerald-200">
+                            LEGACY CHILD PROFILE · ACCESS LOCKED
+                          </div>
+                          <p className="mt-1 text-[8px] leading-relaxed text-slate-400">
+                            The final restored message recovered a device-bound profile. Open its recovery record to continue.
+                          </p>
+                          <div className="mt-2 font-mono text-[8px] font-bold tracking-[0.14em] text-emerald-300">
+                            OPEN RECOVERY RECORD →
+                          </div>
                         </button>
+                      ) : (
+                        <div className="rounded-lg border border-dashed border-slate-700 bg-black/20 p-3 text-center" id="chapter-eight-legacy-profile-attachment">
+                          <LockKeyhole className="mx-auto h-4 w-4 text-slate-500" />
+                          <div className="mt-1.5 text-[8px] font-semibold tracking-[0.12em] text-slate-400">
+                            LEGACY CHILD PROFILE · SEALED
+                          </div>
+                          <p className="mt-1 text-[8px] leading-relaxed text-slate-600">
+                            Restore all eight messages before this device-bound profile can be opened.
+                          </p>
+                        </div>
                       )}
                     </div>
                   ) : (
@@ -998,16 +1270,6 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                     </p>
                   </div>
 
-                  {!progress.unlockedCodeRoute && (
-                    <button
-                      type="button"
-                      onClick={handleRecoverRoute}
-                      className="laos-slow w-full border border-[var(--laos-warm)]/60 bg-[var(--laos-surface-2)] px-3 py-2 font-laos text-[10px] font-semibold tracking-[0.14em] text-[var(--laos-warm)] hover:bg-[var(--laos-line-dim)]"
-                      id="messages-recover-route"
-                    >
-                      RECOVER ATTACHED FLIGHT SEQUENCE
-                    </button>
-                  )}
                 </div>
               </div>
             )}
@@ -1020,6 +1282,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                 type="button"
                 key={row.id}
                 onClick={() => openThread(row.id)}
+                id={row.id === 'seller' ? 'tab-seller' : undefined}
                 className="flex w-full items-center gap-3 px-2 py-2.5 text-left transition-colors hover:bg-white/[0.03]"
                 data-thread-id={row.id}
                 data-thread-kind={row.id === 'mom' || row.id === 'seller' ? 'case' : 'everyday'}
@@ -1043,6 +1306,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
           </div>
         ) : activeThread === 'seller' && sellerThreadAvailable ? (
           <div className="flex min-h-full flex-col" id="chat-seller-panel">
+            <span id="tab-seller" className="sr-only">Marketplace relay</span>
             <div className="mb-3 flex items-center gap-2 border-b border-white/[0.06] pb-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-300">
                 <MessageCircle className="h-4 w-4" />

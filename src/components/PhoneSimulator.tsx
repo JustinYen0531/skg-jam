@@ -11,10 +11,10 @@ import { SocialApp } from './SocialApp';
 import { MessagesApp } from './MessagesApp';
 import { useMetaInteraction } from './MetaInteractionScene';
 import { motion, AnimatePresence } from 'motion/react';
-import { Wifi, CheckCircle2, X, Volume2, VolumeX, RotateCcw } from 'lucide-react';
+import { Wifi, CheckCircle2, ChevronRight, Link2, UserRound, Users, X, Volume2, VolumeX, RotateCcw } from 'lucide-react';
 import {
   IconFlappy, IconViewTube, IconAmazeMart, IconWayback, IconFaceSpace,
-  IconMessages, IconSchematics, IconConcept,
+  IconMessages, IconDeliveries, IconConcept,
   IconVoiceLog, IconFileBox, IconGallery, IconTerminal, IconControls,
 } from './OsIcons';
 import {
@@ -23,11 +23,43 @@ import {
   getChapterOneWrongAppDialogue,
 } from '../lib/chapterOneDialogue';
 import {
+  CHAPTER_TWO_DIALOGUE,
+  getChapterTwoCompanionDialogue,
+  getChapterTwoWrongAppDialogue,
+} from '../lib/chapterTwoDialogue';
+import {
+  CHAPTER_THREE_DIALOGUE,
+  getChapterThreeCompanionDialogue,
+  getChapterThreeWrongAppDialogue,
+} from '../lib/chapterThreeDialogue';
+import {
+  CHAPTER_FOUR_DIALOGUE,
+  getChapterFourCompanionDialogue,
+  getChapterFourWrongAppDialogue,
+} from '../lib/chapterFourDialogue';
+import {
+  CHAPTER_FIVE_DIALOGUE,
+  getChapterFiveCompanionDialogue,
+  getChapterFiveWrongAppDialogue,
+} from '../lib/chapterFiveDialogue';
+import {
+  CHAPTER_SIX_DIALOGUE,
+  getChapterSixCompanionDialogue,
+  getChapterSixWrongAppDialogue,
+} from '../lib/chapterSixDialogue';
+import {
+  CHAPTER_SEVEN_DIALOGUE,
+  getChapterSevenCompanionDialogue,
+  getChapterSevenWrongAppDialogue,
+} from '../lib/chapterSevenDialogue';
+import type { DialogueLines } from '../lib/chapterOneDialogue';
+import {
   getChapterPhoneSignals,
   type PhoneLauncherApp,
 } from '../lib/chapterPhoneSignals';
 import { getChapterPhoneWidgetState } from '../lib/chapterPhoneWidgets';
 import { getChapterReminderRows } from '../lib/chapterReminders';
+import { getMetaWallStage } from '../lib/chapterEnvironment';
 import {
   getAdvancedChapterTransition,
   getChapterEntryTransition,
@@ -35,6 +67,24 @@ import {
 } from '../lib/chapterTransition';
 import { useReducedMotion } from '../lib/useReducedMotion';
 import { ChapterTransition, EvidenceNotification } from './ChapterTransition';
+import { MetaWindowScene } from './MetaWindowScene';
+import type { AmazeMartOrderPhase } from '../lib/amazemartPuzzle';
+import { completePuzzleChapter } from '../lib/chapterProgress';
+import { ChapterNineDeletionHome, ChapterNineMakeRoomWidget } from './ChapterNineDeletionHome';
+import {
+  CHAPTER_NINE_DELETABLE_APPS,
+  addDeletedChapterNineApp,
+  canDeleteChapterNineApp,
+  getChapterNineBatteryPercent,
+  isChapterNineMessagesStandoffReady,
+  type ChapterNineDeletableApp,
+} from '../lib/chapterNineDeletion';
+import {
+  CHAPTER_NINE_DELETION_DIALOGUE,
+  CHAPTER_NINE_DIALOGUE,
+  getChapterNineBlockedDialogue,
+  getChapterNineMessagesStandoffDialogue,
+} from '../lib/chapterNineDialogue';
 
 /** Modern widget chassis: translucent, friendly, current-year. */
 const WIDGET_SHELL =
@@ -50,13 +100,14 @@ interface PhoneSimulatorProps {
   isMuted: boolean;
   immersiveIntro?: boolean;
   debugTargetApp?: { app: ActiveApp; nonce: number } | null;
-  onLeaderboardOpened: () => void;
+  onSuspiciousRunSelected: () => void;
   soundVolume: number;
   musicVolume: number;
   screenBrightness: number;
   screenContrast: number;
   cameraPitchEnabled: boolean;
   postureControlEnabled: boolean;
+  fullscreenOnly: boolean;
   developerToolsOpen: boolean;
   onSoundVolumeChange: (volume: number) => void;
   onMusicVolumeChange: (volume: number) => void;
@@ -64,6 +115,7 @@ interface PhoneSimulatorProps {
   onScreenContrastChange: (contrast: number) => void;
   onCameraPitchEnabledChange: (enabled: boolean) => void;
   onPostureControlEnabledChange: (enabled: boolean) => void;
+  onFullscreenOnlyChange: (enabled: boolean) => void;
   onOpenDeveloperTools: () => void;
   onRestartCurrentChapter: () => void;
   onRestartLoop: () => void;
@@ -76,13 +128,14 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   isMuted,
   immersiveIntro = false,
   debugTargetApp,
-  onLeaderboardOpened,
+  onSuspiciousRunSelected,
   soundVolume,
   musicVolume,
   screenBrightness,
   screenContrast,
   cameraPitchEnabled,
   postureControlEnabled,
+  fullscreenOnly,
   developerToolsOpen,
   onSoundVolumeChange,
   onMusicVolumeChange,
@@ -90,22 +143,49 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   onScreenContrastChange,
   onCameraPitchEnabledChange,
   onPostureControlEnabledChange,
+  onFullscreenOnlyChange,
   onOpenDeveloperTools,
   onRestartCurrentChapter,
   onRestartLoop,
 }) => {
   const metaInteraction = useMetaInteraction();
   const [activeApp, setActiveApp] = useState<ActiveApp>('flappy');
+  const [homePage, setHomePage] = useState<0 | 1>(0);
+  const [chapterNineEditMode, setChapterNineEditMode] = useState(false);
+  const [familyAccountsOpen, setFamilyAccountsOpen] = useState(false);
+  const [familyAccountConfirmed, setFamilyAccountConfirmed] = useState(false);
+  const homeSwipeStartX = useRef<number | null>(null);
   // Restore flash: nonce re-keys the overlay so the CSS animation replays.
   const [restoreNonce, setRestoreNonce] = useState(0);
   const [restoreVisible, setRestoreVisible] = useState(false);
   const [dockUtility, setDockUtility] = useState<DockUtility | null>(null);
   const [resetConfirmation, setResetConfirmation] = useState<ResetTarget | null>(null);
+  const [chapterThreeOrderPhase, setChapterThreeOrderPhase] = useState<AmazeMartOrderPhase>(() => (
+    progress.deliveredPhone ? 'verified' : progress.orderedPhone ? 'verification-requested' : 'idle'
+  ));
+  const [sellerMessageUnread, setSellerMessageUnread] = useState(false);
   const restoreTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const chapterNinePowerTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const chapterNineRebootTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const chapterNineLongPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const chapterNineEditModeRef = useRef(false);
   const chapterOneDialogueTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const chapterOneAppAttempt = useRef(0);
   const chapterOneHomeAttempt = useRef(0);
   const chapterOneHomeEntryShown = useRef(false);
+  const chapterTwoAppAttempt = useRef(0);
+  const chapterTwoHomeAttempt = useRef(0);
+  const chapterThreeAppAttempt = useRef(0);
+  const chapterThreeHomeAttempt = useRef(0);
+  const chapterFourAppAttempt = useRef(0);
+  const chapterFourHomeAttempt = useRef(0);
+  const chapterFiveAppAttempt = useRef(0);
+  const chapterFiveHomeAttempt = useRef(0);
+  const chapterSixAppAttempt = useRef(0);
+  const chapterSixHomeAttempt = useRef(0);
+  const chapterSevenAppAttempt = useRef(0);
+  const chapterSevenHomeAttempt = useRef(0);
+  const chapterSixProfileShown = useRef(false);
   const reminderListRef = useRef<HTMLDivElement>(null);
 
   // Chapter-advance transition: an "evidence collected" banner the moment a
@@ -122,10 +202,13 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   const residue = getResidueLevel(progress);
   const phoneSignals = getChapterPhoneSignals(progress.currentChapter);
   const phoneWidgets = getChapterPhoneWidgetState(progress.currentChapter);
+  const widgetWeatherStage = getMetaWallStage(progress.currentChapter);
   const chapterReminderRows = getChapterReminderRows(progress);
   const completedReminderCount = chapterReminderRows.filter((row) => row.status === 'completed').length;
   const launcherSignals = (app: PhoneLauncherApp) => {
-    const notification = phoneSignals.notification?.app === app
+    const notification = app === 'messages' && sellerMessageUnread
+      ? { label: '1', accessibleLabel: 'New message from coldboot_17' }
+      : phoneSignals.notification?.app === app
       ? phoneSignals.notification
       : null;
     const recentlyUsed = phoneSignals.recentApp === app;
@@ -151,10 +234,33 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
       </>
     );
   };
+  const chapterNineRestorePhase = progress.chapterNineRestorePhase ?? 'idle';
+  const chapterNineDeletedAppIds = progress.chapterNineDeletedAppIds ?? [];
+  const chapterNineMessageAttempts = progress.chapterNineMessageAttempts ?? 0;
+  const chapterNineBatteryPercent = getChapterNineBatteryPercent(
+    chapterNineDeletedAppIds,
+    chapterNineMessageAttempts,
+  );
+  const chapterNineCleanupHome = chapterNineRestorePhase === 'cleanup';
+  const chapterNineTerminalHome = chapterNineRestorePhase === 'blackout'
+    || chapterNineRestorePhase === 'rebooted';
+  const chapterNineSpecialHome = chapterNineRestorePhase !== 'idle';
 
   useEffect(() => {
     if (debugTargetApp) setActiveApp(debugTargetApp.app);
   }, [debugTargetApp]);
+
+  useEffect(() => {
+    if (progress.deliveredPhone) {
+      setChapterThreeOrderPhase('verified');
+      setSellerMessageUnread(false);
+      return;
+    }
+    if (!progress.orderedPhone) {
+      setChapterThreeOrderPhase('idle');
+      setSellerMessageUnread(false);
+    }
+  }, [progress.currentChapter, progress.deliveredPhone, progress.orderedPhone]);
 
   useEffect(() => {
     if (activeApp !== 'home' || !reminderListRef.current) return;
@@ -174,7 +280,10 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
     if (next === previous) return;
     prevChapterRef.current = next;
     const data = getAdvancedChapterTransition(previous, next);
-    if (data) {
+    const silentChapterTenHandoff = previous === 9
+      && next === 10
+      && progress.chapterNineArcaneSilent;
+    if (data && !silentChapterTenHandoff) {
       setPendingTransitions((queue) => [...queue, data]);
       setEvidenceBanner(data);
     }
@@ -193,7 +302,64 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   useEffect(() => () => {
     if (restoreTimer.current) clearTimeout(restoreTimer.current);
     if (chapterOneDialogueTimer.current) clearTimeout(chapterOneDialogueTimer.current);
+    if (chapterNinePowerTimer.current) clearTimeout(chapterNinePowerTimer.current);
+    if (chapterNineRebootTimer.current) clearTimeout(chapterNineRebootTimer.current);
+    if (chapterNineLongPressTimer.current) clearTimeout(chapterNineLongPressTimer.current);
   }, []);
+
+  useEffect(() => {
+    if (
+      progress.currentChapter !== 9
+      || chapterNineRestorePhase !== 'cleanup'
+      || chapterNineMessageAttempts < 3
+    ) return;
+    if (chapterNinePowerTimer.current) return;
+    chapterNinePowerTimer.current = setTimeout(() => {
+      audio.play('story.serviceTerminated');
+      updateProgress((previous) => previous.currentChapter === 9
+        ? { ...previous, chapterNineRestorePhase: 'blackout' }
+        : previous);
+      chapterNinePowerTimer.current = null;
+    }, reducedMotion ? 120 : 1500);
+  }, [
+    chapterNineMessageAttempts,
+    chapterNineRestorePhase,
+    progress.currentChapter,
+    reducedMotion,
+    updateProgress,
+  ]);
+
+  useEffect(() => {
+    if (
+      progress.currentChapter !== 9
+      || chapterNineRestorePhase !== 'blackout'
+      || (metaInteraction.active && !metaInteraction.deviceResting)
+    ) return;
+    if (chapterNineRebootTimer.current) return;
+    chapterNineRebootTimer.current = setTimeout(() => {
+      updateProgress((previous) => {
+        if (previous.currentChapter !== 9) return previous;
+        const poweredDownState: GameProgress = {
+          ...previous,
+          chapterNineRestorePhase: 'rebooted',
+          chapterNineDeletedAppIds: [...CHAPTER_NINE_DELETABLE_APPS],
+          chapterNineMessageAttempts: Math.max(3, previous.chapterNineMessageAttempts ?? 0),
+          chapterNineArcaneSilent: true,
+        };
+        return completePuzzleChapter(poweredDownState, 9, { unlockedCodeRoute: true });
+      });
+      setHomePage(0);
+      setActiveApp('home');
+      chapterNineRebootTimer.current = null;
+    }, reducedMotion ? 220 : 1900);
+  }, [
+    chapterNineRestorePhase,
+    metaInteraction.active,
+    metaInteraction.deviceResting,
+    progress.currentChapter,
+    reducedMotion,
+    updateProgress,
+  ]);
 
   useEffect(() => {
     if (activeApp !== 'home') {
@@ -217,11 +383,50 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   const handleLaunchApp = (app: ActiveApp) => {
     audio.play('phone.appOpen');
     setActiveApp(app);
-    if (progress.currentChapter === 1 && metaInteraction.active) {
-      const dialogue = app === 'viewtube'
+    if (app === 'messages' && chapterThreeOrderPhase !== 'idle') {
+      setSellerMessageUnread(false);
+    }
+    if ((progress.currentChapter === 1 || progress.currentChapter === 2 || progress.currentChapter === 3 || progress.currentChapter === 4 || progress.currentChapter === 5 || progress.currentChapter === 6 || progress.currentChapter === 7) && metaInteraction.active) {
+      const dialogue = progress.currentChapter === 1
+        ? (app === 'viewtube'
         ? CHAPTER_ONE_DIALOGUE.viewTubeOpened
-        : getChapterOneWrongAppDialogue(app, chapterOneAppAttempt.current);
-      if (app !== 'viewtube') chapterOneAppAttempt.current += 1;
+        : getChapterOneWrongAppDialogue(app, chapterOneAppAttempt.current))
+        : progress.currentChapter === 2
+          ? (app === 'browser'
+          ? CHAPTER_TWO_DIALOGUE.browserOpened
+          : getChapterTwoWrongAppDialogue(app, chapterTwoAppAttempt.current))
+          : progress.currentChapter === 3
+            ? (app === 'amazemart'
+              ? [...CHAPTER_THREE_DIALOGUE.amazeMartOpened, ...CHAPTER_THREE_DIALOGUE.storefrontVisible]
+              : app === 'messages' && chapterThreeOrderPhase !== 'idle'
+                ? (chapterThreeOrderPhase === 'verified'
+                  ? CHAPTER_THREE_DIALOGUE.sellerMatched
+                  : CHAPTER_THREE_DIALOGUE.sellerRelayOpened)
+                : getChapterThreeWrongAppDialogue(app, chapterThreeAppAttempt.current))
+            : progress.currentChapter === 4
+              ? (app === 'screenshots'
+                ? CHAPTER_FOUR_DIALOGUE.deliveriesOpened
+                : getChapterFourWrongAppDialogue(app, chapterFourAppAttempt.current))
+              : progress.currentChapter === 5
+                ? (app === 'browser'
+                  ? CHAPTER_FIVE_DIALOGUE.browserOpened
+                  : getChapterFiveWrongAppDialogue(app, chapterFiveAppAttempt.current))
+                : progress.currentChapter === 6
+                  ? (app === 'social'
+                    ? CHAPTER_SIX_DIALOGUE.socialOpened
+                    : getChapterSixWrongAppDialogue(app, chapterSixAppAttempt.current))
+                  : (app === 'social'
+                    ? CHAPTER_SEVEN_DIALOGUE.socialOpened
+                    : app === 'messages'
+                      ? CHAPTER_SEVEN_DIALOGUE.messagesOpened
+                      : getChapterSevenWrongAppDialogue(app, chapterSevenAppAttempt.current));
+      if (progress.currentChapter === 1 && app !== 'viewtube') chapterOneAppAttempt.current += 1;
+      if (progress.currentChapter === 2 && app !== 'browser') chapterTwoAppAttempt.current += 1;
+      if (progress.currentChapter === 3 && app !== 'amazemart') chapterThreeAppAttempt.current += 1;
+      if (progress.currentChapter === 4 && app !== 'screenshots') chapterFourAppAttempt.current += 1;
+      if (progress.currentChapter === 5 && app !== 'browser') chapterFiveAppAttempt.current += 1;
+      if (progress.currentChapter === 6 && app !== 'social') chapterSixAppAttempt.current += 1;
+      if (progress.currentChapter === 7 && app !== 'social' && app !== 'messages') chapterSevenAppAttempt.current += 1;
       if (chapterOneDialogueTimer.current) clearTimeout(chapterOneDialogueTimer.current);
       // Commit navigation first. Chapter 1 is the only chapter that also
       // updates the parent Meta dialogue on launch; separating those updates
@@ -241,15 +446,150 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
     }
   };
 
+  const handleRequestSellerVerification = () => {
+    updateProgress((prev) => ({ ...prev, orderedPhone: true }));
+    setChapterThreeOrderPhase('verification-requested');
+    setSellerMessageUnread(true);
+    audio.play('messages.incoming');
+  };
+
+  const handleSellerMessagePointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    handleLaunchApp('messages');
+  };
+
+  const handleSellerMessageClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    if (event.detail !== 0) return;
+    handleLaunchApp('messages');
+  };
+
+  const handleSellerVerified = () => {
+    setChapterThreeOrderPhase('verified');
+    updateProgress((prev) => completePuzzleChapter(prev, 3, {
+      orderedPhone: true,
+      deliveredPhone: true,
+    }));
+  };
+
+  const handleBeginChapterNineCleanup = () => {
+    if (progress.currentChapter !== 9) return;
+    audio.play('ui.primaryTap');
+    updateProgress((previous) => previous.currentChapter === 9
+      ? {
+          ...previous,
+          chapterNineRestorePhase: 'cleanup',
+          chapterNineDeletedAppIds: [],
+          chapterNineMessageAttempts: 0,
+          chapterNineArcaneSilent: false,
+        }
+      : previous);
+    setHomePage(0);
+    setActiveApp('home');
+    chapterNineEditModeRef.current = false;
+    setChapterNineEditMode(false);
+    if (metaInteraction.active) metaInteraction.speak(CHAPTER_NINE_DIALOGUE.restoreBlocked);
+  };
+
+  const stopChapterNineLongPress = () => {
+    if (chapterNineLongPressTimer.current) clearTimeout(chapterNineLongPressTimer.current);
+    chapterNineLongPressTimer.current = null;
+  };
+
+  const handleChapterNineLongPressStart = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!chapterNineCleanupHome || chapterNineEditModeRef.current || event.button !== 0) return;
+    stopChapterNineLongPress();
+    chapterNineLongPressTimer.current = setTimeout(() => {
+      chapterNineEditModeRef.current = true;
+      setChapterNineEditMode(true);
+      audio.play('ui.toggle', { variant: 0 });
+      chapterNineLongPressTimer.current = null;
+    }, 520);
+  };
+
+  const leaveChapterNineEditMode = () => {
+    stopChapterNineLongPress();
+    chapterNineEditModeRef.current = false;
+    setChapterNineEditMode(false);
+  };
+
+  const handleDeleteChapterNineApp = (app: Exclude<ChapterNineDeletableApp, 'messages'>) => {
+    if (
+      progress.currentChapter !== 9
+      || chapterNineRestorePhase !== 'cleanup'
+      || !canDeleteChapterNineApp(app, chapterNineDeletedAppIds)
+    ) return;
+    audio.play('ui.toggle', { variant: 0 });
+    updateProgress((previous) => previous.currentChapter === 9
+      ? {
+          ...previous,
+          chapterNineDeletedAppIds: addDeletedChapterNineApp(previous.chapterNineDeletedAppIds ?? [], app),
+        }
+      : previous);
+    if (metaInteraction.active) metaInteraction.speak(CHAPTER_NINE_DELETION_DIALOGUE[app]);
+  };
+
+  const handleBlockedChapterNineApp = (app: ChapterNineDeletableApp) => {
+    audio.play('auth.wrong');
+    if (metaInteraction.active) {
+      metaInteraction.speak(getChapterNineBlockedDialogue(app, chapterNineDeletedAppIds));
+    }
+  };
+
+  const handleChapterNineMessagesAttempt = () => {
+    if (
+      progress.currentChapter !== 9
+      || chapterNineRestorePhase !== 'cleanup'
+      || !isChapterNineMessagesStandoffReady(chapterNineDeletedAppIds)
+    ) {
+      handleBlockedChapterNineApp('messages');
+      return;
+    }
+    const attempt = chapterNineMessageAttempts;
+    audio.play('auth.wrong');
+    updateProgress((previous) => previous.currentChapter === 9
+      ? {
+          ...previous,
+          chapterNineMessageAttempts: Math.min(3, (previous.chapterNineMessageAttempts ?? 0) + 1),
+        }
+      : previous);
+    if (metaInteraction.active) {
+      metaInteraction.speak(getChapterNineMessagesStandoffDialogue(attempt));
+    }
+  };
+
   // The meta hand animation intercepts click events higher in the tree. Open
   // launchers on pointer release so mouse and touch do not depend on that
   // relay; native click remains available for keyboard activation.
   const handleLauncherPointerUp = (event: React.PointerEvent<HTMLButtonElement>, app: ActiveApp) => {
     event.stopPropagation();
+    stopChapterNineLongPress();
+    if (chapterNineCleanupHome) {
+      if (!chapterNineEditModeRef.current) return;
+      if (app === 'flappy') {
+        if (metaInteraction.active) metaInteraction.speak(CHAPTER_NINE_DIALOGUE.restoreBlocked);
+        return;
+      }
+      if (CHAPTER_NINE_DELETABLE_APPS.includes(app as ChapterNineDeletableApp)) {
+        const deletable = app as ChapterNineDeletableApp;
+        if (!canDeleteChapterNineApp(deletable, chapterNineDeletedAppIds)) {
+          handleBlockedChapterNineApp(deletable);
+        } else if (deletable === 'messages') {
+          handleChapterNineMessagesAttempt();
+        } else {
+          handleDeleteChapterNineApp(deletable);
+        }
+      }
+      return;
+    }
     handleLaunchApp(app);
   };
 
   const handleLauncherClick = (event: React.MouseEvent<HTMLButtonElement>, app: ActiveApp) => {
+    if (chapterNineCleanupHome) {
+      event.preventDefault();
+      return;
+    }
     if (event.detail !== 0) return;
     handleLaunchApp(app);
   };
@@ -257,6 +597,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   const handleHomeButton = () => {
     audio.play('phone.home');
     setActiveApp('home');
+    setHomePage(0);
     // Chapter 1 begins inside Flappy, so no progress increment exists when
     // the player first reaches the real home screen. Queue its case hand-off
     // explicitly; later returns remain ordinary home navigation.
@@ -272,13 +613,115 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
           : getChapterOneCompanionDialogue(attempt - 1),
       );
       chapterOneHomeAttempt.current += 1;
+    } else if (progress.currentChapter === 2 && metaInteraction.active) {
+      const attempt = chapterTwoHomeAttempt.current;
+      metaInteraction.speak(
+        attempt === 0
+          ? CHAPTER_TWO_DIALOGUE.homeReturned
+          : getChapterTwoCompanionDialogue(attempt - 1),
+      );
+      chapterTwoHomeAttempt.current += 1;
+    } else if (progress.currentChapter === 3 && metaInteraction.active) {
+      const attempt = chapterThreeHomeAttempt.current;
+      metaInteraction.speak(
+        attempt === 0
+          ? CHAPTER_THREE_DIALOGUE.homeReturned
+          : getChapterThreeCompanionDialogue(attempt - 1),
+      );
+      chapterThreeHomeAttempt.current += 1;
+    } else if (progress.currentChapter === 4 && metaInteraction.active) {
+      const attempt = chapterFourHomeAttempt.current;
+      metaInteraction.speak(
+        attempt === 0
+          ? CHAPTER_FOUR_DIALOGUE.homeReturned
+          : getChapterFourCompanionDialogue(attempt - 1),
+      );
+      chapterFourHomeAttempt.current += 1;
+    } else if (progress.currentChapter === 5 && metaInteraction.active) {
+      const attempt = chapterFiveHomeAttempt.current;
+      metaInteraction.speak(
+        attempt === 0
+          ? CHAPTER_FIVE_DIALOGUE.homeReturned
+          : getChapterFiveCompanionDialogue(attempt - 1),
+      );
+      chapterFiveHomeAttempt.current += 1;
+    } else if (progress.currentChapter === 6 && metaInteraction.active) {
+      const attempt = chapterSixHomeAttempt.current;
+      metaInteraction.speak(
+        attempt === 0
+          ? CHAPTER_SIX_DIALOGUE.homeReturned
+          : getChapterSixCompanionDialogue(attempt - 1),
+      );
+      chapterSixHomeAttempt.current += 1;
+    } else if (progress.currentChapter === 7 && metaInteraction.active) {
+      const attempt = chapterSevenHomeAttempt.current;
+      metaInteraction.speak(
+        attempt === 0
+          ? CHAPTER_SEVEN_DIALOGUE.homeReturned
+          : getChapterSevenCompanionDialogue(attempt - 1),
+      );
+      chapterSevenHomeAttempt.current += 1;
     }
+  };
+
+  const profilePageUnlocked = progress.discoveredMotherComment || progress.currentChapter >= 7;
+
+  const selectHomePage = (page: 0 | 1) => {
+    if (page === 1 && !profilePageUnlocked) return;
+    audio.play('phone.tab');
+    setHomePage(page);
+    if (page === 1 && progress.currentChapter === 6 && metaInteraction.active && !chapterSixProfileShown.current) {
+      chapterSixProfileShown.current = true;
+      metaInteraction.speak(CHAPTER_SIX_DIALOGUE.profilePageOpened);
+    }
+  };
+
+  const handleHomeSwipeStart = (event: React.PointerEvent<HTMLDivElement>) => {
+    homeSwipeStartX.current = event.clientX;
+  };
+
+  const handleHomeSwipeEnd = (event: React.PointerEvent<HTMLDivElement>) => {
+    const startX = homeSwipeStartX.current;
+    homeSwipeStartX.current = null;
+    if (startX === null) return;
+    const travel = event.clientX - startX;
+    if (Math.abs(travel) < 64) return;
+    selectHomePage(homePage === 0 ? 1 : 0);
+  };
+
+  const handleMaraFound = () => {
+    if (metaInteraction.active) metaInteraction.speak(CHAPTER_SIX_DIALOGUE.maraCommentSelected);
+  };
+
+  const handleSocialDialogue = (lines: DialogueLines) => {
+    if ((progress.currentChapter === 6 || progress.currentChapter === 7) && metaInteraction.active) metaInteraction.speak(lines);
+  };
+
+  const confirmMaraFamilyAccount = () => {
+    if (!progress.discoveredMotherComment || progress.currentChapter !== 6) return;
+    audio.play('narrative.clueEmphasis');
+    setFamilyAccountConfirmed(true);
+    updateProgress((prev) => completePuzzleChapter(prev, 6, { discoveredMotherComment: true }));
+    if (metaInteraction.active) metaInteraction.speak(CHAPTER_SIX_DIALOGUE.completed);
   };
 
   const toggleDockUtility = (utility: DockUtility) => {
     audio.play('phone.appOpen');
     setResetConfirmation(null);
     setDockUtility((current) => current === utility ? null : utility);
+  };
+
+  // Dock utilities are functional controls, not story-facing app launches.
+  // Open on pointer-down while the transformed phone surface is still under
+  // the cursor; camera follow can move the right edge before pointer-up.
+  const handleDockUtilityPointerDown = (event: React.PointerEvent<HTMLButtonElement>, utility: DockUtility) => {
+    event.stopPropagation();
+    toggleDockUtility(utility);
+  };
+
+  const handleDockUtilityClick = (event: React.MouseEvent<HTMLButtonElement>, utility: DockUtility) => {
+    if (event.detail !== 0) return;
+    toggleDockUtility(utility);
   };
 
   const handleResetRequest = (target: ResetTarget) => {
@@ -455,6 +898,18 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
               <span><span className="block">Desk posture</span><span className="mt-0.5 block text-[8px] text-slate-500">Background clicks can lay the device down</span></span>
               <span className={postureControlEnabled ? 'text-emerald-300' : 'text-slate-500'}>{postureControlEnabled ? 'ON' : 'OFF'}</span>
             </button>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={fullscreenOnly}
+              onClick={() => onFullscreenOnlyChange(!fullscreenOnly)}
+              className={`${actionButtonClassName} flex w-full items-center justify-between border-amber-300/20 text-left`}
+              id="dock-fullscreen-only"
+              data-meta-hit-recovery="true"
+            >
+              <span><span className="block">Fullscreen only</span><span className="mt-0.5 block text-[8px] text-slate-500">Bypass the Meta camera and use direct screen input</span></span>
+              <span className={fullscreenOnly ? 'text-amber-300' : 'text-slate-500'}>{fullscreenOnly ? 'ON' : 'OFF'}</span>
+            </button>
           </div>
         );
       default:
@@ -522,8 +977,16 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
           <span className="text-[8.5px] font-semibold text-slate-300">5G</span>
           <Wifi className="w-3 h-3 text-slate-300" />
           <span className="flex items-center gap-1">
+            {chapterNineSpecialHome && (
+              <span className="font-mono text-[7px] text-amber-200" id="status-chapter-nine-battery">
+                {chapterNineRestorePhase === 'rebooted' ? 2 : chapterNineBatteryPercent}%
+              </span>
+            )}
             <span className="relative w-[19px] h-[9px] rounded-[3px] border border-slate-400/70">
-              <span className="absolute inset-[1.5px] right-[4px] rounded-[1px] bg-slate-200" style={{ width: '70%' }}></span>
+              <span
+                className={`absolute inset-[1.5px] right-[4px] rounded-[1px] ${chapterNineSpecialHome ? 'bg-amber-300' : 'bg-slate-200'}`}
+                style={{ width: chapterNineSpecialHome ? `${Math.max(5, chapterNineRestorePhase === 'rebooted' ? 2 : chapterNineBatteryPercent)}%` : '70%' }}
+              ></span>
               <span className="absolute -right-[3px] top-[2px] w-[2px] h-[4px] rounded-r-[1px] bg-slate-400/70"></span>
             </span>
           </span>
@@ -532,12 +995,34 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
 
       {/* Main Interactive Screen Area */}
       <div
-        className="flex-1 bg-[#0d0f14] relative overflow-hidden transition-[filter] duration-150"
+        className="min-h-0 flex-1 bg-[#0d0f14] relative overflow-hidden transition-[filter] duration-150"
         id="phone-display"
         style={{ filter: `brightness(${screenBrightness}) contrast(${screenContrast})` }}
       >
         <AnimatePresence mode="wait">
-          {activeApp === 'home' && (
+          {activeApp === 'home' && chapterNineTerminalHome && (
+            <motion.div
+              key={`chapter-nine-home-${chapterNineRestorePhase}`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: reducedMotion ? 0 : 0.25 }}
+              className="absolute inset-0"
+            >
+              <ChapterNineDeletionHome
+                phase={chapterNineRestorePhase}
+                deletedAppIds={chapterNineDeletedAppIds}
+                messageAttempts={chapterNineMessageAttempts}
+                deviceResting={metaInteraction.deviceResting}
+                onDeleteApp={handleDeleteChapterNineApp}
+                onBlockedApp={handleBlockedChapterNineApp}
+                onMessageAttempt={handleChapterNineMessagesAttempt}
+                onLaunchFlappy={() => handleLaunchApp('flappy')}
+              />
+            </motion.div>
+          )}
+
+          {activeApp === 'home' && !chapterNineTerminalHome && (
             /* HOME SCREEN — a normal modern phone. The residue does the talking. */
             <motion.div
               key="home"
@@ -547,6 +1032,9 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
               transition={{ duration: 0.22, ease: 'easeOut' }}
               className={`absolute inset-0 p-3 md:p-4 flex flex-row gap-3 md:gap-4 overflow-y-auto ${wallpaperCool}`}
               id="phone-desktop"
+              onPointerDown={handleHomeSwipeStart}
+              onPointerUp={handleHomeSwipeEnd}
+              data-home-page={homePage}
               style={{
                 background:
                   'radial-gradient(120% 130% at 82% -12%, #33405c 0%, #1d2434 44%, #10141d 100%)',
@@ -563,6 +1051,15 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
 
               {/* LEFT COLUMN: everyday widgets */}
               <div className="w-[44%] min-w-[220px] max-w-[420px] shrink-0 flex flex-col gap-3 relative">
+                {chapterNineCleanupHome ? (
+                  <ChapterNineMakeRoomWidget
+                    deletedAppIds={chapterNineDeletedAppIds}
+                    messageAttempts={chapterNineMessageAttempts}
+                    editMode={chapterNineEditMode}
+                    onDone={leaveChapterNineEditMode}
+                  />
+                ) : (
+                  <>
 
                 {/* Chapter reminder — four visible rows from a scrollable 00–10 timeline. */}
                 <div
@@ -680,13 +1177,26 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                 {/* Ambient widgets: weather + calendar */}
                 <div className="grid grid-cols-2 gap-3 h-[36%] min-h-[118px] shrink-0">
                   <div
-                    className={`${WIDGET_SHELL} p-3 flex flex-col`}
+                    className={`${WIDGET_SHELL} isolate p-3 flex flex-col`}
                     id="widget-weather"
                     data-weather-chapter={progress.currentChapter}
                     data-temperature={phoneWidgets.weather.temperature}
+                    data-weather-motion={reducedMotion ? 'reduced' : 'animated'}
                     style={{ background: phoneWidgets.weather.background }}
                   >
-                    <div className="flex items-center justify-between">
+                    <MetaWindowScene
+                      stage={widgetWeatherStage}
+                      reducedMotion={reducedMotion}
+                      context="widget"
+                    />
+                    <div
+                      className="pointer-events-none absolute inset-0 z-[1] backdrop-blur-[0.7px]"
+                      style={{
+                        background: 'linear-gradient(105deg, rgba(10,15,24,0.88) 0%, rgba(12,18,28,0.67) 48%, rgba(11,16,25,0.42) 100%)',
+                      }}
+                      data-weather-haze="soft-mask"
+                    ></div>
+                    <div className="relative z-10 flex items-center justify-between">
                       <span className="text-[10px] font-medium text-slate-200">Harborview</span>
                       <svg viewBox="0 0 20 20" className="w-5 h-5" aria-hidden="true">
                         <circle cx="9" cy="10" r="6.5" fill={phoneWidgets.weather.moonColor} />
@@ -694,15 +1204,15 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                       </svg>
                     </div>
                     <span
-                      className="font-semibold text-[30px] leading-none mt-1.5"
+                      className="relative z-10 font-semibold text-[30px] leading-none mt-1.5"
                       style={{ color: phoneWidgets.weather.temperatureColor }}
                     >
                       {phoneWidgets.weather.temperature}°
                     </span>
-                    <span className="text-[9.5px] text-slate-300/75 mt-0.5">
+                    <span className="relative z-10 text-[9.5px] text-slate-300/75 mt-0.5">
                       {phoneWidgets.weather.condition}
                     </span>
-                    <div className="mt-auto pt-1.5 flex items-center justify-between text-[8.5px] text-slate-400/70">
+                    <div className="relative z-10 mt-auto pt-1.5 flex items-center justify-between text-[8.5px] text-slate-400/70">
                       <span>H:{phoneWidgets.weather.high}° L:{phoneWidgets.weather.low}°</span>
                       {/* A data source that should not still be reporting */}
                       {residue >= 2 ? (
@@ -721,6 +1231,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                     className={`${WIDGET_SHELL} p-3 flex flex-col`}
                     id="widget-agenda"
                     data-agenda-chapter={progress.currentChapter}
+                    data-agenda-remaining={phoneWidgets.agenda.entries.length}
                     style={{ background: phoneWidgets.agenda.background }}
                   >
                     <div className="flex items-center justify-between">
@@ -732,7 +1243,12 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                         {phoneWidgets.agenda.dayLabel}
                       </span>
                     </div>
-                    <div className="mt-2 space-y-2 flex-1 overflow-hidden">
+                    <div
+                      className="mt-2 flex-1 space-y-2 overflow-y-auto overscroll-contain pr-1"
+                      id="widget-agenda-scroll"
+                      tabIndex={0}
+                      aria-label={`${phoneWidgets.agenda.entries.length} upcoming agenda items`}
+                    >
                       {phoneWidgets.agenda.entries.map((entry) => (
                         <div
                           key={`${entry.time}-${entry.title}`}
@@ -762,6 +1278,8 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                     ? `LAOS BACKUPAGENT · LEGACY VOLUME MOUNTED (READ-ONLY) · ${residue >= 3 ? 'PROFILE: MK_HOME' : 'LAST SYNC 2014-04-14'}`
                     : 'RESTORED FROM DEVICE BACKUP · 2014-04-14'}
                 </div>
+                  </>
+                )}
               </div>
 
               {/* RIGHT COLUMN: app grid + dock */}
@@ -795,11 +1313,32 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                   )}
                 </AnimatePresence>
                 <div className="w-full max-w-[680px] flex flex-col gap-[clamp(14px,2.8cqh,30px)] px-1">
-
+                <div className="flex min-h-[clamp(250px,42cqh,390px)] w-full items-center" id="home-right-page-content">
+                  <AnimatePresence mode="wait" initial={false}>
+                    {homePage === 0 ? (
+                      <motion.div
+                        key="apps"
+                        initial={{ opacity: 0, x: reducedMotion ? 0 : '-7%' }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: reducedMotion ? 0 : '-7%' }}
+                        transition={{ duration: reducedMotion ? 0 : 0.2, ease: 'easeOut' }}
+                        className="w-full"
+                      >
                 <div
-                  className="grid grid-cols-4 justify-items-center gap-y-[clamp(18px,3.4cqh,36px)]"
+                  className={`grid grid-cols-4 justify-items-center gap-y-[clamp(18px,3.4cqh,36px)] rounded-[22px] border p-3 transition-colors ${
+                    chapterNineCleanupHome
+                      ? chapterNineEditMode
+                        ? 'chapter-nine-editing border-red-300/25 bg-red-300/[0.025]'
+                        : 'border-white/[0.08] bg-white/[0.02]'
+                      : 'border-transparent'
+                  }`}
                   id="home-apps-grid"
                   data-meta-immediate="true"
+                  data-chapter-nine-cleanup={chapterNineCleanupHome}
+                  data-chapter-nine-edit-mode={chapterNineEditMode}
+                  onPointerDownCapture={handleChapterNineLongPressStart}
+                  onPointerUpCapture={stopChapterNineLongPress}
+                  onPointerCancelCapture={stopChapterNineLongPress}
                 >
                   <button
                     onPointerUp={(event) => handleLauncherPointerUp(event, 'flappy')}
@@ -828,6 +1367,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                     onClick={(event) => handleLauncherClick(event, 'viewtube')}
                     className="group flex flex-col items-center gap-1.5 min-w-0"
                     id="launcher-viewtube"
+                    data-chapter-nine-deleted={chapterNineDeletedAppIds.includes('viewtube')}
                   >
                     <div className="relative w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
                       <IconViewTube />
@@ -841,6 +1381,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                     onClick={(event) => handleLauncherClick(event, 'amazemart')}
                     className="group flex flex-col items-center gap-1.5 min-w-0"
                     id="launcher-amazemart"
+                    data-chapter-nine-deleted={chapterNineDeletedAppIds.includes('amazemart')}
                   >
                     <div className="relative w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
                       <IconAmazeMart />
@@ -854,6 +1395,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                     onClick={(event) => handleLauncherClick(event, 'browser')}
                     className="group flex flex-col items-center gap-1.5 min-w-0"
                     id="launcher-browser"
+                    data-chapter-nine-deleted={chapterNineDeletedAppIds.includes('browser')}
                   >
                     <div className="relative w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
                       <IconWayback />
@@ -867,6 +1409,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                     onClick={(event) => handleLauncherClick(event, 'social')}
                     className="group flex flex-col items-center gap-1.5 min-w-0"
                     id="launcher-social"
+                    data-chapter-nine-deleted={chapterNineDeletedAppIds.includes('social')}
                   >
                     <div className="relative w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
                       <IconFaceSpace />
@@ -880,6 +1423,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                     onClick={(event) => handleLauncherClick(event, 'messages')}
                     className="group flex flex-col items-center gap-1.5 min-w-0"
                     id="launcher-messages"
+                    data-chapter-nine-deleted={chapterNineDeletedAppIds.includes('messages')}
                   >
                     <div className="relative w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
                       <IconMessages />
@@ -896,16 +1440,17 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                       !progress.deliveredPhone ? 'opacity-35 saturate-50 cursor-not-allowed' : ''
                     }`}
                     id="launcher-screenshots"
+                    data-chapter-nine-deleted={chapterNineDeletedAppIds.includes('screenshots')}
                   >
                     <div className="relative w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
-                      <IconSchematics legacy={residue >= 2} />
+                      <IconDeliveries legacy={residue >= 2} />
                       {launcherSignals('screenshots')}
                     </div>
                     <span className={`truncate max-w-full ${
                       residue >= 2
                         ? 'font-laos text-[clamp(10px,1.05cqw,12.5px)] tracking-[0.04em] text-[#b9c2d4]'
                         : 'text-[clamp(10px,1.1cqw,13px)] font-medium text-slate-100/90'
-                    }`}>Schematics</span>
+                    }`}>Deliveries</span>
                   </button>
 
                   <button
@@ -913,6 +1458,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                     onClick={(event) => handleLauncherClick(event, 'about')}
                     className="group flex flex-col items-center gap-1.5 min-w-0"
                     id="launcher-about"
+                    data-chapter-nine-deleted={chapterNineDeletedAppIds.includes('about')}
                   >
                     <div className="relative w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
                       <IconConcept />
@@ -923,9 +1469,51 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                 </div>
 
                 {/* Page indicator dots */}
-                <div className="flex justify-center gap-1.5 py-0.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-slate-200/80"></span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-slate-200/25"></span>
+                <div className="flex justify-center gap-1.5 py-0.5" id="home-page-indicator">
+                  <button type="button" onClick={() => selectHomePage(0)} className={`h-1.5 w-1.5 rounded-full ${homePage === 0 ? 'bg-slate-200/80' : 'bg-slate-200/25'}`} aria-label="Open apps home page" />
+                  <button type="button" disabled={!profilePageUnlocked} onClick={() => selectHomePage(1)} className={`h-1.5 w-1.5 rounded-full ${homePage === 1 ? 'bg-slate-200/80' : 'bg-slate-200/25'} disabled:opacity-20`} aria-label="Open personal profile page" id="home-profile-page-dot" />
+                </div>
+                      </motion.div>
+                    ) : profilePageUnlocked ? (
+                      <motion.section
+                        key="profile"
+                        initial={{ opacity: 0, x: reducedMotion ? 0 : '7%' }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: reducedMotion ? 0 : '7%' }}
+                        transition={{ duration: reducedMotion ? 0 : 0.2, ease: 'easeOut' }}
+                        className="w-full rounded-[22px] border border-white/[0.09] bg-[#141925]/72 p-[clamp(12px,1.6cqw,18px)] shadow-[0_16px_38px_rgba(0,0,0,0.22)] backdrop-blur-md"
+                        id="home-personal-profile-page"
+                        data-profile-owner="Arcane Kade"
+                      >
+                        <div className="flex items-center justify-between border-b border-white/[0.08] pb-2.5">
+                          <div><div className="font-mono text-[7px] tracking-[0.18em] text-slate-500">PERSONAL SETTINGS</div><h2 className="mt-0.5 text-[clamp(12px,1.25cqw,15px)] font-semibold text-white">Account & device identity</h2></div>
+                          <div className="rounded-full border border-emerald-300/20 bg-emerald-300/10 px-2 py-1 text-[7px] text-emerald-300">BACKUP VERIFIED</div>
+                        </div>
+
+                        <div className="mt-3 grid grid-cols-[0.92fr_1.08fr] gap-3">
+                          <div className="rounded-2xl border border-white/[0.09] bg-white/[0.045] p-3">
+                            <div className="flex items-center gap-2.5"><div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-indigo-900 text-sm font-black text-white">AK</div><div className="min-w-0"><div className="text-[7px] text-slate-500">PRIMARY ACCOUNT</div><div className="truncate text-[clamp(12px,1.25cqw,15px)] font-semibold text-white" id="home-profile-owner-name">Arcane Kade</div><div className="text-[8px] text-slate-400">Local player · Harborview</div></div></div>
+                            <div className="mt-3 space-y-1.5 border-t border-white/[0.07] pt-2.5 text-[8px] text-slate-400"><div className="flex justify-between gap-2"><span>Account created</span><span className="text-right text-slate-200">2014 migration</span></div><div className="flex justify-between gap-2"><span>Legacy profile</span><span className="font-mono text-slate-200">AK_HOME</span></div><div className="flex justify-between gap-2"><span>Device source</span><span className="text-right text-slate-200">Lumen Arc backup</span></div></div>
+                          </div>
+
+                          <div className="space-y-2 rounded-2xl border border-white/[0.09] bg-white/[0.045] p-3">
+                            <button type="button" onClick={() => { audio.play('phone.tab'); setFamilyAccountsOpen((open) => !open); }} className="flex w-full items-center gap-2 rounded-xl border border-white/[0.07] bg-black/15 p-2.5 text-left" id="home-linked-accounts-toggle" aria-expanded={familyAccountsOpen}>
+                              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-blue-500/15 text-blue-300"><Link2 className="h-4 w-4" /></div><div className="min-w-0 flex-1"><div className="text-[9px] font-semibold text-white">Accounts linked to this profile</div><div className="mt-0.5 text-[7px] text-slate-500">Family and migration relationships</div></div><ChevronRight className={`h-4 w-4 shrink-0 text-slate-500 transition-transform ${familyAccountsOpen ? 'rotate-90' : ''}`} />
+                            </button>
+
+                            {familyAccountsOpen && (
+                              <div className="space-y-1.5" id="home-linked-family-accounts">
+                                <div className="flex items-center gap-2 rounded-xl bg-black/15 p-2 text-slate-500"><UserRound className="h-4 w-4" /><div className="flex-1"><div className="text-[8px] font-semibold">Archived guardian record</div><div className="text-[7px]">Identity unavailable</div></div></div>
+                                <button type="button" onClick={confirmMaraFamilyAccount} disabled={familyAccountConfirmed || progress.currentChapter >= 7} className="flex w-full items-center gap-2 rounded-xl border border-pink-300/20 bg-pink-300/[0.07] p-2 text-left hover:bg-pink-300/[0.12] disabled:cursor-default" id="home-mara-related-account">
+                                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-pink-700 text-[8px] font-black text-white">MK</div><div className="min-w-0 flex-1"><div className="text-[9px] font-semibold text-pink-100">Mara Kade</div><div className="text-[7px] leading-snug text-pink-200/55">Mother · linked through Lumen Arc family migration</div></div><Users className="h-4 w-4 shrink-0 text-pink-300/60" />
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </motion.section>
+                    ) : null}
+                  </AnimatePresence>
                 </div>
 
                 {/* Dock. At deeper residue its geometry stops being friendly. */}
@@ -936,6 +1524,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                       : 'rounded-[26px] border border-white/[0.08] bg-white/[0.05] backdrop-blur-md'
                   }`}
                   id="home-dock"
+                  data-meta-immediate="true"
                 >
                   {([
                     ['VoiceLog', 'voicelog', IconVoiceLog],
@@ -946,7 +1535,8 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                   ] as Array<[string, DockUtility, React.FC]>).map(([name, utility, Icon]) => (
                     <button
                       key={name}
-                      onClick={() => toggleDockUtility(utility)}
+                      onPointerDown={(event) => handleDockUtilityPointerDown(event, utility)}
+                      onClick={(event) => handleDockUtilityClick(event, utility)}
                       aria-expanded={dockUtility === utility}
                       aria-controls="home-dock-utility-popover"
                       className={`group flex flex-col items-center gap-1 min-w-0 ${dockUtility === utility ? 'text-white' : ''}`}
@@ -966,6 +1556,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                 </div>
                 </div>
               </div>
+
             </motion.div>
           )}
 
@@ -982,7 +1573,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                 progress={progress}
                 updateProgress={updateProgress}
                 onHome={handleHomeButton}
-                onLeaderboardOpened={onLeaderboardOpened}
+                onSuspiciousRunSelected={onSuspiciousRunSelected}
               />
             </motion.div>
           )}
@@ -1011,7 +1602,9 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
             >
               <AmazeMart
                 progress={progress}
-                updateProgress={updateProgress}
+                orderPhase={chapterThreeOrderPhase}
+                onRequestSellerVerification={handleRequestSellerVerification}
+                onOpenMessages={() => handleLaunchApp('messages')}
                 onOpenScreenshots={() => setActiveApp('screenshots')}
               />
             </motion.div>
@@ -1052,7 +1645,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
               transition={{ duration: 0.22, ease: 'easeOut' }}
               className="absolute inset-0"
             >
-              <SocialApp progress={progress} updateProgress={updateProgress} />
+              <SocialApp progress={progress} updateProgress={updateProgress} onMaraFound={handleMaraFound} onDialogue={handleSocialDialogue} />
             </motion.div>
           )}
 
@@ -1065,7 +1658,14 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
               transition={{ duration: isMigratedApp('messages', residue) ? 0.42 : 0.22, ease: 'easeOut' }}
               className="absolute inset-0"
             >
-              <MessagesApp progress={progress} updateProgress={updateProgress} />
+              <MessagesApp
+                progress={progress}
+                updateProgress={updateProgress}
+                chapterThreeOrderPhase={chapterThreeOrderPhase}
+                onSellerVerified={handleSellerVerified}
+                onBeginChapterNineCleanup={handleBeginChapterNineCleanup}
+                developerPreview={developerToolsOpen || Boolean(debugTargetApp)}
+              />
             </motion.div>
           )}
 
@@ -1087,7 +1687,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
 
               <div className="space-y-3 text-xs leading-relaxed text-slate-300">
                 <p>
-                  <strong className="text-white">SKG: Scorekeeper</strong> is a creative interactive homage to the global <strong className="text-amber-400">"Stop Killing Games"</strong> campaign, exploring game preservation and consumer ownership rights.
+                  <strong className="text-white">Game Questing, Questioning Game</strong> is a creative interactive homage to the global <strong className="text-amber-400">"Stop Killing Games"</strong> campaign, exploring game preservation and consumer ownership rights.
                 </p>
 
                 <p>
@@ -1147,6 +1747,38 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
           id="home-swipe-indicator"
         />
       </div>}
+
+      <AnimatePresence>
+        {sellerMessageUnread && chapterThreeOrderPhase === 'verification-requested' && (
+          <motion.button
+            type="button"
+            initial={reducedMotion ? { opacity: 0 } : { opacity: 0, y: -70 }}
+            animate={reducedMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+            exit={reducedMotion ? { opacity: 0 } : { opacity: 0, y: -70 }}
+            transition={{ duration: reducedMotion ? 0.2 : 0.45, ease: [0.22, 1, 0.36, 1] }}
+            onPointerDown={handleSellerMessagePointerDown}
+            onClick={handleSellerMessageClick}
+            data-meta-immediate="true"
+            data-meta-hit-recovery="true"
+            data-system-notification="incoming-message"
+            className="absolute left-1/2 top-3 z-[70] flex w-[92%] max-w-[430px] -translate-x-1/2 items-center gap-3 rounded-[20px] border border-white/[0.1] bg-[#1b2130]/90 px-3.5 py-3 text-left shadow-2xl backdrop-blur-xl transition-transform active:scale-[0.985]"
+            id="messages-seller-notification"
+            aria-label="Open incoming message from coldboot_17"
+          >
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-gradient-to-br from-emerald-400 to-cyan-700 text-white shadow-inner">
+              <IconMessages />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[9.5px] font-semibold uppercase tracking-[0.16em] text-slate-400">Cognitive Investigation</span>
+                <span className="text-[9.5px] text-slate-500">now</span>
+              </div>
+              <div className="text-[13px] font-semibold leading-tight text-slate-50">Incoming Message · coldboot_17</div>
+              <div className="truncate text-[11px] leading-snug text-slate-300/85">Buyer check waiting in Messages — open the secure relay.</div>
+            </div>
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       {/* Chapter-advance: "evidence collected" banner, then the cinematic once
           the player returns to the home screen. Both clip to the phone face. */}

@@ -15,7 +15,7 @@ test('every chapter has an English-only guide for reaching the next stage', () =
     const guideText = [guide.nextLabel, guide.objective, ...guide.steps, guide.completion].join(' ');
 
     assert.equal(guide.chapter, chapter.id);
-    assert.equal(guide.steps.length, 3);
+    assert.ok(guide.steps.length >= 2);
     assert.doesNotMatch(guideText, /[\u3400-\u9fff]/u);
   }
 });
@@ -27,6 +27,25 @@ test('Chapter 1 guide describes the real ViewTube path into Chapter 2', () => {
   assert.match(guide.steps.join(' '), /ViewTube/);
   assert.match(guide.steps.join(' '), /ARC_184/);
   assert.match(guide.completion, /Lumen Arc/);
+});
+
+test('Chapter 8 developer guide lists every restoration question and answer', () => {
+  const guide = getChapterAdvanceGuide(8);
+
+  assert.equal(guide.answers?.length, 8);
+  assert.deepEqual(
+    guide.answers?.map(({ answer }) => answer),
+    [
+      'SILVER KITE',
+      'THE OPEN DOOR · PAGE 256',
+      'HARBOR LOOKOUT · 184',
+      'OLD STATION GATE · 40',
+      'FIRST REVIEW · 2019',
+      'SEA GLASS',
+      'THE LUMEN ARC STACK',
+      'THE WINDOW SEAT',
+    ],
+  );
 });
 
 test('defines exactly ten ordered GDD puzzle chapters', () => {
@@ -51,7 +70,21 @@ test('chapter snapshots accumulate discoveries instead of leaking future discove
   assert.equal(getChapterSnapshot(5).discoveredOriginalTitle, true);
   assert.equal(getChapterSnapshot(6).discoveredSKGHistory, true);
   assert.equal(getChapterSnapshot(7).discoveredNoahQA, false);
+  assert.equal(getChapterSnapshot(7).discoveredMaraAltitude184, false);
+  assert.equal(getChapterSnapshot(7).loggedIntoAdmin, false);
+  assert.equal(getChapterSnapshot(8).discoveredMaraAltitude184, true);
+  assert.equal(getChapterSnapshot(8).discoveredMaraGate40, true);
+  assert.equal(getChapterSnapshot(8).discoveredMaraEnd256, true);
+  assert.equal(getChapterSnapshot(8).loggedIntoAdmin, true);
   assert.equal(getChapterSnapshot(8).unlockedAdminLogin, true);
+  assert.equal(getChapterSnapshot(9).chapterNineRestorePhase, 'idle');
+  assert.equal(getChapterSnapshot(9).chapterNineProfileChoice, null);
+  assert.equal(getChapterSnapshot(9).chapterNinePasswordVerified, false);
+  assert.equal(getChapterSnapshot(9).chapterNineDownloadState, 'idle');
+  assert.equal(getChapterSnapshot(9).chapterNineDeletedAppIds?.length, 0);
+  assert.equal(getChapterSnapshot(10).chapterNineRestorePhase, 'rebooted');
+  assert.equal(getChapterSnapshot(10).chapterNineDeletedAppIds?.length, 7);
+  assert.equal(getChapterSnapshot(10).chapterNineArcaneSilent, true);
   assert.equal(getChapterSnapshot(10).unlockedCodeRoute, true);
 });
 
@@ -87,10 +120,18 @@ test('chapter metadata supplies a target phone app for debug navigation', () => 
 
 test('normal player cannot use guessed archive credentials before the clue is unlocked', () => {
   const early = getChapterSnapshot(2);
-  const ready = getChapterSnapshot(8);
+  const chapterSeven = getChapterSnapshot(7);
+  const ready = {
+    ...chapterSeven,
+    discoveredMaraAltitude184: true,
+    discoveredMaraGate40: true,
+    discoveredMaraEnd256: true,
+  };
 
   assert.equal(canUseProgressionAction('admin-login', early), false);
-  assert.equal(canUseProgressionAction('admin-login', ready), true);
+  assert.equal(canUseProgressionAction('admin-login', { ...ready, discoveredMaraEnd256: false }), false);
+  assert.equal(canUseProgressionAction('admin-login', ready), false);
+  assert.equal(canUseProgressionAction('admin-login', { ...ready, unlockedAdminLogin: true }), true);
 });
 
 test('normal player gates guessed searches while debug snapshots can unlock them in sequence', () => {

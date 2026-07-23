@@ -44,8 +44,8 @@ export const CHAPTER_EIGHT_DIALOGUE = {
     'He built the ending. She kept it alive. Neither of them left me a shortcut.',
   ],
   chapterNineAttachmentLocked: [
-    'A separate flight attachment. Still sealed.',
-    'Good. He wanted me to find the route, not inherit a list of answers.',
+    'A device-bound child profile. Still locked.',
+    'The final message restored its index. Opening the recovery record is the only way forward.',
   ],
   completedRevisit: [
     'Her life supplied the keys. Their conversation supplied the reason.',
@@ -279,4 +279,3 @@ export const getChapterEightMemorySelectionDialogue = (
 export const getChapterEightFragmentRestoredDialogue = (
   fragmentId: NoahArchiveFragmentId,
 ): DialogueLines => RESTORED_FRAGMENT_DIALOGUE[fragmentId];
-
