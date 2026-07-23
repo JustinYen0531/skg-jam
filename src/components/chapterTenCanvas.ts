@@ -1,5 +1,6 @@
 import {
   CHAPTER_TEN_NODES,
+  CHAPTER_TEN_ROUTE_POINT_SCALE,
   distanceToEnd,
   type ChapterTenPhase,
   type RoutePoint,
@@ -159,7 +160,8 @@ export const drawChapterTenRoutePoint = (
   ctx.globalAlpha = collected ? 0.2 : 0.72;
   ctx.fillStyle = collected ? '#80908b' : '#f0ddb0';
   const pointX = pipeX + point.offsetX;
-  ctx.beginPath(); ctx.arc(pointX, point.y, collected ? 2 : 4, 0, Math.PI * 2); ctx.fill();
+  const pointRadius = (collected ? 2 : 4) * CHAPTER_TEN_ROUTE_POINT_SCALE;
+  ctx.beginPath(); ctx.arc(pointX, point.y, pointRadius, 0, Math.PI * 2); ctx.fill();
   ctx.font = '7px "JetBrains Mono"'; ctx.fillText(String(point.altitude), pointX + 7, point.y + 2);
   ctx.restore();
 };

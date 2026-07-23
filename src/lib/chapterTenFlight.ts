@@ -173,8 +173,11 @@ export const deriveRoutePoints = (
 export const requiredRoutePointCount = (): number =>
   GATE_40_INDEX + CHAPTER_TEN_BETWEEN_POINT_GATES.length;
 
-/** The original 17px radius enlarged by 30% without removing the challenge. */
-export const CHAPTER_TEN_ROUTE_COLLECTION_RADIUS = 22.1;
+/** Keep the visible light point and its physical pickup area on the same scale. */
+export const CHAPTER_TEN_ROUTE_POINT_SCALE = 1.5;
+
+/** The original 17px radius enlarged by 50%. */
+export const CHAPTER_TEN_ROUTE_COLLECTION_RADIUS = 17 * CHAPTER_TEN_ROUTE_POINT_SCALE;
 
 /** True only when the bird's body actually touches the rendered light point. */
 export const touchesRoutePoint = (

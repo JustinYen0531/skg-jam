@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import {
   CHAPTER_TEN_NODES,
   CHAPTER_TEN_ROUTE_COLLECTION_RADIUS,
+  CHAPTER_TEN_ROUTE_POINT_SCALE,
   CHAPTER_TEN_SCORE_OVERFLOW,
   CHAPTER_TEN_BETWEEN_POINT_GATES,
   DEFAULT_FLIGHT_CONFIG,
@@ -90,11 +91,18 @@ test('route points form a deterministic varied path through gates and between th
 });
 
 test('route collection requires physical contact with each light point', () => {
-  assert.equal(CHAPTER_TEN_ROUTE_COLLECTION_RADIUS, 22.1);
+  assert.equal(CHAPTER_TEN_ROUTE_POINT_SCALE, 1.5);
+  assert.equal(CHAPTER_TEN_ROUTE_COLLECTION_RADIUS, 25.5);
   assert.equal(touchesRoutePoint(80, 120, 80, 120), true);
-  assert.equal(touchesRoutePoint(80, 120, 102.09, 120), true);
-  assert.equal(touchesRoutePoint(80, 120, 102.11, 120), false);
-  assert.equal(touchesRoutePoint(80, 120, 80, 142.11), false);
+  assert.equal(touchesRoutePoint(80, 120, 105.49, 120), true);
+  assert.equal(touchesRoutePoint(80, 120, 105.51, 120), false);
+  assert.equal(touchesRoutePoint(80, 120, 80, 145.51), false);
+});
+
+test('the rendered route point uses the same 150% scale as its pickup radius', () => {
+  const source = readFileSync(new URL('../src/components/chapterTenCanvas.ts', import.meta.url), 'utf8');
+  assert.match(source, /const pointRadius = \(collected \? 2 : 4\) \* CHAPTER_TEN_ROUTE_POINT_SCALE/);
+  assert.match(source, /ctx\.arc\(pointX, point\.y, pointRadius/);
 });
 
 // 2. Missing any single route point keeps Gate 40 sealed.
