@@ -298,3 +298,31 @@ test('the Chapter 10 flight core contains no Math.random', () => {
   const phase = deriveAutonomousPhase(createFlightState(150));
   assert.equal(phase, 'gate40-takeover');
 });
+
+test('the live game wires Gate 40 to the deterministic Chapter 10 flight', () => {
+  const source = readFileSync(new URL('../src/components/FlappyGame.tsx', import.meta.url), 'utf8');
+  assert.match(source, /isGate40Passable\(state\.chapterTenRoute\)/);
+  assert.match(source, /createFlightState\(state\.birdY/);
+  assert.match(source, /stepFlight\(state\.chapterTenFlight/);
+  assert.match(source, /shouldAcceptPlayerInput\(stateRef\.current\.chapterTenPhase\)/);
+  assert.match(source, /beginAutonomousControl\('flappy-canvas'\)/);
+  assert.match(source, /pulseAutonomousTap\(\)/);
+});
+
+test('the live Chapter 10 renderer keeps the memory, terminal and finish beats', () => {
+  const source = readFileSync(new URL('../src/components/chapterTenCanvas.ts', import.meta.url), 'utf8');
+  assert.match(source, /CHAPTER_TEN_MEMORY_LINES/);
+  assert.match(source, /CHAPTER_TEN_TERMINAL_LABEL/);
+  assert.match(source, /CHAPTER_TEN_COMPLETE_LINES/);
+  assert.match(source, /CHAPTER_TEN_SCORE_OVERFLOW/);
+  assert.match(source, /distanceToEnd/);
+});
+
+test('Meta input is blocked while Arcane owns the flight', () => {
+  const source = readFileSync(new URL('../src/components/MetaInteractionScene.tsx', import.meta.url), 'utf8');
+  assert.match(source, /beginAutonomousControl/);
+  assert.match(source, /pulseAutonomousTap/);
+  assert.match(source, /endAutonomousControl/);
+  assert.match(source, /data-autonomous-control/);
+  assert.match(source, /if \(autonomousControlRef\.current\)/);
+});

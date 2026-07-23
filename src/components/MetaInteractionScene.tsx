@@ -60,6 +60,9 @@ interface MetaInteractionContextValue {
   registerInput: (id: string, controller: MetaInputController) => () => void;
   speak: (lines: DialogueLines) => void;
   tapElement: (id: string, onActivate: () => void) => void;
+  beginAutonomousControl: (id: string) => void;
+  pulseAutonomousTap: () => void;
+  endAutonomousControl: () => void;
 }
 
 const MetaInteractionContext = createContext<MetaInteractionContextValue>({
@@ -67,6 +70,9 @@ const MetaInteractionContext = createContext<MetaInteractionContextValue>({
   registerInput: () => () => undefined,
   speak: () => undefined,
   tapElement: (_id, onActivate) => onActivate(),
+  beginAutonomousControl: () => undefined,
+  pulseAutonomousTap: () => undefined,
+  endAutonomousControl: () => undefined,
 });
 
 export const useMetaInteraction = () => useContext(MetaInteractionContext);
@@ -666,6 +672,8 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   const sceneRef = useRef<HTMLDivElement | null>(null);
   const projectivePlaneRef = useRef<HTMLDivElement | null>(null);
   const pendingRef = useRef(false);
+  const autonomousControlRef = useRef(false);
+  const autonomousPulseTimerRef = useRef<number | null>(null);
   const keyQueueRef = useRef<QueuedKey[]>([]);
   const queueRunningRef = useRef(false);
   const keyboardScopeRef = useRef(0);
@@ -683,6 +691,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   const [pointer, setPointer] = useState<PointerPosition>({ x: 0, y: 0 });
   const [pressed, setPressed] = useState(false);
   const [interactionPending, setInteractionPending] = useState(false);
+  const [autonomousControlActive, setAutonomousControlActive] = useState(false);
   const [keyboardTarget, setKeyboardTarget] = useState<HTMLInputElement | null>(null);
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -715,6 +724,49 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     return rect
       ? { x: rect.width * 0.85, y: rect.height * 0.46 }
       : { x: 0, y: 0 };
+  }, []);
+
+  const endAutonomousControl = useCallback(() => {
+    autonomousControlRef.current = false;
+    if (autonomousPulseTimerRef.current !== null) {
+      window.clearTimeout(autonomousPulseTimerRef.current);
+      autonomousPulseTimerRef.current = null;
+    }
+    setPressed(false);
+    setAutonomousControlActive(false);
+    pendingRef.current = false;
+    setInteractionPending(false);
+    setPointer(getRestPosition());
+  }, [getRestPosition]);
+
+  const beginAutonomousControl = useCallback((id: string) => {
+    const target = document.getElementById(id);
+    const sceneRect = sceneRef.current?.getBoundingClientRect();
+    if (!active || !target || !sceneRect) return;
+    const targetRect = target.getBoundingClientRect();
+    autonomousControlRef.current = true;
+    pendingRef.current = true;
+    setAutonomousControlActive(true);
+    setInteractionPending(true);
+    setPointer({
+      x: targetRect.left - sceneRect.left + targetRect.width * 0.28,
+      y: targetRect.top - sceneRect.top + targetRect.height * 0.72,
+    });
+    audio.play('meta.handDepart');
+  }, [active]);
+
+  const pulseAutonomousTap = useCallback(() => {
+    if (!autonomousControlRef.current) return;
+    if (autonomousPulseTimerRef.current !== null) {
+      window.clearTimeout(autonomousPulseTimerRef.current);
+    }
+    setPressed(true);
+    audio.play('meta.fingerContact');
+    autonomousPulseTimerRef.current = window.setTimeout(() => {
+      setPressed(false);
+      audio.play('meta.fingerRelease');
+      autonomousPulseTimerRef.current = null;
+    }, 72);
   }, []);
 
   useEffect(() => {
@@ -846,6 +898,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
 
   useEffect(() => {
     if (!active) {
+      endAutonomousControl();
       clearTimers();
       keyboardScopeRef.current += 1;
       keyQueueRef.current = [];
@@ -871,15 +924,16 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
       window.clearInterval(creakTimer);
       audio.stopRoomTone();
     };
-  }, [active, clearTimers, getRestPosition]);
+  }, [active, clearTimers, endAutonomousControl, getRestPosition]);
 
   useEffect(() => clearTimers, [clearTimers]);
 
   useEffect(() => () => {
+    endAutonomousControl();
     if (scrollGestureTimerRef.current !== null) {
       window.clearTimeout(scrollGestureTimerRef.current);
     }
-  }, []);
+  }, [endAutonomousControl]);
 
   const animateTap = useCallback((target: Element, onActivate?: () => void): Promise<void> => {
     if (!active || reducedMotion) {
@@ -1001,6 +1055,11 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
 
   const handlePointerDownCapture = (event: React.PointerEvent<HTMLDivElement>) => {
     if (!active || event.button !== 0) return;
+    if (autonomousControlRef.current) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
     const source = event.target;
     if (!(source instanceof Element) || source.closest('button')) return;
 
@@ -1035,6 +1094,11 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
 
   const handleClickCapture = (event: React.MouseEvent<HTMLDivElement>) => {
     if (!active) return;
+    if (autonomousControlRef.current) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
     const source = event.target;
     if (!(source instanceof Element)) return;
 
@@ -1117,6 +1181,11 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
 
   const handleKeyDownCapture = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (!active || !event.nativeEvent.isTrusted) return;
+    if (autonomousControlRef.current) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
     const input = event.target;
     if (!isMetaKeyboardInput(input)) return;
     const key = normalizeVirtualKey(event.key);
@@ -1133,6 +1202,11 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   };
 
   const handleWheelCapture = (event: React.WheelEvent<HTMLDivElement>) => {
+    if (autonomousControlRef.current) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
     if (!active || reducedMotion || interactionPending) return;
     const source = event.target;
     if (!(source instanceof Element) || !source.closest('#phone-bezel')) return;
@@ -1191,7 +1265,18 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     registerInput,
     speak,
     tapElement,
-  }), [active, registerInput, speak, tapElement]);
+    beginAutonomousControl,
+    pulseAutonomousTap,
+    endAutonomousControl,
+  }), [
+    active,
+    beginAutonomousControl,
+    endAutonomousControl,
+    pulseAutonomousTap,
+    registerInput,
+    speak,
+    tapElement,
+  ]);
 
   // Hands are never perfectly still: a slow breathing drift applied inside
   // the entrance containers, mirrored per hand so both layers stay fused.
@@ -1249,7 +1334,8 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
       data-posture-control={postureControlEnabled ? 'enabled' : 'disabled'}
       data-device-posture={deviceResting ? 'table-rest' : 'upright'}
       data-meta-pending={interactionPending ? 'true' : 'false'}
-      data-hand-pose={interactionPending ? 'reaching' : 'holding'}
+      data-autonomous-control={autonomousControlActive ? 'true' : 'false'}
+      data-hand-pose={autonomousControlActive ? 'self-directed' : interactionPending ? 'reaching' : 'holding'}
       data-environment-chapter={chapter}
       id="meta-interaction-scene"
     >
