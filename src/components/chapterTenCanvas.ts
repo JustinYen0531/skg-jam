@@ -1,4 +1,5 @@
 import {
+  CHAPTER_TEN_NODES,
   distanceToEnd,
   type ChapterTenPhase,
   type RoutePoint,
@@ -13,8 +14,8 @@ import {
   getHudMode,
   getObstacleForm,
   getPixelPresence,
-  getShellOpacity,
   getTerminalDrain,
+  isNostalgicFlight,
 } from '../lib/chapterTenVisualPhases';
 import {
   getCompletionScoreAtFrame,
@@ -34,11 +35,49 @@ export const drawChapterTenWorld = (
   score: number,
   frame: number,
 ): void => {
+  if (isNostalgicFlight(score)) {
+    // The recovered 2013 build owns the whole frame from Gate 40 through the
+    // ARC_184 reveal: bright sky, blunt pixel clouds, grass, and earth.
+    const sky = ctx.createLinearGradient(0, 0, 0, height);
+    sky.addColorStop(0, '#69c6d4');
+    sky.addColorStop(1, '#b9e6dc');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.save();
+    ctx.fillStyle = 'rgba(255,255,238,.88)';
+    for (let i = 0; i < 4; i += 1) {
+      const x = ((i * 238 - frame * 0.28) % (width + 150)) - 70;
+      const y = 38 + (i % 3) * 54;
+      ctx.fillRect(x, y, 48, 14);
+      ctx.fillRect(x + 12, y - 10, 28, 10);
+      ctx.fillRect(x + 42, y + 5, 22, 9);
+    }
+    ctx.restore();
+
+    const groundY = height * 0.76;
+    ctx.fillStyle = '#79a84b';
+    ctx.fillRect(0, groundY, width, 12);
+    ctx.fillStyle = '#d9bd72';
+    ctx.fillRect(0, groundY + 12, width, height - groundY - 12);
+    ctx.fillStyle = 'rgba(126,91,43,.22)';
+    const groundOffset = (frame * 0.7) % 32;
+    for (let x = -groundOffset; x < width; x += 32) {
+      ctx.fillRect(x, groundY + 24, 17, 3);
+      ctx.fillRect(x + 13, groundY + 46, 21, 3);
+    }
+    return;
+  }
+
   const drain = getTerminalDrain(score);
-  ctx.fillStyle = `rgb(${Math.round(8 + 18 * (1 - drain))} ${Math.round(18 + 38 * (1 - drain))} ${Math.round(24 + 48 * (1 - drain))})`;
+  const geometry = getGeometryProgress(score);
+  const skyR = Math.round(105 - geometry * 97);
+  const skyG = Math.round(190 - geometry * 172);
+  const skyB = Math.round(202 - geometry * 178);
+  ctx.fillStyle = `rgb(${Math.round(skyR * (1 - drain))} ${Math.round(skyG * (1 - drain))} ${Math.round(skyB * (1 - drain))})`;
   ctx.fillRect(0, 0, width, height);
   ctx.save();
-  ctx.globalAlpha = 0.24 + getPixelPresence(score) * 0.5;
+  ctx.globalAlpha = getPixelPresence(score) * 0.72;
   ctx.fillStyle = '#79a9a1';
   ctx.fillRect(0, height * 0.72, width, height * 0.28);
   ctx.fillStyle = '#172d35';
@@ -46,10 +85,9 @@ export const drawChapterTenWorld = (
     ctx.fillRect(x, height * 0.72 - 18 - (((x / 72) | 0) & 3) * 12, 56, 66);
   }
   ctx.restore();
-  const geometry = getGeometryProgress(score);
   if (geometry > 0) {
     ctx.save();
-    ctx.globalAlpha = geometry * 0.28;
+    ctx.globalAlpha = Math.max(0, geometry - 0.08) * 0.3;
     ctx.strokeStyle = '#b8c7c3';
     for (let x = -((frame * 0.8) % 32); x < width; x += 32) {
       ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
@@ -59,13 +97,6 @@ export const drawChapterTenWorld = (
     }
     ctx.restore();
   }
-  ctx.save();
-  ctx.globalAlpha = getShellOpacity(score) * 0.55;
-  ctx.fillStyle = '#6d28d9';
-  for (let i = 0; i < 9; i += 1) {
-    ctx.fillRect((i * 137 - frame * (1 + i * 0.04)) % (width + 100), 20 + (i % 4) * 88, 42, 5);
-  }
-  ctx.restore();
 };
 
 export const drawChapterTenPipe = (
@@ -141,6 +172,18 @@ export const drawChapterTenHud = (
   required: number,
 ): void => {
   ctx.save();
+  if (isNostalgicFlight(score)) {
+    // A plain arcade score, not a terminal readout.
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 26px "Courier New", monospace';
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = 'rgba(47,74,57,.55)';
+    ctx.strokeText(String(score), width / 2, 38);
+    ctx.fillStyle = '#fffde3';
+    ctx.fillText(String(score), width / 2, 38);
+    ctx.restore();
+    return;
+  }
   ctx.fillStyle = 'rgba(4,10,13,.76)'; ctx.fillRect(14, 14, 190, 42);
   ctx.fillStyle = '#dce7e2'; ctx.font = '10px "JetBrains Mono"';
   ctx.fillText(getHudMode(score) === 'distance-to-end' ? `DISTANCE TO END  ${distanceToEnd(score)}` : 'LOCAL RANK  ARC_184', 24, 31);
@@ -157,7 +200,7 @@ export const drawChapterTenBeat = (
   score: number,
   beatFrames: number,
 ): void => {
-  if (phase === 'restored-2013' && score > 165) {
+  if (score >= CHAPTER_TEN_NODES.distanceHudFrom && score < CHAPTER_TEN_NODES.terminal - 28) {
     ctx.save(); ctx.globalAlpha = 0.34; ctx.font = '8px "JetBrains Mono"'; ctx.fillStyle = '#b9c8c3';
     CHAPTER_TEN_DEV_RESIDUE.forEach((line, i) => ctx.fillText(line, width - 170, 28 + i * 13)); ctx.restore();
   }

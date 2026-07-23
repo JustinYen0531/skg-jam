@@ -2,9 +2,10 @@
  * Chapter 10 — visual peeling & abstraction (presentation only)
  * =============================================================
  *
- * Everything here decides how the final flight *looks* as the twelve years of
- * cheap AI packaging peel away to reveal the 2013 Skyline 256 build, and then
- * how that pixel game abstracts into preserved motion data on the way to 256.
+ * Everything here decides how the final flight *looks*. Gate 40 restores the
+ * complete 2013 Skyline 256 presentation immediately; that nostalgic image
+ * remains intact through the ARC_184 identity beat. Only score 185 onward
+ * abstracts the pixel game into preserved motion data on the way to 256.
  *
  * Hard rule: none of these functions touch collision. `getCollisionGeometry`
  * returns the same box for every score and phase, and the peeling/geometry
@@ -48,38 +49,34 @@ export const CHAPTER_TEN_DEV_RESIDUE: readonly string[] = [
 // Continuous progress curves
 // ---------------------------------------------------------------------------
 
-/** 0 at Gate 40, 1 at the 184 memory node — drives the whole peel. */
-export const getPeelProgress = (score: number): number =>
-  clamp01((score - CHAPTER_TEN_NODES.takeover) / (CHAPTER_TEN_NODES.memory - CHAPTER_TEN_NODES.takeover));
+/** True while the original 2013 presentation must remain visually intact. */
+export const isNostalgicFlight = (score: number): boolean =>
+  score <= CHAPTER_TEN_NODES.memory;
 
-export type PeelStage = 'shell-cracking' | 'restored-2013' | 'dev-residue';
+/** 0 through ARC_184, 1 at the 256 terminal — drives the data exposure. */
+export const getPeelProgress = (score: number): number =>
+  clamp01((score - CHAPTER_TEN_NODES.distanceHudFrom) / (
+    CHAPTER_TEN_NODES.terminal - CHAPTER_TEN_NODES.distanceHudFrom
+  ));
+
+export type PeelStage = 'restored-2013' | 'data-exposure' | 'terminal-collapse';
 
 /**
- * The three continuous peel bands of 40→184:
- *   A shell-cracking — cheap layer still present but failing.
- *   B restored-2013  — the original pixel build is the main image (the longest,
- *                      most complete nostalgia dwell).
- *   C dev-residue    — preservation layer and developer marks surface near 184.
+ * The three presentation bands:
+ *   A restored-2013    — a complete nostalgic game from Gate 40 through 184.
+ *   B data-exposure    — boxes, coordinates, and preserved traces surface.
+ *   C terminal-collapse — colour and recognizable geometry drain toward 256.
  */
 export const getPeelStage = (score: number): PeelStage => {
+  if (isNostalgicFlight(score)) return 'restored-2013';
   const p = getPeelProgress(score);
-  if (p < 0.33) return 'shell-cracking';
-  if (p < 0.82) return 'restored-2013';
-  return 'dev-residue';
+  if (p < 0.58) return 'data-exposure';
+  return 'terminal-collapse';
 };
 
-/** How much of the cheap AI shell is still visible (1 at Gate 40 → 0 by ~mid). */
-export const getShellOpacity = (score: number): number => {
-  const p = getPeelProgress(score);
-  // Stickers peel gradually; the shell is essentially gone by the restored dwell.
-  return clamp01(1 - p / 0.45);
-};
-
-/** How present the original 2013 pixel build is (0 at Gate 40 → 1 by mid). */
-export const getPixelPresence = (score: number): number => {
-  const p = getPeelProgress(score);
-  return clamp01((p - 0.12) / 0.4);
-};
+/** The restored pixel world is fully present through 184, then drains slowly. */
+export const getPixelPresence = (score: number): number =>
+  isNostalgicFlight(score) ? 1 : clamp01(1 - getPeelProgress(score));
 
 /** 0 before 184, 1 at the terminal — drives bird→data-point abstraction. */
 export const getGeometryProgress = (score: number): number =>
@@ -102,9 +99,7 @@ export type ObstacleForm = 'pixel' | 'pixel-with-box' | 'outline' | 'data-bounda
 
 /** Obstacles fade from pixel structures to bare data boundaries in step. */
 export const getObstacleForm = (score: number): ObstacleForm => {
-  if (score < CHAPTER_TEN_NODES.memory) {
-    return getPeelStage(score) === 'dev-residue' ? 'pixel-with-box' : 'pixel';
-  }
+  if (isNostalgicFlight(score)) return 'pixel';
   const g = getGeometryProgress(score);
   if (g < 0.35) return 'pixel-with-box';
   if (g < 0.75) return 'outline';

@@ -1,5 +1,14 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-24 — Chapter 10 nostalgic flight boundary
+
+- Gate 40 now restores the bright 2013 pixel presentation immediately and holds it intact through score 184.
+- Scores 40–184 use a bright sky, block clouds, grass-and-earth ground, yellow pixel bird, solid green pipes, and a plain centered arcade score.
+- Removed the early deep-green filter, terminal HUD, grid, and purple shell residue from the nostalgic interval.
+- Score 185 is the first frame allowed to expose developer data, geometry, distance HUD, colour drain, and the existing terminal evolution toward 256.
+- Physics, the 28-point route, assist marks, autonomous control, the ARC_184 reveal, and the 256 ending remain unchanged.
+- Browser and Preview remain intentionally unused by project instruction.
+
 ## 2026-07-24 — Chapter 10 retro route-assist prompt
 
 - Replaced the modern cyan rounded assist modal and all Chinese copy with a compact English prompt belonging to Arcane's old game.

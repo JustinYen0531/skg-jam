@@ -30,7 +30,9 @@ import {
   getCollisionGeometry,
   getHudMode,
   getObstacleForm,
+  getPixelPresence,
   getPeelStage,
+  isNostalgicFlight,
 } from '../src/lib/chapterTenVisualPhases';
 import { GATE_40_INDEX, getGateHeights, getGateOpeningBounds } from '../src/lib/flappyPhysics';
 import {
@@ -266,11 +268,43 @@ test('no visual phase or score changes the collision geometry', () => {
   }
   // The presentation curves do vary, proving the invariance is meaningful.
   const forms = new Set([getBirdForm(60), getBirdForm(210), getBirdForm(255)]);
-  const stages = new Set([getPeelStage(60), getPeelStage(150), getPeelStage(180)]);
+  const stages = new Set([getPeelStage(184), getPeelStage(210), getPeelStage(250)]);
   const obstacles = new Set([getObstacleForm(60), getObstacleForm(200), getObstacleForm(255)]);
   assert.ok(forms.size > 1);
   assert.ok(stages.size > 1);
   assert.ok(obstacles.size > 1);
+});
+
+test('scores 40 through 184 keep the complete nostalgic pixel presentation', () => {
+  for (const score of [40, 80, 120, 183, 184]) {
+    assert.equal(isNostalgicFlight(score), true);
+    assert.equal(getPixelPresence(score), 1);
+    assert.equal(getBirdForm(score), 'pixel-bird');
+    assert.equal(getObstacleForm(score), 'pixel');
+    assert.equal(getPeelStage(score), 'restored-2013');
+    assert.equal(getHudMode(score), 'rank');
+  }
+  assert.equal(isNostalgicFlight(185), false);
+  assert.equal(getHudMode(185), 'distance-to-end');
+});
+
+test('the live renderer delays terminal language until after ARC_184', () => {
+  const source = readFileSync(new URL('../src/components/chapterTenCanvas.ts', import.meta.url), 'utf8');
+  const nostalgicWorld = source.slice(
+    source.indexOf('if (isNostalgicFlight(score))'),
+    source.indexOf('const drain = getTerminalDrain(score)'),
+  );
+  const nostalgicHud = source.slice(
+    source.indexOf('// A plain arcade score, not a terminal readout.'),
+    source.indexOf("ctx.fillStyle = 'rgba(4,10,13,.76)'"),
+  );
+
+  assert.match(nostalgicWorld, /#69c6d4/);
+  assert.match(nostalgicWorld, /#79a84b/);
+  assert.match(nostalgicWorld, /#d9bd72/);
+  assert.doesNotMatch(nostalgicWorld, /JetBrains|LOCAL RANK|TRACE|#6d28d9/);
+  assert.match(nostalgicHud, /Courier New/);
+  assert.doesNotMatch(nostalgicHud, /LOCAL RANK|TRACE|JetBrains/);
 });
 
 // 17. reduced-motion and fullscreen-only never wedge the run.
