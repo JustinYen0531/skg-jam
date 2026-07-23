@@ -1126,6 +1126,85 @@ class AudioManager {
   }
 
   /* ---------------------------------------------------------------- */
+  /* Title-logo reveal: a sacred bell-tower strike, and a soft bloom.  */
+  /* ---------------------------------------------------------------- */
+
+  /**
+   * `variant: 'bell'` is a single struck bell-tower toll — inharmonic partials
+   * over a low hum with a long, reverberant decay. `variant: 'bloom'` is the
+   * gentle ascending shimmer that lands when the wordmark bursts open. Both are
+   * built from long-decay nodes directly (the short event envelopes elsewhere
+   * would clip a bell's tail) and honour mute through the master bus.
+   */
+  playLogoReveal(options: { variant?: 'bell' | 'bloom'; delay?: number } = {}) {
+    if (this.isMuted) return;
+    this.initCtx();
+    if (!this.ctx || !this.master) return;
+    if (this.ctx.state === 'suspended') {
+      const ctx = this.ctx;
+      void ctx.resume().then(() => {
+        if (ctx.state === 'running' && !this.isMuted) this.playLogoReveal(options);
+      }).catch(() => {
+        // A capture-phase gesture listener will retry on the next input.
+      });
+      return;
+    }
+    const bus = this.bus('narrative');
+    const t = this.ctx.currentTime + Math.max(0, options.delay ?? 0);
+
+    // One decaying voice — attack fast, then a long exponential tail.
+    const voice = (freq: number, peak: number, decay: number, type: OscillatorType, at: number) => {
+      const osc = this.ctx!.createOscillator();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, at);
+      const g = this.ctx!.createGain();
+      g.gain.setValueAtTime(0.0001, at);
+      g.gain.linearRampToValueAtTime(peak, at + 0.006);
+      g.gain.exponentialRampToValueAtTime(0.0005, at + decay);
+      osc.connect(g);
+      g.connect(bus);
+      osc.start(at);
+      osc.stop(at + decay + 0.1);
+    };
+
+    if ((options.variant ?? 'bell') === 'bloom') {
+      // A wholesome, ascending shimmer — the wordmark opening into focus.
+      [784, 1046, 1318, 1568].forEach((f, i) => voice(f, 0.03, 1.1 - i * 0.12, 'sine', t + i * 0.05));
+      this.noise({ bus: 'narrative', t, dur: 0.5, g: 0.012, attack: 0.18, filterType: 'highpass', filterFreq: 4200 });
+      return;
+    }
+
+    // Bell-tower toll: a metallic strike transient, then inharmonic partials
+    // over a low hum, ringing out for several seconds.
+    const strike = this.ctx.createBufferSource();
+    strike.buffer = this.getNoiseBuffer();
+    const strikeFilter = this.ctx.createBiquadFilter();
+    strikeFilter.type = 'bandpass';
+    strikeFilter.frequency.setValueAtTime(2800, t);
+    strikeFilter.Q.setValueAtTime(0.7, t);
+    const strikeGain = this.ctx.createGain();
+    strikeGain.gain.setValueAtTime(0.09, t);
+    strikeGain.gain.exponentialRampToValueAtTime(0.0004, t + 0.13);
+    strike.connect(strikeFilter);
+    strikeFilter.connect(strikeGain);
+    strikeGain.connect(bus);
+    strike.start(t);
+    strike.stop(t + 0.16);
+
+    // freq ratio, peak, decay — a minor-third bell over its hum tone.
+    ([
+      [0.5, 0.05, 3.8], // hum
+      [1.0, 0.11, 3.5], // fundamental
+      [2.0, 0.06, 2.6],
+      [2.4, 0.05, 2.2], // the struck minor-third character
+      [3.0, 0.035, 1.8],
+      [4.2, 0.02, 1.2],
+      [5.4, 0.014, 0.9],
+      [6.5, 0.008, 2.0], // faint sacred shimmer
+    ] as const).forEach(([ratio, peak, decay]) => voice(196 * ratio, peak, decay, 'sine', t));
+  }
+
+  /* ---------------------------------------------------------------- */
   /* Legacy method names (§7 migration): kept so existing call sites   */
   /* keep working; each maps onto a single new identity.               */
   /* ---------------------------------------------------------------- */

@@ -3,14 +3,35 @@ import { GameProgress, ActiveApp } from '../types';
 import audio from '../lib/audio';
 import { EASY_FLAPPY_SETTINGS, FlappyDeathCause, GATE_40_INDEX, getCheapTelemetry, getFlappyNightMix, getGateHeights, getGateSpawnX, getGateVisualStyle, getScoreAfterPassingGate, nextGate40DeathCount, resolvePipeCollision } from '../lib/flappyPhysics';
 import { calculateBeatPercentage, createPublicLeaderboard } from '../lib/leaderboard';
-import { RefreshCw, Play, Volume2, VolumeX, CheckCircle, Zap, Crown, Sparkles, Rocket, Brain, Activity, X } from 'lucide-react';
+import { RefreshCw, Play, Volume2, VolumeX, CheckCircle, Zap, Crown, Sparkles, Rocket, Brain, Activity } from 'lucide-react';
 import { LeaderboardPanel } from './LeaderboardPanel';
+import {
+  CHAPTER_TEN_NODES,
+  createFlightState,
+  createRunRouteState,
+  deriveRoutePoints,
+  isGate40Passable,
+  shouldAcceptPlayerInput,
+  stepFlight,
+  type ChapterTenPhase,
+  type FlightState,
+} from '../lib/chapterTenFlight';
+import {
+  drawChapterTenBeat,
+  drawChapterTenBird,
+  drawChapterTenComplete,
+  drawChapterTenHud,
+  drawChapterTenPipe,
+  drawChapterTenRoutePoint,
+  drawChapterTenWorld,
+} from './chapterTenCanvas';
+import { useMetaInteraction } from './MetaInteractionScene';
 
 interface FlappyGameProps {
   progress: GameProgress;
   updateProgress: (updater: (prev: GameProgress) => GameProgress) => void;
   onHome: () => void;
-  onLeaderboardOpened: () => void;
+  onSuspiciousRunSelected: () => void;
 }
 
 // Sequence of target altitudes near pipe 40
@@ -20,7 +41,7 @@ const ALTITUDE_SEQUENCE = [184, 172, 149, 133, 121, 118, 126, 143];
 // room between gates. Scoring and gate spawning remain in lockstep.
 const PACE_INTERVAL_FRAMES = EASY_FLAPPY_SETTINGS.spawnIntervalFrames;
 
-export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress, onHome, onLeaderboardOpened }) => {
+export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress, onHome, onSuspiciousRunSelected }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   
@@ -36,7 +57,13 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
   const [seqIndex, setSeqIndex] = useState(0); // index in altitude matching
   const [seqMatched, setSeqMatched] = useState<boolean[]>(new Array(8).fill(false));
   const [hackedMode, setHackedMode] = useState(false);
-  const [showLearnMore, setShowLearnMore] = useState(false);
+  const {
+    beginAutonomousControl,
+    pulseAutonomousTap,
+    endAutonomousControl,
+    speak,
+  } = useMetaInteraction();
+  const chapterTenActive = progress.currentChapter === 10;
 
   // Core physics references to prevent state lag in canvas loop
   const stateRef = useRef({
@@ -57,6 +84,14 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
     trail: [] as number[], // visual-only motion residue for the wireframe layer
     popups: [] as Array<{ x: number; y: number; text: string; life: number }>, // slop praise popups
     lastJumpFrame: -100, // visual-only tap ripple timing
+    chapterTenRoute: createRunRouteState(),
+    chapterTenFlight: null as FlightState | null,
+    chapterTenPhase: 'player-route' as ChapterTenPhase,
+    chapterTenBeatFrames: 0,
+    chapterTenCompleteFrames: 0,
+    chapterTenTakeoverSpoken: false,
+    chapterTenMemoryDotsSpoken: false,
+    chapterTenTerminalDotsSpoken: false,
   });
 
   const resetGame = () => {
@@ -84,7 +119,16 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
       trail: [],
       popups: [],
       lastJumpFrame: -100,
+      chapterTenRoute: createRunRouteState(),
+      chapterTenFlight: null,
+      chapterTenPhase: 'player-route',
+      chapterTenBeatFrames: 0,
+      chapterTenCompleteFrames: 0,
+      chapterTenTakeoverSpoken: false,
+      chapterTenMemoryDotsSpoken: false,
+      chapterTenTerminalDotsSpoken: false,
     };
+    endAutonomousControl();
     setScore(0);
     setSeqIndex(0);
     setSeqMatched(new Array(8).fill(false));
@@ -98,6 +142,17 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
   const restartRun = () => {
     audio.play('flight.restart');
     resetGame();
+  };
+
+  const openLeaderboard = () => {
+    audio.play('leaderboard.open');
+    setShowLeaderboard(true);
+    updateProgress((prev) => ({ ...prev, seenLeaderboard: true }));
+  };
+
+  const enterMetaFromRun = () => {
+    onHome();
+    onSuspiciousRunSelected();
   };
 
   const handleJump = (e: React.MouseEvent | React.TouchEvent | KeyboardEvent) => {
@@ -119,6 +174,10 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
       return;
     }
 
+    if (
+      chapterTenActive
+      && !shouldAcceptPlayerInput(stateRef.current.chapterTenPhase)
+    ) return;
     stateRef.current.birdVelocity = stateRef.current.birdJump;
     stateRef.current.lastJumpFrame = stateRef.current.frameCount; // tap ripple
     audio.play('flight.flap');
@@ -132,7 +191,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isPlaying, showLeaderboard]);
+  }, [chapterTenActive, isPlaying, showLeaderboard]);
 
   // Main Canvas Render Loop
   useEffect(() => {
@@ -155,7 +214,9 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
       ctx.clearRect(0, 0, width, height);
 
       // --- Background Rendering ---
-      if (!hackedMode) {
+      if (chapterTenActive && state.chapterTenFlight) {
+        drawChapterTenWorld(ctx, width, height, state.score, state.frameCount);
+      } else if (!hackedMode) {
         // Level 1 begins in bright daylight. The night overlay only fades in at
         // score 36 and becomes complete at the sealed Level 2 boundary.
         const nightMix = getFlappyNightMix(state.score);
@@ -309,6 +370,64 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
       // --- Game Physics (Only update when playing) ---
       if (isPlaying && !state.gameOver) {
         state.frameCount++;
+        if (chapterTenActive && state.chapterTenFlight) {
+          if (state.chapterTenFlight.completed) {
+            state.chapterTenCompleteFrames += 1;
+            if (state.chapterTenCompleteFrames >= 180) triggerCompletion();
+          } else {
+            const flightStep = stepFlight(state.chapterTenFlight, {
+              canvasHeight: height,
+              birdRadius: 12,
+              gravity: state.birdGravity,
+              jump: state.birdJump,
+              maxFall: EASY_FLAPPY_SETTINGS.maxFallSpeed,
+              cruisePaceFrames: 42,
+              sprintPaceFrames: 24,
+              scorePerPipe: 2,
+            });
+            state.chapterTenFlight = flightStep.state;
+            state.chapterTenPhase = flightStep.state.phase;
+            state.birdY = flightStep.state.birdY;
+            state.birdVelocity = flightStep.state.velocityY;
+            state.score = flightStep.state.score;
+            setScore(state.score);
+            setCurrentAlt(Math.max(0, Math.min(256, Math.round(((height - state.birdY) / height) * 256))));
+            if (flightStep.events.includes('flap')) {
+              state.lastJumpFrame = state.frameCount;
+              pulseAutonomousTap();
+              audio.play('flight.flap');
+            }
+            if (flightStep.events.includes('memory-184')) {
+              state.chapterTenBeatFrames = 1;
+              audio.play('flight.altitudeStep', { variant: 0 });
+              if (!state.chapterTenMemoryDotsSpoken) {
+                state.chapterTenMemoryDotsSpoken = true;
+                speak(['...']);
+              }
+            } else if (state.chapterTenBeatFrames > 0) {
+              state.chapterTenBeatFrames += 1;
+            }
+            if (flightStep.events.includes('terminal-256')) {
+              endAutonomousControl();
+              audio.play('story.serviceTerminated');
+              if (!state.chapterTenTerminalDotsSpoken) {
+                state.chapterTenTerminalDotsSpoken = true;
+                speak(['...']);
+              }
+            }
+            if (flightStep.events.includes('complete')) {
+              state.chapterTenCompleteFrames = 1;
+              audio.play('flight.complete');
+            }
+          }
+          if (state.frameCount % 64 === 0 && !state.chapterTenFlight.completed) {
+            const gateIndex = state.pipeIndexCounter++;
+            const { topHeight, bottomHeight } = getGateHeights(gateIndex, height);
+            state.pipes.push({ x: width + 40, topHeight, bottomHeight, passed: false, index: gateIndex });
+          }
+          state.pipes.forEach((pipe) => { pipe.x -= 2; });
+          state.pipes = state.pipes.filter((pipe) => pipe.x > -60);
+        } else {
         const previousBirdY = state.birdY;
         state.birdVelocity = Math.min(
           state.birdVelocity + state.birdGravity,
@@ -363,6 +482,13 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
           // Check passing midpoint
           if (!pipe.passed && pipe.x < birdX) {
             pipe.passed = true;
+            if (chapterTenActive && pipe.index < GATE_40_INDEX) {
+              const routePoint = deriveRoutePoints(height, birdSize)[pipe.index];
+              if (routePoint && Math.abs(state.birdY - routePoint.y) <= 38) {
+                state.chapterTenRoute.add(pipe.index);
+                audio.play('flight.altitudeStep', { variant: pipe.index % ALTITUDE_SEQUENCE.length });
+              }
+            }
             const scoreBeforeGate = state.score;
             const nextScore = getScoreAfterPassingGate(pipe.index);
             state.score = Math.max(state.score, nextScore);
@@ -428,7 +554,33 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
             // Gate 40 is the visible Level 2 seal. The secret route is only
             // evaluated when the bird actually hits its rendered pipe body.
             if (pipe.index === GATE_40_INDEX && !state.bypassActive && collision.fatal) {
-              if (progress.unlockedCodeRoute) {
+              if (
+                chapterTenActive
+                && progress.unlockedCodeRoute
+                && isGate40Passable(state.chapterTenRoute)
+              ) {
+                state.bypassActive = true;
+                state.chapterTenFlight = createFlightState(state.birdY, {
+                  canvasHeight: height,
+                  birdRadius: birdSize,
+                  gravity: state.birdGravity,
+                  jump: state.birdJump,
+                  maxFall: EASY_FLAPPY_SETTINGS.maxFallSpeed,
+                  cruisePaceFrames: 42,
+                  sprintPaceFrames: 24,
+                  scorePerPipe: 2,
+                });
+                state.chapterTenPhase = state.chapterTenFlight.phase;
+                state.score = CHAPTER_TEN_NODES.takeover;
+                setScore(state.score);
+                setHackedMode(true);
+                beginAutonomousControl('flappy-canvas');
+                if (!state.chapterTenTakeoverSpoken) {
+                  state.chapterTenTakeoverSpoken = true;
+                  speak(['My turn.']);
+                }
+                audio.play('flight.level2Connect');
+              } else if (progress.unlockedCodeRoute) {
                 // If the player knows the code, let's track real-time sequence matching!
                 // Let's check the current altitude against target altitude sequence at index 0 (184)
                 const currentAltitude = Math.round(((height - state.birdY) / height) * 256);
@@ -505,11 +657,14 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
             handleDeath('Boundaries Error', 'boundary');
           }
         }
+        }
       }
 
       // --- Draw Pipes ---
       state.pipes.forEach((pipe) => {
-        if (!hackedMode) {
+        if (chapterTenActive && state.chapterTenFlight) {
+          drawChapterTenPipe(ctx, pipe, height, state.score);
+        } else if (!hackedMode) {
           // Glassmorphism obstacle columns: translucent gradient, neon core,
           // meaningless stability telemetry. Same geometry as before.
           const bottomY = height - pipe.bottomHeight;
@@ -633,12 +788,24 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
         }
       });
 
+      if (chapterTenActive && !state.chapterTenFlight) {
+        const routePoints = deriveRoutePoints(height, 12);
+        state.pipes.forEach((pipe) => {
+          const point = routePoints[pipe.index];
+          if (point) {
+            drawChapterTenRoutePoint(ctx, pipe.x, point, state.chapterTenRoute.has(pipe.index));
+          }
+        });
+      }
+
       // --- Draw Bird ---
       const birdX = 80;
       const birdY = state.birdY;
       const angle = Math.min(Math.PI / 6, Math.max(-Math.PI / 7, state.birdVelocity * 0.06));
 
-      if (hackedMode) {
+      if (chapterTenActive && state.chapterTenFlight) {
+        drawChapterTenBird(ctx, birdX, birdY, state.score);
+      } else if (hackedMode) {
         // Sampled-path residue: the bird leaves its recent coordinates behind
         ctx.save();
         state.trail.forEach((ty, i) => {
@@ -661,9 +828,10 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
         ctx.restore();
       }
 
-      ctx.save();
-      ctx.translate(birdX, birdY);
-      ctx.rotate(angle);
+      if (!(chapterTenActive && state.chapterTenFlight)) {
+        ctx.save();
+        ctx.translate(birdX, birdY);
+        ctx.rotate(angle);
 
       if (!hackedMode) {
         // NeuroBird: purple gradient glowing orb, giant cartoon eye, fake
@@ -786,10 +954,24 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
         ctx.stroke();
       }
 
-      ctx.restore();
+        ctx.restore();
+      }
 
       // --- Draw Score HUD ---
-      if (!hackedMode) {
+      if (chapterTenActive && state.chapterTenFlight) {
+        drawChapterTenHud(ctx, width, state.score, state.chapterTenRoute.size, GATE_40_INDEX);
+        drawChapterTenBeat(
+          ctx,
+          width,
+          height,
+          state.chapterTenPhase,
+          state.score,
+          state.chapterTenBeatFrames,
+        );
+        if (state.chapterTenFlight.completed) {
+          drawChapterTenComplete(ctx, width, height, state.chapterTenCompleteFrames);
+        }
+      } else if (!hackedMode) {
         // Glassmorphism score card (radius 24) with glow
         ctx.save();
         ctx.shadowColor = 'rgba(139, 92, 246, 0.45)';
@@ -1003,7 +1185,16 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
     return () => {
       cancelAnimationFrame(animationFrameId);
     };
-  }, [isPlaying, hackedMode]);
+  }, [
+    beginAutonomousControl,
+    chapterTenActive,
+    endAutonomousControl,
+    hackedMode,
+    isPlaying,
+    progress.unlockedCodeRoute,
+    pulseAutonomousTap,
+    speak,
+  ]);
 
   const playerBestScore = Math.max(progress.bestScore, highScore, score);
   const publicLeaderboard = createPublicLeaderboard(playerBestScore);
@@ -1012,8 +1203,9 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
   return (
     <div className="flex flex-col h-full bg-slate-950 font-sans select-none overflow-hidden" id="flappy-root">
       
-      {/* Top App Header bar */}
-      <div className="bg-purple-900/60 border-b border-purple-800/50 px-3 py-1.5 flex items-center justify-between text-xs" id="game-header">
+      {/* Top App Header bar — hidden while the leaderboard/title intro owns the
+          screen, so the intro is just the black backdrop and the logo. */}
+      <div className={`bg-purple-900/60 border-b border-purple-800/50 px-3 py-1.5 flex items-center justify-between text-xs ${showLeaderboard ? 'hidden' : ''}`} id="game-header">
         <div className="flex items-center gap-1.5 font-display font-medium text-purple-200">
           <Zap className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
           <span>{hackedMode ? 'SKG: Skyline 256 (v1.04_Final)' : 'Flappy Something (New Version)'}</span>
@@ -1058,7 +1250,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
         />
 
         {/* Debug panel: Shown when player has unlocked the code route */}
-        {progress.unlockedCodeRoute && isPlaying && !showLeaderboard && (
+        {progress.unlockedCodeRoute && isPlaying && !showLeaderboard && !chapterTenActive && (
           <div className="absolute left-3 top-3 bottom-3 w-40 bg-[var(--laos-bg)]/[0.94] border border-[var(--laos-line)] p-2 text-[10px] font-laos text-[var(--laos-text)] flex flex-col justify-between pointer-events-none z-10" id="altitude-sensor-panel">
             <div>
               <div className="flex items-center gap-1.5 laos-label text-[8px] border-b border-[var(--laos-line-dim)] pb-1.5 mb-1.5">
@@ -1182,17 +1374,19 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
                 Begin Your Intelligent Flight Experience
               </button>
               <button
-                onClick={() => { audio.play('phone.modalOpen'); setShowLearnMore(true); }}
-                className="px-3 py-2.5 rounded-2xl border border-white/20 bg-white/5 backdrop-blur text-[#9a9a9a] text-[9px] font-bold uppercase tracking-wider hover:text-white transition-colors"
-                id="learn-more-button"
+                type="button"
+                onClick={(event) => event.stopPropagation()}
+                className="px-3 py-2.5 rounded-2xl border border-yellow-300/35 bg-gradient-to-b from-yellow-300 to-amber-500 text-[#301400] text-[9px] font-black uppercase tracking-wider shadow-[0_3px_0_#8a4b00,0_0_14px_rgba(251,191,36,0.28)] flex items-center gap-1"
+                id="premium-unlock-button"
+                aria-label="Unlock premium edition"
               >
-                Learn More
+                <Zap className="h-3 w-3 fill-current" /> Unlock
               </button>
             </div>
 
             {/* Cheap emoji leaderboard entry point */}
             <button
-              onClick={() => { audio.play('leaderboard.open'); setShowLeaderboard(true); }}
+              onClick={openLeaderboard}
               className="px-4 py-1.5 rounded-xl bg-[#1a1a2e] border border-purple-500/40 text-purple-200 text-[10px] font-black tracking-wide hover:bg-[#232345] transition-colors"
               id="home-leaderboard-button"
             >
@@ -1231,68 +1425,6 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
           </div>
         )}
 
-        {/* Learn More modal: modal dependency syndrome, cards within cards */}
-        {showLearnMore && !isPlaying && (
-          <div
-            className="absolute inset-0 z-30 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 font-sans"
-            id="learn-more-modal"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="max-w-[340px] w-full max-h-full overflow-y-auto rounded-[24px] border-2 border-purple-500/50 bg-white/5 backdrop-blur-xl p-4 text-left shadow-[0_0_40px_rgba(139,92,246,0.4)] space-y-2.5">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-purple-500 to-cyan-500 flex items-center justify-center shadow-[0_0_16px_rgba(139,92,246,0.7)]">
-                    <Sparkles className="w-4 h-4 text-white" />
-                  </div>
-                  <div>
-                    <div className="text-white text-xs font-black">About Your Flight Experience</div>
-                    <div className="text-[7px] font-mono text-cyan-300/70 uppercase tracking-widest">Powered by BirdOS Neural Engine</div>
-                  </div>
-                </div>
-                <button
-                  onClick={() => { audio.play('phone.modalClose'); setShowLearnMore(false); }}
-                  className="text-[#9a9a9a] hover:text-white transition-colors shrink-0"
-                  id="learn-more-close-x"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-
-              <p className="text-[9px] text-[#9a9a9a] leading-relaxed">
-                Thank you for taking the time to learn more about your upcoming flight experience.
-                Flappy Something leverages next-generation bird-based intelligence to deliver a
-                fully optimized, deeply personalized vertical navigation journey.
-              </p>
-
-              {/* Card within card within card */}
-              <div className="rounded-2xl bg-white/5 border border-white/10 p-2.5 space-y-2">
-                <div className="text-[8px] font-bold text-purple-300 uppercase tracking-wider">Platform Reliability Card</div>
-                <div className="rounded-xl bg-black/30 border border-white/10 p-2 flex items-center justify-between">
-                  <span className="text-[8px] text-[#8a8a8a] font-mono">NEURAL UPTIME</span>
-                  <span className="text-[10px] font-black text-cyan-300">99.99%</span>
-                </div>
-                <div className="rounded-xl bg-black/30 border border-white/10 p-2 flex items-center justify-between">
-                  <span className="text-[8px] text-[#8a8a8a] font-mono">FLAP LATENCY</span>
-                  <span className="text-[10px] font-black text-emerald-300">12ms</span>
-                </div>
-              </div>
-
-              <p className="text-[8px] text-[#777777] leading-relaxed italic">
-                Please note that individual flight results may vary. Continued flapping constitutes
-                acceptance of our Intelligent Flight Terms.
-              </p>
-
-              <button
-                onClick={() => { audio.play('phone.modalClose'); setShowLearnMore(false); }}
-                className="w-full py-2 rounded-[24px] bg-gradient-to-r from-purple-600 to-cyan-500 text-white text-[9px] font-black uppercase tracking-wider shadow-[0_0_18px_rgba(139,92,246,0.5)]"
-                id="learn-more-close"
-              >
-                I Understand, Thank You For Reading
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* Cheap emoji results screen after death: score first, everything else second */}
         {showResults && !showLeaderboard && (
           <div className="absolute inset-0 bg-[#0a0a12] flex flex-col items-center justify-center gap-1.5 p-4 text-center font-sans" id="game-results-panel">
@@ -1318,12 +1450,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
                 🔁 TRY AGAIN!!
               </button>
               <button
-                onClick={() => {
-                  audio.play('leaderboard.open');
-                  setShowLeaderboard(true);
-                  updateProgress((prev) => ({ ...prev, seenLeaderboard: true }));
-                  if (progress.deathsAt40 >= 2) onLeaderboardOpened();
-                }}
+                onClick={openLeaderboard}
                 className="px-5 py-2 rounded-xl bg-[#1a1a2e] border border-purple-500/40 text-purple-200 text-xs font-black tracking-wide hover:bg-[#232345] transition-colors"
                 id="results-leaderboard"
               >
@@ -1342,13 +1469,15 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
             beatPercentage={beatPercentage}
             onRetry={restartRun}
             onClose={() => { audio.play('ui.close'); setShowLeaderboard(false); }}
-            onInvestigate={onHome}
+            suspiciousRunsEnabled={progress.deathsAt40 >= 1}
+            onSuspiciousRunSelected={enterMetaFromRun}
           />
         )}
       </div>
 
-      {/* Ads footer bar when in slop mode */}
-      {!hackedMode && (
+      {/* Ads footer bar when in slop mode — also hidden under the leaderboard/
+          title intro so nothing pokes out below the black backdrop. */}
+      {!hackedMode && !showLeaderboard && (
         <div className="bg-amber-400 text-black text-[9px] py-1 text-center font-bold tracking-wider animate-pulse flex items-center justify-center gap-2 border-t border-yellow-500" id="ad-banner">
           <span>⚠️ LOSE WEIGHT FAST BY FLAPPING YOUR ARMS! CLOCK TICKING! ⚠️</span>
         </div>

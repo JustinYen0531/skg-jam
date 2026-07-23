@@ -7,10 +7,12 @@ import {
   canStartMetaInteraction,
   getMetaDevicePostureAction,
   getMetaCameraPitch,
+  getMetaIdleDeskView,
   getProjectiveTransformMatrix,
   getScrollFingerTravel,
   isPointInsideProjectiveQuad,
   META_CAMERA_PITCH,
+  META_IDLE_DESK_VIEW,
   META_TAP_TIMING,
   normalizeVirtualKey,
   scaleProjectiveQuad,
@@ -19,11 +21,21 @@ import {
   shouldShowMetaScene,
 } from '../src/lib/metaInteraction';
 
-test('meta camera reveal requires both a second Gate 40 death and an opened leaderboard', () => {
-  assert.equal(shouldRevealMetaView(1, true), false);
-  assert.equal(shouldRevealMetaView(2, false), false);
+test('meta camera reveal requires the first Gate 40 death and a selected suspicious run', () => {
+  assert.equal(shouldRevealMetaView(0, true), false);
+  assert.equal(shouldRevealMetaView(1, false), false);
+  assert.equal(shouldRevealMetaView(1, true), true);
   assert.equal(shouldRevealMetaView(2, true), true);
-  assert.equal(shouldRevealMetaView(3, true), true);
+
+  const flappySource = readFileSync(new URL('../src/components/FlappyGame.tsx', import.meta.url), 'utf8');
+  const leaderboardSource = readFileSync(new URL('../src/components/LeaderboardPanel.tsx', import.meta.url), 'utf8');
+  const openLeaderboardBody = flappySource.match(/const openLeaderboard = \(\) => \{([\s\S]*?)\n  \};/)?.[1] ?? '';
+
+  assert.doesNotMatch(openLeaderboardBody, /onSuspiciousRunSelected/);
+  assert.match(flappySource, /suspiciousRunsEnabled=\{progress\.deathsAt40 >= 1\}/);
+  // The title intro is the animated logo; it hands off to Chapter 1 when its
+  // sequence completes, rather than on a fixed timer.
+  assert.match(leaderboardSource, /<GameLogoIntro[\s\S]{0,60}onComplete=\{onSuspiciousRunSelected\}/);
 });
 
 test('developer chapter tools preview the meta scene without changing the story unlock rule', () => {
@@ -119,6 +131,16 @@ test('the visible phone trapezoid is the only upright no-rest collision area', (
   assert.equal(getMetaDevicePostureAction(false, false, false, false), null);
 });
 
+test('mouse height maps the resting desk from fireplace reveal to raised foreground', () => {
+  assert.equal(META_IDLE_DESK_VIEW.bottom, 2 / 3);
+  assert.equal(getMetaIdleDeskView(0, 1000), META_IDLE_DESK_VIEW.top);
+  assert.equal(getMetaIdleDeskView(500, 1000), META_IDLE_DESK_VIEW.rest);
+  assert.equal(getMetaIdleDeskView(1000, 1000), META_IDLE_DESK_VIEW.bottom);
+  assert.equal(getMetaIdleDeskView(-200, 1000), META_IDLE_DESK_VIEW.top);
+  assert.equal(getMetaIdleDeskView(1200, 1000), META_IDLE_DESK_VIEW.bottom);
+  assert.equal(getMetaIdleDeskView(20, 0), META_IDLE_DESK_VIEW.rest);
+});
+
 test('rest posture lays down the phone and swaps the grip for desk-plane hands', () => {
   const scene = readFileSync(new URL('../src/components/MetaInteractionScene.tsx', import.meta.url), 'utf8');
 
@@ -129,7 +151,7 @@ test('rest posture lays down the phone and swaps the grip for desk-plane hands',
   assert.doesNotMatch(scene, /data-meta-rest-surface|targetOnRestSurface/);
   assert.match(scene, /if \(!targetInsidePhone\) \{[\s\S]{0,120}event\.preventDefault\(\)/);
   assert.match(scene, /data-device-posture=\{deviceResting \? 'table-rest' : 'upright'\}/);
-  assert.match(scene, /!cameraPitchEnabled \? 'disabled' : deviceResting \? 'locked-table' : 'mouse-y'/);
+  assert.match(scene, /!cameraPitchEnabled \? 'disabled' : deviceResting \? 'idle-mouse-y' : 'mouse-y'/);
   assert.match(scene, /data-posture-control=\{postureControlEnabled \? 'enabled' : 'disabled'\}/);
   assert.match(scene, /cameraPitchTarget\.set\(META_CAMERA_PITCH\.restDeg\)/);
   assert.match(scene, /deviceResting \? \{ scale: 1, y: '0%' \} : \{ scale: 0\.92, y: '-13%' \}/);
@@ -149,7 +171,12 @@ test('rest posture lays down the phone and swaps the grip for desk-plane hands',
   assert.match(scene, /transformOrigin: '25% 100%'/);
   assert.match(scene, /transformOrigin: '75% 100%'/);
   assert.match(scene, /scaleX: 0\.36, scaleY: 0\.72, y: '-1%'/);
-  assert.match(scene, /data-desk-perspective=\{deviceResting \? 'flattened-trapezoid' : 'raised-front-edge'\}/);
+  assert.match(scene, /data-desk-perspective=\{deviceResting \? 'mouse-depth-trapezoid' : 'raised-front-edge'\}/);
+  assert.match(scene, /idleDeskTableScaleY = useTransform\(idleDeskView, \[0, 0\.5, 1\], \[0\.68, 1, 1\.35\]\)/);
+  assert.match(scene, /idleDeskTableY = useTransform\(idleDeskView, \[0, 0\.5, 1\], \['10%', '0%', '-9%'\]\)/);
+  assert.equal((scene.match(/restingView=\{idleDeskView\}/g) ?? []).length, 2);
+  assert.match(scene, /id="meta-resting-hands-perspective"/);
+  assert.match(scene, /data-resting-hand-camera=\{deviceResting \? 'shared-mouse-depth' : 'inactive'\}/);
   assert.equal((scene.match(/data-resting-hand-perspective="desk-plane"/g) ?? []).length, 2);
   assert.equal((scene.match(/data-wrist-crop="below-scene-edge"/g) ?? []).length, 2);
   assert.match(scene, /id="meta-device-contact-shadow"/);
@@ -293,12 +320,17 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   assert.doesNotMatch(sceneSource, /bg-\[#292119\]/);
   assert.match(sceneSource, /id="meta-phone-depth"/);
   assert.match(sceneSource, /id="meta-glass-reflection"/);
-  assert.match(sceneSource, /data-camera-pitch-control=\{active \? \(!cameraPitchEnabled \? 'disabled' : deviceResting \? 'locked-table' : 'mouse-y'\) : 'inactive'\}/);
+  assert.match(sceneSource, /data-camera-pitch-control=\{active \? \(!cameraPitchEnabled \? 'disabled' : deviceResting \? 'idle-mouse-y' : 'mouse-y'\) : 'inactive'\}/);
   assert.match(sceneSource, /rotateX: cameraPitchStyle/);
   assert.equal((sceneSource.match(/rotateX: cameraPitchStyle/g) ?? []).length, 5);
   assert.match(sceneSource, /onPointerMove=\{handlePointerMove\}/);
   assert.match(sceneSource, /onPointerLeave=\{handlePointerLeave\}/);
-  assert.match(sceneSource, /data-hand-pose=\{interactionPending \? 'reaching' : 'holding'\}/);
+  assert.match(sceneSource, /data-autonomous-hand=\{autonomousTapping \? 'locked' : 'player-led'\}/);
+  assert.match(sceneSource, /data-hand-pose=\{autonomousTapping \? 'agitated-tapping' : interactionPending \? 'reaching' : 'holding'\}/);
+  assert.match(sceneSource, /const tapSequence = useCallback/);
+  assert.match(sceneSource, /const beatMs = 230/);
+  assert.match(sceneSource, /autonomousTappingRef\.current = true/);
+  assert.match(sceneSource, /setPressed\(true\)[\s\S]{0,120}meta\.fingerContact/);
   assert.match(sceneSource, /opacity: interactionPending && pointer\.x > 0 \? 1 : 0/);
   assert.match(sceneSource, /className="[^"]*z-\[8\][^"]*"[\s\S]{0,180}id="meta-tapping-hand-back"/);
   assert.match(sceneSource, /className="[^"]*z-\[60\][^"]*"[\s\S]{0,500}id="meta-pointer-hand"/);
@@ -313,13 +345,13 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   assert.match(sceneSource, /id="meta-scroll-finger"/);
   assert.match(sceneSource, /data-scroll-direction=\{scrollGesture\.travelY < 0 \? 'finger-up' : 'finger-down'\}/);
   assert.match(appSource, /setMetaViewActive\(true\);[\s\S]{0,180}setDebugTargetApp/);
-  assert.match(appSource, /const metaSceneActive = shouldShowMetaScene\(metaViewActive, debugMode, progress\.phase\)/);
+  assert.match(appSource, /const metaSceneActive = !fullscreenOnly && shouldShowMetaScene\(metaViewActive, debugMode, progress\.phase\)/);
   assert.match(appSource, /immersiveIntro=\{!metaSceneActive\}/);
   assert.match(appSource, /metaSceneActive \? 'bg-slate-950\/40' : 'bg-black'/);
   assert.match(appSource, /<MetaInteractionScene[\s\S]{0,220}active=\{metaSceneActive\}[\s\S]{0,220}chapter=\{metaSceneActive \? progress\.currentChapter : 0\}/);
   assert.match(sceneSource, /<ChapterEnvironment chapter=\{chapter\} reducedMotion=\{reducedMotion\} layer="lighting" \/>/);
-  assert.match(sceneSource, /<ChapterEnvironment chapter=\{chapter\} reducedMotion=\{reducedMotion\} layer="underlay" deviceResting=\{deviceResting\} \/>/);
-  assert.match(sceneSource, /<ChapterEnvironment chapter=\{chapter\} reducedMotion=\{reducedMotion\} layer="objects" deviceResting=\{deviceResting\} \/>/);
+  assert.match(sceneSource, /<ChapterEnvironment chapter=\{chapter\} reducedMotion=\{reducedMotion\} layer="underlay" deviceResting=\{deviceResting\} restingView=\{idleDeskView\} \/>/);
+  assert.match(sceneSource, /<ChapterEnvironment chapter=\{chapter\} reducedMotion=\{reducedMotion\} layer="objects" deviceResting=\{deviceResting\} restingView=\{idleDeskView\} \/>/);
   assert.match(sceneSource, /#meta-terminal-dialogue \{ background-color: rgb\(13 19 27 \/ 0\.52\)/);
   assert.match(sceneSource, /data-environment-chapter=\{chapter\}/);
   assert.match(sceneSource, /scale: 0\.92/);

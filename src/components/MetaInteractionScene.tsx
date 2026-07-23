@@ -1,15 +1,17 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { AnimatePresence, motion, useMotionValue, useSpring } from 'motion/react';
+import { AnimatePresence, motion, useMotionValue, useMotionValueEvent, useSpring, useTransform } from 'motion/react';
 import {
   applyVirtualKey,
   canStartMetaInteraction,
   getMetaDevicePostureAction,
   getMetaCameraPitch,
+  getMetaIdleDeskView,
   getProjectiveTransformMatrix,
   getScrollFingerTravel,
   formatProjectiveMatrix3d,
   isPointInsideProjectiveQuad,
   META_CAMERA_PITCH,
+  META_IDLE_DESK_VIEW,
   META_TAP_TIMING,
   normalizeVirtualKey,
   scaleProjectiveQuad,
@@ -19,6 +21,10 @@ import {
 import { CHAPTER_ONE_DIALOGUE, DialogueLines } from '../lib/chapterOneDialogue';
 import { CHAPTER_TWO_DIALOGUE } from '../lib/chapterTwoDialogue';
 import { CHAPTER_THREE_DIALOGUE } from '../lib/chapterThreeDialogue';
+import { CHAPTER_FOUR_DIALOGUE } from '../lib/chapterFourDialogue';
+import { CHAPTER_FIVE_DIALOGUE } from '../lib/chapterFiveDialogue';
+import { CHAPTER_SIX_DIALOGUE } from '../lib/chapterSixDialogue';
+import { CHAPTER_SEVEN_DIALOGUE } from '../lib/chapterSevenDialogue';
 import audio from '../lib/audio';
 import { getMetaFloorStage, getMetaWallStage, type EnvironmentChapter } from '../lib/chapterEnvironment';
 import { getChapterPhoneWidgetState } from '../lib/chapterPhoneWidgets';
@@ -57,16 +63,26 @@ interface MetaInputController {
 
 interface MetaInteractionContextValue {
   active: boolean;
+  deviceResting: boolean;
   registerInput: (id: string, controller: MetaInputController) => () => void;
   speak: (lines: DialogueLines) => void;
   tapElement: (id: string, onActivate: () => void) => void;
+  tapSequence: (id: string, count: number, onComplete: () => void) => void;
+  beginAutonomousControl: (id: string) => void;
+  pulseAutonomousTap: () => void;
+  endAutonomousControl: () => void;
 }
 
 const MetaInteractionContext = createContext<MetaInteractionContextValue>({
   active: false,
+  deviceResting: false,
   registerInput: () => () => undefined,
   speak: () => undefined,
   tapElement: (_id, onActivate) => onActivate(),
+  tapSequence: (_id, _count, onComplete) => onComplete(),
+  beginAutonomousControl: () => undefined,
+  pulseAutonomousTap: () => undefined,
+  endAutonomousControl: () => undefined,
 });
 
 export const useMetaInteraction = () => useContext(MetaInteractionContext);
@@ -80,11 +96,9 @@ const KEYBOARD_ROWS = [
 
 const isMetaKeyboardInput = (element: Element): element is HTMLInputElement =>
   element instanceof HTMLInputElement
-  && (
-    element.id === 'vt-search-input'
-    || element.id === 'chapter-two-archive-search'
-    || element.id === 'messages-seller-code'
-  );
+  && !element.disabled
+  && !element.readOnly
+  && ['text', 'search', 'password', 'email', 'tel', 'url', 'number'].includes(element.type);
 
 /* ==========================================================================
    Hand anatomy kit.
@@ -656,6 +670,127 @@ const TypewriterThoughts: React.FC<{ lines: DialogueLines; instant: boolean }> =
   );
 };
 
+// A "fire rose": nested teardrop petals from a deep-ember outer shell to a
+// white-hot core, each its own hue with a soft gradient and its own flicker
+// clock, so the layers open and close against one another instead of one
+// blob breathing. Ordered outermost (coolest, largest) to innermost (hottest).
+const FLAME_PETALS: readonly {
+  w: number; h: number; bottom: number; from: string; to: string;
+  blur: number; opacity: number; dur: number; delay: number; anim: 'a' | 'b' | 'c';
+}[] = [
+  { w: 92, h: 94, bottom: 12, from: '#5e0f00', to: '#ad280c', blur: 12, opacity: 0.46, dur: 3.1, delay: -0.4, anim: 'a' },
+  { w: 78, h: 87, bottom: 13, from: '#8f1e05', to: '#d6380d', blur: 8.5, opacity: 0.58, dur: 2.6, delay: -1.2, anim: 'b' },
+  { w: 65, h: 80, bottom: 13, from: '#c22e08', to: '#ff6218', blur: 6, opacity: 0.7, dur: 2.2, delay: -0.7, anim: 'c' },
+  { w: 54, h: 72, bottom: 14, from: '#ec4a10', to: '#ff8a28', blur: 4, opacity: 0.8, dur: 1.9, delay: -1.5, anim: 'a' },
+  { w: 44, h: 64, bottom: 14, from: '#ff7a1e', to: '#ffae38', blur: 2.8, opacity: 0.88, dur: 1.6, delay: -0.5, anim: 'b' },
+  { w: 35, h: 55, bottom: 15, from: '#ff9d2c', to: '#ffce58', blur: 1.8, opacity: 0.93, dur: 1.35, delay: -1.0, anim: 'c' },
+  { w: 26, h: 45, bottom: 15, from: '#ffbe3f', to: '#ffe98a', blur: 1.1, opacity: 0.97, dur: 1.1, delay: -0.3, anim: 'a' },
+  { w: 18, h: 34, bottom: 16, from: '#ffe08a', to: '#fff7d2', blur: 0.6, opacity: 1, dur: 0.9, delay: -0.8, anim: 'b' },
+] as const;
+
+// One flame — the nested rose of petals plus its white-hot core. Reused for the
+// centre "main petal" and the two mirrored side petals of the flower. `speedMul`
+// scales every flicker clock so a wilder fire also moves faster.
+const FlameColumn: React.FC<{ reducedMotion: boolean; speedMul: number }> = ({ reducedMotion, speedMul }) => (
+  <>
+    {FLAME_PETALS.map((petal, index) => (
+      <div
+        key={index}
+        className="meta-flame-petal"
+        style={{
+          width: `${petal.w}%`,
+          height: `${petal.h}%`,
+          bottom: `${petal.bottom}%`,
+          background: `linear-gradient(to top, ${petal.from} 0%, ${petal.to} 88%)`,
+          filter: `blur(${petal.blur}px)`,
+          opacity: petal.opacity,
+          animation: reducedMotion ? undefined : `meta-flame-${petal.anim} ${(petal.dur * speedMul).toFixed(2)}s ease-in-out infinite`,
+          animationDelay: reducedMotion ? undefined : `${petal.delay}s`,
+        }}
+      />
+    ))}
+    <div
+      className="meta-flame-petal"
+      style={{
+        width: '11%',
+        height: '34%',
+        bottom: '15%',
+        background: 'linear-gradient(to top, #ffffff 0%, #fff2c6 92%)',
+        filter: 'blur(0.3px)',
+        boxShadow: '0 0 16px 4px rgba(255,238,180,0.9)',
+        animation: reducedMotion ? undefined : `meta-flame-core ${(0.85 * speedMul).toFixed(2)}s ease-in-out infinite`,
+      }}
+    />
+  </>
+);
+
+// The fire grows with the story. As the protagonist learns more and the room
+// falls apart around him, his inner flame burns harder and more urgently:
+//  1–4  a small fire, still slowly catching        (ember)
+//  5–7  a steady, passionate flame                 (steady)
+//  8–10 a wild, impulsive blaze — needing the truth (blaze)
+type FireTier = 'ember' | 'steady' | 'blaze';
+const getFireTier = (chapter: number): FireTier => (chapter >= 8 ? 'blaze' : chapter >= 5 ? 'steady' : 'ember');
+
+const FIRE_TIERS: Record<FireTier, {
+  scale: number;       // whole flower, grown from the hearth floor
+  speedMul: number;    // flicker duration (< 1 = faster / more frantic)
+  glowScale: number;
+  glowOpacity: number;
+  brightness: number;
+  side: { x: number; rot: number; scale: number; opacity: number };
+}> = {
+  ember: { scale: 0.72, speedMul: 1.55, glowScale: 0.82, glowOpacity: 0.72, brightness: 0.9, side: { x: 6, rot: 20, scale: 0.42, opacity: 0.5 } },
+  steady: { scale: 1.0, speedMul: 1.0, glowScale: 1.0, glowOpacity: 0.9, brightness: 1.0, side: { x: 9, rot: 29, scale: 0.58, opacity: 0.74 } },
+  blaze: { scale: 1.34, speedMul: 0.58, glowScale: 1.32, glowOpacity: 1.0, brightness: 1.12, side: { x: 12, rot: 38, scale: 0.8, opacity: 0.92 } },
+};
+
+const MetaFireplace: React.FC<{ reducedMotion: boolean; chapter: number }> = ({ reducedMotion, chapter }) => {
+  const tier = getFireTier(chapter);
+  const t = FIRE_TIERS[tier];
+  const s = t.side;
+  return (
+    <div
+      className="pointer-events-none absolute left-1/2 top-[42%] z-[2] h-[17%] w-[18%]"
+      style={{ transform: `translateX(-50%) scale(${t.scale})`, transformOrigin: '50% 100%', filter: `brightness(${t.brightness})` }}
+      data-fireplace-intensity="maximum"
+      data-fireplace-style="layered-rose"
+      data-fire-tier={tier}
+      id="meta-fireplace"
+    >
+      {/* Ambient hearth glow, breathing behind the flame. */}
+      <div
+        className="absolute left-1/2 top-[46%] rounded-full blur-[40px]"
+        style={{
+          width: `${190 * t.glowScale}%`,
+          height: `${190 * t.glowScale}%`,
+          opacity: t.glowOpacity,
+          background: 'radial-gradient(circle, rgba(255,196,96,0.72) 0%, rgba(255,120,32,0.4) 34%, rgba(255,88,18,0) 72%)',
+          transform: 'translate(-50%, -50%)',
+          animation: reducedMotion ? undefined : 'meta-flame-glow 3.4s ease-in-out infinite',
+        }}
+        data-fireplace-local-glow="strong"
+      />
+
+      {/* Ember bed: the hot base every petal — centre and sides — rises from. */}
+      <div className="absolute inset-x-[6%] bottom-[9%] h-[27%] rounded-[50%] bg-[#ff7a1e]/45 blur-md" />
+      <div className="absolute inset-x-[20%] bottom-[12%] h-[12%] rounded-[50%] bg-[#ffd06a] blur-[2px] shadow-[0_0_22px_rgba(255,150,40,0.95)]" />
+
+      {/* Flower: two mirrored side petals fanning out from the base, then the
+          main petal on top. Side spread and size grow with the fire tier. */}
+      <div className="absolute inset-0" style={{ transform: `translateX(-${s.x}%) rotate(-${s.rot}deg) scale(${s.scale})`, transformOrigin: '50% 86%', opacity: s.opacity }} data-flame-petal="side-left">
+        <FlameColumn reducedMotion={reducedMotion} speedMul={t.speedMul} />
+      </div>
+      <div className="absolute inset-0" style={{ transform: `translateX(${s.x}%) rotate(${s.rot}deg) scale(${s.scale})`, transformOrigin: '50% 86%', opacity: s.opacity }} data-flame-petal="side-right">
+        <FlameColumn reducedMotion={reducedMotion} speedMul={t.speedMul} />
+      </div>
+      <div className="absolute inset-0" data-flame-petal="center">
+        <FlameColumn reducedMotion={reducedMotion} speedMul={t.speedMul} />
+      </div>
+    </div>
+  );
+};
+
 export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   active,
   chapter,
@@ -665,7 +800,10 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
 }) => {
   const sceneRef = useRef<HTMLDivElement | null>(null);
   const projectivePlaneRef = useRef<HTMLDivElement | null>(null);
+  const updateRestingProjectionRef = useRef<() => void>(() => undefined);
   const pendingRef = useRef(false);
+  const autonomousTappingRef = useRef(false);
+  const autonomousPulseTimerRef = useRef<number | null>(null);
   const keyQueueRef = useRef<QueuedKey[]>([]);
   const queueRunningRef = useRef(false);
   const keyboardScopeRef = useRef(0);
@@ -680,9 +818,21 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     damping: 24,
     mass: 0.58,
   });
+  const idleDeskViewTarget = useMotionValue<number>(META_IDLE_DESK_VIEW.rest);
+  const idleDeskView = useSpring(idleDeskViewTarget, {
+    stiffness: 92,
+    damping: 25,
+    mass: 0.72,
+  });
+  const idleDeskTableScaleX = useTransform(idleDeskView, [0, 0.5, 1], [0.88, 1, 1.12]);
+  const idleDeskTableScaleY = useTransform(idleDeskView, [0, 0.5, 1], [0.68, 1, 1.35]);
+  const idleDeskTableY = useTransform(idleDeskView, [0, 0.5, 1], ['10%', '0%', '-9%']);
+  const idleDeskObjectScale = useTransform(idleDeskView, [0, 0.5, 1], [0.78, 1, 1.18]);
+  const idleDeskObjectY = useTransform(idleDeskView, [0, 0.5, 1], ['10%', '0%', '-8%']);
   const [pointer, setPointer] = useState<PointerPosition>({ x: 0, y: 0 });
   const [pressed, setPressed] = useState(false);
   const [interactionPending, setInteractionPending] = useState(false);
+  const [autonomousTapping, setAutonomousTapping] = useState(false);
   const [keyboardTarget, setKeyboardTarget] = useState<HTMLInputElement | null>(null);
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -717,6 +867,50 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
       : { x: 0, y: 0 };
   }, []);
 
+  const endAutonomousControl = useCallback(() => {
+    autonomousTappingRef.current = false;
+    if (autonomousPulseTimerRef.current !== null) {
+      window.clearTimeout(autonomousPulseTimerRef.current);
+      autonomousPulseTimerRef.current = null;
+    }
+    setPressed(false);
+    setAutonomousTapping(false);
+    pendingRef.current = false;
+    setInteractionPending(false);
+    setPointer(getRestPosition());
+  }, [getRestPosition]);
+
+  const beginAutonomousControl = useCallback((id: string) => {
+    const target = document.getElementById(id);
+    const sceneRect = sceneRef.current?.getBoundingClientRect();
+    if (!active || !target || !sceneRect || autonomousTappingRef.current) return;
+    const targetRect = target.getBoundingClientRect();
+    autonomousTappingRef.current = true;
+    pendingRef.current = true;
+    setAutonomousTapping(true);
+    setInteractionPending(true);
+    setScrollGesture(null);
+    setPointer({
+      x: targetRect.left - sceneRect.left + targetRect.width * 0.28,
+      y: targetRect.top - sceneRect.top + targetRect.height * 0.72,
+    });
+    audio.play('meta.handDepart');
+  }, [active]);
+
+  const pulseAutonomousTap = useCallback(() => {
+    if (!autonomousTappingRef.current) return;
+    if (autonomousPulseTimerRef.current !== null) {
+      window.clearTimeout(autonomousPulseTimerRef.current);
+    }
+    setPressed(true);
+    audio.play('meta.fingerContact');
+    autonomousPulseTimerRef.current = window.setTimeout(() => {
+      setPressed(false);
+      audio.play('meta.fingerRelease');
+      autonomousPulseTimerRef.current = null;
+    }, 72);
+  }, []);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -737,6 +931,10 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     if (chapter === 1) setDialogueLines(CHAPTER_ONE_DIALOGUE.entry);
     if (chapter === 2) setDialogueLines(CHAPTER_TWO_DIALOGUE.entry);
     if (chapter === 3 && previousChapter !== 2) setDialogueLines(CHAPTER_THREE_DIALOGUE.entry);
+    if (chapter === 4 && previousChapter !== 3) setDialogueLines(CHAPTER_FOUR_DIALOGUE.entry);
+    if (chapter === 5 && previousChapter !== 4) setDialogueLines(CHAPTER_FIVE_DIALOGUE.entry);
+    if (chapter === 6 && previousChapter !== 5) setDialogueLines(CHAPTER_SIX_DIALOGUE.entry);
+    if (chapter === 7 && previousChapter !== 6) setDialogueLines(CHAPTER_SEVEN_DIALOGUE.entry);
     if (previousChapter === 2 && chapter === 3) {
       chapterDialogueTimerRef.current = window.setTimeout(() => {
         setDialogueLines(CHAPTER_TWO_DIALOGUE.maternalMemory);
@@ -745,6 +943,12 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     }
     if (previousChapter === 3 && chapter === 4) {
       setDialogueLines(CHAPTER_THREE_DIALOGUE.approvedEndingA);
+    }
+    if (previousChapter === 6 && chapter === 7) {
+      chapterDialogueTimerRef.current = window.setTimeout(() => {
+        setDialogueLines(CHAPTER_SEVEN_DIALOGUE.entry);
+        chapterDialogueTimerRef.current = null;
+      }, 1400);
     }
     return () => {
       if (chapterDialogueTimerRef.current !== null) {
@@ -757,15 +961,19 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   useEffect(() => {
     setDeviceResting(false);
     cameraPitchTarget.set(META_CAMERA_PITCH.restDeg);
-  }, [active, cameraPitchTarget, reducedMotion]);
+    idleDeskViewTarget.set(META_IDLE_DESK_VIEW.rest);
+  }, [active, cameraPitchTarget, idleDeskViewTarget, reducedMotion]);
 
   useEffect(() => {
     if (!postureControlEnabled) setDeviceResting(false);
   }, [postureControlEnabled]);
 
   useEffect(() => {
-    if (!cameraPitchEnabled) cameraPitchTarget.set(META_CAMERA_PITCH.restDeg);
-  }, [cameraPitchEnabled, cameraPitchTarget]);
+    if (!cameraPitchEnabled) {
+      cameraPitchTarget.set(META_CAMERA_PITCH.restDeg);
+      idleDeskViewTarget.set(META_IDLE_DESK_VIEW.rest);
+    }
+  }, [cameraPitchEnabled, cameraPitchTarget, idleDeskViewTarget]);
 
   useEffect(() => {
     const plane = projectivePlaneRef.current;
@@ -774,6 +982,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
         plane.style.transform = 'none';
         plane.dataset.projectiveState = 'upright';
       }
+      updateRestingProjectionRef.current = () => undefined;
       return;
     }
 
@@ -817,6 +1026,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
       plane.style.transform = formatProjectiveMatrix3d(getProjectiveTransformMatrix(source, target));
       plane.dataset.projectiveState = 'desk-quad';
     };
+    updateRestingProjectionRef.current = updateProjection;
     const trackDeskTransition = (now: number) => {
       updateProjection();
       if (now - startedAt < 1400) animationFrame = requestAnimationFrame(trackDeskTransition);
@@ -841,8 +1051,13 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
       cancelAnimationFrame(animationFrame);
       window.removeEventListener('resize', updateProjection);
       observer?.disconnect();
+      updateRestingProjectionRef.current = () => undefined;
     };
   }, [active, deviceResting, chapter]);
+
+  useMotionValueEvent(idleDeskView, 'change', () => {
+    if (active && deviceResting) updateRestingProjectionRef.current();
+  });
 
   useEffect(() => {
     if (!active) {
@@ -851,7 +1066,9 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
       keyQueueRef.current = [];
       queueRunningRef.current = false;
       pendingRef.current = false;
+      autonomousTappingRef.current = false;
       setInteractionPending(false);
+      setAutonomousTapping(false);
       setActiveKey(null);
       setKeyboardTarget(null);
       return;
@@ -940,9 +1157,83 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     void animateTap(target, onActivate);
   }, [active, animateTap, reducedMotion]);
 
+  const tapSequence = useCallback((id: string, requestedCount: number, onComplete: () => void) => {
+    const count = Math.max(1, Math.min(7, Math.floor(requestedCount)));
+    const target = document.getElementById(id);
+    const sceneRect = sceneRef.current?.getBoundingClientRect();
+    const targetRect = target?.getBoundingClientRect();
+
+    const finishWithoutMotion = () => {
+      // Keep the anger line readable even when motion is reduced or the target
+      // disappeared during a route change.
+      timersRef.current.push(window.setTimeout(onComplete, 1100));
+    };
+
+    if (!active || reducedMotion || !target || !sceneRect || !targetRect || pendingRef.current) {
+      finishWithoutMotion();
+      return;
+    }
+
+    pendingRef.current = true;
+    autonomousTappingRef.current = true;
+    setInteractionPending(true);
+    setAutonomousTapping(true);
+    setScrollGesture(null);
+    audio.play('meta.handDepart');
+
+    const centre = {
+      x: targetRect.left - sceneRect.left + targetRect.width / 2,
+      y: targetRect.top - sceneRect.top + targetRect.height / 2,
+    };
+    const offsets = [
+      { x: -20, y: -10 },
+      { x: 14, y: 8 },
+      { x: -8, y: 18 },
+      { x: 22, y: -4 },
+      { x: -16, y: 6 },
+      { x: 8, y: -18 },
+      { x: 18, y: 14 },
+    ] as const;
+    const arrivalAt = META_TAP_TIMING.unfoldMs + META_TAP_TIMING.travelMs;
+    const beatMs = 230;
+    const pressMs = 78;
+
+    timersRef.current.push(window.setTimeout(() => {
+      setPointer(centre);
+    }, META_TAP_TIMING.unfoldMs));
+
+    for (let index = 0; index < count; index += 1) {
+      const offset = offsets[index % offsets.length];
+      const beatAt = arrivalAt + index * beatMs;
+      timersRef.current.push(window.setTimeout(() => {
+        setPointer({ x: centre.x + offset.x, y: centre.y + offset.y });
+      }, Math.max(META_TAP_TIMING.unfoldMs, beatAt - 64)));
+      timersRef.current.push(window.setTimeout(() => {
+        setPressed(true);
+        audio.play('meta.fingerContact');
+      }, beatAt));
+      timersRef.current.push(window.setTimeout(() => {
+        setPressed(false);
+        audio.play('meta.fingerRelease');
+      }, beatAt + pressMs));
+    }
+
+    const lastReleaseAt = arrivalAt + (count - 1) * beatMs + pressMs;
+    timersRef.current.push(window.setTimeout(() => {
+      setPointer(getRestPosition());
+    }, lastReleaseAt + 120));
+    timersRef.current.push(window.setTimeout(() => {
+      pendingRef.current = false;
+      autonomousTappingRef.current = false;
+      setInteractionPending(false);
+      setAutonomousTapping(false);
+      audio.play('meta.regrip');
+      onComplete();
+    }, lastReleaseAt + 120 + META_TAP_TIMING.settleMs));
+  }, [active, getRestPosition, reducedMotion]);
+
   const applyQueuedKey = useCallback((input: HTMLInputElement, key: string) => {
     const controller = inputControllersRef.current.get(input.id);
-    if (!controller) return;
     // Enter's confirm sound belongs to the submit handler, not the key.
     if (key === 'Backspace') {
       audio.play('key.backspace');
@@ -951,11 +1242,19 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     } else if (key.length === 1) {
       audio.play('key.character');
     }
-    const currentValue = controller.getValue();
+    const currentValue = controller?.getValue() ?? input.value;
     const result = applyVirtualKey(currentValue, key);
-    if (result.value !== currentValue) controller.onChange(result.value);
+    if (result.value !== currentValue) {
+      if (controller) controller.onChange(result.value);
+      else {
+        const valueSetter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')?.set;
+        valueSetter?.call(input, result.value);
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    }
     if (result.submit) {
-      controller.onSubmit();
+      if (controller) controller.onSubmit();
+      else input.form?.requestSubmit();
       setKeyboardTarget(null);
       input.blur();
     }
@@ -1000,18 +1299,29 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   }, []);
 
   const handlePointerDownCapture = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (!active || event.button !== 0) return;
+    if (!active) return;
+    if (autonomousTappingRef.current) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    if (event.button !== 0) return;
     const source = event.target;
-    if (!(source instanceof Element) || source.closest('button')) return;
+    if (!(source instanceof Element)) return;
 
     // Chromium can route a point on the projected bottom edge to a later,
-    // transparent scene layer instead of the transformed button. Recover the
-    // home dock and explicitly marked edge controls from their real rectangles.
+    // transparent scene layer instead of the transformed control. Resolve an
+    // explicitly marked control on pointer-down, before posture movement can
+    // invalidate the browser's eventual click/focus target.
     const hitSlop = 16;
-    const buttons = Array.from(document.querySelectorAll<HTMLButtonElement>(
-      '#home-dock button, button[data-meta-hit-recovery="true"]',
+    const selector = '#home-dock button, button[data-meta-hit-recovery="true"], input[data-meta-hit-recovery="true"]';
+    const directControl = source.closest<HTMLElement>(selector);
+    if (!directControl && source.closest('button, input')) return;
+
+    const controls = Array.from(document.querySelectorAll<HTMLElement>(
+      selector,
     ));
-    const button = buttons
+    const control = directControl ?? controls
       .map((candidate) => {
         const rect = candidate.getBoundingClientRect();
         const inside = event.clientX >= rect.left - hitSlop
@@ -1027,14 +1337,26 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
       .filter(({ inside }) => inside)
       .sort((a, b) => a.centerDistance - b.centerDistance)[0]?.candidate;
 
-    if (!button) return;
+    if (!control) return;
     event.preventDefault();
     event.stopPropagation();
-    button.click();
+
+    if (control instanceof HTMLInputElement) {
+      control.focus({ preventScroll: true });
+      if (isMetaKeyboardInput(control)) setKeyboardTarget(control);
+      return;
+    }
+
+    if (control instanceof HTMLButtonElement && !control.disabled) control.click();
   };
 
   const handleClickCapture = (event: React.MouseEvent<HTMLDivElement>) => {
     if (!active) return;
+    if (autonomousTappingRef.current) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
     const source = event.target;
     if (!(source instanceof Element)) return;
 
@@ -1059,6 +1381,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
       setScrollGesture(null);
       closeKeyboard();
       cameraPitchTarget.set(META_CAMERA_PITCH.restDeg);
+      idleDeskViewTarget.set(META_IDLE_DESK_VIEW.rest);
       if (nextResting) {
         audio.play('meta.handDepart');
         audio.play('meta.deskContact', { delay: 0.48 });
@@ -1116,7 +1439,13 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   };
 
   const handleKeyDownCapture = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (!active || !event.nativeEvent.isTrusted) return;
+    if (!active) return;
+    if (autonomousTappingRef.current) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    if (!event.nativeEvent.isTrusted) return;
     const input = event.target;
     if (!isMetaKeyboardInput(input)) return;
     const key = normalizeVirtualKey(event.key);
@@ -1133,7 +1462,13 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   };
 
   const handleWheelCapture = (event: React.WheelEvent<HTMLDivElement>) => {
-    if (!active || reducedMotion || interactionPending) return;
+    if (!active) return;
+    if (autonomousTappingRef.current) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    if (reducedMotion || interactionPending) return;
     const source = event.target;
     if (!(source instanceof Element) || !source.closest('#phone-bezel')) return;
 
@@ -1176,22 +1511,42 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   };
 
   const handlePointerMove = useCallback((event: React.PointerEvent<HTMLDivElement>) => {
-    if (!active || !cameraPitchEnabled || deviceResting || reducedMotion || event.pointerType !== 'mouse') return;
+    if (!active || !cameraPitchEnabled || reducedMotion || event.pointerType !== 'mouse') return;
     const rect = sceneRef.current?.getBoundingClientRect();
     if (!rect) return;
-    cameraPitchTarget.set(getMetaCameraPitch(event.clientY - rect.top, rect.height));
-  }, [active, cameraPitchEnabled, cameraPitchTarget, deviceResting, reducedMotion]);
+    if (deviceResting) {
+      idleDeskViewTarget.set(getMetaIdleDeskView(event.clientY - rect.top, rect.height));
+    } else {
+      cameraPitchTarget.set(getMetaCameraPitch(event.clientY - rect.top, rect.height));
+    }
+  }, [active, cameraPitchEnabled, cameraPitchTarget, deviceResting, idleDeskViewTarget, reducedMotion]);
 
   const handlePointerLeave = useCallback(() => {
     cameraPitchTarget.set(META_CAMERA_PITCH.restDeg);
-  }, [cameraPitchTarget, deviceResting]);
+    idleDeskViewTarget.set(META_IDLE_DESK_VIEW.rest);
+  }, [cameraPitchTarget, idleDeskViewTarget]);
 
   const contextValue = useMemo<MetaInteractionContextValue>(() => ({
     active,
+    deviceResting,
     registerInput,
     speak,
     tapElement,
-  }), [active, registerInput, speak, tapElement]);
+    tapSequence,
+    beginAutonomousControl,
+    pulseAutonomousTap,
+    endAutonomousControl,
+  }), [
+    active,
+    beginAutonomousControl,
+    deviceResting,
+    endAutonomousControl,
+    pulseAutonomousTap,
+    registerInput,
+    speak,
+    tapElement,
+    tapSequence,
+  ]);
 
   // Hands are never perfectly still: a slow breathing drift applied inside
   // the entrance containers, mirrored per hand so both layers stay fused.
@@ -1245,11 +1600,13 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
       onPointerMove={handlePointerMove}
       onPointerLeave={handlePointerLeave}
       data-meta-view={active ? 'revealed' : 'screen-capture'}
-      data-camera-pitch-control={active ? (!cameraPitchEnabled ? 'disabled' : deviceResting ? 'locked-table' : 'mouse-y') : 'inactive'}
+      data-camera-pitch-control={active ? (!cameraPitchEnabled ? 'disabled' : deviceResting ? 'idle-mouse-y' : 'mouse-y') : 'inactive'}
       data-posture-control={postureControlEnabled ? 'enabled' : 'disabled'}
       data-device-posture={deviceResting ? 'table-rest' : 'upright'}
       data-meta-pending={interactionPending ? 'true' : 'false'}
-      data-hand-pose={interactionPending ? 'reaching' : 'holding'}
+      data-autonomous-hand={autonomousTapping ? 'locked' : 'player-led'}
+      data-autonomous-control={autonomousTapping ? 'true' : 'false'}
+      data-hand-pose={autonomousTapping ? 'agitated-tapping' : interactionPending ? 'reaching' : 'holding'}
       data-environment-chapter={chapter}
       id="meta-interaction-scene"
     >
@@ -1281,6 +1638,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
                   data-source-floor="visible-over-floor"
                   id="meta-wall-art"
                 />
+                <MetaFireplace reducedMotion={reducedMotion} chapter={chapter} />
                 {chapterClock && <MetaWallClock time={chapterClock} />}
               </div>
             )}
@@ -1298,20 +1656,40 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
             <div className="absolute left-[7%] top-[8%] h-36 w-36 rounded-full bg-amber-100/12 blur-[70px]" />
             <div className="absolute right-[9%] top-[12%] h-28 w-28 rounded-full bg-sky-200/5 blur-[65px]" />
 
-            <motion.img
-              src="/assets/meta-desk-table.png"
-              alt=""
-              initial={false}
-              animate={deviceResting
-                ? { scaleX: 0.36, scaleY: 0.72, y: '-1%' }
-                : { scaleX: 1, scaleY: 1, y: 0 }}
-              transition={{ duration: reducedMotion ? 0 : 0.82, ease: [0.22, 1, 0.36, 1] }}
-              className="pointer-events-none absolute left-1/2 top-[-40%] z-[2] h-[212%] w-auto max-w-none"
-              style={{ x: '-50%', transformOrigin: '50% 50%' }}
-              data-desk-perspective={deviceResting ? 'flattened-trapezoid' : 'raised-front-edge'}
-              id="meta-desk-table-art"
-            />
+            <motion.div
+              className="pointer-events-none absolute inset-0 z-[2]"
+              style={deviceResting ? {
+                scaleX: idleDeskTableScaleX,
+                scaleY: idleDeskTableScaleY,
+                y: idleDeskTableY,
+                transformOrigin: '50% 58%',
+              } : undefined}
+              data-idle-desk-camera={deviceResting ? 'mouse-y' : 'inactive'}
+              id="meta-desk-perspective-frame"
+            >
+              <motion.img
+                src="/assets/meta-desk-table.png"
+                alt=""
+                initial={false}
+                animate={deviceResting
+                  ? { scaleX: 0.36, scaleY: 0.72, y: '-1%' }
+                  : { scaleX: 1, scaleY: 1, y: 0 }}
+                transition={{ duration: reducedMotion ? 0 : 0.82, ease: [0.22, 1, 0.36, 1] }}
+                className="pointer-events-none absolute left-1/2 top-[-40%] z-[2] h-[212%] w-auto max-w-none"
+                style={{ x: '-50%', transformOrigin: '50% 50%' }}
+                data-desk-perspective={deviceResting ? 'mouse-depth-trapezoid' : 'raised-front-edge'}
+                id="meta-desk-table-art"
+              />
+            </motion.div>
             <ChapterEnvironment chapter={chapter} reducedMotion={reducedMotion} layer="lighting" />
+            <motion.div
+              animate={reducedMotion ? { opacity: 0.72 } : { opacity: [0.66, 0.78, 0.7] }}
+              transition={reducedMotion ? { duration: 0 } : { duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
+              className="pointer-events-none absolute inset-0 z-[3] mix-blend-screen"
+              style={{ background: 'radial-gradient(ellipse 82% 74% at 50% 50%, rgba(255,181,88,0.52) 0%, rgba(255,129,45,0.24) 38%, rgba(255,103,31,0.08) 68%, transparent 100%)' }}
+              data-room-firelight="maximum-all-chapters"
+              id="meta-room-firelight"
+            />
             <div className="absolute left-1/2 top-[57%] h-[12%] w-[64%] -translate-x-1/2 rounded-[50%] bg-black/55 blur-2xl" />
             <div className="absolute bottom-[7%] right-[5%] h-[13%] w-[13%] rotate-6 rounded-md border border-amber-100/5 bg-black/15 shadow-xl" />
             <div className="absolute right-[10%] top-[14%] text-[9px] font-mono tracking-[0.32em] text-amber-100/25">CAM_02 · REC</div>
@@ -1319,13 +1697,14 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
         )}
       </AnimatePresence>
 
-      {active && <ChapterEnvironment chapter={chapter} reducedMotion={reducedMotion} layer="underlay" deviceResting={deviceResting} />}
+      {active && <ChapterEnvironment chapter={chapter} reducedMotion={reducedMotion} layer="underlay" deviceResting={deviceResting} restingView={idleDeskView} />}
 
       {active && (
         <motion.div
           animate={deviceResting
             ? { opacity: 0.72, scaleX: 1.04, scaleY: 0.42, y: '8%' }
             : { opacity: 0.38, scaleX: 0.82, scaleY: 0.78, y: '-7%' }}
+          style={deviceResting ? { scale: idleDeskObjectScale, transformOrigin: '50% 72%' } : undefined}
           transition={{ duration: reducedMotion ? 0 : 0.82, ease: [0.22, 1, 0.36, 1] }}
           className="pointer-events-none absolute left-[18%] top-[53%] z-[9] h-[18%] w-[64%] rounded-[50%] bg-black blur-2xl"
           aria-hidden="true"
@@ -1508,7 +1887,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
         </div>
       </motion.div>
 
-      {active && <ChapterEnvironment chapter={chapter} reducedMotion={reducedMotion} layer="objects" deviceResting={deviceResting} />}
+      {active && <ChapterEnvironment chapter={chapter} reducedMotion={reducedMotion} layer="objects" deviceResting={deviceResting} restingView={idleDeskView} />}
 
       <AnimatePresence>
         {active && (
@@ -1561,57 +1940,64 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
               id="meta-right-hand-asset"
             />
 
-            <motion.img
-              src="/assets/meta-resting-hands.png"
-              alt=""
-              draggable={false}
-              initial={false}
-              animate={{
-                opacity: deviceResting ? 1 : 0,
-                x: deviceResting ? '-8%' : 0,
-                y: deviceResting ? '10%' : '12%',
-                rotateX: deviceResting ? 4 : 18,
-                rotateZ: deviceResting ? -8 : 0,
-                scale: deviceResting ? 0.46 : 0.46,
-              }}
-              transition={{ duration: reducedMotion ? 0 : 0.72, ease: [0.22, 1, 0.36, 1] }}
-              className="pointer-events-none absolute left-0 top-0 z-[22] h-full w-full select-none object-fill drop-shadow-[0_12px_10px_rgba(0,0,0,0.24)]"
-              style={{
-                clipPath: 'inset(0 50% 0 0)',
-                transformOrigin: '25% 100%',
-                transformPerspective: 1500,
-              }}
-              data-resting-hand-perspective="desk-plane"
-              data-wrist-crop="below-scene-edge"
-              aria-hidden="true"
-              id="meta-left-resting-hand"
-            />
+            <motion.div
+              className="pointer-events-none absolute inset-0 z-[22]"
+              style={deviceResting ? { scale: idleDeskObjectScale, y: idleDeskObjectY, transformOrigin: '50% 72%' } : undefined}
+              data-resting-hand-camera={deviceResting ? 'shared-mouse-depth' : 'inactive'}
+              id="meta-resting-hands-perspective"
+            >
+              <motion.img
+                src="/assets/meta-resting-hands.png"
+                alt=""
+                draggable={false}
+                initial={false}
+                animate={{
+                  opacity: deviceResting ? 1 : 0,
+                  x: deviceResting ? '-8%' : 0,
+                  y: deviceResting ? '10%' : '12%',
+                  rotateX: deviceResting ? 4 : 18,
+                  rotateZ: deviceResting ? -8 : 0,
+                  scale: deviceResting ? 0.46 : 0.46,
+                }}
+                transition={{ duration: reducedMotion ? 0 : 0.72, ease: [0.22, 1, 0.36, 1] }}
+                className="pointer-events-none absolute left-0 top-0 h-full w-full select-none object-fill drop-shadow-[0_12px_10px_rgba(0,0,0,0.24)]"
+                style={{
+                  clipPath: 'inset(0 50% 0 0)',
+                  transformOrigin: '25% 100%',
+                  transformPerspective: 1500,
+                }}
+                data-resting-hand-perspective="desk-plane"
+                data-wrist-crop="below-scene-edge"
+                aria-hidden="true"
+                id="meta-left-resting-hand"
+              />
 
-            <motion.img
-              src="/assets/meta-resting-hands.png"
-              alt=""
-              draggable={false}
-              initial={false}
-              animate={{
-                opacity: deviceResting && !interactionPending && !scrollGesture ? 1 : 0,
-                x: deviceResting ? '8%' : 0,
-                y: deviceResting ? '10%' : '12%',
-                rotateX: deviceResting ? 4 : 18,
-                rotateZ: deviceResting ? 8 : 0,
-                scale: deviceResting ? 0.46 : 0.46,
-              }}
-              transition={{ duration: reducedMotion ? 0 : 0.72, ease: [0.22, 1, 0.36, 1] }}
-              className="pointer-events-none absolute left-0 top-0 z-[22] h-full w-full select-none object-fill drop-shadow-[0_12px_10px_rgba(0,0,0,0.24)]"
-              style={{
-                clipPath: 'inset(0 0 0 50%)',
-                transformOrigin: '75% 100%',
-                transformPerspective: 1500,
-              }}
-              data-resting-hand-perspective="desk-plane"
-              data-wrist-crop="below-scene-edge"
-              aria-hidden="true"
-              id="meta-right-resting-hand"
-            />
+              <motion.img
+                src="/assets/meta-resting-hands.png"
+                alt=""
+                draggable={false}
+                initial={false}
+                animate={{
+                  opacity: deviceResting && !interactionPending && !scrollGesture ? 1 : 0,
+                  x: deviceResting ? '8%' : 0,
+                  y: deviceResting ? '10%' : '12%',
+                  rotateX: deviceResting ? 4 : 18,
+                  rotateZ: deviceResting ? 8 : 0,
+                  scale: deviceResting ? 0.46 : 0.46,
+                }}
+                transition={{ duration: reducedMotion ? 0 : 0.72, ease: [0.22, 1, 0.36, 1] }}
+                className="pointer-events-none absolute left-0 top-0 h-full w-full select-none object-fill drop-shadow-[0_12px_10px_rgba(0,0,0,0.24)]"
+                style={{
+                  clipPath: 'inset(0 0 0 50%)',
+                  transformOrigin: '75% 100%',
+                  transformPerspective: 1500,
+                }}
+                data-resting-hand-perspective="desk-plane"
+                data-wrist-crop="below-scene-edge"
+                aria-hidden="true"
+                id="meta-right-resting-hand"
+              />
+            </motion.div>
 
             <AnimatePresence>
               {scrollGesture && (
