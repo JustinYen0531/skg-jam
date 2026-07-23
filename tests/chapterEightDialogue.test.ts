@@ -52,5 +52,15 @@ test('Messages wires collection, gentle restoration, sealed attachment, and comp
   assert.match(messagesSource, /hasRestoredAllNoahFragments/);
   assert.match(messagesSource, /id="chapter-eight-complete"/);
   assert.match(messagesSource, /getChapterEightMemorySelectionDialogue/);
+  assert.match(messagesSource, /getNextNoahArchiveFragment\(restoredNoahMessages\)/);
+  assert.match(messagesSource, /getAvailableChapterEightMemoryIds\(/);
+  assert.match(messagesSource, /canRestoreNoahFragmentInOrder\(fragmentId, restoredNoahMessages\)/);
+  assert.match(messagesSource, /data-restoration-order=/);
+  assert.match(messagesSource, /disabled=\{!current\}/);
+  assert.match(messagesSource, /data-available-answer-count=\{availableChapterEightMemories\.length\}/);
+  assert.match(messagesSource, /sticky top-0/);
+  assert.match(messagesSource, /data-memory-used=\{used\}/);
+  assert.match(messagesSource, /availableChapterEightMemories\.map/);
+  assert.doesNotMatch(messagesSource, /collectedChapterEightMemories\.map\(\(memoryId\) => \{[\s\S]{0,400}data-restore-choice/);
   assert.doesNotMatch(messagesSource, /onClick=\{handleOpenArchiveThread\}[\s\S]{0,120}completePuzzleChapter\(prev, 8\)/);
 });

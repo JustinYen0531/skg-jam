@@ -1,5 +1,13 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-23 — Chapter 8 linear memory answer pool
+
+- Noah's damaged messages now restore strictly from the first message downward; later slots remain visibly sequence-locked.
+- Each collected side-thread memory adds one answer to the top question panel. Correct answers are consumed and disappear from the available pool.
+- Moved the question and current answer pool above the message list with a sticky position, so restoring later messages does not require scrolling to the bottom to answer.
+- Chapter 9 account-password and flight-height delivery remain intentionally pending a canon decision.
+- Static verification passed: Chapter 8 focused tests 8/8, full suite 212/212, TypeScript, production build, and diff checks. Browser and Preview remain intentionally unused.
+
 ## 2026-07-23 — Chapter 8 Mara memory restoration
 
 - Replaced the one-click Noah completion gate with eight Mara life threads, eight underlined collectible memories, and eight damaged Noah messages.

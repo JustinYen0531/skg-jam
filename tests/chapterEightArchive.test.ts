@@ -5,7 +5,10 @@ import {
   MARA_ARCHIVE_THREADS,
   NOAH_ARCHIVE_FRAGMENTS,
   addUniqueChapterEightId,
+  canRestoreNoahFragmentInOrder,
+  getAvailableChapterEightMemoryIds,
   getChapterEightMemory,
+  getNextNoahArchiveFragment,
   hasRestoredAllNoahFragments,
   isCorrectNoahMemory,
 } from '../src/lib/chapterEightArchive.ts';
@@ -37,6 +40,24 @@ test('Chapter 8 progress helpers deduplicate clues and require all damaged messa
   assert.deepEqual(addUniqueChapterEightId([], 'silver-kite'), ['silver-kite']);
   assert.equal(hasRestoredAllNoahFragments(NOAH_ARCHIVE_FRAGMENTS.slice(0, -1).map(({ id }) => id)), false);
   assert.equal(hasRestoredAllNoahFragments(NOAH_ARCHIVE_FRAGMENTS.map(({ id }) => id)), true);
+});
+
+test('Noah messages restore in order while collected answers grow and used answers disappear', () => {
+  const [first, second] = NOAH_ARCHIVE_FRAGMENTS;
+  assert.equal(getNextNoahArchiveFragment([])?.id, first.id);
+  assert.equal(canRestoreNoahFragmentInOrder(first.id, []), true);
+  assert.equal(canRestoreNoahFragmentInOrder(second.id, []), false);
+
+  assert.deepEqual(getAvailableChapterEightMemoryIds([], []), []);
+  assert.deepEqual(
+    getAvailableChapterEightMemoryIds([first.memoryId, second.memoryId], []),
+    [first.memoryId, second.memoryId],
+  );
+  assert.deepEqual(
+    getAvailableChapterEightMemoryIds([first.memoryId, second.memoryId], [first.id]),
+    [second.memoryId],
+  );
+  assert.equal(getNextNoahArchiveFragment([first.id])?.id, second.id);
 });
 
 test('the human archive never leaks the Chapter 9 altitude attachment', () => {
