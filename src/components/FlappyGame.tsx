@@ -699,6 +699,11 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
                 state.chapterTenPerfFrame = 0;
                 state.chapterTenGravitySign = 1;
                 state.chapterTenDiving = false;
+              } else if (chapterTenActive) {
+                // Chapter 10 has exactly one Gate 40 key: every light point in
+                // this run. Never fall through to the obsolete altitude bypass
+                // when even one point is missing.
+                handleDeath('Level 2 Seal #40', 'gate40');
               } else if (progress.unlockedCodeRoute) {
                 // If the player knows the code, let's track real-time sequence matching!
                 // Let's check the current altitude against target altitude sequence at index 0 (184)

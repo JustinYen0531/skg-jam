@@ -1,5 +1,14 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-24 — Missing route points now die at Gate 40
+
+- Confirmed the reported leak: an incomplete Chapter 10 route could fall through to the obsolete altitude-sequence bypass and survive into score 42.
+- Chapter 10 now resolves an incomplete route as an immediate Gate 40 death before any legacy altitude comparison can run.
+- Set the route-point collection radius to 22.1px, exactly 130% of the original 17px radius.
+- The old altitude fallback remains available only outside Chapter 10; complete 28-point runs still enter Arcane's autonomous performance.
+- Added a regression test that pins the Chapter 10 death branch ahead of the legacy bypass.
+- Browser and Preview remain intentionally unused by project instruction.
+
 ## 2026-07-24 — Score-42 performance stays nostalgic
 
 - Identified the apparent return of the terminal style as the new performance layer's grey-teal pipe palette, not the Chapter 10 world/HUD phase boundary.
