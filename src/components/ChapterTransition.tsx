@@ -35,11 +35,13 @@ const STATIC_BACKING_H = 135;
 
 interface Timing {
   fadeIn: number;
-  holdEnd: number; // when the exit fade begins
   fadeOut: number;
+  readyAt: number;
 }
 const TIMING = (reduced: boolean): Timing =>
-  reduced ? { fadeIn: 0.2, holdEnd: 1.45, fadeOut: 0.45 } : { fadeIn: 0.28, holdEnd: 3.0, fadeOut: 0.7 };
+  reduced
+    ? { fadeIn: 0.2, fadeOut: 0.45, readyAt: 0.25 }
+    : { fadeIn: 0.28, fadeOut: 0.7, readyAt: RESOLVE_END + 0.05 };
 
 function wrapLines(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {
   const words = text.split(' ');
@@ -141,6 +143,7 @@ export const ChapterTransition: React.FC<{
   const [visible, setVisible] = useState(false);
   const [phase, setPhase] = useState<'enter' | 'exit'>('enter');
   const [showChrome, setShowChrome] = useState(reducedMotion);
+  const [readyForInput, setReadyForInput] = useState(false);
   const timing = TIMING(reducedMotion);
 
   const finish = () => {
@@ -150,21 +153,23 @@ export const ChapterTransition: React.FC<{
   };
 
   const beginExit = () => {
-    if (phase === 'exit') return;
+    if (phase === 'exit' || !readyForInput) return;
     timeoutsRef.current.forEach((id) => window.clearTimeout(id));
     timeoutsRef.current = [];
     setPhase('exit');
     timeoutsRef.current.push(window.setTimeout(finish, timing.fadeOut * 1000));
   };
 
-  // Master timeline: fade in, hold, exit, done.
+  // Resolve the title, then wait indefinitely. The player must acknowledge
+  // every objective/evidence card before the next home-screen beat can begin.
   useEffect(() => {
     const raf = window.requestAnimationFrame(() => setVisible(true));
     const push = (fn: () => void, sec: number) =>
       timeoutsRef.current.push(window.setTimeout(fn, sec * 1000));
-    if (!reducedMotion) push(() => setShowChrome(true), RESOLVE_END + 0.05);
-    push(() => setPhase('exit'), timing.holdEnd);
-    push(finish, timing.holdEnd + timing.fadeOut);
+    push(() => {
+      setShowChrome(true);
+      setReadyForInput(true);
+    }, timing.readyAt);
     return () => {
       window.cancelAnimationFrame(raf);
       timeoutsRef.current.forEach((id) => window.clearTimeout(id));
@@ -244,10 +249,17 @@ export const ChapterTransition: React.FC<{
       }}
       id="chapter-transition"
       data-evidence={data.evidenceLabel}
+      data-awaiting-input={readyForInput ? 'ready' : 'resolving'}
       role="button"
-      tabIndex={-1}
+      tabIndex={0}
+      aria-disabled={!readyForInput}
       aria-label={`${data.evidenceLabel} collected: ${data.title}. Tap to continue.`}
       onPointerDown={beginExit}
+      onKeyDown={(event) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        event.preventDefault();
+        beginExit();
+      }}
     >
       {/* Cold vignette + faint frame so the card reads as deliberate, not broken */}
       <div className="pointer-events-none absolute inset-0" style={{ boxShadow: 'inset 0 0 120px rgba(0,0,0,0.7)' }} />
@@ -310,6 +322,18 @@ export const ChapterTransition: React.FC<{
         >
           Evidence Secured · Case Advancing
         </span>
+        <motion.span
+          initial={{ opacity: 0 }}
+          animate={{ opacity: readyForInput ? [0.42, 0.9, 0.42] : 0 }}
+          transition={readyForInput
+            ? { duration: 1.8, repeat: Infinity, ease: 'easeInOut' }
+            : { duration: 0.2 }}
+          className="mt-1 text-[clamp(9px,1.7cqw,12px)] font-semibold uppercase tracking-[0.32em] text-[#93a5b6]"
+          style={{ fontFamily: FONT_LABEL }}
+          id="chapter-transition-continue"
+        >
+          Tap to begin
+        </motion.span>
       </div>
 
       {/* Screen-reader announcement */}
