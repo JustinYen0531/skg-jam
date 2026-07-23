@@ -1,5 +1,14 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-23 — Chapter 8 legacy-profile exit
+
+- The eighth correct restoration now leaves Noah's final sentence visible and does not auto-advance the chapter.
+- Replaced the hidden `PRESERVE RESTORED HUMAN RECORD` action with one attachment that changes from sealed to `LEGACY CHILD PROFILE · ACCESS LOCKED`.
+- Opening the recovered profile attachment is now the single deliberate Chapter 8 → 9 transition action.
+- Kept all Chapter 9 credentials, guidance rules, and route values unresolved and outside this implementation.
+- Static verification passed: focused Chapter 8 and flow tests 23/23, full suite 213/213, TypeScript, production build, and diff checks.
+- Browser and Preview remain intentionally unused by project instruction.
+
 ## 2026-07-23 — Chapter 8 developer answer key
 
 - Added an eight-entry question-and-answer key to the Chapter 8 advance guide.

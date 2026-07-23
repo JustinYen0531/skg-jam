@@ -360,7 +360,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
     setNoahRestoreError('');
   };
 
-  const handleCompleteChapterEight = () => {
+  const handleOpenLegacyChildProfile = () => {
     if (!allNoahMessagesRestored) return;
     audio.playUnlock();
     updateProgress((prev) => completePuzzleChapter(prev, 8));
@@ -870,23 +870,34 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                         );
                       })}
 
-                      <div className="rounded-lg border border-dashed border-slate-700 bg-black/20 p-3 text-center" id="chapter-eight-route-attachment">
-                        <LockKeyhole className="mx-auto h-4 w-4 text-slate-500" />
-                        <div className="mt-1.5 text-[8px] font-semibold tracking-[0.12em] text-slate-400">FLIGHT HEIGHTS · SEALED ATTACHMENT</div>
-                        <p className="mt-1 text-[8px] leading-relaxed text-slate-600">
-                          The human record must be complete before the route can be examined. Its values remain outside this chapter.
-                        </p>
-                      </div>
-
-                      {allNoahMessagesRestored && (
+                      {allNoahMessagesRestored ? (
                         <button
                           type="button"
-                          onClick={handleCompleteChapterEight}
-                          className="w-full rounded border border-emerald-300/40 bg-emerald-300/10 px-3 py-2 text-[9px] font-semibold tracking-[0.12em] text-emerald-200 hover:bg-emerald-300/15"
-                          id="chapter-eight-complete"
+                          onClick={handleOpenLegacyChildProfile}
+                          className="w-full rounded-lg border border-emerald-300/40 bg-emerald-300/10 p-3 text-center transition-colors hover:bg-emerald-300/15"
+                          id="chapter-eight-legacy-profile-attachment"
                         >
-                          PRESERVE RESTORED HUMAN RECORD
+                          <UserCircle2 className="mx-auto h-5 w-5 text-emerald-300" />
+                          <div className="mt-1.5 text-[8px] font-semibold tracking-[0.12em] text-emerald-200">
+                            LEGACY CHILD PROFILE · ACCESS LOCKED
+                          </div>
+                          <p className="mt-1 text-[8px] leading-relaxed text-slate-400">
+                            The final restored message recovered a device-bound profile. Open its recovery record to continue.
+                          </p>
+                          <div className="mt-2 font-mono text-[8px] font-bold tracking-[0.14em] text-emerald-300">
+                            OPEN RECOVERY RECORD →
+                          </div>
                         </button>
+                      ) : (
+                        <div className="rounded-lg border border-dashed border-slate-700 bg-black/20 p-3 text-center" id="chapter-eight-legacy-profile-attachment">
+                          <LockKeyhole className="mx-auto h-4 w-4 text-slate-500" />
+                          <div className="mt-1.5 text-[8px] font-semibold tracking-[0.12em] text-slate-400">
+                            LEGACY CHILD PROFILE · SEALED
+                          </div>
+                          <p className="mt-1 text-[8px] leading-relaxed text-slate-600">
+                            Restore all eight messages before this device-bound profile can be opened.
+                          </p>
+                        </div>
                       )}
                     </div>
                   ) : (

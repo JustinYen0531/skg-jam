@@ -120,12 +120,13 @@ const CHAPTER_ADVANCE_GUIDES: Record<PuzzleChapter, ChapterAdvanceGuide> = {
       'Read Mara\'s eight ordinary conversations and collect the underlined memory in each.',
       'Open the damaged Noah thread at the bottom of the archive.',
       'Use the recovered-memory drawer to restore all eight missing messages.',
+      'Open the legacy child profile attachment revealed beneath the final message.',
     ],
     answers: NOAH_ARCHIVE_FRAGMENTS.map((fragment) => ({
       question: fragment.prompt,
       answer: getChapterEightMemory(fragment.memoryId)?.label ?? fragment.memoryId,
     })),
-    completion: 'The human conversation is restored; its flight-sequence attachment remains locked for Chapter 9.',
+    completion: 'The eighth message is restored and the locked legacy child profile attachment is opened.',
   },
   9: {
     chapter: 9,

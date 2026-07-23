@@ -61,6 +61,7 @@ test('Chapter 8 begins at the restored index and completes only after restoring 
   assert.match(messagesSource, /id="messages-open-private-thread"/);
   assert.match(messagesSource, /hasRestoredAllNoahFragments\(restoredNoahMessages\)/);
   assert.match(messagesSource, /if \(!allNoahMessagesRestored\) return/);
-  assert.match(messagesSource, /id="chapter-eight-complete"/);
+  assert.match(messagesSource, /id="chapter-eight-legacy-profile-attachment"/);
+  assert.match(messagesSource, /onClick=\{handleOpenLegacyChildProfile\}/);
   assert.match(messagesSource, /completePuzzleChapter\(prev, 8\)/);
 });
