@@ -1,5 +1,14 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-23 — Chapter 8 Mara memory restoration
+
+- Replaced the one-click Noah completion gate with eight Mara life threads, eight underlined collectible memories, and eight damaged Noah messages.
+- Added a persistent `Recovered memories` drawer and gentle source-based wrong-answer hints.
+- Kept the Chapter 9 flight-height attachment sealed; Chapter 8 contains no route values beyond the already-known 184 and does not reveal Arcane as the real `ARC_184`.
+- Recorded the accepted canon: Mara originated Silver Kite and the ending philosophy; 184, 40, and 256 are her life coordinates translated by Noah into the human ceiling, structural lock, and true ending.
+- Added and wired `chapterEightDialogue.ts` for archive entry, all life threads, first/repeated clues, progressive wrong-memory hints, every restored fragment, completion, and the still-sealed attachment.
+- Static verification passed: Chapter 8 focused tests 7/7, full suite 211/211, TypeScript, production build, and diff checks. Browser and Preview remain intentionally unused.
+
 ## 2026-07-22 — Fullscreen-only Controls safeguard
 
 - Added a persistent `Fullscreen only` switch to the existing Controls popover.
@@ -22,6 +31,13 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Reduced manual phone rotation sensitivity from `0.42` to `0.21` and doubled the jester, screenshot burst, downward drift, audio cues, and clear timing for a true 0.5x presentation speed.
 - Added regression coverage for dialogue order, five autonomous taps, player-control lock, reveal-time scaling, and the angle-triggered handoff. Focused tests, TypeScript, and diff checks pass; Browser and Preview remain intentionally unused.
 
+## 2026-07-22 — Screenshot detail Back control
+
+- Added a visible `BACK` control below every enlarged Chapter 4 screenshot.
+- The control closes only the selected screenshot and returns directly to the Lumen Arc screenshot pile; it never clears the selected parcel or returns to the delivery archive.
+- Reused the same close handler as the top-right X and marked the lower-edge button for immediate Meta input and projected-hit recovery.
+- Static verification passed: 164/164 clean-delivery tests, 163/163 active-desktop tests, TypeScript, production builds, and diff checks; Browser and Preview remain intentionally unused.
+
 ## 2026-07-22 — Player-driven parcel scratch and paper-phone reveal
 
 - Replaced the high suspended box and `OPEN PARCEL` autoplay gate with a centered scratchable cardboard canvas; held pointer movement erases the cover along the real drag path and exposes the device underneath.
@@ -30,13 +46,6 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Rebuilt the device as ten alternating paper-edge layers. Crossing the deliberate 58-degree inspection angle triggers the reveal, never elapsed time.
 - Added a brief jack-in-the-box jester sting and ten image cards that burst upward before drifting down into a loose pile.
 - Updated regression contracts for actual canvas erasure, manual inspection, angle gating, paper construction, jester sting, and top-to-bottom image drift. Focused tests, TypeScript, and diff checks pass; Browser and Preview remain intentionally unused.
-
-## 2026-07-22 — Screenshot detail Back control
-
-- Added a visible `BACK` control below every enlarged Chapter 4 screenshot.
-- The control closes only the selected screenshot and returns directly to the Lumen Arc screenshot pile; it never clears the selected parcel or returns to the delivery archive.
-- Reused the same close handler as the top-right X and marked the lower-edge button for immediate Meta input and projected-hit recovery.
-- Static verification passed: 164/164 clean-delivery tests, 163/163 active-desktop tests, TypeScript, production builds, and diff checks; Browser and Preview remain intentionally unused.
 
 ## 2026-07-22 — Click-gated 3D parcel collapse
 
@@ -51,7 +60,7 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Added the Chapter 4 dialogue module in the same data/function pattern as Chapters 1–3, with restrained English-only lines and explicit future-knowledge boundaries.
 - Wired direct chapter entry, Deliveries launch, home return, wrong apps, all six wrong parcels, all seven decoy screenshots, all three clue phrases, case assembly, completion, packet re-entry, and the immediate Chapter 5 revisit.
 - Wrong parcels, decoys, and already-found clues respond only twice before becoming silent; every third decoy without progress provides one rotating low-pressure hint.
-- Removed Chapter 3 and seller-relay wording that revealed the missing physical phone or screenshot packet before the Chapter 4 package is opened.
+- Preserved the physical-phone-to-photo reveal and delayed its protagonist reaction until the reveal finishes; removed Chapter 3 wording that spoiled the result early.
 - Added regression coverage for completeness, anti-spam behavior, reveal ownership, runtime wiring, English-only text, and chapter knowledge boundaries. Static verification passed: 162/162 active-desktop tests, 162/162 clean-delivery tests, TypeScript, production builds, and diff checks; Browser and Preview remain intentionally unused.
 
 ## 2026-07-22 — Shared projected-bottom input recovery
@@ -102,16 +111,6 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Integrated the Chapter 3 search-noise, suppressed-seller, risk-confirmation, relay, `184`, and signature flow into the active dirty desktop worktree without touching unrelated concurrent files.
 - Preserved the desktop worktree's four existing fake customer reviews by relocating them into the expanded unverified-seller details instead of discarding that local work.
 - Static verification in the actual desktop worktree passed: 141/141 tests, TypeScript lint, production build, and focused diff checks. Browser and Preview remained intentionally unused.
-
-## 2026-07-22 — Chapter 3 suppressed seller and score check
-
-- Expanded AmazeMart Chapter 3 without bloating the North Star GDD: search noise, a scroll-gated suppressed seller, scam confirmation, an embedded seller relay, the simple score code `184`, and delivery signature are now the canonical beats.
-- Searching `Lumen Arc` first returns eight unrelated promoted products. The dangerous unverified seller only loads after meaningful scrolling and must be manually expanded.
-- `ORDER INSTANT` now opens a scam warning instead of auto-completing the chapter. Accepting it produces a seller notification and opens the in-app AmazeMart Seller Relay.
-- The relay asks for the impossible runner's score. Only `184` is accepted (surrounding whitespace is ignored); wrong answers provide a hint, and there is no lockout.
-- Chapter 3 advances only when the player signs for the delivered screenshot packet; the Screenshots app then opens through the existing route.
-- Added pure tests for search normalization, score validation, scroll reveal, and the full warning/relay/signature integration boundary.
-- Static verification only, per project instruction: 141/141 tests, TypeScript lint, production build, and `git diff --check` passed. Browser and Preview were intentionally not used.
 
 ## 2026-07-21 — Perspective-aware phone collision quad
 
@@ -632,14 +631,6 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Preserved the Chapter 1 transition and left later chapter navigation unchanged.
 - Browser verification remains intentionally omitted under the repository's static-analysis-only rule.
 
-## 2026-07-21 — Chapter 1 navigation/dialogue separation
-
-- Used the visible Chapter 1 wrong-app dialogue as evidence that launcher input arrived even though the app view remained on Home.
-- Split Chapter 1 app navigation from its parent Meta dialogue update: the app state now commits first and dialogue updates in the next task.
-- Made the bottom narrative panel explicitly display-only so its visible and transparent regions cannot intercept phone input.
-- Left other chapter launch behavior and the Chapter 1 transition unchanged.
-- Browser verification remains intentionally omitted under the repository's static-analysis-only rule.
-
 ## 2026-07-21 — Five-stage storm window and synchronized wall clock
 
 - Added a code-authored SVG/CSS window scene behind the supplied transparent wall panes: sparse clear-night cloud, gathering cloud, sealed overcast with first rain, deep-night downpour, and a darkest violent-storm stage.
@@ -650,13 +641,13 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Added regression coverage for monotonic weather escalation, SVG/CSS-only window authorship, corrected stage-one pane transparency, synchronized clock angles, and scene integration.
 - Browser Preview remains intentionally omitted under the repository's static-analysis-only rule; 102 static tests, TypeScript lint, production build, and diff checks pass after rebasing the concurrent home-input fixes.
 
-## 2026-07-21 — Scrollable Chapter 00–10 reminder
+## 2026-07-21 — Chapter 1 navigation/dialogue separation
 
-- Replaced the fixed four-item investigation checklist with an eleven-row Chapter 00–10 reminder timeline backed by the canonical chapter objectives.
-- The four-row viewport keeps the previous completed chapter, current clear task, and increasingly blurred future tasks in view; players can scroll through the complete sequence.
-- Completed chapters receive checkmarks, and chapter changes automatically align the current row without changing the launcher notification/underline signals.
-- Preserved the later LAOS visual takeover while keeping the reminder data, progress states, blur treatment, and scrolling behavior consistent.
-- Browser verification remains intentionally omitted under the repository rule; 119 static tests, TypeScript lint, production build, and diff checks pass.
+- Used the visible Chapter 1 wrong-app dialogue as evidence that launcher input arrived even though the app view remained on Home.
+- Split Chapter 1 app navigation from its parent Meta dialogue update: the app state now commits first and dialogue updates in the next task.
+- Made the bottom narrative panel explicitly display-only so its visible and transparent regions cannot intercept phone input.
+- Left other chapter launch behavior and the Chapter 1 transition unchanged.
+- Browser verification remains intentionally omitted under the repository's static-analysis-only rule.
 
 ## 2026-07-21 — Wall-clock face alignment
 
@@ -672,38 +663,6 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Reused the room window's five deterministic cloud/rain/wind stages inside Harborview, keeping both surfaces synchronized to the same chapter-owned weather stage.
 - Added a widget-only 1.1px soft focus, reduced saturation, radial mask, translucent haze, and a separate sharp text layer; reduced-motion freezes both room and widget weather.
 - Browser verification remains intentionally omitted under the repository rule; 120 static tests, TypeScript lint, production build, and diff checks pass.
-
-## 2026-07-22 — ViewTube comment scrolling and archive loading
-
-- Added `min-h-0` and overscroll containment to the in-phone ViewTube body so its flex child remains a real vertical scroll container.
-- Replaced the inactive “View 114 more comments” control with deterministic batches of twelve archive comments until all 114 are visible.
-- Kept the three load-bearing Chapter 1 comments in their established positions; archive rows are deliberately non-progression crowd texture.
-- Browser verification remains intentionally omitted under the repository rule; 122 static tests, TypeScript lint, production build, and diff checks pass.
-
-## 2026-07-22 — Meta wheel relay for in-phone lists
-
-- Relayed Meta-layer wheel input directly to the detected scrollable phone list, so the finger gesture and the ViewTube discussion now move as one action.
-- Hardened the phone display and ViewTube flex hierarchy with explicit minimum-height and zero-basis constraints, preventing the comment pane from expanding instead of scrolling.
-- Browser verification remains intentionally omitted under the repository rule; static tests, TypeScript lint, production build, and diff checks are required before delivery.
-
-## 2026-07-22 — Dock Controls native input path
-
-- Restored immediate pointer activation for all five dock utilities, including Controls, because Meta's delayed hand relay was consuming their native click event.
-- Controls now reliably opens the existing Camera follow and Desk posture switches; keyboard activation remains available through the click handler.
-- Browser verification remains intentionally omitted under the repository rule; static tests, TypeScript lint, production build, and diff checks are required before delivery.
-
-## 2026-07-22 — Stable dock activation on a tilting phone
-
-- Moved dock utility activation from pointer-up to pointer-down so camera-follow transforms cannot move the rightmost Terminal and Controls buttons out from under the cursor before activation.
-- Retained the immediate Meta bypass and the keyboard-only click fallback.
-- Browser verification remains intentionally omitted under the repository rule; static tests, TypeScript lint, production build, and diff checks are required before delivery.
-
-## 2026-07-22 — Projected dock hitbox recovery
-
-- Diagnosed the remaining Terminal/Controls dead zone as projected hit testing beneath the later z-70 narrative overlay, not another click-timing failure.
-- Marked the narrative panel explicitly pointer-transparent and added a scene-level pointer-down proxy that resolves dock buttons from their transformed screen rectangles with a small hit allowance.
-- The nearest matching dock button wins when allowances overlap, preserving all five utilities without moving their icons.
-- Browser verification remains intentionally omitted under the repository rule; static tests, TypeScript lint, production build, and diff checks are required before delivery.
 
 ## 2026-07-22 — Chapter 2 archive investigation restored
 
@@ -787,6 +746,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 
 - Restored the coffee cup as an intentional foreground totem over the phone surface and changed its primary upright scale from 1.2x to the user-approved 1.8x (1.5x), with matching proportional variants.
 
+## 2026-07-22 — Resting desk coffee scale
+
+- Increased only the desk-resting cup variants by 1.5x: normal 2.025 to 3.0375, tipped 2.1 to 3.15, and pushed-away 1.875 to 2.8125.
+
 ## 2026-07-22 — Chapter 5 archived-name hunt
 
 - Hid the Snapshot reel everywhere except the opened SKG site and kept its initial position at 2026.
@@ -806,13 +769,6 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Kept the upper mouse-height view unchanged and capped the lower endpoint at exactly two-thirds of the scene height.
 - Moving the pointer below that line no longer raises or enlarges the desk, preserving the requested lowest composition instead of the former extreme foreground view.
 - Static verification passed on the latest main: focused tests 38/38, full tests 178/178, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.
-
-## 2026-07-22 — Active desktop Chapter 5 dialogue synchronization
-
-- Confirmed the reported silence was not an interaction bug: the active desktop worktree did not contain `chapterFiveDialogue.ts` or any Chapter 5 dialogue imports, although the feature had already been pushed to remote `main`.
-- Synchronized the Chapter 5 dialogue module and tests into the actual desktop runtime, then added only the missing Browser, Phone, and Meta wiring while preserving the desktop worktree's later camera and Controls changes.
-- Chapter 5 now reacts on direct debug entry, Browser launch, search focus/submission, seven decoy results, portal noise, corporate details, support bot replies, empty snapshot years, archived-page fragments, wrong apps, and all three Noah Kade references.
-- Static verification in the active desktop worktree passed: 177/177 tests, TypeScript lint, production build, and focused wiring checks. Browser and Preview remain intentionally unused.
 
 ## 2026-07-22 — Resting desk upper-view adjustment
 
@@ -843,6 +799,13 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Added the approved later-story truth that the original twelve-year-old `ARC_184` record belongs to a young Arcane Kade, while the present ViewTube uploader is a sympathetic traffic-seeking impersonator; Chapter 6 deliberately does not reveal this yet.
 - Static verification passed on the clean delivery tree: focused tests 38/38, full tests 183/183, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.
 
+## 2026-07-22 — Active desktop Chapter 5 dialogue synchronization
+
+- Confirmed the reported silence was not an interaction bug: the active desktop worktree did not contain `chapterFiveDialogue.ts` or any Chapter 5 dialogue imports, although the feature had already been pushed to remote `main`.
+- Synchronized the Chapter 5 dialogue module and tests into the actual desktop runtime, then added only the missing Browser, Phone, and Meta wiring while preserving the desktop worktree's later camera and Controls changes.
+- Chapter 5 now reacts on direct debug entry, Browser launch, search focus/submission, seven decoy results, portal noise, corporate details, support bot replies, empty snapshot years, archived-page fragments, wrong apps, and all three Noah Kade references.
+- Static verification in the active desktop worktree passed: 177/177 tests, TypeScript lint, production build, and focused wiring checks. Browser and Preview remain intentionally unused.
+
 ## 2026-07-22 — Chapter 6 profile page constrained to the launcher region
 
 - Replaced the full-screen personal-settings overlay with a compact second page inside the right-side launcher region.
@@ -868,9 +831,9 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 
 ## 2026-07-22 — First Gate 40 death unlocks the Meta reveal
 
-- Lowered the formal Meta threshold from two Gate 40 deaths to one, while preserving the separate requirement that the player actively open the results leaderboard.
-- A death by itself still leaves the game in its cheap fullscreen presentation; zero Gate 40 deaths cannot unlock Meta even if the leaderboard callback is invoked.
-- Updated the Chapter 1 debug baseline, regression tests, GDD, environment evolution, implementation checklist, and sound-event documentation to the new retention-focused pacing.
+- Reduced the Chapter 0 story threshold from two Gate 40 deaths to one while preserving the requirement that the player actively opens the leaderboard.
+- A Gate 40 death alone still leaves the cheap game fullscreen; opening the leaderboard without first reaching Gate 40 also does not reveal Meta.
+- Updated the developer Chapter 1 baseline, source-wiring regression coverage, GDD, environment evolution, implementation checklist, and sound-event notes to the same one-death rule.
 - Static verification passed: focused tests 35/35 in both worktrees, full tests 188/188 on the clean delivery tree, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.
 
 ## 2026-07-22 — Chapter 7 Mara coordinate trail and archive login
@@ -879,7 +842,7 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Chapter 7 now begins from FaceSpace `Recently viewed`, persists each Mara clue separately, rejects the archive password until all three are found, and completes only after the player logs into `MARA_KADE`.
 - Chapter 8 now begins inside the restored archive index and advances only when the player opens the Mara Kade and Noah Kade private thread; Chapters 9–10 keep their existing boundaries.
 - Removed the premature full `184-40-256` string from the Chapter 4 screenshot pile and replaced it with the old `SilverKite_Games` backup-account clue.
-- Static verification passed: focused tests 40/40 and full tests 192/192 on the clean delivery tree, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.
+- Static verification passed: focused tests 40/40 and full tests 192/192 in both worktrees, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.
 
 ## 2026-07-22 — Player-chosen leaderboard reveal and formal title
 

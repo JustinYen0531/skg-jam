@@ -55,9 +55,12 @@ test('collecting the three numbers unlocks a separate ALT GATE END mapping puzzl
   assert.match(messagesSource, /data-admin-stage=/);
 });
 
-test('Chapter 8 begins at the restored index and opens the private thread', () => {
+test('Chapter 8 begins at the restored index and completes only after restoring the private thread', () => {
   assert.match(messagesSource, /progress\.currentChapter === 8/);
   assert.match(messagesSource, /id="admin-archive-index"/);
   assert.match(messagesSource, /id="messages-open-private-thread"/);
+  assert.match(messagesSource, /hasRestoredAllNoahFragments\(restoredNoahMessages\)/);
+  assert.match(messagesSource, /if \(!allNoahMessagesRestored\) return/);
+  assert.match(messagesSource, /id="chapter-eight-complete"/);
   assert.match(messagesSource, /completePuzzleChapter\(prev, 8\)/);
 });

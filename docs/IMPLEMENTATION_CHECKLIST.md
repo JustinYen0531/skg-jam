@@ -111,8 +111,10 @@
 - [ ] 追查 Browser 的 Silver Kite Games 舊網站後，才得到 Noah 線索。
 - [x] Chapter 7 從 FaceSpace 的 `Recently viewed` 進入 Mara 個人頁，並從九篇貼文中的三個不同位置分別取得 `184`、`40`、`256`。
 - [x] Messages 只在三段 Mara 數字線索全部取得時接受座標密碼；登入成功才完成 Chapter 7。
-- [x] Chapter 8 從已登入的封存索引開始，玩家親自開啟 Mara 與 Noah 的私人對話。
-- [ ] 登入舊帳號後，才解鎖高度序列。
+- [x] Chapter 8 從已登入的封存索引開始；八條 Mara 生活對話各自只提供一個可點選記憶。
+- [x] Noah 的八則損壞訊息必須使用 `Recovered memories` 逐一配對，單純打開對話不再過關。
+- [x] 八則人的訊息全部修復後才完成 Chapter 8；高度附件仍鎖到 Chapter 9。
+- [ ] Chapter 9 解鎖附件後，才顯示完整高度序列。
 - [ ] 沒有完成前置調查時，不能直接輸入密碼或取得完整路線。
 
 **驗收：** 新遊戲不能直接從 Messages 或任何單一 app 取得完整答案；每個關鍵答案都要有前置條件。

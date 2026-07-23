@@ -36,6 +36,8 @@ const INITIAL_PROGRESS: GameProgress = {
   discoveredMaraEnd256: false,
   unlockedAdminLogin: false,
   loggedIntoAdmin: false,
+  chapterEightMemoryIds: [],
+  chapterEightRestoredMessageIds: [],
   unlockedCodeRoute: false,
   completedGame: false,
   selectedEnding: null,

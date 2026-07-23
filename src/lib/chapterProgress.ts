@@ -109,13 +109,14 @@ const CHAPTER_ADVANCE_GUIDES: Record<PuzzleChapter, ChapterAdvanceGuide> = {
   8: {
     chapter: 8,
     nextLabel: 'CHAPTER 09',
-    objective: 'Open the private conversation inside Mara\'s preserved account.',
+    objective: 'Learn Mara\'s life and restore the damaged human record she kept with Noah.',
     steps: [
       'Open Messages and select SILVER_KITE_ARCHIVE.',
-      'Review the restored archive index.',
-      'Open the Mara Kade and Noah Kade private thread.',
+      'Read Mara\'s eight ordinary conversations and collect the underlined memory in each.',
+      'Open the damaged Noah thread at the bottom of the archive.',
+      'Use the recovered-memory drawer to restore all eight missing messages.',
     ],
-    completion: 'The private 2014 conversation opens.',
+    completion: 'The human conversation is restored; its flight-sequence attachment remains locked for Chapter 9.',
   },
   9: {
     chapter: 9,
@@ -179,6 +180,8 @@ const BASE_PROGRESS: GameProgress = {
   discoveredMaraEnd256: false,
   unlockedAdminLogin: false,
   loggedIntoAdmin: false,
+  chapterEightMemoryIds: [],
+  chapterEightRestoredMessageIds: [],
   unlockedCodeRoute: false,
   completedGame: false,
   selectedEnding: null,
@@ -192,7 +195,7 @@ export const DEBUG_CHAPTERS: readonly DebugChapter[] = [
   { id: 5, shortTitle: '被覆蓋的公司', title: '謎題 5：被機器覆蓋的公司', description: '回溯 SKG Automation，追查被覆蓋的公司歷史。', targetApp: 'browser' },
   { id: 6, shortTitle: '開發者帳號', title: '謎題 6：開發者的社群帳號', description: 'Silver Kite Games 的舊資料指向設計師 Noah Kade。', targetApp: 'social' },
   { id: 7, shortTitle: '最喜歡的數字', title: '謎題 7：最喜歡的數字', description: 'Mara 的生活貼文分別留下三個座標數字。', targetApp: 'social' },
-  { id: 8, shortTitle: '舊帳號內容', title: '謎題 8：母親的舊帳號', description: '登入後的封存索引保存了一段私人對話。', targetApp: 'messages' },
+  { id: 8, shortTitle: '尋回母親', title: '謎題 8：母親的舊帳號', description: '從 Mara 的生活對話尋回記憶，修復她與 Noah 的損壞訊息。', targetApp: 'messages' },
   { id: 9, shortTitle: '母親與 Noah', title: '謎題 9：母親與 Noah 的對話', description: '登入舊帳號，讀取關於最後更新與秘密路線的對話。', targetApp: 'messages' },
   { id: 10, shortTitle: '名字中的路線', title: '謎題 10：找到名字中的路線', description: '從開發者帳號辨識八個高度，準備返回遊戲驗證。', targetApp: 'flappy' },
 ] as const;

@@ -22,6 +22,8 @@ export interface GameProgress {
   discoveredMaraEnd256: boolean;
   unlockedAdminLogin: boolean;      // correctly mapped the three collected Mara numbers
   loggedIntoAdmin: boolean;         // logged into Mother's old Silver Kite account
+  chapterEightMemoryIds?: string[]; // clues collected from Mara's preserved conversations
+  chapterEightRestoredMessageIds?: string[]; // damaged Noah messages restored with those clues
   unlockedCodeRoute: boolean;       // knows the exact sequence NK_184.172.149.133.121.118.126.143
   
   // Game completion state
