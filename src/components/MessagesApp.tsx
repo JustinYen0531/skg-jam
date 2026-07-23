@@ -46,6 +46,7 @@ interface MessagesAppProps {
   updateProgress: (updater: (prev: GameProgress) => GameProgress) => void;
   chapterThreeOrderPhase: AmazeMartOrderPhase;
   onSellerVerified: () => void;
+  onBeginChapterNineCleanup: () => void;
   developerPreview?: boolean;
 }
 
@@ -135,6 +136,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
   updateProgress,
   chapterThreeOrderPhase,
   onSellerVerified,
+  onBeginChapterNineCleanup,
   developerPreview = false,
 }) => {
   const metaInteraction = useMetaInteraction();
@@ -364,11 +366,6 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
     if (!allNoahMessagesRestored) return;
     audio.playUnlock();
     updateProgress((prev) => completePuzzleChapter(prev, 8));
-  };
-
-  const handleRecoverRoute = () => {
-    audio.playSuccess();
-    updateProgress((prev) => completePuzzleChapter(prev, 9, { unlockedCodeRoute: true }));
   };
 
   const verifySellerCode = () => {
@@ -735,6 +732,36 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                   {collectionRequired ? 'COLLECT THREE NUMBER FRAGMENTS' : mappingRequired ? 'VERIFY COORDINATE MAPPING' : 'DECRYPT ENCRYPTED NODES'}
                 </button>
               </form>
+            ) : progress.currentChapter === 9 ? (
+              <section
+                className="laos-panel mx-auto max-w-[620px] space-y-4 p-5"
+                id="chapter-nine-legacy-restore"
+              >
+                <div className="flex items-start justify-between gap-3 border-b border-[var(--laos-line-dim)] pb-3">
+                  <div>
+                    <div className="laos-label text-[8px]">LEGACY CHILD PROFILE</div>
+                    <h3 className="mt-1 font-laos text-sm font-semibold text-[var(--laos-text)]">Local restore package</h3>
+                  </div>
+                  <LockKeyhole className="h-5 w-5 text-[var(--laos-warm)]" />
+                </div>
+                <div className="grid grid-cols-3 gap-px border border-[var(--laos-line-dim)] bg-[var(--laos-line-dim)] font-mono text-[7px]">
+                  <div className="bg-[var(--laos-bg)] p-2"><div className="text-[var(--laos-faint)]">REQUIRED</div><div className="mt-1 text-[var(--laos-text)]">18.4 GB</div></div>
+                  <div className="bg-[var(--laos-bg)] p-2"><div className="text-[var(--laos-faint)]">AVAILABLE</div><div className="mt-1 text-[var(--laos-warm)]">0.4 GB</div></div>
+                  <div className="bg-[var(--laos-bg)] p-2"><div className="text-[var(--laos-faint)]">BATTERY</div><div className="mt-1 text-[var(--laos-warm)]">6%</div></div>
+                </div>
+                <p className="font-laos text-[9px] leading-relaxed text-[var(--laos-dim)]">
+                  The preserved profile can be restored only by removing local app data. Expired accounts and offline archives cannot be downloaded again.
+                </p>
+                <button
+                  type="button"
+                  onClick={onBeginChapterNineCleanup}
+                  className="laos-slow w-full border border-[var(--laos-warm)]/60 bg-[var(--laos-surface-2)] px-3 py-2 font-laos text-[10px] font-semibold tracking-[0.14em] text-[var(--laos-warm)] hover:bg-[var(--laos-line-dim)]"
+                  id="chapter-nine-make-space"
+                  data-meta-immediate="true"
+                >
+                  MAKE SPACE
+                </button>
+              </section>
             ) : progress.currentChapter === 8 ? (
               activeArchive ? (
                 /* Reading one of Mara's own conversations. Her bubbles are the
@@ -1039,16 +1066,6 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                     </p>
                   </div>
 
-                  {!progress.unlockedCodeRoute && (
-                    <button
-                      type="button"
-                      onClick={handleRecoverRoute}
-                      className="laos-slow w-full border border-[var(--laos-warm)]/60 bg-[var(--laos-surface-2)] px-3 py-2 font-laos text-[10px] font-semibold tracking-[0.14em] text-[var(--laos-warm)] hover:bg-[var(--laos-line-dim)]"
-                      id="messages-recover-route"
-                    >
-                      RECOVER ATTACHED FLIGHT SEQUENCE
-                    </button>
-                  )}
                 </div>
               </div>
             )}

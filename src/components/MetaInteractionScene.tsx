@@ -63,6 +63,7 @@ interface MetaInputController {
 
 interface MetaInteractionContextValue {
   active: boolean;
+  deviceResting: boolean;
   registerInput: (id: string, controller: MetaInputController) => () => void;
   speak: (lines: DialogueLines) => void;
   tapElement: (id: string, onActivate: () => void) => void;
@@ -71,6 +72,7 @@ interface MetaInteractionContextValue {
 
 const MetaInteractionContext = createContext<MetaInteractionContextValue>({
   active: false,
+  deviceResting: false,
   registerInput: () => () => undefined,
   speak: () => undefined,
   tapElement: (_id, onActivate) => onActivate(),
@@ -1360,11 +1362,12 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
 
   const contextValue = useMemo<MetaInteractionContextValue>(() => ({
     active,
+    deviceResting,
     registerInput,
     speak,
     tapElement,
     tapSequence,
-  }), [active, registerInput, speak, tapElement, tapSequence]);
+  }), [active, deviceResting, registerInput, speak, tapElement, tapSequence]);
 
   // Hands are never perfectly still: a slow breathing drift applied inside
   // the entrance containers, mirrored per hand so both layers stay fused.

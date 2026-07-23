@@ -936,3 +936,14 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Once the chain is complete, Arcane takes control at Gate 40. Player input becomes inert while the Meta finger visibly performs the taps, distinguishing protagonist agency from an ordinary autoplay video.
 - The autonomous run restores Arcane's childhood memory at 184 and cross-checks that he was the real `ARC_184`, then continues to 256 so the ending is not gated behind two hundred additional execution checks.
 - The existing final height `0` remains intact, but Arcane performs it during the autonomous run before the completion screen and ending choice.
+
+## 2026-07-23 — Chapter 9 deletion ritual and silent rupture
+
+- Replaced the planned Chapter 9 password/height puzzle with an action-driven storage crisis: the legacy Flappy profile needs space while the Lumen Arc battery falls from 6%.
+- Added three gated deletion thresholds with free order inside each threshold: replaceable services, investigation records, then personal memory. FaceSpace must be removed before Messages.
+- Every deletion raises the visible legacy-restore percentage and drains battery, turning earlier sacrifices into sunk-cost pressure without using a real-time countdown.
+- Added a three-attempt Messages confrontation. Arcane refuses, identifies the archive as his mother's memory, then challenges whether the answer is worth erasing everything that led to it.
+- The third attempt leaves DELETE and CANCEL in unresolved conflict. Power fails before either side wins; setting the phone down resumes the interrupted cleanup and completes Chapter 9.
+- Reboot now produces a silent Chapter 10 home with only Flappy Something. Messages is gone, the legacy profile is restored, and Arcane provides no transition line or reaction.
+- Fullscreen-only/direct-input mode bypasses the physical rest-posture dependency so the story cannot deadlock when Meta posture control is unavailable.
+- This pass deliberately stops at the Chapter 10 handoff. Gate 40 route points and Arcane's autonomous 40–256 run remain the next gameplay iteration.

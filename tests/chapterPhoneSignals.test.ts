@@ -10,9 +10,13 @@ test('every chapter notifies the current target and underlines the previous targ
     const previousChapter = DEBUG_CHAPTERS[index - 1];
     const signals = getChapterPhoneSignals(chapter.id);
 
-    assert.equal(signals.notification.app, chapter.targetApp);
+    if (chapter.targetApp !== 'home') {
+      assert.equal(signals.notification.app, chapter.targetApp);
+    }
     assert.equal(signals.notification.label, '1');
-    assert.equal(signals.recentApp, previousChapter?.targetApp ?? null);
+    if (!previousChapter || previousChapter.targetApp !== 'home') {
+      assert.equal(signals.recentApp, previousChapter?.targetApp ?? null);
+    }
   }
 });
 
@@ -29,6 +33,12 @@ test('consecutive same-app chapters show both current and previous signals toget
   assert.equal(getChapterPhoneSignals(7).recentApp, 'social');
   assert.equal(getChapterPhoneSignals(9).notification.app, 'messages');
   assert.equal(getChapterPhoneSignals(9).recentApp, 'messages');
+});
+
+test('the deletion and silent-home chapters retain understated launcher traces', () => {
+  assert.equal(getChapterPhoneSignals(9).notification.app, 'messages');
+  assert.equal(getChapterPhoneSignals(10).notification.app, 'flappy');
+  assert.equal(getChapterPhoneSignals(10).recentApp, 'messages');
 });
 
 test('phone signals are wired without moving launchers or retaining misleading badges', () => {

@@ -70,6 +70,21 @@ import { ChapterTransition, EvidenceNotification } from './ChapterTransition';
 import { MetaWindowScene } from './MetaWindowScene';
 import type { AmazeMartOrderPhase } from '../lib/amazemartPuzzle';
 import { completePuzzleChapter } from '../lib/chapterProgress';
+import { ChapterNineDeletionHome } from './ChapterNineDeletionHome';
+import {
+  CHAPTER_NINE_DELETABLE_APPS,
+  addDeletedChapterNineApp,
+  canDeleteChapterNineApp,
+  getChapterNineBatteryPercent,
+  isChapterNineMessagesStandoffReady,
+  type ChapterNineDeletableApp,
+} from '../lib/chapterNineDeletion';
+import {
+  CHAPTER_NINE_DELETION_DIALOGUE,
+  CHAPTER_NINE_DIALOGUE,
+  getChapterNineBlockedDialogue,
+  getChapterNineMessagesStandoffDialogue,
+} from '../lib/chapterNineDialogue';
 
 /** Modern widget chassis: translucent, friendly, current-year. */
 const WIDGET_SHELL =
@@ -149,6 +164,8 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   ));
   const [sellerMessageUnread, setSellerMessageUnread] = useState(false);
   const restoreTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const chapterNinePowerTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const chapterNineRebootTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const chapterOneDialogueTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const chapterOneAppAttempt = useRef(0);
   const chapterOneHomeAttempt = useRef(0);
@@ -214,6 +231,16 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
       </>
     );
   };
+  const chapterNineRestorePhase = progress.chapterNineRestorePhase ?? 'idle';
+  const chapterNineDeletedAppIds = progress.chapterNineDeletedAppIds ?? [];
+  const chapterNineMessageAttempts = progress.chapterNineMessageAttempts ?? 0;
+  const chapterNineBatteryPercent = getChapterNineBatteryPercent(
+    chapterNineDeletedAppIds,
+    chapterNineMessageAttempts,
+  );
+  const chapterNineSpecialHome = chapterNineRestorePhase === 'cleanup'
+    || chapterNineRestorePhase === 'blackout'
+    || chapterNineRestorePhase === 'rebooted';
 
   useEffect(() => {
     if (debugTargetApp) setActiveApp(debugTargetApp.app);
@@ -249,7 +276,10 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
     if (next === previous) return;
     prevChapterRef.current = next;
     const data = getAdvancedChapterTransition(previous, next);
-    if (data) {
+    const silentChapterTenHandoff = previous === 9
+      && next === 10
+      && progress.chapterNineArcaneSilent;
+    if (data && !silentChapterTenHandoff) {
       setPendingTransitions((queue) => [...queue, data]);
       setEvidenceBanner(data);
     }
@@ -268,7 +298,63 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   useEffect(() => () => {
     if (restoreTimer.current) clearTimeout(restoreTimer.current);
     if (chapterOneDialogueTimer.current) clearTimeout(chapterOneDialogueTimer.current);
+    if (chapterNinePowerTimer.current) clearTimeout(chapterNinePowerTimer.current);
+    if (chapterNineRebootTimer.current) clearTimeout(chapterNineRebootTimer.current);
   }, []);
+
+  useEffect(() => {
+    if (
+      progress.currentChapter !== 9
+      || chapterNineRestorePhase !== 'cleanup'
+      || chapterNineMessageAttempts < 3
+    ) return;
+    if (chapterNinePowerTimer.current) return;
+    chapterNinePowerTimer.current = setTimeout(() => {
+      audio.play('story.serviceTerminated');
+      updateProgress((previous) => previous.currentChapter === 9
+        ? { ...previous, chapterNineRestorePhase: 'blackout' }
+        : previous);
+      chapterNinePowerTimer.current = null;
+    }, reducedMotion ? 120 : 1500);
+  }, [
+    chapterNineMessageAttempts,
+    chapterNineRestorePhase,
+    progress.currentChapter,
+    reducedMotion,
+    updateProgress,
+  ]);
+
+  useEffect(() => {
+    if (
+      progress.currentChapter !== 9
+      || chapterNineRestorePhase !== 'blackout'
+      || (metaInteraction.active && !metaInteraction.deviceResting)
+    ) return;
+    if (chapterNineRebootTimer.current) return;
+    chapterNineRebootTimer.current = setTimeout(() => {
+      updateProgress((previous) => {
+        if (previous.currentChapter !== 9) return previous;
+        const poweredDownState: GameProgress = {
+          ...previous,
+          chapterNineRestorePhase: 'rebooted',
+          chapterNineDeletedAppIds: [...CHAPTER_NINE_DELETABLE_APPS],
+          chapterNineMessageAttempts: Math.max(3, previous.chapterNineMessageAttempts ?? 0),
+          chapterNineArcaneSilent: true,
+        };
+        return completePuzzleChapter(poweredDownState, 9, { unlockedCodeRoute: true });
+      });
+      setHomePage(0);
+      setActiveApp('home');
+      chapterNineRebootTimer.current = null;
+    }, reducedMotion ? 220 : 1900);
+  }, [
+    chapterNineRestorePhase,
+    metaInteraction.active,
+    metaInteraction.deviceResting,
+    progress.currentChapter,
+    reducedMotion,
+    updateProgress,
+  ]);
 
   useEffect(() => {
     if (activeApp !== 'home') {
@@ -379,6 +465,68 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
       orderedPhone: true,
       deliveredPhone: true,
     }));
+  };
+
+  const handleBeginChapterNineCleanup = () => {
+    if (progress.currentChapter !== 9) return;
+    audio.play('ui.primaryTap');
+    updateProgress((previous) => previous.currentChapter === 9
+      ? {
+          ...previous,
+          chapterNineRestorePhase: 'cleanup',
+          chapterNineDeletedAppIds: [],
+          chapterNineMessageAttempts: 0,
+          chapterNineArcaneSilent: false,
+        }
+      : previous);
+    setHomePage(0);
+    setActiveApp('home');
+    if (metaInteraction.active) metaInteraction.speak(CHAPTER_NINE_DIALOGUE.restoreBlocked);
+  };
+
+  const handleDeleteChapterNineApp = (app: Exclude<ChapterNineDeletableApp, 'messages'>) => {
+    if (
+      progress.currentChapter !== 9
+      || chapterNineRestorePhase !== 'cleanup'
+      || !canDeleteChapterNineApp(app, chapterNineDeletedAppIds)
+    ) return;
+    audio.play('ui.toggle', { variant: 0 });
+    updateProgress((previous) => previous.currentChapter === 9
+      ? {
+          ...previous,
+          chapterNineDeletedAppIds: addDeletedChapterNineApp(previous.chapterNineDeletedAppIds ?? [], app),
+        }
+      : previous);
+    if (metaInteraction.active) metaInteraction.speak(CHAPTER_NINE_DELETION_DIALOGUE[app]);
+  };
+
+  const handleBlockedChapterNineApp = (app: ChapterNineDeletableApp) => {
+    audio.play('auth.wrong');
+    if (metaInteraction.active) {
+      metaInteraction.speak(getChapterNineBlockedDialogue(app, chapterNineDeletedAppIds));
+    }
+  };
+
+  const handleChapterNineMessagesAttempt = () => {
+    if (
+      progress.currentChapter !== 9
+      || chapterNineRestorePhase !== 'cleanup'
+      || !isChapterNineMessagesStandoffReady(chapterNineDeletedAppIds)
+    ) {
+      handleBlockedChapterNineApp('messages');
+      return;
+    }
+    const attempt = chapterNineMessageAttempts;
+    audio.play('auth.wrong');
+    updateProgress((previous) => previous.currentChapter === 9
+      ? {
+          ...previous,
+          chapterNineMessageAttempts: Math.min(3, (previous.chapterNineMessageAttempts ?? 0) + 1),
+        }
+      : previous);
+    if (metaInteraction.active) {
+      metaInteraction.speak(getChapterNineMessagesStandoffDialogue(attempt));
+    }
   };
 
   // The meta hand animation intercepts click events higher in the tree. Open
@@ -777,8 +925,16 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
           <span className="text-[8.5px] font-semibold text-slate-300">5G</span>
           <Wifi className="w-3 h-3 text-slate-300" />
           <span className="flex items-center gap-1">
+            {chapterNineSpecialHome && (
+              <span className="font-mono text-[7px] text-amber-200" id="status-chapter-nine-battery">
+                {chapterNineRestorePhase === 'rebooted' ? 2 : chapterNineBatteryPercent}%
+              </span>
+            )}
             <span className="relative w-[19px] h-[9px] rounded-[3px] border border-slate-400/70">
-              <span className="absolute inset-[1.5px] right-[4px] rounded-[1px] bg-slate-200" style={{ width: '70%' }}></span>
+              <span
+                className={`absolute inset-[1.5px] right-[4px] rounded-[1px] ${chapterNineSpecialHome ? 'bg-amber-300' : 'bg-slate-200'}`}
+                style={{ width: chapterNineSpecialHome ? `${Math.max(5, chapterNineRestorePhase === 'rebooted' ? 2 : chapterNineBatteryPercent)}%` : '70%' }}
+              ></span>
               <span className="absolute -right-[3px] top-[2px] w-[2px] h-[4px] rounded-r-[1px] bg-slate-400/70"></span>
             </span>
           </span>
@@ -792,7 +948,29 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
         style={{ filter: `brightness(${screenBrightness}) contrast(${screenContrast})` }}
       >
         <AnimatePresence mode="wait">
-          {activeApp === 'home' && (
+          {activeApp === 'home' && chapterNineSpecialHome && (
+            <motion.div
+              key={`chapter-nine-home-${chapterNineRestorePhase}`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: reducedMotion ? 0 : 0.25 }}
+              className="absolute inset-0"
+            >
+              <ChapterNineDeletionHome
+                phase={chapterNineRestorePhase}
+                deletedAppIds={chapterNineDeletedAppIds}
+                messageAttempts={chapterNineMessageAttempts}
+                deviceResting={metaInteraction.deviceResting}
+                onDeleteApp={handleDeleteChapterNineApp}
+                onBlockedApp={handleBlockedChapterNineApp}
+                onMessageAttempt={handleChapterNineMessagesAttempt}
+                onLaunchFlappy={() => handleLaunchApp('flappy')}
+              />
+            </motion.div>
+          )}
+
+          {activeApp === 'home' && !chapterNineSpecialHome && (
             /* HOME SCREEN — a normal modern phone. The residue does the talking. */
             <motion.div
               key="home"
@@ -1404,6 +1582,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                 updateProgress={updateProgress}
                 chapterThreeOrderPhase={chapterThreeOrderPhase}
                 onSellerVerified={handleSellerVerified}
+                onBeginChapterNineCleanup={handleBeginChapterNineCleanup}
                 developerPreview={developerToolsOpen || Boolean(debugTargetApp)}
               />
             </motion.div>

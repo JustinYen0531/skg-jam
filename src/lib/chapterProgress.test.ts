@@ -77,6 +77,11 @@ test('chapter snapshots accumulate discoveries instead of leaking future discove
   assert.equal(getChapterSnapshot(8).discoveredMaraEnd256, true);
   assert.equal(getChapterSnapshot(8).loggedIntoAdmin, true);
   assert.equal(getChapterSnapshot(8).unlockedAdminLogin, true);
+  assert.equal(getChapterSnapshot(9).chapterNineRestorePhase, 'cleanup');
+  assert.equal(getChapterSnapshot(9).chapterNineDeletedAppIds?.length, 0);
+  assert.equal(getChapterSnapshot(10).chapterNineRestorePhase, 'rebooted');
+  assert.equal(getChapterSnapshot(10).chapterNineDeletedAppIds?.length, 7);
+  assert.equal(getChapterSnapshot(10).chapterNineArcaneSilent, true);
   assert.equal(getChapterSnapshot(10).unlockedCodeRoute, true);
 });
 

@@ -9,15 +9,15 @@ test('normal interactions connect every chapter completion from one through nine
   const expectedCompletions: ReadonlyArray<readonly [string, readonly number[]]> = [
     ['ViewTube', [1]],
     ['BrowserApp', [2, 5]],
-    ['PhoneSimulator', [3, 6]],
+    ['PhoneSimulator', [3, 6, 9]],
     ['SavedScreenshots', [4]],
-    ['MessagesApp', [7, 8, 9]],
+    ['MessagesApp', [7, 8]],
   ];
 
   for (const [component, chapters] of expectedCompletions) {
     const source = readComponent(component);
     for (const chapter of chapters) {
-      assert.match(source, new RegExp(`completePuzzleChapter\\(prev, ${chapter}(?:,|\\))`));
+      assert.match(source, new RegExp(`completePuzzleChapter\\([^,]+, ${chapter}(?:,|\\))`));
     }
   }
 });

@@ -1,5 +1,6 @@
 import type { ActiveApp, GameProgress, PuzzleChapter } from '../types';
 import { getChapterEightMemory, NOAH_ARCHIVE_FRAGMENTS } from './chapterEightArchive';
+import { CHAPTER_NINE_DELETABLE_APPS } from './chapterNineDeletion';
 import { hasAllMaraNumberClues } from './chapterSevenSocial';
 
 export type ProgressionAction =
@@ -131,22 +132,25 @@ const CHAPTER_ADVANCE_GUIDES: Record<PuzzleChapter, ChapterAdvanceGuide> = {
   9: {
     chapter: 9,
     nextLabel: 'CHAPTER 10',
-    objective: 'Recover the hidden flight route from Noah\'s messages.',
+    objective: 'Make enough room to restore the legacy profile without losing Arcane\'s trust.',
     steps: [
-      'Read the private Mara and Noah archive conversation.',
-      'Scroll to the attachment beneath the final route message.',
-      'Select RECOVER ATTACHED FLIGHT SEQUENCE.',
+      'Open the legacy child profile and select MAKE SPACE.',
+      'Remove every replaceable service in any order.',
+      'Remove the investigation records, then FaceSpace.',
+      'Keep trying to remove Messages until the phone loses power.',
+      'Put the dead phone down and wait for its interrupted cleanup to resume.',
     ],
-    completion: 'The eight altitude targets are added to Flappy.',
+    completion: 'The phone reboots with the legacy profile restored and only Flappy Something remaining.',
   },
   10: {
     chapter: 10,
     nextLabel: 'ENDING',
     objective: 'Use Noah\'s route to finish the game he left behind.',
     steps: [
-      'Open Flappy and start a new run.',
-      'At Gates 40–47, match 184, 172, 149, 133, 121, 118, 126, and 143.',
-      'Continue through the restored game until Gate 256.',
+      'Open the only remaining app: Flappy Something.',
+      'Collect every visible guidance point before Gate 40.',
+      'At Gate 40, Arcane takes control without speaking.',
+      'Watch him follow the restored route to Gate 256.',
     ],
     completion: 'Reaching the true ending unlocks the final choice.',
   },
@@ -192,6 +196,10 @@ const BASE_PROGRESS: GameProgress = {
   loggedIntoAdmin: false,
   chapterEightMemoryIds: [],
   chapterEightRestoredMessageIds: [],
+  chapterNineRestorePhase: 'idle',
+  chapterNineDeletedAppIds: [],
+  chapterNineMessageAttempts: 0,
+  chapterNineArcaneSilent: false,
   unlockedCodeRoute: false,
   completedGame: false,
   selectedEnding: null,
@@ -206,8 +214,8 @@ export const DEBUG_CHAPTERS: readonly DebugChapter[] = [
   { id: 6, shortTitle: '開發者帳號', title: '謎題 6：開發者的社群帳號', description: 'Silver Kite Games 的舊資料指向設計師 Noah Kade。', targetApp: 'social' },
   { id: 7, shortTitle: '最喜歡的數字', title: '謎題 7：最喜歡的數字', description: 'Mara 的生活貼文分別留下三個座標數字。', targetApp: 'social' },
   { id: 8, shortTitle: '尋回母親', title: '謎題 8：母親的舊帳號', description: '從 Mara 的生活對話尋回記憶，修復她與 Noah 的損壞訊息。', targetApp: 'messages' },
-  { id: 9, shortTitle: '母親與 Noah', title: '謎題 9：母親與 Noah 的對話', description: '登入舊帳號，讀取關於最後更新與秘密路線的對話。', targetApp: 'messages' },
-  { id: 10, shortTitle: '名字中的路線', title: '謎題 10：找到名字中的路線', description: '從開發者帳號辨識八個高度，準備返回遊戲驗證。', targetApp: 'flappy' },
+  { id: 9, shortTitle: '替真相騰出空間', title: '謎題 9：替真相騰出空間', description: '逐層刪除手機內容，讓舊帳號資料在電量耗盡前完成復原。', targetApp: 'home' },
+  { id: 10, shortTitle: '只剩下遊戲', title: '謎題 10：只剩下遊戲', description: '空白首頁只留下 Flappy Something；Arcane 已不再回應玩家。', targetApp: 'home' },
 ] as const;
 
 const CHAPTER_OVERRIDES: Record<PuzzleChapter, Partial<GameProgress>> = {
@@ -219,8 +227,8 @@ const CHAPTER_OVERRIDES: Record<PuzzleChapter, Partial<GameProgress>> = {
   6: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true },
   7: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredMotherComment: true },
   8: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true, discoveredMaraAltitude184: true, discoveredMaraGate40: true, discoveredMaraEnd256: true, unlockedAdminLogin: true, loggedIntoAdmin: true },
-  9: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true, discoveredMaraAltitude184: true, discoveredMaraGate40: true, discoveredMaraEnd256: true, unlockedAdminLogin: true, loggedIntoAdmin: true },
-  10: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true, discoveredMaraAltitude184: true, discoveredMaraGate40: true, discoveredMaraEnd256: true, unlockedAdminLogin: true, loggedIntoAdmin: true, unlockedCodeRoute: true },
+  9: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true, discoveredMaraAltitude184: true, discoveredMaraGate40: true, discoveredMaraEnd256: true, unlockedAdminLogin: true, loggedIntoAdmin: true, chapterNineRestorePhase: 'cleanup', chapterNineDeletedAppIds: [], chapterNineMessageAttempts: 0, chapterNineArcaneSilent: false },
+  10: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true, discoveredMaraAltitude184: true, discoveredMaraGate40: true, discoveredMaraEnd256: true, unlockedAdminLogin: true, loggedIntoAdmin: true, chapterNineRestorePhase: 'rebooted', chapterNineDeletedAppIds: [...CHAPTER_NINE_DELETABLE_APPS], chapterNineMessageAttempts: 3, chapterNineArcaneSilent: true, unlockedCodeRoute: true },
 };
 
 export function getChapterById(chapter: PuzzleChapter): DebugChapter {
