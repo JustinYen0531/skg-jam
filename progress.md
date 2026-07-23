@@ -986,3 +986,11 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Added a visible blue glow to approaching crosses and strengthened the imminent yellow glow.
 - Raised the yellow press-line opacity from 0.25 to 0.72 without changing its position, timing, or the flight physics.
 - Browser and Preview remain intentionally unused by project instruction.
+
+## 2026-07-24 — Chapter 10 assist color roles
+
+- Removed the two-frame imminent color switch that made assist crosses appear to flash.
+- The next required press now stays fully opaque yellow throughout its visible approach.
+- Later and already-passed visible marks stay fully opaque red, clearly separating the current instruction from the queue.
+- Increased cross size, stroke width, and steady glow without changing route timing or physics.
+- Browser and Preview remain intentionally unused by project instruction.

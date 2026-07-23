@@ -873,16 +873,19 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
 
         // Assist crosses: each cross marks a frame to press Space. They drift
         // toward the bird at the world's speed; press when a cross reaches the
-        // bird's column (x = 80). Imminent crosses brighten so timing is clear.
+        // bird's column (x = 80). The next cross stays yellow for its entire
+        // approach; every later cross stays red, so nothing flashes at impact.
         if (assistEnabledRef.current && assistPlanRef.current && isPlaying && !state.gameOver) {
           const marks = getAssistMarkPositions(assistPlanRef.current, state.frameCount);
+          const currentTargetFrame = marks.find((mark) => mark.frame >= state.frameCount)?.frame;
           for (const mark of marks) {
-            const r = mark.imminent ? 9 : 6;
+            const isCurrentTarget = mark.frame === currentTargetFrame;
+            const r = isCurrentTarget ? 10 : 8;
             ctx.save();
-            ctx.strokeStyle = mark.imminent ? 'rgba(253, 224, 71, 1)' : 'rgba(148, 197, 255, 0.95)';
-            ctx.lineWidth = mark.imminent ? 3 : 2;
-            ctx.shadowColor = mark.imminent ? 'rgba(253, 224, 71, 0.95)' : 'rgba(148, 197, 255, 0.65)';
-            ctx.shadowBlur = mark.imminent ? 10 : 5;
+            ctx.strokeStyle = isCurrentTarget ? 'rgba(253, 224, 71, 1)' : 'rgba(248, 64, 64, 1)';
+            ctx.lineWidth = isCurrentTarget ? 4 : 3;
+            ctx.shadowColor = isCurrentTarget ? 'rgba(253, 224, 71, 0.95)' : 'rgba(248, 64, 64, 0.9)';
+            ctx.shadowBlur = isCurrentTarget ? 12 : 8;
             ctx.beginPath();
             ctx.moveTo(mark.x - r, mark.y - r);
             ctx.lineTo(mark.x + r, mark.y + r);

@@ -103,6 +103,8 @@ test('the assist maths uses the live pre-Gate-40 constants and no randomness', (
 test('assist crosses and the press line stay strongly opaque in the live renderer', () => {
   const source = readFileSync(new URL('../src/components/FlappyGame.tsx', import.meta.url), 'utf8');
   assert.match(source, /rgba\(253, 224, 71, 1\)/);
-  assert.match(source, /rgba\(148, 197, 255, 0\.95\)/);
+  assert.match(source, /rgba\(248, 64, 64, 1\)/);
   assert.match(source, /rgba\(253, 224, 71, 0\.72\)/);
+  assert.match(source, /currentTargetFrame = marks\.find\(\(mark\) => mark\.frame >= state\.frameCount\)/);
+  assert.doesNotMatch(source, /mark\.imminent \?/);
 });
