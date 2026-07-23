@@ -118,6 +118,9 @@ test('runtime connects storage cleanup, the unresolved power loss, and silent Ch
   assert.match(phone, /chapterNineRestorePhase: 'blackout'/);
   assert.match(phone, /metaInteraction\.active && !metaInteraction\.deviceResting/);
   assert.match(phone, /chapterNineArcaneSilent: true/);
+  assert.doesNotMatch(phone, /silentChapterTenHandoff/);
+  assert.match(phone, /if \(data\) \{[\s\S]*setPendingTransitions[\s\S]*setEvidenceBanner/);
+  assert.match(phone, /audio\.playChapterTransition/);
   assert.match(phone, /CHAPTER_NINE_DIALOGUE\.poweredDown/);
   assert.match(phone, /completePuzzleChapter\(poweredDownState, 9/);
 

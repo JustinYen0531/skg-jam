@@ -280,10 +280,9 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
     if (next === previous) return;
     prevChapterRef.current = next;
     const data = getAdvancedChapterTransition(previous, next);
-    const silentChapterTenHandoff = previous === 9
-      && next === 10
-      && progress.chapterNineArcaneSilent;
-    if (data && !silentChapterTenHandoff) {
+    // Arcane remains personally silent after the Chapter 9 rupture, but the
+    // phone still records EVIDENCE 09 and resolves the shared static handoff.
+    if (data) {
       setPendingTransitions((queue) => [...queue, data]);
       setEvidenceBanner(data);
     }

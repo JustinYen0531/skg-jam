@@ -33,6 +33,7 @@ import {
   resolvePipeCollision,
 } from './flappyPhysics';
 import {
+  CHAPTER_TEN_ROUTE_COLLECTION_RADIUS,
   deriveRoutePoints,
   requiredRoutePointCount,
   touchesRoutePoint,
@@ -65,8 +66,13 @@ export const ASSIST_WORLD: AssistWorldConfig = {
   pipeSpeed: EASY_FLAPPY_SETTINGS.pipeSpeed,
   paceFrames: EASY_FLAPPY_SETTINGS.spawnIntervalFrames,
   startY: 150,
-  collectionRadius: 17,
+  collectionRadius: CHAPTER_TEN_ROUTE_COLLECTION_RADIUS,
 };
+
+/** First-entry guidance from the recovered game, not Arcane's dialogue. */
+export const CHAPTER_TEN_WELCOME_LABEL = 'WELCOME, ARC-184.';
+export const CHAPTER_TEN_WELCOME_NOTE =
+  'Follow every light point. Complete the trace to open Gate 40.';
 
 /** The exact reassurance wording shown with the offer. */
 export const CHAPTER_TEN_ASSIST_PROMPT = 'ENABLE ROUTE GUIDE?';
@@ -379,7 +385,7 @@ const popcount = (n: number): number => {
 
 /**
  * Compute the flap schedule with a deterministic beam search over flap / no-flap
- * at every frame. A single -3.6 flap swings ~36px — far more than the 17px
+ * at every frame. A single -3.6 flap swings ~36px, while the doubled 34px
  * collection radius — so no simple "aim at the next point" controller can thread
  * 28 fixed (frame, height) windows. The beam keeps the most-collecting survivors
  * each frame (ranked by points gathered, then nearness to the next point) and

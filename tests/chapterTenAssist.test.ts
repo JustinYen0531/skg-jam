@@ -6,6 +6,8 @@ import {
   CHAPTER_TEN_ASSIST_FAIL_THRESHOLD,
   CHAPTER_TEN_ASSIST_NOTE,
   CHAPTER_TEN_ASSIST_PROMPT,
+  CHAPTER_TEN_WELCOME_LABEL,
+  CHAPTER_TEN_WELCOME_NOTE,
   computeAssistPlan,
   extractRouteTargets,
   getAssistMarkPositions,
@@ -93,6 +95,26 @@ test('the offer wording is exactly the reassurance the player is promised', () =
   assert.equal(CHAPTER_TEN_ASSIST_FAIL_THRESHOLD, 5);
 });
 
+test('Chapter 10 opens with the recovered route guide addressing ARC-184', () => {
+  assert.equal(CHAPTER_TEN_WELCOME_LABEL, 'WELCOME, ARC-184.');
+  assert.equal(
+    CHAPTER_TEN_WELCOME_NOTE,
+    'Follow every light point. Complete the trace to open Gate 40.',
+  );
+  const source = readFileSync(new URL('../src/components/FlappyGame.tsx', import.meta.url), 'utf8');
+  const start = source.indexOf('id="chapter-ten-route-welcome"');
+  const end = source.indexOf('Chapter 10 route-point assist offer', start);
+  const welcome = source.slice(start, end);
+
+  assert.ok(start >= 0 && end > start);
+  assert.match(welcome, /Route Guide \/\/ Legacy Profile/);
+  assert.match(welcome, /CHAPTER_TEN_WELCOME_LABEL/);
+  assert.match(welcome, /CHAPTER_TEN_WELCOME_NOTE/);
+  assert.match(welcome, /id="chapter-ten-begin-trace"/);
+  assert.match(welcome, />\s*BEGIN TRACE\s*</);
+  assert.doesNotMatch(welcome, /[\u3400-\u9fff]/);
+});
+
 test('the live assist prompt belongs to the retro English game surface', () => {
   const source = readFileSync(new URL('../src/components/FlappyGame.tsx', import.meta.url), 'utf8');
   const start = source.indexOf('id="chapter-ten-assist-offer"');
@@ -113,7 +135,7 @@ test('the assist maths uses the live pre-Gate-40 constants and no randomness', (
   assert.equal(ASSIST_WORLD.birdRadius, 12);
   assert.equal(ASSIST_WORLD.pipeSpeed, 4.8);
   assert.equal(ASSIST_WORLD.paceFrames, 40);
-  assert.equal(ASSIST_WORLD.collectionRadius, 17);
+  assert.equal(ASSIST_WORLD.collectionRadius, 34);
   const source = readFileSync(new URL('../src/lib/chapterTenAssist.ts', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /Math\.random/);
 });

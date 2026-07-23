@@ -173,13 +173,16 @@ export const deriveRoutePoints = (
 export const requiredRoutePointCount = (): number =>
   GATE_40_INDEX + CHAPTER_TEN_BETWEEN_POINT_GATES.length;
 
+/** The original 17px radius doubled for the approved accessibility margin. */
+export const CHAPTER_TEN_ROUTE_COLLECTION_RADIUS = 34;
+
 /** True only when the bird's body actually touches the rendered light point. */
 export const touchesRoutePoint = (
   birdX: number,
   birdY: number,
   pointX: number,
   pointY: number,
-  collectionRadius = 17,
+  collectionRadius = CHAPTER_TEN_ROUTE_COLLECTION_RADIUS,
 ): boolean => Math.hypot(birdX - pointX, birdY - pointY) <= collectionRadius;
 
 /**

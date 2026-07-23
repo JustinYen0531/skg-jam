@@ -33,6 +33,8 @@ import {
   CHAPTER_TEN_ASSIST_FAIL_THRESHOLD,
   CHAPTER_TEN_ASSIST_NOTE,
   CHAPTER_TEN_ASSIST_PROMPT,
+  CHAPTER_TEN_WELCOME_LABEL,
+  CHAPTER_TEN_WELCOME_NOTE,
   computeAssistPlan,
   getAssistMarkPositions,
   type AssistPlan,
@@ -70,6 +72,9 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
   const [seqIndex, setSeqIndex] = useState(0); // index in altitude matching
   const [seqMatched, setSeqMatched] = useState<boolean[]>(new Array(8).fill(false));
   const [hackedMode, setHackedMode] = useState(false);
+  const [showChapterTenWelcome, setShowChapterTenWelcome] = useState(
+    progress.currentChapter === 10,
+  );
   const {
     beginAutonomousControl,
     pulseAutonomousTap,
@@ -169,6 +174,12 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
   // Retry is a reset-suction, never the clue-unlock chord (§4.1).
   const restartRun = () => {
     audio.play('flight.restart');
+    resetGame();
+  };
+
+  const beginChapterTenTrace = () => {
+    setShowChapterTenWelcome(false);
+    audio.play('ui.toggle', { variant: 1 });
     resetGame();
   };
 
@@ -1594,6 +1605,44 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
             </div>
 
             <div className="text-[7px] text-[#555555] mt-2">✨ Press SPACE to fly again ✨</div>
+          </div>
+        )}
+
+        {/* The recovered 2013 guide recognizes the restored profile. It gives
+            instructions without making Arcane break his Chapter 9 silence. */}
+        {showChapterTenWelcome && chapterTenActive && (
+          <div
+            className="absolute inset-0 z-50 flex items-center justify-center bg-[#101513]/84 p-6 font-mono"
+            id="chapter-ten-route-welcome"
+          >
+            <div className="relative w-full max-w-[350px] border-2 border-[#d6d0a8] bg-[#26352f] p-1 text-center shadow-[6px_6px_0_#080c0a]">
+              <div className="border border-[#71806a] bg-[#18231f] px-6 py-5 shadow-[inset_0_0_0_1px_#0b100e]">
+                <div className="mb-3 text-[8px] font-bold uppercase tracking-[0.24em] text-[#87957f]">
+                  Route Guide // Legacy Profile
+                </div>
+                <div className="text-[16px] font-black tracking-[0.08em] text-[#fff2a6]">
+                  {CHAPTER_TEN_WELCOME_LABEL}
+                </div>
+                <div className="mx-auto mt-3 max-w-[260px] text-[10px] leading-[1.65] text-[#c4cec0]">
+                  {CHAPTER_TEN_WELCOME_NOTE}
+                </div>
+                <div className="mx-auto my-4 flex max-w-[230px] items-center gap-2" aria-hidden="true">
+                  <span className="h-px flex-1 bg-[#657168]" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-[#fff2a6] shadow-[0_0_8px_rgba(255,242,166,.8)]" />
+                  <span className="h-px flex-1 bg-[#657168]" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-[#fff2a6] shadow-[0_0_8px_rgba(255,242,166,.8)]" />
+                  <span className="h-px flex-1 bg-[#657168]" />
+                </div>
+                <button
+                  type="button"
+                  onClick={beginChapterTenTrace}
+                  id="chapter-ten-begin-trace"
+                  className="w-full border-2 border-[#e5d875] bg-[#6e7847] px-4 py-2.5 text-[10px] font-black tracking-[0.15em] text-[#fff6bd] shadow-[3px_3px_0_#080c0a] hover:bg-[#7f8952] active:translate-x-[1px] active:translate-y-[1px] active:shadow-[1px_1px_0_#080c0a]"
+                >
+                  BEGIN TRACE
+                </button>
+              </div>
+            </div>
           </div>
         )}
 

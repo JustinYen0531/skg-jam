@@ -3,6 +3,7 @@ import test from 'node:test';
 import { readFileSync } from 'node:fs';
 import {
   CHAPTER_TEN_NODES,
+  CHAPTER_TEN_ROUTE_COLLECTION_RADIUS,
   CHAPTER_TEN_SCORE_OVERFLOW,
   CHAPTER_TEN_BETWEEN_POINT_GATES,
   DEFAULT_FLIGHT_CONFIG,
@@ -89,10 +90,11 @@ test('route points form a deterministic varied path through gates and between th
 });
 
 test('route collection requires physical contact with each light point', () => {
+  assert.equal(CHAPTER_TEN_ROUTE_COLLECTION_RADIUS, 34);
   assert.equal(touchesRoutePoint(80, 120, 80, 120), true);
-  assert.equal(touchesRoutePoint(80, 120, 96, 120), true);
-  assert.equal(touchesRoutePoint(80, 120, 98, 120), false);
-  assert.equal(touchesRoutePoint(80, 120, 80, 138), false);
+  assert.equal(touchesRoutePoint(80, 120, 114, 120), true);
+  assert.equal(touchesRoutePoint(80, 120, 114.5, 120), false);
+  assert.equal(touchesRoutePoint(80, 120, 80, 154.5), false);
 });
 
 // 2. Missing any single route point keeps Gate 40 sealed.

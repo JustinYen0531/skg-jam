@@ -1,5 +1,13 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-24 — Chapter 10 evidence handoff and route welcome
+
+- Restored the shared static/noise chapter transition for the Chapter 9 → 10 handoff, presenting the existing `EVIDENCE 09` record without making Arcane resume dialogue.
+- Added a recovered-game route guide on Chapter 10 Flappy entry: `WELCOME, ARC-184.` followed by a direct instruction to collect every light point and open Gate 40.
+- `BEGIN TRACE` dismisses the guide and starts the first run immediately; the separate five-failure timing assist remains unchanged.
+- Doubled the light-point collection radius from 17px to 34px and shared that constant with both live play and deterministic assist simulation.
+- Browser and Preview remain intentionally unused by project instruction.
+
 ## 2026-07-24 — Chapter 10 nostalgic flight boundary
 
 - Gate 40 now restores the bright 2013 pixel presentation immediately and holds it intact through score 184.
