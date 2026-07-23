@@ -42,7 +42,7 @@ const LOGO_TEXT: React.CSSProperties = {
 };
 
 type Phase = 'idle' | 'split' | 'collide' | 'burst' | 'center' | 'ready';
-type PerspectivePhase = 'screen' | 'blinking' | 'meta-ready';
+type PerspectivePhase = 'screen' | 'blinking' | 'settling' | 'meta-ready';
 
 const SEQ = { collide: 650, burst: 950, center: 2000, ready: 2350 } as const;
 const BLINK_SEQ = {
@@ -54,7 +54,14 @@ const BLINK_SEQ = {
   thirdOpen: 1440,
   fourthClose: 1860,
   fourthOpen: 2060,
-  ready: 2400,
+  settle: 2400,
+  ready: 3550,
+} as const;
+const INTRO_META_BRIDGE = {
+  frameScale: 0.83,
+  screenScale: 0.8,
+  y: '-12%',
+  duration: 1.05,
 } as const;
 const Y = { split: 0.78, near: 0.16, final: 0.98 } as const;
 
@@ -141,6 +148,7 @@ export const GameLogoIntro: React.FC<{
   const [perspectivePhase, setPerspectivePhase] = useState<PerspectivePhase>('screen');
   const [eyesClosed, setEyesClosed] = useState(false);
   const [metaFramed, setMetaFramed] = useState(false);
+  const [bridgeSettled, setBridgeSettled] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const [offsets, setOffsets] = useState({ top: 0, bottom: 0 });
   const doneRef = useRef(false);
@@ -183,6 +191,7 @@ export const GameLogoIntro: React.FC<{
 
   const beginPerspectiveReveal = () => {
     clearTimers();
+    setBridgeSettled(false);
     setPerspectivePhase('blinking');
     setEyesClosed(true);
     push(() => setEyesClosed(false), BLINK_SEQ.firstOpen);
@@ -196,6 +205,10 @@ export const GameLogoIntro: React.FC<{
     push(() => setEyesClosed(false), BLINK_SEQ.thirdOpen);
     push(() => setEyesClosed(true), BLINK_SEQ.fourthClose);
     push(() => setEyesClosed(false), BLINK_SEQ.fourthOpen);
+    push(() => {
+      setBridgeSettled(true);
+      setPerspectivePhase('settling');
+    }, BLINK_SEQ.settle);
     push(() => setPerspectivePhase('meta-ready'), BLINK_SEQ.ready);
   };
 
@@ -270,8 +283,14 @@ export const GameLogoIntro: React.FC<{
       className="pointer-events-none absolute inset-x-0 bottom-[12%] flex justify-center"
       style={{ ...LOGO_TEXT, fontSize: '13px', fontWeight: 400, letterSpacing: '0.34em', color: '#7c8aa0' }}
       initial={{ opacity: 0 }}
-      animate={{ opacity: showHint && perspectivePhase !== 'blinking' ? [0.25, 0.6, 0.25] : 0 }}
-      transition={showHint && perspectivePhase !== 'blinking' ? { duration: 1.8, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.3 }}
+      animate={{
+        opacity: showHint && perspectivePhase !== 'blinking' && perspectivePhase !== 'settling'
+          ? [0.25, 0.6, 0.25]
+          : 0,
+      }}
+      transition={showHint && perspectivePhase !== 'blinking' && perspectivePhase !== 'settling'
+        ? { duration: 1.8, repeat: Infinity, ease: 'easeInOut' }
+        : { duration: 0.3 }}
       aria-hidden="true"
     >
       {phase === 'ready' && perspectivePhase === 'meta-ready' ? 'TAP TO BEGIN' : 'TAP'}
@@ -329,11 +348,15 @@ export const GameLogoIntro: React.FC<{
         initial={false}
         animate={{
           opacity: metaFramed ? 1 : 0,
-          scale: metaFramed ? 0.89 : 1,
-          y: metaFramed ? '-9%' : '0%',
+          scale: metaFramed ? (bridgeSettled ? INTRO_META_BRIDGE.frameScale : 0.89) : 1,
+          y: metaFramed ? (bridgeSettled ? INTRO_META_BRIDGE.y : '-9%') : '0%',
         }}
-        transition={{ duration: reduced ? 0 : 0.85, ease: [0.22, 1, 0.36, 1] }}
+        transition={{
+          duration: reduced ? 0 : bridgeSettled ? INTRO_META_BRIDGE.duration : 0.85,
+          ease: [0.22, 1, 0.36, 1],
+        }}
         id="intro-meta-phone-frame"
+        data-bridge-state={bridgeSettled ? 'settled' : 'revealed'}
       />
 
       {/* The original title never disappears. It simply becomes the content
@@ -342,13 +365,17 @@ export const GameLogoIntro: React.FC<{
         className="absolute inset-0 z-20 flex items-center justify-center overflow-hidden bg-[radial-gradient(130%_130%_at_50%_45%,#0b0c14_0%,#060709_62%,#030305_100%)]"
         initial={false}
         animate={{
-          scale: metaFramed ? 0.86 : 1,
-          y: metaFramed ? '-9%' : '0%',
+          scale: metaFramed ? (bridgeSettled ? INTRO_META_BRIDGE.screenScale : 0.86) : 1,
+          y: metaFramed ? (bridgeSettled ? INTRO_META_BRIDGE.y : '-9%') : '0%',
           borderRadius: metaFramed ? 24 : 0,
         }}
-        transition={{ duration: reduced ? 0 : 0.85, ease: [0.22, 1, 0.36, 1] }}
+        transition={{
+          duration: reduced ? 0 : bridgeSettled ? INTRO_META_BRIDGE.duration : 0.85,
+          ease: [0.22, 1, 0.36, 1],
+        }}
         id="intro-title-phone-screen"
         data-title-location={metaFramed ? 'physical-phone' : 'fullscreen'}
+        data-bridge-state={bridgeSettled ? 'settled' : 'revealed'}
       >
         {metaFramed && (
           <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex h-7 items-center justify-between bg-[#0b0c0f] px-4 font-mono text-[9px] text-slate-300/80">

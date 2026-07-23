@@ -28,10 +28,10 @@ test('logo lines stay module-scoped so phase changes cannot replay their initial
 });
 
 test('the title reveal uses two blink pairs before exposing the physical Meta frame', () => {
-  assert.match(logoSource, /type PerspectivePhase = 'screen' \| 'blinking' \| 'meta-ready'/);
+  assert.match(logoSource, /type PerspectivePhase = 'screen' \| 'blinking' \| 'settling' \| 'meta-ready'/);
   assert.match(logoSource, /firstOpen: 180[\s\S]*secondClose: 480[\s\S]*secondOpen: 680/);
   assert.match(logoSource, /thirdClose: 1000[\s\S]*revealRoom: 1180[\s\S]*thirdOpen: 1440/);
-  assert.match(logoSource, /fourthClose: 1860[\s\S]*fourthOpen: 2060[\s\S]*ready: 2400/);
+  assert.match(logoSource, /fourthClose: 1860[\s\S]*fourthOpen: 2060[\s\S]*settle: 2400[\s\S]*ready: 3550/);
   assert.match(logoSource, /data-blink-pairs="2"/);
   assert.match(logoSource, /data-blink-count="4"/);
   assert.match(logoSource, /setMetaFramed\(true\)/);
@@ -44,6 +44,18 @@ test('each blink closes a horizontal ellipse into a centered line', () => {
   assert.match(logoSource, /animate=\{\{ ry: eyesClosed \? 0\.45 : 52 \}\}/);
   assert.doesNotMatch(logoSource, /animate=\{\{ y: eyesClosed \? '0%' : '-102%' \}\}/);
   assert.doesNotMatch(logoSource, /animate=\{\{ y: eyesClosed \? '0%' : '102%' \}\}/);
+});
+
+test('the revealed title phone settles toward the live Meta framing before input unlocks', () => {
+  assert.match(
+    logoSource,
+    /const INTRO_META_BRIDGE = \{[\s\S]*frameScale: 0\.83[\s\S]*screenScale: 0\.8[\s\S]*y: '-12%'[\s\S]*duration: 1\.05/,
+  );
+  assert.match(logoSource, /setBridgeSettled\(true\);[\s\S]*setPerspectivePhase\('settling'\)/);
+  assert.match(logoSource, /data-bridge-state=\{bridgeSettled \? 'settled' : 'revealed'\}/);
+  assert.match(logoSource, /bridgeSettled \? INTRO_META_BRIDGE\.screenScale : 0\.86/);
+  assert.match(logoSource, /bridgeSettled \? INTRO_META_BRIDGE\.frameScale : 0\.89/);
+  assert.match(logoSource, /perspectivePhase === 'meta-ready'\) finish\(\)/);
 });
 
 test('the same title remains on a framed phone with hands until the final tap', () => {
