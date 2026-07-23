@@ -1,4 +1,5 @@
 import type { ActiveApp, GameProgress, PuzzleChapter } from '../types';
+import { getChapterEightMemory, NOAH_ARCHIVE_FRAGMENTS } from './chapterEightArchive';
 import { hasAllMaraNumberClues } from './chapterSevenSocial';
 
 export type ProgressionAction =
@@ -21,6 +22,10 @@ export interface ChapterAdvanceGuide {
   nextLabel: string;
   objective: string;
   steps: readonly string[];
+  answers?: readonly {
+    question: string;
+    answer: string;
+  }[];
   completion: string;
 }
 
@@ -116,6 +121,10 @@ const CHAPTER_ADVANCE_GUIDES: Record<PuzzleChapter, ChapterAdvanceGuide> = {
       'Open the damaged Noah thread at the bottom of the archive.',
       'Use the recovered-memory drawer to restore all eight missing messages.',
     ],
+    answers: NOAH_ARCHIVE_FRAGMENTS.map((fragment) => ({
+      question: fragment.prompt,
+      answer: getChapterEightMemory(fragment.memoryId)?.label ?? fragment.memoryId,
+    })),
     completion: 'The human conversation is restored; its flight-sequence attachment remains locked for Chapter 9.',
   },
   9: {

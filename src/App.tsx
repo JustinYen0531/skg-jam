@@ -301,6 +301,27 @@ export default function App() {
                 ))}
               </ol>
 
+              {chapterAdvanceGuide.answers && (
+                <div className="mt-3 border-t border-slate-800 pt-3" id="chapter-guide-answers">
+                  <div className="font-mono text-[8px] font-bold uppercase tracking-[0.18em] text-amber-400">
+                    Question answers
+                  </div>
+                  <ol className="mt-2 space-y-2">
+                    {chapterAdvanceGuide.answers.map(({ question, answer }, index) => (
+                      <li key={question} className="rounded-md border border-amber-400/15 bg-amber-400/5 px-2.5 py-2">
+                        <div className="flex gap-2 text-[9px] leading-snug text-slate-400">
+                          <span className="font-mono text-amber-400/70">{index + 1}.</span>
+                          <span>{question}</span>
+                        </div>
+                        <div className="mt-1 pl-4 text-[10px] font-bold leading-snug text-amber-200">
+                          → {answer}
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              )}
+
               <div className="mt-3 flex gap-2 border-t border-slate-800 pt-3" id="chapter-guide-completion">
                 <CheckCircle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-400" />
                 <div>

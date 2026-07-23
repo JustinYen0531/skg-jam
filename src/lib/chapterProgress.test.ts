@@ -29,6 +29,25 @@ test('Chapter 1 guide describes the real ViewTube path into Chapter 2', () => {
   assert.match(guide.completion, /Lumen Arc/);
 });
 
+test('Chapter 8 developer guide lists every restoration question and answer', () => {
+  const guide = getChapterAdvanceGuide(8);
+
+  assert.equal(guide.answers?.length, 8);
+  assert.deepEqual(
+    guide.answers?.map(({ answer }) => answer),
+    [
+      'SILVER KITE',
+      'THE OPEN DOOR · PAGE 256',
+      'HARBOR LOOKOUT · 184',
+      'OLD STATION GATE · 40',
+      'FIRST REVIEW · 2019',
+      'SEA GLASS',
+      'THE LUMEN ARC STACK',
+      'THE WINDOW SEAT',
+    ],
+  );
+});
+
 test('defines exactly ten ordered GDD puzzle chapters', () => {
   assert.equal(DEBUG_CHAPTERS.length, 10);
   assert.deepEqual(DEBUG_CHAPTERS.map((chapter) => chapter.id), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);

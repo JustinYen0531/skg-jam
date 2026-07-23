@@ -1,5 +1,13 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-23 — Chapter 8 developer answer key
+
+- Added an eight-entry question-and-answer key to the Chapter 8 advance guide.
+- The answer key is derived from the live Noah fragment and collected-memory data, so developer guidance cannot silently drift away from the actual puzzle.
+- Kept the answer key developer-only; the player-facing archive still requires collecting and matching each memory.
+- Static verification passed: focused guide and Chapter 8 tests 21/21, full suite 213/213, TypeScript, production build, and diff checks.
+- Browser and Preview remain intentionally unused by project instruction.
+
 ## 2026-07-23 — Chapter 8 linear memory answer pool
 
 - Noah's damaged messages now restore strictly from the first message downward; later slots remain visibly sequence-locked.
