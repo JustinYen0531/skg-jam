@@ -41,9 +41,9 @@ import {
   getChapterEightThreadDialogue,
 } from '../lib/chapterEightDialogue';
 import {
-  CHAPTER_NINE_RECOVERY_PROFILES,
+  CHAPTER_NINE_CHILD_PROFILE,
   canRecoverChapterNineChildProfile,
-  type ChapterNineProfileChoice,
+  getChapterNinePasswordResult,
 } from '../lib/chapterNineRecovery';
 
 interface MessagesAppProps {
@@ -313,28 +313,15 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
     }
   };
 
-  const handleChapterNineProfileChoice = (choice: ChapterNineProfileChoice) => {
-    audio.play('phone.tab');
-    setChapterNineRecoveryError('');
-    setChapterNinePassword('');
-    updateProgress((previous) => previous.currentChapter === 9
-      ? {
-          ...previous,
-          chapterNineProfileChoice: choice,
-          chapterNinePasswordVerified: false,
-          chapterNineDownloadState: 'idle',
-        }
-      : previous);
-  };
-
   const handleChapterNineRecoveryLogin = (event: React.FormEvent) => {
     event.preventDefault();
-    if (!canRecoverChapterNineChildProfile(progress.chapterNineProfileChoice, chapterNinePassword)) {
+    const passwordResult = getChapterNinePasswordResult(chapterNinePassword);
+    if (!canRecoverChapterNineChildProfile(chapterNinePassword)) {
       audio.play('auth.wrong');
       setChapterNineRecoveryError(
-        progress.chapterNineProfileChoice === 'child'
-          ? 'PASSWORD REJECTED · HINT: OWNER NAME + RECORD'
-          : 'DEVICE SIGNATURE MISMATCH · THIS PROFILE DID NOT CREATE THE ORIGINAL RECORD',
+        passwordResult === 'record-alias'
+          ? 'ARC_184 WAS THE CHILD\'S LEADERBOARD NAME, NOT THE ARCHIVE PASSWORD. RECOVERED ACCOUNT OWNER · ARKEN KADE.'
+          : 'ARCHIVE KEY REJECTED · WHO HELD FIRST PLACE BEFORE THE PUBLIC IMITATION?',
       );
       return;
     }
@@ -344,6 +331,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
     updateProgress((previous) => previous.currentChapter === 9
       ? {
           ...previous,
+          chapterNineProfileChoice: 'child',
           chapterNinePasswordVerified: true,
           chapterNineDownloadState: 'downloading',
         }
@@ -866,66 +854,86 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                   </div>
                 ) : (
                   <>
-                    <p className="font-laos text-[9px] leading-relaxed text-[var(--laos-dim)]">
-                      Three records claim the same impossible score. Select the record that belongs to this device.
-                    </p>
-                    <div className="grid grid-cols-3 gap-2" id="chapter-nine-profile-choices">
-                      {CHAPTER_NINE_RECOVERY_PROFILES.map((profile) => {
-                        const selected = progress.chapterNineProfileChoice === profile.id;
-                        return (
-                          <button
-                            key={profile.id}
-                            type="button"
-                            onClick={() => handleChapterNineProfileChoice(profile.id)}
-                            className={`min-h-[112px] border p-3 text-left transition-colors ${
-                              selected
-                                ? 'border-emerald-300/55 bg-emerald-300/[0.08]'
-                                : 'border-[var(--laos-line)] bg-[var(--laos-bg)] hover:border-[var(--laos-dim)]'
-                            }`}
-                            data-recovery-profile={profile.id}
-                            data-meta-immediate="true"
-                            data-meta-hit-recovery="true"
-                          >
-                            <div className="font-mono text-[8px] font-bold text-[var(--laos-text)]">{profile.owner}</div>
-                            <div className="mt-2 text-[8px] text-[var(--laos-dim)]">{profile.title}</div>
-                            <div className="mt-1 text-[7px] text-[var(--laos-faint)]">{profile.age}</div>
-                            <div className="mt-3 border-t border-[var(--laos-line-dim)] pt-2 text-[7px] leading-relaxed text-[var(--laos-faint)]">{profile.detail}</div>
-                          </button>
-                        );
-                      })}
+                    <div className="border border-[var(--laos-line)] bg-[var(--laos-bg)]" id="chapter-nine-child-profile">
+                      <div className="flex items-center justify-between border-b border-[var(--laos-line-dim)] px-3 py-2.5">
+                        <div>
+                          <div className="font-mono text-[8px] font-bold tracking-[0.12em] text-[var(--laos-text)]">LEGACY CHILD PROFILE</div>
+                          <div className="mt-1 text-[7px] text-[var(--laos-faint)]">{CHAPTER_NINE_CHILD_PROFILE.title}</div>
+                        </div>
+                        <span className="border border-emerald-300/30 bg-emerald-300/[0.07] px-2 py-1 font-mono text-[7px] text-emerald-200">
+                          LOCAL COPY FOUND
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-x-5 gap-y-2.5 p-3 font-mono text-[7px]">
+                        <div>
+                          <div className="text-[var(--laos-faint)]">PROFILE OWNER</div>
+                          <div className="mt-1 text-[var(--laos-text)]">{CHAPTER_NINE_CHILD_PROFILE.owner}</div>
+                        </div>
+                        <div>
+                          <div className="text-[var(--laos-faint)]">CREATED</div>
+                          <div className="mt-1 text-[var(--laos-text)]">{CHAPTER_NINE_CHILD_PROFILE.age}</div>
+                        </div>
+                        <div>
+                          <div className="text-[var(--laos-faint)]">LAST VERIFIED SCORE</div>
+                          <div className="mt-1 text-[var(--laos-text)]">{CHAPTER_NINE_CHILD_PROFILE.score}</div>
+                        </div>
+                        <div>
+                          <div className="text-[var(--laos-faint)]">COMPRESSED PACKAGE</div>
+                          <div className="mt-1 text-[var(--laos-text)]">{CHAPTER_NINE_CHILD_PROFILE.packageSize}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between border-t border-[var(--laos-line-dim)] px-3 py-2 text-[7px]">
+                        <span className="text-[var(--laos-faint)]">{CHAPTER_NINE_CHILD_PROFILE.detail}</span>
+                        <span className="font-mono text-emerald-200/80">{CHAPTER_NINE_CHILD_PROFILE.signature}</span>
+                      </div>
                     </div>
 
-                    {progress.chapterNineProfileChoice && (
-                      <form onSubmit={handleChapterNineRecoveryLogin} className="border-t border-[var(--laos-line-dim)] pt-3" id="chapter-nine-player-login">
-                        <div className="flex items-end gap-2">
-                          <label className="min-w-0 flex-1">
-                            <span className="laos-label block text-[7px]">PLAYER PASSWORD · OWNER NAME + RECORD</span>
-                            <input
-                              type="password"
-                              value={chapterNinePassword}
-                              onChange={(event) => setChapterNinePassword(event.target.value)}
-                              placeholder="Identity required"
-                              autoComplete="off"
-                              data-meta-hit-recovery="true"
-                              id="chapter-nine-player-password"
-                              className="mt-1 w-full border border-[var(--laos-line)] bg-[var(--laos-bg)] px-2.5 py-2 font-mono text-[10px] uppercase text-[var(--laos-text)] outline-none focus:border-[var(--laos-warm)]"
-                            />
-                          </label>
-                          <button
-                            type="submit"
-                            className="flex h-[34px] items-center gap-1.5 border border-emerald-300/35 bg-emerald-300/10 px-3 font-mono text-[8px] text-emerald-200"
-                            data-meta-immediate="true"
+                    <form onSubmit={handleChapterNineRecoveryLogin} className="border-t border-[var(--laos-line-dim)] pt-3" id="chapter-nine-player-login">
+                      <div className="mb-2 border-l-2 border-[var(--laos-warm)]/50 pl-2">
+                        <div className="laos-label text-[7px]">PASSWORD HINT</div>
+                        <div className="mt-1 text-[8px] text-[var(--laos-dim)]">Who once held first place in this game?</div>
+                      </div>
+                      <div className="flex items-end gap-2">
+                        <label className="min-w-0 flex-1">
+                          <span className="laos-label block text-[7px]">
+                            {chapterNineRecoveryError.includes('ARKEN KADE')
+                              ? 'ARCHIVE PASSWORD · OWNER FIRST NAME'
+                              : 'ARCHIVE PASSWORD'}
+                          </span>
+                          <input
+                            type="password"
+                            value={chapterNinePassword}
+                            onChange={(event) => setChapterNinePassword(event.target.value)}
+                            placeholder="Required to download"
+                            autoComplete="off"
                             data-meta-hit-recovery="true"
-                            id="chapter-nine-player-login-submit"
-                          >
-                            <Download className="h-3 w-3" /> RESTORE
-                          </button>
+                            id="chapter-nine-player-password"
+                            className="mt-1 w-full border border-[var(--laos-line)] bg-[var(--laos-bg)] px-2.5 py-2 font-mono text-[10px] uppercase text-[var(--laos-text)] outline-none focus:border-[var(--laos-warm)]"
+                          />
+                        </label>
+                        <button
+                          type="submit"
+                          className="flex h-[34px] items-center gap-1.5 border border-emerald-300/35 bg-emerald-300/10 px-3 font-mono text-[8px] text-emerald-200"
+                          data-meta-immediate="true"
+                          data-meta-hit-recovery="true"
+                          id="chapter-nine-player-login-submit"
+                        >
+                          <Download className="h-3 w-3" /> DOWNLOAD
+                        </button>
+                      </div>
+                      {chapterNineRecoveryError && (
+                        <div
+                          className={`mt-2 border px-2.5 py-2 font-mono text-[8px] leading-relaxed ${
+                            chapterNineRecoveryError.includes('ARKEN KADE')
+                              ? 'border-amber-200/30 bg-amber-100/[0.06] text-amber-100'
+                              : 'border-red-300/20 bg-red-300/[0.04] text-red-300'
+                          }`}
+                          id="chapter-nine-recovery-error"
+                        >
+                          {chapterNineRecoveryError}
                         </div>
-                        {chapterNineRecoveryError && (
-                          <div className="mt-2 font-mono text-[8px] text-red-300" id="chapter-nine-recovery-error">{chapterNineRecoveryError}</div>
-                        )}
-                      </form>
-                    )}
+                      )}
+                    </form>
                   </>
                 )}
               </section>
