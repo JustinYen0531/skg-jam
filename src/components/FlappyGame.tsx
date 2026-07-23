@@ -879,10 +879,10 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
           for (const mark of marks) {
             const r = mark.imminent ? 9 : 6;
             ctx.save();
-            ctx.strokeStyle = mark.imminent ? 'rgba(253, 224, 71, 0.95)' : 'rgba(148, 197, 255, 0.6)';
+            ctx.strokeStyle = mark.imminent ? 'rgba(253, 224, 71, 1)' : 'rgba(148, 197, 255, 0.95)';
             ctx.lineWidth = mark.imminent ? 3 : 2;
-            ctx.shadowColor = mark.imminent ? 'rgba(253, 224, 71, 0.8)' : 'transparent';
-            ctx.shadowBlur = mark.imminent ? 8 : 0;
+            ctx.shadowColor = mark.imminent ? 'rgba(253, 224, 71, 0.95)' : 'rgba(148, 197, 255, 0.65)';
+            ctx.shadowBlur = mark.imminent ? 10 : 5;
             ctx.beginPath();
             ctx.moveTo(mark.x - r, mark.y - r);
             ctx.lineTo(mark.x + r, mark.y + r);
@@ -893,8 +893,8 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
           }
           // A vertical "press line" at the bird's column clarifies the trigger.
           ctx.save();
-          ctx.strokeStyle = 'rgba(253, 224, 71, 0.25)';
-          ctx.lineWidth = 1;
+          ctx.strokeStyle = 'rgba(253, 224, 71, 0.72)';
+          ctx.lineWidth = 1.5;
           ctx.setLineDash([4, 4]);
           ctx.beginPath();
           ctx.moveTo(80, 0);

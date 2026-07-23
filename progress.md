@@ -979,3 +979,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Added the title-logo files already required by current-main tests so the suspicious-run transition and music suppression remain internally consistent.
 - Static verification passed: full tests 256/256, TypeScript lint, production build, and diff checks. The existing non-fatal 500 kB chunk advisory remains.
 - Browser and Preview remain intentionally unused by project instruction.
+
+## 2026-07-24 — Chapter 10 assist visibility
+
+- Raised ordinary assist-cross opacity from 0.60 to 0.95 and imminent crosses to full opacity.
+- Added a visible blue glow to approaching crosses and strengthened the imminent yellow glow.
+- Raised the yellow press-line opacity from 0.25 to 0.72 without changing its position, timing, or the flight physics.
+- Browser and Preview remain intentionally unused by project instruction.

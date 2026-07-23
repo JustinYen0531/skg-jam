@@ -99,3 +99,10 @@ test('the assist maths uses the live pre-Gate-40 constants and no randomness', (
   const source = readFileSync(new URL('../src/lib/chapterTenAssist.ts', import.meta.url), 'utf8');
   assert.doesNotMatch(source, /Math\.random/);
 });
+
+test('assist crosses and the press line stay strongly opaque in the live renderer', () => {
+  const source = readFileSync(new URL('../src/components/FlappyGame.tsx', import.meta.url), 'utf8');
+  assert.match(source, /rgba\(253, 224, 71, 1\)/);
+  assert.match(source, /rgba\(148, 197, 255, 0\.95\)/);
+  assert.match(source, /rgba\(253, 224, 71, 0\.72\)/);
+});
