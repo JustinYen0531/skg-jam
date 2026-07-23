@@ -35,10 +35,10 @@ test('no transition on first mount (no chapter change)', () => {
   assert.equal(getAdvancedChapterTransition(5, 5), null);
 });
 
-test('the first Chapter 1 home arrival uses a case transition, not false evidence', () => {
+test('the first Chapter 1 home arrival presents an objective, not a completed case', () => {
   const data = getChapterEntryTransition(1);
-  assert.equal(data.evidenceLabel, 'CASE 01');
-  assert.equal(data.title, getChapterEnvironment(1).caseLabel);
+  assert.equal(data.evidenceLabel, 'OBJECTIVE');
+  assert.equal(data.title, 'CHASE THE HIGHEST SCORE');
 });
 
 test('no transition for debug multi-jumps or backwards resets', () => {

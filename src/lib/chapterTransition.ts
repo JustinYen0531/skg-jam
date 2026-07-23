@@ -32,15 +32,14 @@ export function getChapterTransition(completedChapter: PuzzleChapter): ChapterTr
 
 /**
  * The first return to the Chapter 1 home screen is not evidence completion:
- * it is the player entering the investigation for the first time. Give that
- * arrival its own case-file label so it has the same visual hand-off without
- * falsely claiming that Chapter 1 was already solved.
+ * it is the player receiving their first objective. Keep the same visual
+ * hand-off without falsely presenting this arrival as a completed case.
  */
 export function getChapterEntryTransition(chapter: PuzzleChapter): ChapterTransitionData {
   return {
     completedChapter: chapter,
-    evidenceLabel: `CASE ${chapter.toString().padStart(2, '0')}`,
-    title: getChapterEnvironment(chapter).caseLabel,
+    evidenceLabel: 'OBJECTIVE',
+    title: 'CHASE THE HIGHEST SCORE',
   };
 }
 
