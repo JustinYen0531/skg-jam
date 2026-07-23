@@ -14,7 +14,6 @@ import {
   isGate40Passable,
   requiredRoutePointCount,
   shouldAcceptPlayerInput,
-  stepFlight,
   touchesRoutePoint,
   type ChapterTenPhase,
   type FlightState,
@@ -41,6 +40,14 @@ import {
 } from '../lib/chapterTenAssist';
 import { useMetaInteraction } from './MetaInteractionScene';
 import { ARCANE_FLIGHT_REFLECTIONS } from '../lib/chapterTenCredits';
+import {
+  computePerformancePlan,
+  getPerformanceObstaclePositions,
+  performanceSampleAt,
+  performanceScoreAtFrame,
+  type PerformancePlan,
+} from '../lib/chapterTenPerformance';
+import { drawPerformanceBird, drawPerformanceObstacles } from './chapterTenPerformanceCanvas';
 
 interface FlappyGameProps {
   progress: GameProgress;
@@ -135,6 +142,10 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
     chapterTenTerminalDotsSpoken: false,
     chapterTenReflectionIndex: 0,
     chapterTenFinaleStarted: false,
+    chapterTenPerf: null as PerformancePlan | null,
+    chapterTenPerfFrame: 0,
+    chapterTenGravitySign: 1 as 1 | -1,
+    chapterTenDiving: false,
   });
 
   const resetGame = () => {
@@ -172,6 +183,10 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
       chapterTenTerminalDotsSpoken: false,
       chapterTenReflectionIndex: 0,
       chapterTenFinaleStarted: false,
+      chapterTenPerf: null,
+      chapterTenPerfFrame: 0,
+      chapterTenGravitySign: 1,
+      chapterTenDiving: false,
     };
     endAutonomousControl();
     if (chapterTenActive) music.setPhase(10);
@@ -443,23 +458,20 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
           if (state.chapterTenFlight.completed) {
             state.chapterTenCompleteFrames += 1;
             if (state.chapterTenCompleteFrames >= 180) triggerCompletion();
-          } else {
-            const previousFlightScore = state.chapterTenFlight.score;
-            const flightStep = stepFlight(state.chapterTenFlight, {
-              canvasHeight: height,
-              birdRadius: 12,
-              gravity: state.birdGravity,
-              jump: state.birdJump,
-              maxFall: EASY_FLAPPY_SETTINGS.maxFallSpeed,
-              cruisePaceFrames: 42,
-              sprintPaceFrames: 24,
-              scorePerPipe: 2,
-            });
-            state.chapterTenFlight = flightStep.state;
-            state.chapterTenPhase = flightStep.state.phase;
-            state.birdY = flightStep.state.birdY;
-            state.birdVelocity = flightStep.state.velocityY;
-            state.score = flightStep.state.score;
+          } else if (state.chapterTenPerf && !state.chapterTenDiving) {
+            // Arcane performs the verified hard gauntlet: his frame-tight click
+            // pattern drives the bird; the route is built to be cleared by it.
+            const plan = state.chapterTenPerf;
+            const previousFlightScore = state.score;
+            if (state.chapterTenPerfFrame < plan.config.frames) state.chapterTenPerfFrame += 1;
+            const perfSample = performanceSampleAt(plan, state.chapterTenPerfFrame);
+            state.birdY = perfSample.y;
+            state.birdVelocity = perfSample.v;
+            state.chapterTenGravitySign = perfSample.gravitySign;
+            state.score = performanceScoreAtFrame(state.chapterTenPerfFrame, plan.config);
+            state.chapterTenPhase = state.score >= CHAPTER_TEN_NODES.distanceHudFrom
+              ? (state.score >= CHAPTER_TEN_NODES.terminal ? 'terminal-256' : 'coordinate-flight')
+              : (state.score >= CHAPTER_TEN_NODES.memory ? 'memory-184' : 'restored-2013');
             setScore(state.score);
             const reflection = ARCANE_FLIGHT_REFLECTIONS[state.chapterTenReflectionIndex];
             if (
@@ -471,12 +483,16 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
               state.chapterTenReflectionIndex += 1;
             }
             setCurrentAlt(Math.max(0, Math.min(256, Math.round(((height - state.birdY) / height) * 256))));
-            if (flightStep.events.includes('flap')) {
+            // The tap is the single shared event: it drives the Meta finger too.
+            if (perfSample.tapped) {
               state.lastJumpFrame = state.frameCount;
               pulseAutonomousTap();
               audio.play('flight.flap');
             }
-            if (flightStep.events.includes('memory-184')) {
+            if (perfSample.flipped) {
+              audio.play('flight.level2Connect');
+            }
+            if (previousFlightScore < CHAPTER_TEN_NODES.memory && state.score >= CHAPTER_TEN_NODES.memory) {
               state.chapterTenBeatFrames = 1;
               audio.play('flight.altitudeStep', { variant: 0 });
               if (!state.chapterTenMemoryDotsSpoken) {
@@ -486,7 +502,8 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
             } else if (state.chapterTenBeatFrames > 0) {
               state.chapterTenBeatFrames += 1;
             }
-            if (flightStep.events.includes('terminal-256')) {
+            if (previousFlightScore < CHAPTER_TEN_NODES.terminal && state.score >= CHAPTER_TEN_NODES.terminal) {
+              state.chapterTenDiving = true;
               endAutonomousControl();
               audio.play('story.serviceTerminated');
               if (!state.chapterTenTerminalDotsSpoken) {
@@ -494,18 +511,21 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
                 speak(['...']);
               }
             }
-            if (flightStep.events.includes('complete')) {
+          } else if (state.chapterTenDiving && !state.chapterTenFlight.completed) {
+            // At 256 the finger stops; gravity takes him off the bottom — not a death.
+            state.chapterTenGravitySign = 1;
+            state.birdVelocity = Math.min(
+              state.birdVelocity + state.birdGravity * 1.6,
+              EASY_FLAPPY_SETTINGS.maxFallSpeed * 1.8,
+            );
+            state.birdY += state.birdVelocity;
+            setCurrentAlt(Math.max(0, Math.min(256, Math.round(((height - state.birdY) / height) * 256))));
+            if (state.birdY - 12 > height) {
+              state.chapterTenFlight = { ...state.chapterTenFlight, completed: true };
               state.chapterTenCompleteFrames = 1;
               audio.play('flight.complete');
             }
           }
-          if (state.frameCount % 64 === 0 && !state.chapterTenFlight.completed) {
-            const gateIndex = state.pipeIndexCounter++;
-            const { topHeight, bottomHeight } = getGateHeights(gateIndex, height);
-            state.pipes.push({ x: width + 40, topHeight, bottomHeight, passed: false, index: gateIndex });
-          }
-          state.pipes.forEach((pipe) => { pipe.x -= 2; });
-          state.pipes = state.pipes.filter((pipe) => pipe.x > -60);
         } else {
         const previousBirdY = state.birdY;
         state.birdVelocity = Math.min(
@@ -674,6 +694,11 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
                 }
                 chapterTenFailsRef.current = 0; // cleared the gate → streak resets
                 audio.play('flight.level2Connect');
+                // Arcane's hard performance: a verified click pattern + gauntlet.
+                state.chapterTenPerf = computePerformancePlan();
+                state.chapterTenPerfFrame = 0;
+                state.chapterTenGravitySign = 1;
+                state.chapterTenDiving = false;
               } else if (progress.unlockedCodeRoute) {
                 // If the player knows the code, let's track real-time sequence matching!
                 // Let's check the current altitude against target altitude sequence at index 0 (184)
@@ -928,12 +953,26 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
         }
       }
 
+      // Arcane's performance gauntlet: the verified obstacles, drawn under him.
+      if (
+        chapterTenActive
+        && state.chapterTenPerf
+        && state.chapterTenFlight
+        && !state.chapterTenFlight.completed
+        && !state.chapterTenDiving
+      ) {
+        const placed = getPerformanceObstaclePositions(state.chapterTenPerf, state.chapterTenPerfFrame, width);
+        drawPerformanceObstacles(ctx, placed, state.chapterTenPerfFrame, height);
+      }
+
       // --- Draw Bird ---
       const birdX = 80;
       const birdY = state.birdY;
       const angle = Math.min(Math.PI / 6, Math.max(-Math.PI / 7, state.birdVelocity * 0.06));
 
-      if (chapterTenActive && state.chapterTenFlight) {
+      if (chapterTenActive && state.chapterTenPerf && state.chapterTenFlight) {
+        drawPerformanceBird(ctx, birdX, birdY, state.chapterTenGravitySign, state.birdVelocity);
+      } else if (chapterTenActive && state.chapterTenFlight) {
         drawChapterTenBird(ctx, birdX, birdY, state.score);
       } else if (hackedMode) {
         // Sampled-path residue: the bird leaves its recent coordinates behind

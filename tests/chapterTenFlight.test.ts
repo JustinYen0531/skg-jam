@@ -377,7 +377,10 @@ test('the live game wires Gate 40 to the deterministic Chapter 10 flight', () =>
   const source = readFileSync(new URL('../src/components/FlappyGame.tsx', import.meta.url), 'utf8');
   assert.match(source, /isGate40Passable\(state\.chapterTenRoute\)/);
   assert.match(source, /createFlightState\(state\.birdY/);
-  assert.match(source, /stepFlight\(state\.chapterTenFlight/);
+  // The autonomous flight is now Arcane's verified hard performance, driven by
+  // his deterministic click pattern rather than the smooth saved re-flight.
+  assert.match(source, /computePerformancePlan\(\)/);
+  assert.match(source, /performanceSampleAt\(plan, state\.chapterTenPerfFrame\)/);
   assert.match(source, /shouldAcceptPlayerInput\(stateRef\.current\.chapterTenPhase\)/);
   assert.match(source, /beginAutonomousControl\('flappy-canvas'\)/);
   assert.match(source, /pulsePlayerTap\('flappy-canvas'\)/);
