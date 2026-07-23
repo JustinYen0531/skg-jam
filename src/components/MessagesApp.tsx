@@ -1020,6 +1020,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                 type="button"
                 key={row.id}
                 onClick={() => openThread(row.id)}
+                id={row.id === 'seller' ? 'tab-seller' : undefined}
                 className="flex w-full items-center gap-3 px-2 py-2.5 text-left transition-colors hover:bg-white/[0.03]"
                 data-thread-id={row.id}
                 data-thread-kind={row.id === 'mom' || row.id === 'seller' ? 'case' : 'everyday'}
@@ -1043,6 +1044,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
           </div>
         ) : activeThread === 'seller' && sellerThreadAvailable ? (
           <div className="flex min-h-full flex-col" id="chat-seller-panel">
+            <span id="tab-seller" className="sr-only">Marketplace relay</span>
             <div className="mb-3 flex items-center gap-2 border-b border-white/[0.06] pb-3">
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-300">
                 <MessageCircle className="h-4 w-4" />
