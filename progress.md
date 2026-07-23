@@ -1,5 +1,14 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-24 — Chapter 10 pre-Gate silence and hand relay
+
+- Reduced the route-point collection radius from 34px to 25.5px: exactly 150% of the original 17px radius.
+- Arcane now answers only `...` when Chapter 10 opens and whenever a pre-Gate-40 run ends.
+- Passing Gate 40 still breaks the silence with `My turn.` and preserves the existing score 40–256 reflections.
+- Every accepted player flap before takeover now drives the visible Meta tapping finger without dispatching a second click or jump.
+- The deterministic 28-point assist remains valid at the tighter radius.
+- Browser and Preview remain intentionally unused by project instruction.
+
 ## 2026-07-24 — Chapter 10 evidence handoff and route welcome
 
 - Restored the shared static/noise chapter transition for the Chapter 9 → 10 handoff, presenting the existing `EVIDENCE 09` record without making Arcane resume dialogue.

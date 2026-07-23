@@ -76,12 +76,25 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
     progress.currentChapter === 10,
   );
   const {
+    pulsePlayerTap,
     beginAutonomousControl,
     pulseAutonomousTap,
     endAutonomousControl,
     speak,
   } = useMetaInteraction();
   const chapterTenActive = progress.currentChapter === 10;
+  const chapterTenEntryDotsSpokenRef = useRef(false);
+
+  useEffect(() => {
+    if (!chapterTenActive) {
+      chapterTenEntryDotsSpokenRef.current = false;
+      return;
+    }
+    if (!chapterTenEntryDotsSpokenRef.current) {
+      chapterTenEntryDotsSpokenRef.current = true;
+      speak(['...']);
+    }
+  }, [chapterTenActive, speak]);
 
   // Chapter 10 route-point assist. After five straight sub-41 runs the game
   // offers a precise, deterministic click pattern (see chapterTenAssist.ts) that
@@ -235,6 +248,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
     ) return;
     stateRef.current.birdVelocity = stateRef.current.birdJump;
     stateRef.current.lastJumpFrame = stateRef.current.frameCount; // tap ripple
+    if (chapterTenActive) pulsePlayerTap('flappy-canvas');
     audio.play('flight.flap');
   };
 
@@ -1277,6 +1291,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
       // offer the route-point assist on the fifth. Passing Gate 40 (takeover)
       // resets this, so the offer only follows a genuine losing streak.
       if (chapterTenActive && state.score < CHAPTER_TEN_NODES.takeover) {
+        speak(['...']);
         chapterTenFailsRef.current += 1;
         if (
           chapterTenFailsRef.current >= CHAPTER_TEN_ASSIST_FAIL_THRESHOLD
@@ -1338,6 +1353,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
     hackedMode,
     isPlaying,
     progress.unlockedCodeRoute,
+    pulsePlayerTap,
     pulseAutonomousTap,
     speak,
   ]);

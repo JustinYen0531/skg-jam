@@ -90,11 +90,11 @@ test('route points form a deterministic varied path through gates and between th
 });
 
 test('route collection requires physical contact with each light point', () => {
-  assert.equal(CHAPTER_TEN_ROUTE_COLLECTION_RADIUS, 34);
+  assert.equal(CHAPTER_TEN_ROUTE_COLLECTION_RADIUS, 25.5);
   assert.equal(touchesRoutePoint(80, 120, 80, 120), true);
-  assert.equal(touchesRoutePoint(80, 120, 114, 120), true);
-  assert.equal(touchesRoutePoint(80, 120, 114.5, 120), false);
-  assert.equal(touchesRoutePoint(80, 120, 80, 154.5), false);
+  assert.equal(touchesRoutePoint(80, 120, 105.5, 120), true);
+  assert.equal(touchesRoutePoint(80, 120, 106, 120), false);
+  assert.equal(touchesRoutePoint(80, 120, 80, 146), false);
 });
 
 // 2. Missing any single route point keeps Gate 40 sealed.
@@ -380,7 +380,22 @@ test('the live game wires Gate 40 to the deterministic Chapter 10 flight', () =>
   assert.match(source, /stepFlight\(state\.chapterTenFlight/);
   assert.match(source, /shouldAcceptPlayerInput\(stateRef\.current\.chapterTenPhase\)/);
   assert.match(source, /beginAutonomousControl\('flappy-canvas'\)/);
+  assert.match(source, /pulsePlayerTap\('flappy-canvas'\)/);
   assert.match(source, /pulseAutonomousTap\(\)/);
+});
+
+test('Arcane stays silent before Gate 40 and the player tap uses the visible hand relay', () => {
+  const gameSource = readFileSync(new URL('../src/components/FlappyGame.tsx', import.meta.url), 'utf8');
+  const metaSource = readFileSync(new URL('../src/components/MetaInteractionScene.tsx', import.meta.url), 'utf8');
+  assert.match(gameSource, /chapterTenEntryDotsSpokenRef/);
+  assert.match(gameSource, /chapterTenActive && state\.score < CHAPTER_TEN_NODES\.takeover[\s\S]*?speak\(\['\.\.\.'\]\)/);
+  assert.match(gameSource, /speak\(\['My turn\.'\]\)/);
+  assert.match(metaSource, /const pulsePlayerTap = useCallback/);
+  assert.match(metaSource, /this only[\s\S]*lets Arcane's finger visibly perform/);
+  assert.doesNotMatch(
+    metaSource.match(/const pulsePlayerTap = useCallback[\s\S]*?\}, \[active, clearPlayerTapTimers, getRestPosition\]\);/)?.[0] ?? '',
+    /dispatchEvent|\.click\(\)/,
+  );
 });
 
 test('the live Chapter 10 renderer keeps the memory, terminal and finish beats', () => {

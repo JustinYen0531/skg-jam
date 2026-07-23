@@ -68,6 +68,7 @@ interface MetaInteractionContextValue {
   speak: (lines: DialogueLines) => void;
   tapElement: (id: string, onActivate: () => void) => void;
   tapSequence: (id: string, count: number, onComplete: () => void) => void;
+  pulsePlayerTap: (id: string) => void;
   beginAutonomousControl: (id: string) => void;
   pulseAutonomousTap: () => void;
   endAutonomousControl: () => void;
@@ -80,6 +81,7 @@ const MetaInteractionContext = createContext<MetaInteractionContextValue>({
   speak: () => undefined,
   tapElement: (_id, onActivate) => onActivate(),
   tapSequence: (_id, _count, onComplete) => onComplete(),
+  pulsePlayerTap: () => undefined,
   beginAutonomousControl: () => undefined,
   pulseAutonomousTap: () => undefined,
   endAutonomousControl: () => undefined,
@@ -804,6 +806,8 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   const pendingRef = useRef(false);
   const autonomousTappingRef = useRef(false);
   const autonomousPulseTimerRef = useRef<number | null>(null);
+  const playerTapReleaseTimerRef = useRef<number | null>(null);
+  const playerTapDepartTimerRef = useRef<number | null>(null);
   const keyQueueRef = useRef<QueuedKey[]>([]);
   const queueRunningRef = useRef(false);
   const keyboardScopeRef = useRef(0);
@@ -880,11 +884,55 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     setPointer(getRestPosition());
   }, [getRestPosition]);
 
+  const clearPlayerTapTimers = useCallback(() => {
+    if (playerTapReleaseTimerRef.current !== null) {
+      window.clearTimeout(playerTapReleaseTimerRef.current);
+      playerTapReleaseTimerRef.current = null;
+    }
+    if (playerTapDepartTimerRef.current !== null) {
+      window.clearTimeout(playerTapDepartTimerRef.current);
+      playerTapDepartTimerRef.current = null;
+    }
+  }, []);
+
+  // Visual relay for direct canvas input. It deliberately never dispatches a
+  // click: FlappyGame has already accepted the player's jump, and this only
+  // lets Arcane's finger visibly perform that same action in the Meta view.
+  const pulsePlayerTap = useCallback((id: string) => {
+    const target = document.getElementById(id);
+    const sceneRect = sceneRef.current?.getBoundingClientRect();
+    if (!active || !target || !sceneRect || autonomousTappingRef.current) return;
+    const targetRect = target.getBoundingClientRect();
+    clearPlayerTapTimers();
+    pendingRef.current = true;
+    setInteractionPending(true);
+    setPointer({
+      x: targetRect.left - sceneRect.left + targetRect.width * 0.54,
+      y: targetRect.top - sceneRect.top + targetRect.height * 0.58,
+    });
+    setPressed(true);
+    audio.play('meta.fingerContact');
+    playerTapReleaseTimerRef.current = window.setTimeout(() => {
+      setPressed(false);
+      audio.play('meta.fingerRelease');
+      playerTapReleaseTimerRef.current = null;
+    }, 72);
+    playerTapDepartTimerRef.current = window.setTimeout(() => {
+      pendingRef.current = false;
+      setInteractionPending(false);
+      setPointer(getRestPosition());
+      playerTapDepartTimerRef.current = null;
+    }, 190);
+  }, [active, clearPlayerTapTimers, getRestPosition]);
+
+  useEffect(() => clearPlayerTapTimers, [clearPlayerTapTimers]);
+
   const beginAutonomousControl = useCallback((id: string) => {
     const target = document.getElementById(id);
     const sceneRect = sceneRef.current?.getBoundingClientRect();
     if (!active || !target || !sceneRect || autonomousTappingRef.current) return;
     const targetRect = target.getBoundingClientRect();
+    clearPlayerTapTimers();
     autonomousTappingRef.current = true;
     pendingRef.current = true;
     setAutonomousTapping(true);
@@ -895,7 +943,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
       y: targetRect.top - sceneRect.top + targetRect.height * 0.72,
     });
     audio.play('meta.handDepart');
-  }, [active]);
+  }, [active, clearPlayerTapTimers]);
 
   const pulseAutonomousTap = useCallback(() => {
     if (!autonomousTappingRef.current) return;
@@ -1533,6 +1581,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     speak,
     tapElement,
     tapSequence,
+    pulsePlayerTap,
     beginAutonomousControl,
     pulseAutonomousTap,
     endAutonomousControl,
@@ -1541,6 +1590,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     beginAutonomousControl,
     deviceResting,
     endAutonomousControl,
+    pulsePlayerTap,
     pulseAutonomousTap,
     registerInput,
     speak,
