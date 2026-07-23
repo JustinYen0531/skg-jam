@@ -451,21 +451,40 @@ export const GameLogoIntro: React.FC<{
           className="pointer-events-none absolute inset-0 z-[100] overflow-hidden"
           data-blink-pairs="2"
           data-blink-count="4"
+          data-blink-shape="horizontal-ellipse"
           data-eyes={eyesClosed ? 'closed' : 'open'}
           id="intro-first-person-blinks"
         >
-          <motion.div
-            initial={{ y: '-102%' }}
-            animate={{ y: eyesClosed ? '0%' : '-102%' }}
-            transition={{ duration: reduced ? 0.05 : eyesClosed ? 0.15 : 0.19, ease: 'easeInOut' }}
-            className="absolute inset-x-0 top-0 h-[52%] rounded-b-[48%] bg-[radial-gradient(ellipse_at_50%_115%,#120c09_0%,#050403_38%,#000_78%)] shadow-[0_14px_30px_rgba(0,0,0,0.92)]"
-          />
-          <motion.div
-            initial={{ y: '102%' }}
-            animate={{ y: eyesClosed ? '0%' : '102%' }}
-            transition={{ duration: reduced ? 0.05 : eyesClosed ? 0.15 : 0.19, ease: 'easeInOut' }}
-            className="absolute inset-x-0 bottom-0 h-[52%] rounded-t-[48%] bg-[radial-gradient(ellipse_at_50%_-15%,#120c09_0%,#050403_38%,#000_78%)] shadow-[0_-14px_30px_rgba(0,0,0,0.92)]"
-          />
+          <svg
+            className="absolute inset-0 h-full w-full"
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <defs>
+              <mask id="intro-horizontal-blink-mask" maskUnits="userSpaceOnUse">
+                <rect width="100" height="100" fill="white" />
+                <motion.ellipse
+                  cx="50"
+                  cy="50"
+                  rx="72"
+                  initial={{ ry: 52 }}
+                  animate={{ ry: eyesClosed ? 0.45 : 52 }}
+                  transition={{
+                    duration: reduced ? 0.05 : eyesClosed ? 0.15 : 0.19,
+                    ease: 'easeInOut',
+                  }}
+                  fill="black"
+                />
+              </mask>
+            </defs>
+            <rect
+              width="100"
+              height="100"
+              fill="#000"
+              mask="url(#intro-horizontal-blink-mask)"
+            />
+          </svg>
         </div>
       )}
     </motion.div>

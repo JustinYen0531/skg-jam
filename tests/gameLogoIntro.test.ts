@@ -37,6 +37,15 @@ test('the title reveal uses two blink pairs before exposing the physical Meta fr
   assert.match(logoSource, /setMetaFramed\(true\)/);
 });
 
+test('each blink closes a horizontal ellipse into a centered line', () => {
+  assert.match(logoSource, /data-blink-shape="horizontal-ellipse"/);
+  assert.match(logoSource, /<motion\.ellipse[\s\S]*rx="72"/);
+  assert.match(logoSource, /initial=\{\{ ry: 52 \}\}/);
+  assert.match(logoSource, /animate=\{\{ ry: eyesClosed \? 0\.45 : 52 \}\}/);
+  assert.doesNotMatch(logoSource, /animate=\{\{ y: eyesClosed \? '0%' : '-102%' \}\}/);
+  assert.doesNotMatch(logoSource, /animate=\{\{ y: eyesClosed \? '0%' : '102%' \}\}/);
+});
+
 test('the same title remains on a framed phone with hands until the final tap', () => {
   assert.match(logoSource, /id="intro-title-phone-screen"/);
   assert.match(logoSource, /data-title-location=\{metaFramed \? 'physical-phone' : 'fullscreen'\}/);
