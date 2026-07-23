@@ -26,3 +26,24 @@ test('logo lines stay module-scoped so phase changes cannot replay their initial
     /const (?:Line|LogoLine): React\.FC/,
   );
 });
+
+test('the title reveal uses two blink pairs before exposing the physical Meta frame', () => {
+  assert.match(logoSource, /type PerspectivePhase = 'screen' \| 'blinking' \| 'meta-ready'/);
+  assert.match(logoSource, /firstOpen: 180[\s\S]*secondClose: 480[\s\S]*secondOpen: 680/);
+  assert.match(logoSource, /thirdClose: 1000[\s\S]*revealRoom: 1180[\s\S]*thirdOpen: 1440/);
+  assert.match(logoSource, /fourthClose: 1860[\s\S]*fourthOpen: 2060[\s\S]*ready: 2400/);
+  assert.match(logoSource, /data-blink-pairs="2"/);
+  assert.match(logoSource, /data-blink-count="4"/);
+  assert.match(logoSource, /setMetaFramed\(true\)/);
+});
+
+test('the same title remains on a framed phone with hands until the final tap', () => {
+  assert.match(logoSource, /id="intro-title-phone-screen"/);
+  assert.match(logoSource, /data-title-location=\{metaFramed \? 'physical-phone' : 'fullscreen'\}/);
+  assert.match(logoSource, /id="intro-meta-phone-frame"/);
+  assert.match(logoSource, /id="intro-meta-left-hand"/);
+  assert.match(logoSource, /id="intro-meta-right-hand"/);
+  assert.match(logoSource, /src="\/assets\/meta-hand-grip\.png"/);
+  assert.match(logoSource, /perspectivePhase === 'screen'\) beginPerspectiveReveal\(\)/);
+  assert.match(logoSource, /perspectivePhase === 'meta-ready'\) finish\(\)/);
+});
