@@ -8,6 +8,7 @@ import {
   canUseProgressionAction,
   completePuzzleChapter,
 } from './chapterProgress';
+import { NOAH_ARCHIVE_FRAGMENTS } from './chapterEightArchive';
 
 test('every chapter has an English-only guide for reaching the next stage', () => {
   for (const chapter of DEBUG_CHAPTERS) {
@@ -82,6 +83,10 @@ test('chapter snapshots accumulate discoveries instead of leaking future discove
   assert.equal(getChapterSnapshot(9).chapterNinePasswordVerified, false);
   assert.equal(getChapterSnapshot(9).chapterNineDownloadState, 'idle');
   assert.equal(getChapterSnapshot(9).chapterNineDeletedAppIds?.length, 0);
+  assert.deepEqual(
+    getChapterSnapshot(9).chapterEightRestoredMessageIds,
+    NOAH_ARCHIVE_FRAGMENTS.map((fragment) => fragment.id),
+  );
   assert.equal(getChapterSnapshot(10).chapterNineRestorePhase, 'rebooted');
   assert.equal(getChapterSnapshot(10).chapterNineDeletedAppIds?.length, 7);
   assert.equal(getChapterSnapshot(10).chapterNineArcaneSilent, true);

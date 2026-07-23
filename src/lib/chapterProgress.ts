@@ -210,6 +210,11 @@ const BASE_PROGRESS: GameProgress = {
   selectedEnding: null,
 };
 
+// Developer Chapter 9+ snapshots begin after the private Noah thread is fully
+// repaired. They must not recreate Chapter 8's eight-message restoration gate.
+const COMPLETED_CHAPTER_EIGHT_MEMORY_IDS = NOAH_ARCHIVE_FRAGMENTS.map((fragment) => fragment.memoryId);
+const COMPLETED_CHAPTER_EIGHT_MESSAGE_IDS = NOAH_ARCHIVE_FRAGMENTS.map((fragment) => fragment.id);
+
 export const DEBUG_CHAPTERS: readonly DebugChapter[] = [
   { id: 1, shortTitle: '尋找第一名', title: '謎題 1：尋找第一名', description: '排行榜指出 ARC_184 是唯一明顯突破 40 的玩家。', targetApp: 'viewtube' },
   { id: 2, shortTitle: '尋找舊版本', title: '謎題 2：尋找舊版本', description: '影片與留言把調查方向帶向 Archive 與 Lumen Arc。', targetApp: 'browser' },
@@ -232,8 +237,8 @@ const CHAPTER_OVERRIDES: Record<PuzzleChapter, Partial<GameProgress>> = {
   6: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true },
   7: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredMotherComment: true },
   8: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true, discoveredMaraAltitude184: true, discoveredMaraGate40: true, discoveredMaraEnd256: true, unlockedAdminLogin: true, loggedIntoAdmin: true },
-  9: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true, discoveredMaraAltitude184: true, discoveredMaraGate40: true, discoveredMaraEnd256: true, unlockedAdminLogin: true, loggedIntoAdmin: true, chapterNineRestorePhase: 'idle', chapterNineProfileChoice: null, chapterNinePasswordVerified: false, chapterNineDownloadState: 'idle', chapterNineDeletedAppIds: [], chapterNineMessageAttempts: 0, chapterNineArcaneSilent: false },
-  10: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true, discoveredMaraAltitude184: true, discoveredMaraGate40: true, discoveredMaraEnd256: true, unlockedAdminLogin: true, loggedIntoAdmin: true, chapterNineRestorePhase: 'rebooted', chapterNineProfileChoice: 'child', chapterNinePasswordVerified: true, chapterNineDownloadState: 'storage-error', chapterNineDeletedAppIds: [...CHAPTER_NINE_DELETABLE_APPS], chapterNineMessageAttempts: 3, chapterNineArcaneSilent: true, unlockedCodeRoute: true },
+  9: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true, discoveredMaraAltitude184: true, discoveredMaraGate40: true, discoveredMaraEnd256: true, unlockedAdminLogin: true, loggedIntoAdmin: true, chapterEightMemoryIds: COMPLETED_CHAPTER_EIGHT_MEMORY_IDS, chapterEightRestoredMessageIds: COMPLETED_CHAPTER_EIGHT_MESSAGE_IDS, chapterNineRestorePhase: 'idle', chapterNineProfileChoice: null, chapterNinePasswordVerified: false, chapterNineDownloadState: 'idle', chapterNineDeletedAppIds: [], chapterNineMessageAttempts: 0, chapterNineArcaneSilent: false },
+  10: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true, discoveredMaraAltitude184: true, discoveredMaraGate40: true, discoveredMaraEnd256: true, unlockedAdminLogin: true, loggedIntoAdmin: true, chapterEightMemoryIds: COMPLETED_CHAPTER_EIGHT_MEMORY_IDS, chapterEightRestoredMessageIds: COMPLETED_CHAPTER_EIGHT_MESSAGE_IDS, chapterNineRestorePhase: 'rebooted', chapterNineProfileChoice: 'child', chapterNinePasswordVerified: true, chapterNineDownloadState: 'storage-error', chapterNineDeletedAppIds: [...CHAPTER_NINE_DELETABLE_APPS], chapterNineMessageAttempts: 3, chapterNineArcaneSilent: true, unlockedCodeRoute: true },
 };
 
 export function getChapterById(chapter: PuzzleChapter): DebugChapter {
