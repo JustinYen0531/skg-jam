@@ -6,7 +6,13 @@ import { isSellerCodeAccepted, type AmazeMartOrderPhase } from '../lib/amazemart
 import { useMetaInteraction } from './MetaInteractionScene';
 import { CHAPTER_THREE_DIALOGUE, getChapterThreeSellerCodeResponse } from '../lib/chapterThreeDialogue';
 import { KeyRound, MessageCircle, Send, ShieldAlert } from 'lucide-react';
-import { hasAllMaraNumberClues } from '../lib/chapterSevenSocial';
+import {
+  hasAllMaraNumberClues,
+  isMaraCoordinateMappingCorrect,
+  MARA_COLLECTIBLE_NUMBERS,
+  type MaraCoordinateMapping,
+  type MaraNumberClue,
+} from '../lib/chapterSevenSocial';
 import {
   CHAPTER_SEVEN_DIALOGUE,
   getChapterSevenLoginDialogue,
@@ -40,6 +46,12 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
   const [loginError, setLoginError] = useState('');
   const [failCount, setFailCount] = useState(0);
   const [momMappingRead, setMomMappingRead] = useState(false);
+  const [coordinateMapping, setCoordinateMapping] = useState<MaraCoordinateMapping>({
+    altitude: null,
+    gate: null,
+    end: null,
+  });
+  const [mappingError, setMappingError] = useState('');
   const [sellerCode, setSellerCode] = useState('');
   const [sellerCodeError, setSellerCodeError] = useState('');
 
@@ -72,6 +84,41 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
 
   const speakChapterSeven = (lines: readonly string[]) => {
     if (progress.currentChapter === 7 && metaInteraction.active) metaInteraction.speak(lines);
+  };
+
+  const allMaraNumbersCollected = hasAllMaraNumberClues(progress);
+  const collectionRequired = !developerPreview && !allMaraNumbersCollected;
+  const mappingRequired = !developerPreview && allMaraNumbersCollected && !progress.unlockedAdminLogin;
+
+  const handleCoordinateSelection = (label: MaraNumberClue, value: string) => {
+    setCoordinateMapping((current) => ({
+      ...current,
+      [label]: value ? Number(value) : null,
+    }));
+    setMappingError('');
+  };
+
+  const handleAdminSubmit = (event: React.FormEvent) => {
+    if (!mappingRequired) {
+      handleAdminLogin(event);
+      return;
+    }
+
+    event.preventDefault();
+    if (!isMaraCoordinateMappingCorrect(coordinateMapping)) {
+      audio.play('auth.wrong');
+      setMappingError('COORDINATE LABELS DO NOT MATCH THE COLLECTED MEMORIES.');
+      speakChapterSeven(CHAPTER_SEVEN_DIALOGUE.mappingRejected);
+      return;
+    }
+
+    audio.play('auth.correct');
+    setMappingError('');
+    setMomMappingRead(true);
+    updateProgress((previous) => previous.currentChapter === 7
+      ? { ...previous, discoveredNoahQA: true, unlockedAdminLogin: true }
+      : previous);
+    speakChapterSeven(CHAPTER_SEVEN_DIALOGUE.mappingCompleted);
   };
 
   const handleAdminLogin = (e: React.FormEvent) => {
@@ -341,7 +388,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
           <div className="space-y-4" id="chat-admin-panel">
             {!progress.loggedIntoAdmin ? (
               /* If not logged in: Show credential prompt */
-              <form onSubmit={handleAdminLogin} className="laos-panel mx-auto max-w-[620px] space-y-4 p-4 pb-24" id="admin-login-form">
+              <form onSubmit={handleAdminSubmit} className="laos-panel mx-auto max-w-[620px] space-y-4 p-4 pb-24" id="admin-login-form">
                 <div className="grid grid-cols-3 gap-px border border-[var(--laos-line-dim)] bg-[var(--laos-line-dim)] font-mono text-[7px]" id="archive-account-context">
                   <div className="bg-[var(--laos-bg)] p-2"><div className="text-[var(--laos-faint)]">ACCOUNT</div><div className="mt-1 text-[var(--laos-text)]">MARA_KADE</div></div>
                   <div className="bg-[var(--laos-bg)] p-2"><div className="text-[var(--laos-faint)]">BACKUP</div><div className="mt-1 text-[var(--laos-text)]">2014 MIGRATION</div></div>
@@ -369,25 +416,74 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                     />
                   </div>
 
-                  <div className="space-y-1">
-                    <label className="laos-label text-[8px] block">COORDINATE PASSWORD KEY (ALT___GATE__END___)</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. ALT100GATE10END10"
-                      value={passwordInput}
-                      onChange={(e) => setPasswordInput(e.target.value)}
-                      autoComplete="off"
-                      autoCorrect="off"
-                      autoCapitalize="characters"
-                      spellCheck={false}
-                      data-meta-hit-recovery="true"
-                      className="laos-slow mx-auto block w-[74%] min-w-[300px] bg-[var(--laos-bg)] px-2.5 py-2 border border-[var(--laos-line)] rounded-none text-[var(--laos-text)] font-mono placeholder-[var(--laos-faint)] focus:outline-none focus:border-[var(--laos-warm)] uppercase"
-                      id="admin-password-input"
-                    />
-                  </div>
+                  {collectionRequired ? (
+                    <div className="border border-dashed border-[var(--laos-line)] bg-[var(--laos-bg)] p-3 text-center" id="archive-number-collection-lock">
+                      <div className="laos-label text-[8px]">COORDINATE FRAGMENTS REQUIRED</div>
+                      <div className="mt-2 font-mono text-[9px] text-[var(--laos-dim)]">
+                        {Object.values({
+                          altitude: progress.discoveredMaraAltitude184,
+                          gate: progress.discoveredMaraGate40,
+                          end: progress.discoveredMaraEnd256,
+                        }).filter(Boolean).length}/3 NUMBERS COLLECTED
+                      </div>
+                      <p className="mt-2 font-laos text-[8px] leading-relaxed text-[var(--laos-faint)]">Underline-marked fragments remain in Mara Kade's public FaceSpace archive.</p>
+                    </div>
+                  ) : mappingRequired ? (
+                    <div className="space-y-3 border border-[var(--laos-line-dim)] bg-[var(--laos-bg)] p-3" id="archive-coordinate-mapping">
+                      <div>
+                        <div className="laos-label text-[8px]">ASSIGN COLLECTED NUMBERS</div>
+                        <p className="mt-1 font-laos text-[8px] leading-relaxed text-[var(--laos-faint)]">Match each memory fragment to the label used by the coordinate key.</p>
+                      </div>
+                      <div className="flex justify-center gap-2" id="archive-collected-number-bank">
+                        {MARA_COLLECTIBLE_NUMBERS.map((number) => (
+                          <span key={number} className="border border-[var(--laos-line)] bg-[var(--laos-surface-2)] px-2.5 py-1 font-mono text-[10px] text-[var(--laos-warm)]" data-collected-number={number}>{number}</span>
+                        ))}
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        {(['altitude', 'gate', 'end'] as const).map((label) => (
+                          <label key={label} className="space-y-1">
+                            <span className="laos-label block text-center text-[7px]">{label === 'altitude' ? 'ALT' : label.toUpperCase()}</span>
+                            <select
+                              value={coordinateMapping[label] ?? ''}
+                              onChange={(event) => handleCoordinateSelection(label, event.target.value)}
+                              className="w-full border border-[var(--laos-line)] bg-[var(--laos-surface-2)] px-1.5 py-2 text-center font-mono text-[9px] text-[var(--laos-text)] focus:border-[var(--laos-warm)] focus:outline-none"
+                              id={`archive-map-${label}`}
+                              aria-label={`Assign number to ${label}`}
+                            >
+                              <option value="">---</option>
+                              {MARA_COLLECTIBLE_NUMBERS.map((number) => <option key={number} value={number}>{number}</option>)}
+                            </select>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-1" id="archive-password-stage">
+                      <label className="laos-label text-[8px] block">COORDINATE PASSWORD KEY (ALT___GATE__END___)</label>
+                      <input
+                        type="text"
+                        placeholder="e.g. ALT100GATE10END10"
+                        value={passwordInput}
+                        onChange={(e) => setPasswordInput(e.target.value)}
+                        autoComplete="off"
+                        autoCorrect="off"
+                        autoCapitalize="characters"
+                        spellCheck={false}
+                        data-meta-hit-recovery="true"
+                        className="laos-slow mx-auto block w-[74%] min-w-[300px] bg-[var(--laos-bg)] px-2.5 py-2 border border-[var(--laos-line)] rounded-none text-[var(--laos-text)] font-mono placeholder-[var(--laos-faint)] focus:outline-none focus:border-[var(--laos-warm)] uppercase"
+                        id="admin-password-input"
+                      />
+                    </div>
+                  )}
                 </div>
 
-                {loginError && (
+                {mappingError && mappingRequired && (
+                  <div className="text-[9px] border border-[var(--laos-warm)]/50 bg-[var(--laos-surface-2)] text-[var(--laos-warm)] p-2 leading-relaxed font-laos tracking-wide" id="archive-mapping-error">
+                    {mappingError}
+                  </div>
+                )}
+
+                {loginError && !mappingRequired && !collectionRequired && (
                   <div className="text-[9px] border border-[var(--laos-warm)]/50 bg-[var(--laos-surface-2)] text-[var(--laos-warm)] p-2 leading-relaxed font-laos tracking-wide" id="admin-login-error">
                     {loginError}
                   </div>
@@ -395,10 +491,12 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
 
                 <button
                   type="submit"
-                  className="laos-slow w-full py-2 bg-[var(--laos-surface-2)] hover:bg-[var(--laos-line-dim)] text-[var(--laos-text)] border border-[var(--laos-line)] font-laos font-semibold tracking-[0.14em] rounded-none text-[10px]"
+                  disabled={collectionRequired}
+                  className="laos-slow w-full py-2 bg-[var(--laos-surface-2)] hover:bg-[var(--laos-line-dim)] text-[var(--laos-text)] border border-[var(--laos-line)] font-laos font-semibold tracking-[0.14em] rounded-none text-[10px] disabled:cursor-not-allowed disabled:text-[var(--laos-faint)]"
                   id="admin-login-submit"
+                  data-admin-stage={collectionRequired ? 'collect' : mappingRequired ? 'map' : 'password'}
                 >
-                  DECRYPT ENCRYPTED NODES
+                  {collectionRequired ? 'COLLECT THREE NUMBER FRAGMENTS' : mappingRequired ? 'VERIFY COORDINATE MAPPING' : 'DECRYPT ENCRYPTED NODES'}
                 </button>
               </form>
             ) : progress.currentChapter === 8 ? (

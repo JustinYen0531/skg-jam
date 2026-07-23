@@ -10,7 +10,6 @@ import {
   Heart,
   Home,
   MessageCircle,
-  MapPin,
   MoreHorizontal,
   Search,
   Settings2,
@@ -270,7 +269,7 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress, 
         discoveredMaraEnd256: previous.discoveredMaraEnd256 || clue === 'end',
       };
       const complete = next.discoveredMaraAltitude184 && next.discoveredMaraGate40 && next.discoveredMaraEnd256;
-      return complete ? { ...next, discoveredNoahQA: true, unlockedAdminLogin: true } : next;
+      return complete ? { ...next, discoveredNoahQA: true } : next;
     });
   };
 
@@ -365,16 +364,37 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress, 
                 <div className="-mt-6 flex items-end gap-3 px-4 pb-3"><div className="flex h-16 w-16 items-center justify-center rounded-full border-4 border-slate-950 bg-pink-700 text-xl font-black">MK</div><div className="mb-1"><h2 className="text-sm font-bold">Mara Kade</h2><p className="text-[9px] text-slate-500">Harborview · Family, books, and small remembered places</p></div></div>
               </section>
               <div className="rounded-lg border border-white/[0.06] bg-slate-950/90 p-2 text-[8px] text-slate-500" id="mara-clue-counter">
-                Saved details · {Object.values(getMaraClueProgress(progress)).filter(Boolean).length}/3
+                Collected numbers · {Object.values(getMaraClueProgress(progress)).filter(Boolean).length}/3
               </div>
               <section className="space-y-3" id="mara-post-timeline">
                 {MARA_PROFILE_POSTS.map((post) => {
                   const found = post.clue ? getMaraClueProgress(progress)[post.clue] : false;
+                  const clueValue = post.clue ? String(getMaraNumberValue(post.clue)) : null;
+                  const clueIndex = clueValue ? post.content.indexOf(clueValue) : -1;
                   return (
                     <article key={post.id} onClick={() => { if (!post.clue) handleMaraPost(post.id); }} className="rounded-xl border border-slate-800 bg-slate-950 p-3" data-mara-post={post.id}>
                       <div className="flex items-center gap-2"><div className="flex h-8 w-8 items-center justify-center rounded-full bg-pink-700 text-[8px] font-black">MK</div><div className="min-w-0 flex-1"><div className="text-[9px] font-bold">Mara Kade</div><div className="text-[7px] text-slate-600">{post.date} · Public</div></div></div>
-                      <p className="py-2 text-[9.5px] leading-relaxed text-slate-300">{post.content}</p>
-                      <div className="flex items-center justify-between border-t border-slate-800 pt-2 text-[7.5px] text-slate-600"><span>♥ {post.reactions} · {post.comments} comments</span>{post.clue && <button type="button" onClick={(event) => { event.stopPropagation(); handleMaraNumberClue(post.clue!); }} disabled={found} className="flex items-center gap-1 rounded px-2 py-1 text-slate-400 hover:bg-white/[0.05] hover:text-white disabled:text-pink-300" data-mara-number-clue={post.clue}><MapPin className="h-3 w-3" />{found ? `Saved ${getMaraNumberValue(post.clue)}` : 'Remember this place'}</button>}</div>
+                      <p className="py-2 text-[9.5px] leading-relaxed text-slate-300">
+                        {post.clue && clueValue && clueIndex >= 0 ? (
+                          <>
+                            {post.content.slice(0, clueIndex)}
+                            <button
+                              type="button"
+                              onClick={(event) => { event.stopPropagation(); handleMaraNumberClue(post.clue!); }}
+                              disabled={found}
+                              className={`rounded-sm px-0.5 font-mono font-bold underline decoration-2 underline-offset-2 transition-colors ${found ? 'cursor-default bg-pink-300/10 text-pink-300 decoration-pink-300/60' : 'text-amber-200 decoration-amber-300/80 hover:bg-amber-300/10 hover:text-amber-100'}`}
+                              data-mara-number-clue={post.clue}
+                              data-mara-number={clueValue}
+                              aria-label={found ? `${clueValue} collected` : `Collect ${clueValue}`}
+                            >
+                              {clueValue}
+                            </button>
+                            {found && <span className="ml-1 font-mono text-[6.5px] tracking-[0.12em] text-pink-300">COLLECTED</span>}
+                            {post.content.slice(clueIndex + clueValue.length)}
+                          </>
+                        ) : post.content}
+                      </p>
+                      <div className="flex items-center justify-between border-t border-slate-800 pt-2 text-[7.5px] text-slate-600"><span>♥ {post.reactions} · {post.comments} comments</span></div>
                     </article>
                   );
                 })}

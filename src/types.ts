@@ -20,7 +20,7 @@ export interface GameProgress {
   discoveredMaraAltitude184: boolean;
   discoveredMaraGate40: boolean;
   discoveredMaraEnd256: boolean;
-  unlockedAdminLogin: boolean;      // knows ALT184GATE40END256
+  unlockedAdminLogin: boolean;      // correctly mapped the three collected Mara numbers
   loggedIntoAdmin: boolean;         // logged into Mother's old Silver Kite account
   unlockedCodeRoute: boolean;       // knows the exact sequence NK_184.172.149.133.121.118.126.143
   

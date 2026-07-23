@@ -253,7 +253,7 @@ export function canUseProgressionAction(action: ProgressionAction, progress: Gam
     'amazemart-lumen-search': progress.watchedVideo,
     'browser-skg-history': progress.discoveredOriginalTitle,
     'social-noah-search': progress.discoveredSKGHistory,
-    'admin-login': hasAllMaraNumberClues(progress),
+    'admin-login': hasAllMaraNumberClues(progress) && progress.unlockedAdminLogin,
   };
 
   return requirements[action];

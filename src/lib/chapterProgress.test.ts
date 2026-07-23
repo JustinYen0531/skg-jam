@@ -103,7 +103,8 @@ test('normal player cannot use guessed archive credentials before the clue is un
 
   assert.equal(canUseProgressionAction('admin-login', early), false);
   assert.equal(canUseProgressionAction('admin-login', { ...ready, discoveredMaraEnd256: false }), false);
-  assert.equal(canUseProgressionAction('admin-login', ready), true);
+  assert.equal(canUseProgressionAction('admin-login', ready), false);
+  assert.equal(canUseProgressionAction('admin-login', { ...ready, unlockedAdminLogin: true }), true);
 });
 
 test('normal player gates guessed searches while debug snapshots can unlock them in sequence', () => {

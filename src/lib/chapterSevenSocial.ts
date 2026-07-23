@@ -1,4 +1,7 @@
 export type MaraNumberClue = 'altitude' | 'gate' | 'end';
+export type MaraCoordinateMapping = Readonly<Record<MaraNumberClue, number | null>>;
+
+export const MARA_COLLECTIBLE_NUMBERS = [184, 40, 256] as const;
 
 export interface MaraProfilePost {
   id: string;
@@ -26,6 +29,11 @@ export const getMaraNumberValue = (clue: MaraNumberClue): number => ({
   gate: 40,
   end: 256,
 })[clue];
+
+export const isMaraCoordinateMappingCorrect = (mapping: MaraCoordinateMapping): boolean =>
+  mapping.altitude === getMaraNumberValue('altitude')
+  && mapping.gate === getMaraNumberValue('gate')
+  && mapping.end === getMaraNumberValue('end');
 
 export const getMaraClueProgress = (progress: {
   discoveredMaraAltitude184: boolean;

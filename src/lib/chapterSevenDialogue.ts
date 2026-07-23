@@ -46,6 +46,14 @@ export const CHAPTER_SEVEN_DIALOGUE = {
   archiveAccountOpened: [
     'MARA_KADE. A preserved node is a strange place to knock.',
   ],
+  mappingRejected: [
+    'Those are the right memories under the wrong labels.',
+    'The archive wants meaning, not just three familiar numbers.',
+  ],
+  mappingCompleted: [
+    'A view, a gate, an ending. Now the memories have an order.',
+    'It still wants the key typed by hand.',
+  ],
   completed: [
     'Her lookout, their gate, her ending.',
     'Twelve years, and the door still knows them.',

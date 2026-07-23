@@ -2,7 +2,13 @@ import { strict as assert } from 'node:assert';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { getChapterSnapshot } from '../src/lib/chapterProgress';
-import { getMaraNumberValue, hasAllMaraNumberClues, MARA_PROFILE_POSTS } from '../src/lib/chapterSevenSocial';
+import {
+  getMaraNumberValue,
+  hasAllMaraNumberClues,
+  isMaraCoordinateMappingCorrect,
+  MARA_COLLECTIBLE_NUMBERS,
+  MARA_PROFILE_POSTS,
+} from '../src/lib/chapterSevenSocial';
 
 const socialSource = readFileSync(new URL('../src/components/SocialApp.tsx', import.meta.url), 'utf8');
 const messagesSource = readFileSync(new URL('../src/components/MessagesApp.tsx', import.meta.url), 'utf8');
@@ -29,8 +35,24 @@ test('all three Mara posts are persistent evidence required by the archive login
   assert.match(socialSource, /discoveredMaraAltitude184/);
   assert.match(socialSource, /discoveredMaraGate40/);
   assert.match(socialSource, /discoveredMaraEnd256/);
+  assert.match(socialSource, /data-mara-number=\{clueValue\}/);
+  assert.match(socialSource, /underline decoration-2 underline-offset-2/);
+  assert.match(socialSource, /COLLECTED/);
+  assert.doesNotMatch(socialSource, /Remember this place/);
   assert.match(messagesSource, /completePuzzleChapter\(prev, 7, \{ unlockedAdminLogin: true, loggedIntoAdmin: true \}\)/);
-  assert.doesNotMatch(messagesSource, /ASSEMBLE COORDINATE KEY/);
+});
+
+test('collecting the three numbers unlocks a separate ALT GATE END mapping puzzle', () => {
+  assert.deepEqual(MARA_COLLECTIBLE_NUMBERS, [184, 40, 256]);
+  assert.equal(isMaraCoordinateMappingCorrect({ altitude: 184, gate: 40, end: 256 }), true);
+  assert.equal(isMaraCoordinateMappingCorrect({ altitude: 40, gate: 184, end: 256 }), false);
+  assert.match(messagesSource, /id="archive-number-collection-lock"/);
+  assert.match(messagesSource, /id="archive-coordinate-mapping"/);
+  assert.match(messagesSource, /id=\{`archive-map-\$\{label\}`\}/);
+  assert.match(messagesSource, /isMaraCoordinateMappingCorrect\(coordinateMapping\)/);
+  assert.match(messagesSource, /unlockedAdminLogin: true/);
+  assert.match(messagesSource, /id="archive-password-stage"/);
+  assert.match(messagesSource, /data-admin-stage=/);
 });
 
 test('Chapter 8 begins at the restored index and opens the private thread', () => {
