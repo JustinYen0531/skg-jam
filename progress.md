@@ -935,3 +935,11 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Collecting all three numbers no longer unlocks the password field. Only a correct mapping sets `unlockedAdminLogin`; the password is never auto-filled.
 - Before collection, the archive shows a locked fragment counter. Developer Chapter 7 previews retain direct password access for testing without weakening the normal player path.
 - Static verification passed: focused tests 25/25 and full tests 204/204 in both worktrees, TypeScript lint, production build, and clean diff checks; Browser and Preview remain intentionally unused.
+
+## 2026-07-23 — Recorded Chapter 9 ARC_184 memory-route design
+
+- Added the Chapter 9–10 handoff to the North Star GDD without implementing runtime behavior yet.
+- Noah's authenticated guidance mode places one silent route point in every pre-40 section; the player must personally collect the complete chain, and missing any point leaves Gate 40 impassable.
+- Once the chain is complete, Arcane takes control at Gate 40. Player input becomes inert while the Meta finger visibly performs the taps, distinguishing protagonist agency from an ordinary autoplay video.
+- The autonomous run restores Arcane's childhood memory at 184 and cross-checks that he was the real `ARC_184`, then continues to 256 so the ending is not gated behind two hundred additional execution checks.
+- The existing final height `0` remains intact, but Arcane performs it during the autonomous run before the completion screen and ending choice.
