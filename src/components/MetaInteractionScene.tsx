@@ -24,6 +24,7 @@ import { CHAPTER_THREE_DIALOGUE } from '../lib/chapterThreeDialogue';
 import { CHAPTER_FOUR_DIALOGUE } from '../lib/chapterFourDialogue';
 import { CHAPTER_FIVE_DIALOGUE } from '../lib/chapterFiveDialogue';
 import { CHAPTER_SIX_DIALOGUE } from '../lib/chapterSixDialogue';
+import { CHAPTER_SEVEN_DIALOGUE } from '../lib/chapterSevenDialogue';
 import audio from '../lib/audio';
 import { getMetaFloorStage, getMetaWallStage, type EnvironmentChapter } from '../lib/chapterEnvironment';
 import { getChapterPhoneWidgetState } from '../lib/chapterPhoneWidgets';
@@ -792,6 +793,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     if (chapter === 4 && previousChapter !== 3) setDialogueLines(CHAPTER_FOUR_DIALOGUE.entry);
     if (chapter === 5 && previousChapter !== 4) setDialogueLines(CHAPTER_FIVE_DIALOGUE.entry);
     if (chapter === 6 && previousChapter !== 5) setDialogueLines(CHAPTER_SIX_DIALOGUE.entry);
+    if (chapter === 7 && previousChapter !== 6) setDialogueLines(CHAPTER_SEVEN_DIALOGUE.entry);
     if (previousChapter === 2 && chapter === 3) {
       chapterDialogueTimerRef.current = window.setTimeout(() => {
         setDialogueLines(CHAPTER_TWO_DIALOGUE.maternalMemory);
@@ -800,6 +802,12 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     }
     if (previousChapter === 3 && chapter === 4) {
       setDialogueLines(CHAPTER_THREE_DIALOGUE.approvedEndingA);
+    }
+    if (previousChapter === 6 && chapter === 7) {
+      chapterDialogueTimerRef.current = window.setTimeout(() => {
+        setDialogueLines(CHAPTER_SEVEN_DIALOGUE.entry);
+        chapterDialogueTimerRef.current = null;
+      }, 1400);
     }
     return () => {
       if (chapterDialogueTimerRef.current !== null) {

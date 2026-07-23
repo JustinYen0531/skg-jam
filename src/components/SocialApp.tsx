@@ -38,6 +38,12 @@ import {
 } from '../lib/chapterSixDialogue';
 import type { DialogueLines } from '../lib/chapterOneDialogue';
 import { getMaraClueProgress, getMaraNumberValue, MARA_PROFILE_POSTS, type MaraNumberClue } from '../lib/chapterSevenSocial';
+import {
+  CHAPTER_SEVEN_DIALOGUE,
+  getChapterSevenClueDialogue,
+  getChapterSevenMaraPostDialogue,
+  getChapterSevenNoiseDialogue,
+} from '../lib/chapterSevenDialogue';
 
 const FACESPACE_FEED = [
   { id: 'fs-1', author: 'Mina Liao', avatar: 'ML', time: '18 min', audience: 'Friends', content: 'The café recommendation algorithm sent me to the café I was already sitting in. Five stars for confidence.', reactions: 84, comments: 12, accent: 'from-rose-500 to-orange-400' },
@@ -138,26 +144,46 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress, 
   const commentAttempt = useRef(0);
   const adAttempts = useRef(new Map<string, number>());
   const postAttempts = useRef(new Map<string, number>());
+  const maraPostAttempts = useRef(new Map<string, number>());
 
   const speakChapterSix = (lines: DialogueLines) => {
     if (progress.currentChapter === 6 && lines.length > 0) onDialogue?.(lines);
   };
 
+  const speakChapterSeven = (lines: DialogueLines) => {
+    if (progress.currentChapter === 7 && lines.length > 0) onDialogue?.(lines);
+  };
+
   const handleNoiseInteraction = (kind: ChapterSixNoiseKind) => {
-    speakChapterSix(getChapterSixNoiseDialogue(kind, noiseAttempt.current));
+    if (progress.currentChapter === 7) {
+      speakChapterSeven(getChapterSevenNoiseDialogue(kind, noiseAttempt.current));
+    } else {
+      speakChapterSix(getChapterSixNoiseDialogue(kind, noiseAttempt.current));
+    }
     noiseAttempt.current += 1;
   };
 
   const handleSearchFocus = () => {
     if (searchFocusShown.current) return;
     searchFocusShown.current = true;
-    speakChapterSix(CHAPTER_SIX_DIALOGUE.searchFocused);
+    if (progress.currentChapter === 7) {
+      speakChapterSeven(getChapterSevenNoiseDialogue('search', noiseAttempt.current++));
+    } else {
+      speakChapterSix(CHAPTER_SIX_DIALOGUE.searchFocused);
+    }
   };
 
   const handleSearch = (event: React.FormEvent) => {
     event.preventDefault();
     audio.playTick();
     const query = searchQuery.toLowerCase().trim();
+    if (progress.currentChapter === 7 && query.includes('mara')) {
+      setSearchError('');
+      setActiveProfile('mara');
+      setActiveTab('posts');
+      speakChapterSeven(CHAPTER_SEVEN_DIALOGUE.maraProfileOpened);
+      return;
+    }
     if (query.includes('noah') || query.includes('kade')) {
       if (!canUseProgressionAction('social-noah-search', progress)) {
         audio.playGlitch();
@@ -167,14 +193,22 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress, 
       setSearchError('');
       setActiveProfile('noah');
       setActiveTab('posts');
-      speakChapterSix([
-        CHAPTER_SIX_DIALOGUE.profileLoaded[0],
-        CHAPTER_SIX_DIALOGUE.sponsoredWallVisible[0],
-      ]);
+      if (progress.currentChapter === 7) {
+        speakChapterSeven(getChapterSevenNoiseDialogue('noah-profile', noiseAttempt.current++));
+      } else {
+        speakChapterSix([
+          CHAPTER_SIX_DIALOGUE.profileLoaded[0],
+          CHAPTER_SIX_DIALOGUE.sponsoredWallVisible[0],
+        ]);
+      }
       return;
     }
     setSearchError(query ? `No profiles found for “${searchQuery.trim()}”.` : 'Enter a name to search FaceSpace.');
-    speakChapterSix(getChapterSixSearchDialogue(searchQuery));
+    if (progress.currentChapter === 7) {
+      speakChapterSeven(getChapterSevenNoiseDialogue('search', noiseAttempt.current++));
+    } else {
+      speakChapterSix(getChapterSixSearchDialogue(searchQuery));
+    }
   };
 
   const toggleSort = () => {
@@ -224,7 +258,9 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress, 
 
   const handleMaraNumberClue = (clue: MaraNumberClue) => {
     if (progress.currentChapter !== 7) return;
+    if (getMaraClueProgress(progress)[clue]) return;
     audio.play('narrative.clueEmphasis');
+    speakChapterSeven(getChapterSevenClueDialogue(clue));
     updateProgress((previous) => {
       if (previous.currentChapter !== 7) return previous;
       const next = {
@@ -236,6 +272,13 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress, 
       const complete = next.discoveredMaraAltitude184 && next.discoveredMaraGate40 && next.discoveredMaraEnd256;
       return complete ? { ...next, discoveredNoahQA: true, unlockedAdminLogin: true } : next;
     });
+  };
+
+  const handleMaraPost = (postId: string) => {
+    if (progress.currentChapter !== 7) return;
+    const attempt = maraPostAttempts.current.get(postId) ?? 0;
+    speakChapterSeven(getChapterSevenMaraPostDialogue(postId, attempt));
+    maraPostAttempts.current.set(postId, attempt + 1);
   };
 
   const timeline = getChapterSixTimeline(sortOldest);
@@ -328,10 +371,10 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress, 
                 {MARA_PROFILE_POSTS.map((post) => {
                   const found = post.clue ? getMaraClueProgress(progress)[post.clue] : false;
                   return (
-                    <article key={post.id} className="rounded-xl border border-slate-800 bg-slate-950 p-3" data-mara-post={post.id}>
+                    <article key={post.id} onClick={() => { if (!post.clue) handleMaraPost(post.id); }} className="rounded-xl border border-slate-800 bg-slate-950 p-3" data-mara-post={post.id}>
                       <div className="flex items-center gap-2"><div className="flex h-8 w-8 items-center justify-center rounded-full bg-pink-700 text-[8px] font-black">MK</div><div className="min-w-0 flex-1"><div className="text-[9px] font-bold">Mara Kade</div><div className="text-[7px] text-slate-600">{post.date} · Public</div></div></div>
                       <p className="py-2 text-[9.5px] leading-relaxed text-slate-300">{post.content}</p>
-                      <div className="flex items-center justify-between border-t border-slate-800 pt-2 text-[7.5px] text-slate-600"><span>♥ {post.reactions} · {post.comments} comments</span>{post.clue && <button type="button" onClick={() => handleMaraNumberClue(post.clue!)} disabled={found} className="flex items-center gap-1 rounded px-2 py-1 text-slate-400 hover:bg-white/[0.05] hover:text-white disabled:text-pink-300" data-mara-number-clue={post.clue}><MapPin className="h-3 w-3" />{found ? `Saved ${getMaraNumberValue(post.clue)}` : 'Remember this place'}</button>}</div>
+                      <div className="flex items-center justify-between border-t border-slate-800 pt-2 text-[7.5px] text-slate-600"><span>♥ {post.reactions} · {post.comments} comments</span>{post.clue && <button type="button" onClick={(event) => { event.stopPropagation(); handleMaraNumberClue(post.clue!); }} disabled={found} className="flex items-center gap-1 rounded px-2 py-1 text-slate-400 hover:bg-white/[0.05] hover:text-white disabled:text-pink-300" data-mara-number-clue={post.clue}><MapPin className="h-3 w-3" />{found ? `Saved ${getMaraNumberValue(post.clue)}` : 'Remember this place'}</button>}</div>
                     </article>
                   );
                 })}
@@ -380,7 +423,7 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress, 
             </div>
           )}
         </main>
-        <RightSidebar progress={progress} onInteract={handleNoiseInteraction} onOpenMara={() => { audio.play('phone.tab'); setActiveProfile('mara'); }} />
+        <RightSidebar progress={progress} onInteract={handleNoiseInteraction} onOpenMara={() => { audio.play('phone.tab'); setActiveProfile('mara'); speakChapterSeven(CHAPTER_SEVEN_DIALOGUE.maraProfileOpened); }} />
       </div>
     </div>
   );

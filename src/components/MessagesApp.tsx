@@ -7,6 +7,10 @@ import { useMetaInteraction } from './MetaInteractionScene';
 import { CHAPTER_THREE_DIALOGUE, getChapterThreeSellerCodeResponse } from '../lib/chapterThreeDialogue';
 import { KeyRound, MessageCircle, Send, ShieldAlert } from 'lucide-react';
 import { hasAllMaraNumberClues } from '../lib/chapterSevenSocial';
+import {
+  CHAPTER_SEVEN_DIALOGUE,
+  getChapterSevenLoginDialogue,
+} from '../lib/chapterSevenDialogue';
 
 interface MessagesAppProps {
   progress: GameProgress;
@@ -35,6 +39,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
   const [passwordInput, setPasswordInput] = useState('');
   const [loginError, setLoginError] = useState('');
   const [failCount, setFailCount] = useState(0);
+  const [momMappingRead, setMomMappingRead] = useState(false);
   const [sellerCode, setSellerCode] = useState('');
   const [sellerCodeError, setSellerCodeError] = useState('');
 
@@ -65,6 +70,10 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
     );
   }
 
+  const speakChapterSeven = (lines: readonly string[]) => {
+    if (progress.currentChapter === 7 && metaInteraction.active) metaInteraction.speak(lines);
+  };
+
   const handleAdminLogin = (e: React.FormEvent) => {
     e.preventDefault();
     audio.play('key.enter');
@@ -74,12 +83,14 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
     if (!formattedInput) {
       audio.play('auth.wrong');
       setLoginError('COORDINATE STRING REQUIRED. THE NODE HAS WAITED TWELVE YEARS. IT CAN WAIT LONGER.');
+      speakChapterSeven(getChapterSevenLoginDialogue(passwordInput, hasAllMaraNumberClues(progress), momMappingRead, failCount));
       return;
     }
 
     if (formattedInput === 'ALT184GATE40END256' && !developerPreview && !canUseProgressionAction('admin-login', progress)) {
       audio.play('auth.wrong');
       setLoginError('NICE TRY, TIME TRAVELER. FIND THE CLUES BEFORE THE PASSWORD FINDS YOU.');
+      speakChapterSeven(getChapterSevenLoginDialogue(passwordInput, false, momMappingRead, failCount));
       return;
     }
 
@@ -88,6 +99,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
       setLoginError('');
       setFailCount(0);
       updateProgress((prev) => completePuzzleChapter(prev, 7, { unlockedAdminLogin: true, loggedIntoAdmin: true }));
+      speakChapterSeven(CHAPTER_SEVEN_DIALOGUE.completed);
     } else {
       audio.play('auth.wrong');
       const nextFails = failCount + 1;
@@ -95,6 +107,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
       setLoginError(nextFails >= 3
         ? 'HINT WITHHELD. HE LEFT THIS FOR SOMEONE WHO WALKS THE PATH, NOT SOMEONE WHO GUESSES IT.'
         : 'CREDENTIALS REJECTED. ENSURE ALTITUDE, GATE, AND END VALUES ARE PROPERLY SEQUENCE-PAIRED.');
+      speakChapterSeven(getChapterSevenLoginDialogue(passwordInput, hasAllMaraNumberClues(progress), momMappingRead, nextFails));
     }
   };
 
@@ -157,6 +170,11 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
               // She notices you looking, and starts — then stops (§4.7).
               audio.play('messages.typing', { delay: 1.1 });
               setActiveTab('mom');
+              const mappingAvailable = hasAllMaraNumberClues(progress);
+              setMomMappingRead(mappingAvailable);
+              speakChapterSeven(mappingAvailable
+                ? CHAPTER_SEVEN_DIALOGUE.momMappingRead
+                : CHAPTER_SEVEN_DIALOGUE.momPlacesRead);
             }}
             className={`flex-1 py-1.5 text-[10.5px] font-medium rounded-full transition-colors ${
               activeTab === 'mom' ? 'bg-[#2a2f3a] text-white' : 'text-slate-400 hover:text-slate-200'
@@ -180,7 +198,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
             </button>
           )}
           <button
-            onClick={() => { audio.play('phone.tab'); setActiveTab('admin'); }}
+            onClick={() => { audio.play('phone.tab'); setActiveTab('admin'); speakChapterSeven(CHAPTER_SEVEN_DIALOGUE.archiveAccountOpened); }}
             className={`flex-1 py-1.5 rounded-full font-laos text-[9.5px] tracking-[0.14em] laos-slow ${
               activeTab === 'admin'
                 ? 'bg-[var(--laos-surface-2)] text-[var(--laos-text)] shadow-[inset_0_0_0_1px_var(--laos-line)]'

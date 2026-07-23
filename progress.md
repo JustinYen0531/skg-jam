@@ -903,3 +903,11 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - `YES` closes the prompt and returns to the leaderboard; only `NO` starts the formal title and Meta reveal.
 - The deliberately inverted wording makes investigation an explicit refusal to ignore the anomaly.
 - Verification remains static-only per project instructions.
+
+## 2026-07-23 — Chapter 7 protagonist dialogue implementation
+
+- Added a dedicated Chapter 7 inner-voice module covering entry, home returns, relevant and wrong apps, FaceSpace noise, Mara's six ordinary posts, all three place clues, Mom's explanation, archive login mistakes, and successful completion.
+- Preserved the knowledge boundary: individual number meanings appear only after their matching place is selected, and the altitude/gate/end arrangement is not spoken before the player reads Mom's explanation.
+- Corrected the runtime wording around the `MARA_KADE` node so the preserved Silver Kite archive is described as the parents' shared trail instead of inconsistently calling it only the father's account.
+- Chapter 6 now hands off to the Chapter 7 entry after a short pause, while developer snapshots receive the same entry immediately.
+- Static verification passed: focused tests 12/12 and full tests 203/203 in both the active worktree and the latest integrated delivery, TypeScript lint, production build, and clean diff checks; Browser and Preview remain intentionally unused.
