@@ -40,7 +40,7 @@ import {
   type AssistPlan,
 } from '../lib/chapterTenAssist';
 import { useMetaInteraction } from './MetaInteractionScene';
-import { ARCANE_FLIGHT_REFLECTIONS } from '../lib/chapterTenCredits';
+import { ARCANE_FLIGHT_REFLECTIONS, ARCANE_TAKEOVER_LINES } from '../lib/chapterTenCredits';
 import {
   computePerformancePlan,
   getPerformanceObstaclePositions,
@@ -65,6 +65,7 @@ const ALTITUDE_SEQUENCE = [184, 172, 149, 133, 121, 118, 126, 143];
 // Easier pacing: slower horizontal motion, wider openings, and more breathing
 // room between gates. Scoring and gate spawning remain in lockstep.
 const PACE_INTERVAL_FRAMES = EASY_FLAPPY_SETTINGS.spawnIntervalFrames;
+const CHAPTER_TEN_TAKEOVER_FALLBACK_MS = 9000;
 
 export const FlappyGame: React.FC<FlappyGameProps> = ({
   progress,
@@ -739,9 +740,9 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
                   state.chapterTenTakeoverSpoken = true;
                   chapterTenTakeoverFallbackTimerRef.current = window.setTimeout(
                     resumeChapterTenTakeover,
-                    1600,
+                    CHAPTER_TEN_TAKEOVER_FALLBACK_MS,
                   );
-                  speak(['My turn.'], resumeChapterTenTakeover);
+                  speak(ARCANE_TAKEOVER_LINES, resumeChapterTenTakeover);
                 }
                 chapterTenFailsRef.current = 0; // cleared the gate → streak resets
                 // Arcane's hard performance: a verified click pattern + gauntlet.

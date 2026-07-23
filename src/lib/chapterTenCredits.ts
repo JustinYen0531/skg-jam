@@ -3,6 +3,11 @@ export interface ArcaneFlightReflection {
   lines: readonly string[];
 }
 
+export const ARCANE_TAKEOVER_LINES: readonly string[] = [
+  "It's me—ARC_184. My turn.",
+  'I know these routes. Leave the rest to me.',
+];
+
 export const ARCANE_FLIGHT_REFLECTIONS: readonly ArcaneFlightReflection[] = [
   { score: 58, lines: ['I thought I wanted proof.'] },
   { score: 88, lines: ['Then I thought I wanted the score.'] },

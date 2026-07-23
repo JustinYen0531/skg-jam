@@ -73,8 +73,22 @@ test('Chapter 10 hides Meta only for the player flight and restores it at Gate 4
   assert.match(appSource, /const \[chapterTenPlayerFullscreen, setChapterTenPlayerFullscreen\] = useState\(false\)/);
   assert.match(appSource, /const metaSceneActive = !chapterTenPlayerFullscreen[\s\S]*?shouldShowMetaScene/);
   assert.match(phoneSource, /progress\.currentChapter === 10 && app === 'flappy'[\s\S]*?onChapterTenPlayerFlightStart\(\)/);
-  assert.match(flappySource, /state\.chapterTenTakeoverPaused = true;[\s\S]*?onChapterTenTakeover\(\);[\s\S]*?speak\(\['My turn\.'\], resumeChapterTenTakeover\)/);
+  assert.match(flappySource, /state\.chapterTenTakeoverPaused = true;[\s\S]*?onChapterTenTakeover\(\);[\s\S]*?speak\(ARCANE_TAKEOVER_LINES, resumeChapterTenTakeover\)/);
   assert.match(flappySource, /const resumeChapterTenTakeover[\s\S]*?beginAutonomousControlRef\.current\('flappy-canvas'\)/);
+});
+
+test('Gate 40 can rewind the room scenery without dimming the Chapter 10 fireplace', () => {
+  const sceneSource = readFileSync(new URL('../src/components/MetaInteractionScene.tsx', import.meta.url), 'utf8');
+  const appSource = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
+
+  assert.match(appSource, /const \[chapterTenSceneryRewound, setChapterTenSceneryRewound\] = useState\(false\)/);
+  assert.match(appSource, /sceneryChapter=\{metaSceneActive && chapterTenSceneryRewound \? 1 : undefined\}/);
+  assert.match(appSource, /onChapterTenTakeover=\{\(\) => \{[\s\S]*?setChapterTenSceneryRewound\(true\);[\s\S]*?setChapterTenPlayerFullscreen\(false\)/);
+  assert.match(sceneSource, /sceneryChapter\?: EnvironmentChapter/);
+  assert.match(sceneSource, /const visualSceneryChapter = sceneryChapter \?\? chapter/);
+  assert.match(sceneSource, /getMetaWallStage\(visualSceneryChapter\)/);
+  assert.match(sceneSource, /getMetaFloorStage\(visualSceneryChapter\)/);
+  assert.match(sceneSource, /<MetaFireplace reducedMotion=\{reducedMotion\} chapter=\{chapter\} \/>/);
 });
 
 test('the Chapter 10 fullscreen player flight keeps only a translucent bottom thought', () => {

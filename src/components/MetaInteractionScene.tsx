@@ -35,6 +35,7 @@ import { ChapterEnvironment } from './ChapterEnvironment';
 interface MetaInteractionSceneProps {
   active: boolean;
   chapter: EnvironmentChapter;
+  sceneryChapter?: EnvironmentChapter;
   cameraPitchEnabled?: boolean;
   postureControlEnabled?: boolean;
   children: React.ReactNode;
@@ -802,6 +803,7 @@ const MetaFireplace: React.FC<{ reducedMotion: boolean; chapter: number }> = ({ 
 export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   active,
   chapter,
+  sceneryChapter,
   cameraPitchEnabled = true,
   postureControlEnabled = true,
   children,
@@ -1649,8 +1651,9 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
         ? (deviceResting ? 0 : META_CAMERA_PITCH.restDeg)
         : (deviceResting ? 0 : cameraPitch))
     : 0;
-  const wallStage = getMetaWallStage(chapter);
-  const floorStage = getMetaFloorStage(chapter);
+  const visualSceneryChapter = sceneryChapter ?? chapter;
+  const wallStage = getMetaWallStage(visualSceneryChapter);
+  const floorStage = getMetaFloorStage(visualSceneryChapter);
   const chapterClock = chapter === 0 ? null : getChapterPhoneWidgetState(chapter).clock;
 
   return (
@@ -1673,6 +1676,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
       data-autonomous-control={autonomousTapping ? 'true' : 'false'}
       data-hand-pose={autonomousTapping ? 'agitated-tapping' : interactionPending ? 'reaching' : 'holding'}
       data-environment-chapter={chapter}
+      data-scenery-chapter={visualSceneryChapter}
       id="meta-interaction-scene"
     >
       <style>{`#meta-terminal-dialogue { background-color: rgb(13 19 27 / 0.52) !important; backdrop-filter: blur(1px) !important; }`}</style>

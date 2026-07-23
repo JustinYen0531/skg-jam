@@ -1076,3 +1076,12 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Collection now requires the bird to physically touch each rendered light point. Passing a pipe no longer grants the point automatically.
 - The route remains identical across retries so repeated failures teach a learnable rhythm; missing any point in the current run still leaves Gate 40 sealed.
 - Browser and Preview remain intentionally unused by project instruction.
+
+## 2026-07-24 — Chapter 10 takeover rewind and Finale-synced transmission
+
+- Gate 40 now remains paused until Arcane types two complete takeover lines, explicitly reclaiming `ARC_184` and recognizing Noah's routes before autonomous control resumes.
+- The Meta pullback rewinds the wall, floor, and window weather to their Chapter 1 appearance while preserving the Chapter 10 clock, desk evidence, and fully lit fireplace.
+- The Final Developer Transmission now scrolls like a continuous film credit, driven by the real remaining playback time of `Phase 10 (Finale)` rather than a guessed animation duration.
+- Unknown audio metadata holds the letter at its opening frame; the final action remains locked until both the song and the scroll have reached their end.
+- Reduced-motion mode presents the same transmission as a static, manually readable document.
+- Browser and Preview remain intentionally unused by project instruction.

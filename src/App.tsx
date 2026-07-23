@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { GameProgress, PuzzleChapter } from './types';
 import { PhoneSimulator } from './components/PhoneSimulator';
 import { MetaInteractionScene } from './components/MetaInteractionScene';
@@ -9,8 +9,9 @@ import {
   shouldShowMetaScene,
 } from './lib/metaInteraction';
 import audio from './lib/audio';
-import music, { getMusicPhase } from './lib/music';
+import music, { getFinaleCreditProgress, getMusicPhase } from './lib/music';
 import { NOAH_FINAL_TRANSMISSION } from './lib/chapterTenCredits';
+import { useReducedMotion } from './lib/useReducedMotion';
 import { 
   Award, Terminal, RefreshCw, Volume2, VolumeX,
   Sparkles, CheckCircle, Database, HelpCircle, Archive, Globe
@@ -72,12 +73,18 @@ export default function App() {
     return new URLSearchParams(window.location.search).get('meta') === 'true';
   });
   const [chapterTenPlayerFullscreen, setChapterTenPlayerFullscreen] = useState(false);
+  const [chapterTenSceneryRewound, setChapterTenSceneryRewound] = useState(false);
   const [debugMode, setDebugMode] = useState(() => {
     if (typeof window === 'undefined') return false;
     return new URLSearchParams(window.location.search).get('debug') === 'true';
   });
   const [debugTargetApp, setDebugTargetApp] = useState<{ app: ReturnType<typeof getChapterById>['targetApp']; nonce: number } | null>(null);
   const [finaleTrackEnded, setFinaleTrackEnded] = useState(false);
+  const [finalePlayback, setFinalePlayback] = useState(() => music.getFinalePlayback());
+  const [creditsPlaybackStartedAt, setCreditsPlaybackStartedAt] = useState<number | null>(null);
+  const [creditsScrollComplete, setCreditsScrollComplete] = useState(false);
+  const creditsScrollRef = useRef<HTMLDivElement>(null);
+  const reducedMotion = useReducedMotion();
   const activeMusicPhase = getMusicPhase(progress);
 
   // Developer-only evidence tools stay out of the player's story surface.
@@ -110,6 +117,7 @@ export default function App() {
     const chapterInfo = getChapterById(chapter);
     setProgress(getChapterSnapshot(chapter));
     setChapterTenPlayerFullscreen(false);
+    setChapterTenSceneryRewound(false);
     setMetaViewActive(true);
     setDebugTargetApp((previous) => ({ app: chapterInfo.targetApp, nonce: (previous?.nonce ?? 0) + 1 }));
     audio.playUnlock();
@@ -137,12 +145,51 @@ export default function App() {
   useEffect(() => {
     if (progress.phase === 'credits') {
       music.playFinaleOnce();
+      const playback = music.getFinalePlayback();
+      setFinalePlayback(playback);
+      setCreditsPlaybackStartedAt(playback.currentTime);
+      setCreditsScrollComplete(false);
     } else {
       music.setPhase(activeMusicPhase);
+      setCreditsPlaybackStartedAt(null);
+      setCreditsScrollComplete(false);
     }
   }, [activeMusicPhase, progress.phase]);
 
   useEffect(() => music.onFinaleEnded(setFinaleTrackEnded), []);
+  useEffect(() => {
+    if (progress.phase !== 'credits') return;
+    return music.onFinalePlayback(setFinalePlayback);
+  }, [progress.phase]);
+
+  const creditsPlaybackProgress = creditsPlaybackStartedAt === null
+    ? null
+    : getFinaleCreditProgress(creditsPlaybackStartedAt, finalePlayback);
+
+  useEffect(() => {
+    if (progress.phase !== 'credits') return;
+    const scrollBox = creditsScrollRef.current;
+    if (!scrollBox) return;
+
+    if (reducedMotion) {
+      // A static, manually readable document replaces continuous motion.
+      scrollBox.scrollTop = 0;
+      setCreditsScrollComplete(finalePlayback.ended);
+      return;
+    }
+
+    // Unknown metadata deliberately holds the first frame instead of guessing
+    // a duration. Once known, audio time is the single animation clock.
+    const progressRatio = creditsPlaybackProgress ?? 0;
+    const maxScroll = Math.max(0, scrollBox.scrollHeight - scrollBox.clientHeight);
+    scrollBox.scrollTop = maxScroll * progressRatio;
+    setCreditsScrollComplete(finalePlayback.ended && progressRatio >= 1);
+  }, [
+    creditsPlaybackProgress,
+    finalePlayback.ended,
+    progress.phase,
+    reducedMotion,
+  ]);
 
   useEffect(() => audio.setVolume(soundVolume), [soundVolume]);
   useEffect(() => music.setVolume(musicVolume), [musicVolume]);
@@ -174,6 +221,7 @@ export default function App() {
     audio.play('ui.primaryTap');
     setProgress(INITIAL_PROGRESS);
     setChapterTenPlayerFullscreen(false);
+    setChapterTenSceneryRewound(false);
     setMetaViewActive(false);
     setDebugTargetApp(null);
   };
@@ -391,6 +439,7 @@ export default function App() {
         <MetaInteractionScene
           active={metaSceneActive}
           chapter={metaSceneActive ? progress.currentChapter : 0}
+          sceneryChapter={metaSceneActive && chapterTenSceneryRewound ? 1 : undefined}
           cameraPitchEnabled={cameraPitchEnabled}
           postureControlEnabled={postureControlEnabled}
         >
@@ -419,9 +468,15 @@ export default function App() {
             onPostureControlEnabledChange={setPostureControlEnabled}
             onFullscreenOnlyChange={setFullscreenOnly}
             onOpenDeveloperTools={openDeveloperTools}
-            onChapterTenPlayerFlightStart={() => setChapterTenPlayerFullscreen(true)}
+            onChapterTenPlayerFlightStart={() => {
+              setChapterTenSceneryRewound(false);
+              setChapterTenPlayerFullscreen(true);
+            }}
             onChapterTenPlayerFlightEnd={() => setChapterTenPlayerFullscreen(false)}
-            onChapterTenTakeover={() => setChapterTenPlayerFullscreen(false)}
+            onChapterTenTakeover={() => {
+              setChapterTenSceneryRewound(true);
+              setChapterTenPlayerFullscreen(false);
+            }}
             onRestartCurrentChapter={restartCurrentChapter}
             onRestartLoop={restartLoop}
           />
@@ -438,11 +493,20 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.9, ease: 'easeOut' }}
-            className="fixed inset-0 bg-[#0a0e13]/[0.99] flex flex-col justify-center items-center p-6 z-50 overflow-y-auto"
+            transition={reducedMotion ? { duration: 0 } : { duration: 0.9, ease: 'easeOut' }}
+            className="fixed inset-0 bg-[#0a0e13]/[0.99] flex items-stretch justify-center px-6 z-50 overflow-hidden"
             id="credits-overlay"
           >
-            <div className="max-w-md w-full space-y-6 text-center p-4" id="credits-scroll-box">
+            <div
+              ref={creditsScrollRef}
+              className={`relative h-full max-w-lg w-full ${
+                reducedMotion ? 'overflow-y-auto' : 'overflow-hidden'
+              }`}
+              id="credits-scroll-box"
+              data-scroll-progress={creditsPlaybackProgress ?? 'waiting-for-audio-metadata'}
+              aria-label="Final developer transmission and credits"
+            >
+              <div className="min-h-full space-y-10 text-center px-4 pt-[14vh] pb-[18vh]">
               <div className="space-y-1.5">
                 <div className="laos-label text-[10px] !text-[var(--laos-warm)]">
                   - CONNECTION COMPLETED -
@@ -470,7 +534,8 @@ export default function App() {
                 <div className="text-[var(--laos-warm)] font-semibold mt-2">ARCHIVE WITNESS — YOU</div>
               </div>
 
-              {finaleTrackEnded ? (
+              <div className="min-h-[42px] flex items-start justify-center">
+              {finaleTrackEnded && creditsScrollComplete ? (
                 <button
                   onClick={() => {
                     audio.playUnlock();
@@ -483,9 +548,13 @@ export default function App() {
                 </button>
               ) : (
                 <div className="laos-label text-[9px] text-[var(--laos-dim)]" id="credits-finale-playing">
-                  FINAL TRANSMISSION CONTINUES WITH THE SONG
+                  {finalePlayback.duration === null
+                    ? 'FINAL TRANSMISSION IS WAITING FOR THE SONG'
+                    : 'FINAL TRANSMISSION CONTINUES WITH THE SONG'}
                 </div>
               )}
+              </div>
+              </div>
             </div>
           </motion.div>
         )}

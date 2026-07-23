@@ -39,6 +39,7 @@ import {
 import { GATE_40_INDEX, getGateHeights, getGateOpeningBounds } from '../src/lib/flappyPhysics';
 import {
   ARCANE_FLIGHT_REFLECTIONS,
+  ARCANE_TAKEOVER_LINES,
   CHAPTER_TEN_FLIGHT_CREDITS,
   getCompletionScoreAtFrame,
   getFlightCreditsAtScore,
@@ -47,6 +48,13 @@ import {
 
 const CANVAS_HEIGHT = 320;
 const BIRD_RADIUS = 12;
+
+test('Gate 40 takeover identifies Arcane as ARC_184 before he takes control', () => {
+  assert.deepEqual(ARCANE_TAKEOVER_LINES, [
+    "It's me—ARC_184. My turn.",
+    'I know these routes. Leave the rest to me.',
+  ]);
+});
 
 // 1. Route points are derived deterministically from the existing Gate structure.
 test('route points form a deterministic varied path through gates and between them', () => {
@@ -416,7 +424,7 @@ test('Arcane stays silent before Gate 40 and the player tap uses the visible han
   const metaSource = readFileSync(new URL('../src/components/MetaInteractionScene.tsx', import.meta.url), 'utf8');
   assert.match(gameSource, /chapterTenEntryDotsSpokenRef/);
   assert.match(gameSource, /chapterTenActive && state\.score < CHAPTER_TEN_NODES\.takeover[\s\S]*?speak\(\['\.\.\.'\]\)/);
-  assert.match(gameSource, /speak\(\['My turn\.'\], resumeChapterTenTakeover\)/);
+  assert.match(gameSource, /speak\(ARCANE_TAKEOVER_LINES, resumeChapterTenTakeover\)/);
   assert.match(metaSource, /const pulsePlayerTap = useCallback/);
   assert.match(metaSource, /this only[\s\S]*lets Arcane's finger visibly perform/);
   assert.doesNotMatch(
@@ -440,7 +448,7 @@ test('Gate 40 pauses for the Meta pullback and resumes only after My turn finish
 
   assert.match(gate40, /state\.chapterTenTakeoverPaused = true/);
   assert.match(gate40, /onChapterTenTakeover\(\)/);
-  assert.match(gate40, /speak\(\['My turn\.'\], resumeChapterTenTakeover\)/);
+  assert.match(gate40, /speak\(ARCANE_TAKEOVER_LINES, resumeChapterTenTakeover\)/);
   assert.doesNotMatch(gate40, /beginAutonomousControl/);
   assert.match(resume, /state\.chapterTenTakeoverPaused = false/);
   assert.match(resume, /beginAutonomousControlRef\.current\('flappy-canvas'\)/);
@@ -471,7 +479,7 @@ test('Meta input is blocked while Arcane owns the flight', () => {
 
 test('Chapter 10 lets Arcane keep reflecting after 184 and starts Finale after the typed takeover', () => {
   const source = readFileSync(new URL('../src/components/FlappyGame.tsx', import.meta.url), 'utf8');
-  assert.match(source, /speak\(\['My turn\.'\], resumeChapterTenTakeover\)/);
+  assert.match(source, /speak\(ARCANE_TAKEOVER_LINES, resumeChapterTenTakeover\)/);
   assert.match(source, /chapterTenTakeoverSpoken/);
   assert.match(source, /ARCANE_FLIGHT_REFLECTIONS/);
   assert.match(source, /state\.chapterTenFinaleStarted = true;\s+music\.playFinaleOnce\(\)/);

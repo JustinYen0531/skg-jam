@@ -2,11 +2,31 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import test from 'node:test';
 import {
+  getFinaleCreditProgress,
   getMusicPhase,
   MUSIC_FADE_MS,
   MUSIC_LOOP_GAP_MS,
   MUSIC_TRACKS,
 } from '../src/lib/music';
+
+test('Finale credit progress uses the remaining real playback window', () => {
+  assert.equal(
+    getFinaleCreditProgress(80, { currentTime: 80, duration: 120, ended: false }),
+    0,
+  );
+  assert.equal(
+    getFinaleCreditProgress(80, { currentTime: 100, duration: 120, ended: false }),
+    0.5,
+  );
+  assert.equal(
+    getFinaleCreditProgress(80, { currentTime: 120, duration: 120, ended: true }),
+    1,
+  );
+  assert.equal(
+    getFinaleCreditProgress(80, { currentTime: 90, duration: null, ended: false }),
+    null,
+  );
+});
 
 test('the complete new phase batch exists in the public music folder', () => {
   const expectedTracks = [
@@ -62,7 +82,7 @@ test('Chapter 10 Finale starts after the typed Gate 40 takeover, plays once, and
   const appSource = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
   const musicSource = readFileSync(new URL('../src/lib/music.ts', import.meta.url), 'utf8');
 
-  assert.match(flappySource, /speak\(\['My turn\.'\], resumeChapterTenTakeover\)/);
+  assert.match(flappySource, /speak\(ARCANE_TAKEOVER_LINES, resumeChapterTenTakeover\)/);
   assert.match(
     flappySource,
     /const resumeChapterTenTakeover[\s\S]*?beginAutonomousControlRef\.current\('flappy-canvas'\)[\s\S]*?music\.playFinaleOnce\(\)/,
@@ -70,8 +90,12 @@ test('Chapter 10 Finale starts after the typed Gate 40 takeover, plays once, and
   assert.match(musicSource, /private playCurrentOnce = false/);
   assert.match(musicSource, /if \(this\.playCurrentOnce\)/);
   assert.match(musicSource, /this\.finaleEnded = true/);
+  assert.match(musicSource, /window\.requestAnimationFrame\(update\)/);
+  assert.match(appSource, /getFinaleCreditProgress\(creditsPlaybackStartedAt, finalePlayback\)/);
+  assert.match(appSource, /scrollBox\.scrollTop = maxScroll \* progressRatio/);
+  assert.match(appSource, /finaleTrackEnded && creditsScrollComplete/);
   assert.match(appSource, /music\.onFinaleEnded\(setFinaleTrackEnded\)/);
-  assert.match(appSource, /finaleTrackEnded \?/);
+  assert.match(appSource, /finaleTrackEnded && creditsScrollComplete \?/);
   assert.match(appSource, /FINAL TRANSMISSION CONTINUES WITH THE SONG/);
 });
 

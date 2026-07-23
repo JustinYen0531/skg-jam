@@ -5,6 +5,29 @@ export type MusicPhase = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 'finale';
 export const MUSIC_FADE_MS = 800;
 export const MUSIC_LOOP_GAP_MS = 700;
 
+export interface FinalePlaybackSnapshot {
+  currentTime: number;
+  duration: number | null;
+  ended: boolean;
+}
+
+/**
+ * Maps only the part of Finale that remains when the credits appear. A null
+ * result means the browser has not exposed trustworthy audio metadata yet.
+ */
+export function getFinaleCreditProgress(
+  startedAt: number,
+  playback: FinalePlaybackSnapshot,
+): number | null {
+  if (playback.ended) return 1;
+  if (playback.duration === null || playback.duration <= startedAt) return null;
+
+  return Math.max(
+    0,
+    Math.min(1, (playback.currentTime - startedAt) / (playback.duration - startedAt)),
+  );
+}
+
 export const MUSIC_TRACKS: Readonly<Record<MusicPhase, string>> = {
   0: '/assets/music/Phase 00.mp3',
   1: '/assets/music/Phase 01.mp3',
@@ -43,6 +66,8 @@ class MusicManager {
   private playCurrentOnce = false;
   private finaleEnded = false;
   private finaleEndListeners = new Set<(ended: boolean) => void>();
+  private finalePlaybackListeners = new Set<(playback: FinalePlaybackSnapshot) => void>();
+  private finalePlaybackFrame: number | null = null;
 
   setPhase(phase: MusicPhase) {
     if (phase === this.currentPhase || typeof Audio === 'undefined') return;
@@ -85,6 +110,8 @@ class MusicManager {
       this.tryPlay(this.current);
     }
     this.playCurrentOnce = true;
+    this.notifyFinalePlayback();
+    this.startFinalePlaybackFrames();
   }
 
   onFinaleEnded(listener: (ended: boolean) => void): () => void {
@@ -95,8 +122,64 @@ class MusicManager {
     };
   }
 
+  getFinalePlayback(): FinalePlaybackSnapshot {
+    const duration = this.current && Number.isFinite(this.current.duration) && this.current.duration > 0
+      ? this.current.duration
+      : null;
+    const currentTime = this.current && Number.isFinite(this.current.currentTime)
+      ? this.current.currentTime
+      : 0;
+
+    return { currentTime, duration, ended: this.finaleEnded };
+  }
+
+  onFinalePlayback(listener: (playback: FinalePlaybackSnapshot) => void): () => void {
+    this.finalePlaybackListeners.add(listener);
+    listener(this.getFinalePlayback());
+    this.startFinalePlaybackFrames();
+    return () => {
+      this.finalePlaybackListeners.delete(listener);
+      if (this.finalePlaybackListeners.size === 0) this.stopFinalePlaybackFrames();
+    };
+  }
+
   private notifyFinaleEnded() {
     this.finaleEndListeners.forEach((listener) => listener(this.finaleEnded));
+  }
+
+  private notifyFinalePlayback() {
+    const playback = this.getFinalePlayback();
+    this.finalePlaybackListeners.forEach((listener) => listener(playback));
+  }
+
+  private startFinalePlaybackFrames() {
+    if (
+      this.finalePlaybackFrame !== null
+      || this.currentPhase !== 'finale'
+      || !this.playCurrentOnce
+      || this.finalePlaybackListeners.size === 0
+      || typeof window === 'undefined'
+      || typeof window.requestAnimationFrame !== 'function'
+    ) return;
+
+    const update = () => {
+      this.finalePlaybackFrame = null;
+      this.notifyFinalePlayback();
+      if (this.playCurrentOnce && !this.finaleEnded) {
+        this.finalePlaybackFrame = window.requestAnimationFrame(update);
+      }
+    };
+    this.finalePlaybackFrame = window.requestAnimationFrame(update);
+  }
+
+  private stopFinalePlaybackFrames() {
+    if (
+      this.finalePlaybackFrame === null
+      || typeof window === 'undefined'
+      || typeof window.cancelAnimationFrame !== 'function'
+    ) return;
+    window.cancelAnimationFrame(this.finalePlaybackFrame);
+    this.finalePlaybackFrame = null;
   }
 
   setMuted(muted: boolean) {
@@ -126,7 +209,16 @@ class MusicManager {
   }
 
   private attachLoopHandlers(track: HTMLAudioElement) {
+    track.onloadedmetadata = () => {
+      if (this.current === track && this.currentPhase === 'finale') {
+        this.notifyFinalePlayback();
+      }
+    };
+
     track.ontimeupdate = () => {
+      if (this.current === track && this.currentPhase === 'finale') {
+        this.notifyFinalePlayback();
+      }
       if (
         this.current !== track
         || this.loopFading
@@ -151,6 +243,8 @@ class MusicManager {
         this.playCurrentOnce = false;
         this.finaleEnded = true;
         this.notifyFinaleEnded();
+        this.notifyFinalePlayback();
+        this.stopFinalePlaybackFrames();
         return;
       }
       this.inLoopGap = true;
@@ -166,6 +260,7 @@ class MusicManager {
   }
 
   private detachLoopHandlers(track: HTMLAudioElement) {
+    track.onloadedmetadata = null;
     track.ontimeupdate = null;
     track.onended = null;
   }
