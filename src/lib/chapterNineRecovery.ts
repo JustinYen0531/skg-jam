@@ -21,7 +21,7 @@ export const CHAPTER_NINE_CHILD_PROFILE: ChapterNineRecoveryProfile = {
   signature: 'LUMEN ARC · DEVICE VERIFIED',
 };
 
-export const CHAPTER_NINE_PLAYER_PASSWORD = 'ARKEN';
+export const CHAPTER_NINE_PLAYER_PASSWORD = 'ARCANE';
 export const CHAPTER_NINE_RECORD_ALIAS = 'ARC184';
 
 export const normalizeChapterNinePassword = (value: string): string =>

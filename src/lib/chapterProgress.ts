@@ -135,7 +135,7 @@ const CHAPTER_ADVANCE_GUIDES: Record<PuzzleChapter, ChapterAdvanceGuide> = {
     objective: 'Make enough room to restore the legacy profile without losing Arcane\'s trust.',
     steps: [
       'Open the twelve-year-old local child profile and inspect its preserved record.',
-      'Use the first-place hint; let the ARC_184 misread reveal Arken Kade, then enter Arken as the password.',
+      'Use the first-place hint; let the ARC_184 misread reveal Arcane Kade, then enter Arcane as the password.',
       'Wait until the download stops with a storage error, then return home.',
       'Press and hold the familiar app grid until the delete marks appear.',
       'Remove Concept first, then the replaceable services, then Wayback and FaceSpace.',
@@ -219,7 +219,7 @@ export const DEBUG_CHAPTERS: readonly DebugChapter[] = [
   { id: 6, shortTitle: '開發者帳號', title: '謎題 6：開發者的社群帳號', description: 'Silver Kite Games 的舊資料指向設計師 Noah Kade。', targetApp: 'social' },
   { id: 7, shortTitle: '最喜歡的數字', title: '謎題 7：最喜歡的數字', description: 'Mara 的生活貼文分別留下三個座標數字。', targetApp: 'social' },
   { id: 8, shortTitle: '尋回母親', title: '謎題 8：母親的舊帳號', description: '從 Mara 的生活對話尋回記憶，修復她與 Noah 的損壞訊息。', targetApp: 'messages' },
-  { id: 9, shortTitle: '認出自己的紀錄', title: '謎題 9：認出自己的紀錄', description: '開啟十二年前的 Child Profile，認出 ARC_184 是童年暱稱並使用 Arken 下載舊資料。', targetApp: 'messages' },
+  { id: 9, shortTitle: '認出自己的紀錄', title: '謎題 9：認出自己的紀錄', description: '開啟十二年前的 Child Profile，認出 ARC_184 是童年暱稱並使用 Arcane 下載舊資料。', targetApp: 'messages' },
   { id: 10, shortTitle: '只剩下遊戲', title: '謎題 10：只剩下遊戲', description: '空白首頁只留下 Flappy Something；Arcane 已不再回應玩家。', targetApp: 'home' },
 ] as const;
 

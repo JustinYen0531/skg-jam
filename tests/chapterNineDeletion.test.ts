@@ -43,13 +43,13 @@ test('Chapter 9 deletion is free within each tier but cannot skip emotional thre
   assert.equal(canDeleteChapterNineApp('messages', historyGone), true);
 });
 
-test('the fixed child profile uses ARC_184 as a narrative misread before revealing Arken', () => {
+test('the fixed child profile uses ARC_184 as a narrative misread before revealing Arcane', () => {
   assert.equal(CHAPTER_NINE_CHILD_PROFILE.score, 184);
   assert.equal(CHAPTER_NINE_CHILD_PROFILE.signature, 'LUMEN ARC · DEVICE VERIFIED');
-  assert.equal(CHAPTER_NINE_PLAYER_PASSWORD, 'ARKEN');
+  assert.equal(CHAPTER_NINE_PLAYER_PASSWORD, 'ARCANE');
   assert.equal(getChapterNinePasswordResult('ARC-184'), 'record-alias');
   assert.equal(getChapterNinePasswordResult('wrong'), 'rejected');
-  assert.equal(canRecoverChapterNineChildProfile('Arken'), true);
+  assert.equal(canRecoverChapterNineChildProfile('Arcane'), true);
 });
 
 test('Messages standoff is available only after every other app has been removed', () => {
@@ -79,7 +79,7 @@ test('runtime connects storage cleanup, the unresolved power loss, and silent Ch
   assert.match(messages, /id="chapter-nine-child-profile"/);
   assert.doesNotMatch(messages, /id="chapter-nine-profile-choices"/);
   assert.match(messages, /Who once held first place in this game/);
-  assert.match(messages, /RECOVERED ACCOUNT OWNER · ARKEN KADE/);
+  assert.match(messages, /RECOVERED ACCOUNT OWNER · ARCANE KADE/);
   assert.match(messages, /id="chapter-nine-player-password"/);
   assert.match(messages, /id="chapter-nine-download-progress"/);
   assert.match(messages, /id="chapter-nine-storage-error"/);

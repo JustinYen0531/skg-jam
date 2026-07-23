@@ -320,7 +320,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
       audio.play('auth.wrong');
       setChapterNineRecoveryError(
         passwordResult === 'record-alias'
-          ? 'ARC_184 WAS THE CHILD\'S LEADERBOARD NAME, NOT THE ARCHIVE PASSWORD. RECOVERED ACCOUNT OWNER · ARKEN KADE.'
+          ? 'ARC_184 WAS THE CHILD\'S LEADERBOARD NAME, NOT THE ARCHIVE PASSWORD. RECOVERED ACCOUNT OWNER · ARCANE KADE.'
           : 'ARCHIVE KEY REJECTED · WHO HELD FIRST PLACE BEFORE THE PUBLIC IMITATION?',
       );
       return;
@@ -896,7 +896,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                       <div className="flex items-end gap-2">
                         <label className="min-w-0 flex-1">
                           <span className="laos-label block text-[7px]">
-                            {chapterNineRecoveryError.includes('ARKEN KADE')
+                            {chapterNineRecoveryError.includes('ARCANE KADE')
                               ? 'ARCHIVE PASSWORD · OWNER FIRST NAME'
                               : 'ARCHIVE PASSWORD'}
                           </span>
@@ -924,7 +924,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                       {chapterNineRecoveryError && (
                         <div
                           className={`mt-2 border px-2.5 py-2 font-mono text-[8px] leading-relaxed ${
-                            chapterNineRecoveryError.includes('ARKEN KADE')
+                            chapterNineRecoveryError.includes('ARCANE KADE')
                               ? 'border-amber-200/30 bg-amber-100/[0.06] text-amber-100'
                               : 'border-red-300/20 bg-red-300/[0.04] text-red-300'
                           }`}

@@ -115,7 +115,7 @@
 - [x] Noah 的八則損壞訊息必須使用 `Recovered memories` 逐一配對，單純打開對話不再過關。
 - [x] 八則人的訊息全部修復後才完成 Chapter 8；玩家主動開啟附件後才進入 Chapter 9。
 - [x] Chapter 9 只顯示十二年前的本機 Child Profile，以正常舊資料下載控制台呈現，不再使用三選一題型。
-- [x] 壓縮包密碼提示為「誰曾經是排行榜第一名？」；玩家輸入 `ARC-184` 後，劇情揭露它只是主角年幼時自取的排行榜名稱，真實帳號為 `ARKEN KADE`，改輸入 `Arken` 才開始下載。
+- [x] 壓縮包密碼提示為「誰曾經是排行榜第一名？」；玩家輸入 `ARC-184` 後，劇情揭露它只是主角年幼時自取的排行榜名稱，真實帳號為 `ARCANE KADE`，改輸入 `Arcane` 才開始下載。
 - [x] 下載到 58% 才突然因空間不足中斷。
 - [x] 清理留在原首頁；長按圖示才出現統一紅色叉叉與抖動，不另開全螢幕清理 App。
 - [x] 隱藏順序為 Concept → ViewTube／AmazeMart／Deliveries → Wayback／FaceSpace → Messages，畫面不直接分層提示。
