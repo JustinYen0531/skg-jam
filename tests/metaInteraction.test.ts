@@ -65,6 +65,28 @@ test('Chapter 1 and every later restored-phone phase keep the Meta scene active'
   assert.equal(shouldShowMetaScene(false, false, 'ending_choice'), true);
 });
 
+test('Chapter 10 hides Meta only for the player flight and restores it at Gate 40 takeover', () => {
+  const appSource = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
+  const phoneSource = readFileSync(new URL('../src/components/PhoneSimulator.tsx', import.meta.url), 'utf8');
+  const flappySource = readFileSync(new URL('../src/components/FlappyGame.tsx', import.meta.url), 'utf8');
+
+  assert.match(appSource, /const \[chapterTenPlayerFullscreen, setChapterTenPlayerFullscreen\] = useState\(false\)/);
+  assert.match(appSource, /const metaSceneActive = !chapterTenPlayerFullscreen[\s\S]*?shouldShowMetaScene/);
+  assert.match(phoneSource, /progress\.currentChapter === 10 && app === 'flappy'[\s\S]*?onChapterTenPlayerFlightStart\(\)/);
+  assert.match(flappySource, /chapterTenTakeoverHandPendingRef\.current = true;\s+onChapterTenTakeover\(\);\s+beginAutonomousControl\('flappy-canvas'\)/);
+  assert.match(flappySource, /metaInteractionActive[\s\S]*?chapterTenTakeoverHandPendingRef\.current[\s\S]*?beginAutonomousControl\('flappy-canvas'\)/);
+});
+
+test('the Chapter 10 fullscreen player flight keeps only a translucent bottom thought', () => {
+  const source = readFileSync(new URL('../src/components/FlappyGame.tsx', import.meta.url), 'utf8');
+  assert.match(source, /id="chapter-ten-fullscreen-dialogue"/);
+  assert.match(source, /data-dialogue-mode="silent-pre-takeover"/);
+  assert.match(source, /absolute inset-x-0 bottom-0/);
+  assert.match(source, /bg-\[#080b10\]\/55/);
+  assert.match(source, />ARCANE</);
+  assert.match(source, />\.\.\.</);
+});
+
 test('only one animated meta interaction can run at a time', () => {
   assert.equal(canStartMetaInteraction(true, false, false), true);
   assert.equal(canStartMetaInteraction(true, true, false), false);
@@ -345,7 +367,10 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   assert.match(sceneSource, /id="meta-scroll-finger"/);
   assert.match(sceneSource, /data-scroll-direction=\{scrollGesture\.travelY < 0 \? 'finger-up' : 'finger-down'\}/);
   assert.match(appSource, /setMetaViewActive\(true\);[\s\S]{0,180}setDebugTargetApp/);
-  assert.match(appSource, /const metaSceneActive = !fullscreenOnly && shouldShowMetaScene\(metaViewActive, debugMode, progress\.phase\)/);
+  assert.match(
+    appSource,
+    /const metaSceneActive = !chapterTenPlayerFullscreen[\s\S]*?&& !fullscreenOnly[\s\S]*?&& shouldShowMetaScene\(metaViewActive, debugMode, progress\.phase\)/,
+  );
   assert.match(appSource, /immersiveIntro=\{!metaSceneActive\}/);
   assert.match(appSource, /metaSceneActive \? 'bg-slate-950\/40' : 'bg-black'/);
   assert.match(appSource, /<MetaInteractionScene[\s\S]{0,220}active=\{metaSceneActive\}[\s\S]{0,220}chapter=\{metaSceneActive \? progress\.currentChapter : 0\}/);

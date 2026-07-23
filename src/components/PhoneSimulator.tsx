@@ -109,6 +109,7 @@ interface PhoneSimulatorProps {
   postureControlEnabled: boolean;
   fullscreenOnly: boolean;
   developerToolsOpen: boolean;
+  chapterTenPlayerFullscreen: boolean;
   onSoundVolumeChange: (volume: number) => void;
   onMusicVolumeChange: (volume: number) => void;
   onScreenBrightnessChange: (brightness: number) => void;
@@ -117,6 +118,9 @@ interface PhoneSimulatorProps {
   onPostureControlEnabledChange: (enabled: boolean) => void;
   onFullscreenOnlyChange: (enabled: boolean) => void;
   onOpenDeveloperTools: () => void;
+  onChapterTenPlayerFlightStart: () => void;
+  onChapterTenPlayerFlightEnd: () => void;
+  onChapterTenTakeover: () => void;
   onRestartCurrentChapter: () => void;
   onRestartLoop: () => void;
 }
@@ -137,6 +141,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   postureControlEnabled,
   fullscreenOnly,
   developerToolsOpen,
+  chapterTenPlayerFullscreen,
   onSoundVolumeChange,
   onMusicVolumeChange,
   onScreenBrightnessChange,
@@ -145,6 +150,9 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   onPostureControlEnabledChange,
   onFullscreenOnlyChange,
   onOpenDeveloperTools,
+  onChapterTenPlayerFlightStart,
+  onChapterTenPlayerFlightEnd,
+  onChapterTenTakeover,
   onRestartCurrentChapter,
   onRestartLoop,
 }) => {
@@ -382,6 +390,9 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
 
   const handleLaunchApp = (app: ActiveApp) => {
     audio.play('phone.appOpen');
+    if (progress.currentChapter === 10 && app === 'flappy') {
+      onChapterTenPlayerFlightStart();
+    }
     setActiveApp(app);
     if (app === 'messages' && chapterThreeOrderPhase !== 'idle') {
       setSellerMessageUnread(false);
@@ -596,6 +607,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
 
   const handleHomeButton = () => {
     audio.play('phone.home');
+    if (progress.currentChapter === 10) onChapterTenPlayerFlightEnd();
     setActiveApp('home');
     setHomePage(0);
     // Chapter 1 begins inside Flappy, so no progress increment exists when
@@ -1574,6 +1586,8 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                 updateProgress={updateProgress}
                 onHome={handleHomeButton}
                 onSuspiciousRunSelected={onSuspiciousRunSelected}
+                chapterTenPlayerFullscreen={chapterTenPlayerFullscreen}
+                onChapterTenTakeover={onChapterTenTakeover}
               />
             </motion.div>
           )}

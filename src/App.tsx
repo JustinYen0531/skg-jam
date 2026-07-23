@@ -71,6 +71,7 @@ export default function App() {
     if (typeof window === 'undefined') return false;
     return new URLSearchParams(window.location.search).get('meta') === 'true';
   });
+  const [chapterTenPlayerFullscreen, setChapterTenPlayerFullscreen] = useState(false);
   const [debugMode, setDebugMode] = useState(() => {
     if (typeof window === 'undefined') return false;
     return new URLSearchParams(window.location.search).get('debug') === 'true';
@@ -108,6 +109,7 @@ export default function App() {
   const jumpToChapter = (chapter: PuzzleChapter) => {
     const chapterInfo = getChapterById(chapter);
     setProgress(getChapterSnapshot(chapter));
+    setChapterTenPlayerFullscreen(false);
     setMetaViewActive(true);
     setDebugTargetApp((previous) => ({ app: chapterInfo.targetApp, nonce: (previous?.nonce ?? 0) + 1 }));
     audio.playUnlock();
@@ -171,6 +173,7 @@ export default function App() {
   const restartLoop = () => {
     audio.play('ui.primaryTap');
     setProgress(INITIAL_PROGRESS);
+    setChapterTenPlayerFullscreen(false);
     setMetaViewActive(false);
     setDebugTargetApp(null);
   };
@@ -206,7 +209,9 @@ export default function App() {
   const chapterAdvanceGuide = getChapterAdvanceGuide(progress.currentChapter);
   // Fullscreen-only is a player-owned safety override. Meta may remain unlocked
   // underneath, but its projected camera and input relay are completely bypassed.
-  const metaSceneActive = !fullscreenOnly && shouldShowMetaScene(metaViewActive, debugMode, progress.phase);
+  const metaSceneActive = !chapterTenPlayerFullscreen
+    && !fullscreenOnly
+    && shouldShowMetaScene(metaViewActive, debugMode, progress.phase);
 
   return (
     <div className={`h-screen w-full flex flex-col md:flex-row relative overflow-hidden transition-all duration-700 ${
@@ -405,6 +410,7 @@ export default function App() {
             postureControlEnabled={postureControlEnabled}
             fullscreenOnly={fullscreenOnly}
             developerToolsOpen={debugMode}
+            chapterTenPlayerFullscreen={chapterTenPlayerFullscreen}
             onSoundVolumeChange={setSoundVolume}
             onMusicVolumeChange={setMusicVolume}
             onScreenBrightnessChange={setScreenBrightness}
@@ -413,6 +419,9 @@ export default function App() {
             onPostureControlEnabledChange={setPostureControlEnabled}
             onFullscreenOnlyChange={setFullscreenOnly}
             onOpenDeveloperTools={openDeveloperTools}
+            onChapterTenPlayerFlightStart={() => setChapterTenPlayerFullscreen(true)}
+            onChapterTenPlayerFlightEnd={() => setChapterTenPlayerFullscreen(false)}
+            onChapterTenTakeover={() => setChapterTenPlayerFullscreen(false)}
             onRestartCurrentChapter={restartCurrentChapter}
             onRestartLoop={restartLoop}
           />

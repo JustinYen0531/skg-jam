@@ -1,5 +1,13 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-24 — Chapter 10 player-fullscreen handoff
+
+- Launching Flappy Something in Chapter 10 now temporarily suppresses the physical Meta scene and presents the pre-Gate-40 player flight edge-to-edge.
+- Kept Arcane's silent `...` as one translucent thought strip pinned to the bottom of the fullscreen game.
+- A successful Gate 40 crossing clears the fullscreen override immediately, restores the Meta room, and reconnects Arcane's autonomous tapping hand on the next active Meta frame.
+- Leaving the game, restarting the loop, or changing developer chapters clears the temporary fullscreen override.
+- Browser and Preview remain intentionally unused by project instruction.
+
 ## 2026-07-24 — Missing route points now die at Gate 40
 
 - Confirmed the reported leak: an incomplete Chapter 10 route could fall through to the obsolete altitude-sequence bypass and survive into score 42.

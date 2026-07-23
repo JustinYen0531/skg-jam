@@ -54,6 +54,8 @@ interface FlappyGameProps {
   updateProgress: (updater: (prev: GameProgress) => GameProgress) => void;
   onHome: () => void;
   onSuspiciousRunSelected: () => void;
+  chapterTenPlayerFullscreen: boolean;
+  onChapterTenTakeover: () => void;
 }
 
 // Sequence of target altitudes near pipe 40
@@ -63,7 +65,14 @@ const ALTITUDE_SEQUENCE = [184, 172, 149, 133, 121, 118, 126, 143];
 // room between gates. Scoring and gate spawning remain in lockstep.
 const PACE_INTERVAL_FRAMES = EASY_FLAPPY_SETTINGS.spawnIntervalFrames;
 
-export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress, onHome, onSuspiciousRunSelected }) => {
+export const FlappyGame: React.FC<FlappyGameProps> = ({
+  progress,
+  updateProgress,
+  onHome,
+  onSuspiciousRunSelected,
+  chapterTenPlayerFullscreen,
+  onChapterTenTakeover,
+}) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   
@@ -83,6 +92,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
     progress.currentChapter === 10,
   );
   const {
+    active: metaInteractionActive,
     pulsePlayerTap,
     beginAutonomousControl,
     pulseAutonomousTap,
@@ -91,6 +101,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
   } = useMetaInteraction();
   const chapterTenActive = progress.currentChapter === 10;
   const chapterTenEntryDotsSpokenRef = useRef(false);
+  const chapterTenTakeoverHandPendingRef = useRef(false);
 
   useEffect(() => {
     if (!chapterTenActive) {
@@ -102,6 +113,16 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
       speak(['...']);
     }
   }, [chapterTenActive, speak]);
+
+  useEffect(() => {
+    if (
+      !chapterTenActive
+      || !metaInteractionActive
+      || !chapterTenTakeoverHandPendingRef.current
+    ) return;
+    chapterTenTakeoverHandPendingRef.current = false;
+    beginAutonomousControl('flappy-canvas');
+  }, [beginAutonomousControl, chapterTenActive, metaInteractionActive]);
 
   // Chapter 10 route-point assist. After five straight sub-41 runs the game
   // offers a precise, deterministic click pattern (see chapterTenAssist.ts) that
@@ -683,6 +704,8 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
                 state.score = CHAPTER_TEN_NODES.takeover;
                 setScore(state.score);
                 setHackedMode(true);
+                chapterTenTakeoverHandPendingRef.current = true;
+                onChapterTenTakeover();
                 beginAutonomousControl('flappy-canvas');
                 if (!state.chapterTenTakeoverSpoken) {
                   state.chapterTenTakeoverSpoken = true;
@@ -1450,6 +1473,17 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
           className="w-full h-full object-contain"
           id="flappy-canvas"
         />
+
+        {chapterTenPlayerFullscreen && chapterTenActive && (
+          <div
+            className="pointer-events-none absolute inset-x-0 bottom-0 z-30 border-t border-white/10 bg-[#080b10]/55 px-6 py-4 backdrop-blur-[2px]"
+            id="chapter-ten-fullscreen-dialogue"
+            data-dialogue-mode="silent-pre-takeover"
+          >
+            <div className="font-thought text-[9px] tracking-[0.3em] text-slate-400/75">ARCANE</div>
+            <div className="mt-1 font-thought text-[18px] tracking-[0.18em] text-slate-100/90">...</div>
+          </div>
+        )}
 
         {/* Debug panel: Shown when player has unlocked the code route */}
         {progress.unlockedCodeRoute && isPlaying && !showLeaderboard && !chapterTenActive && (
