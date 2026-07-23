@@ -30,12 +30,13 @@ export const LeaderboardPanel: React.FC<LeaderboardPanelProps> = ({
   const seenRowsRef = useRef(new Set<string>());
   const lastPercentRef = useRef(beatPercentage);
   const [selectedRun, setSelectedRun] = useState<PublicLeaderboardEntry | null>(null);
+  const [showTitleIntro, setShowTitleIntro] = useState(false);
 
   useEffect(() => {
-    if (!selectedRun) return;
+    if (!showTitleIntro) return;
     const timer = window.setTimeout(onSuspiciousRunSelected, 2200);
     return () => window.clearTimeout(timer);
-  }, [selectedRun, onSuspiciousRunSelected]);
+  }, [showTitleIntro, onSuspiciousRunSelected]);
 
   // §4.2 rowPass: only your own row and story rows announce themselves as
   // they scroll into view; the anonymous filler stays silent.
@@ -178,6 +179,7 @@ export const LeaderboardPanel: React.FC<LeaderboardPanelProps> = ({
                   if (selectedRun) return;
                   audio.play('ui.primaryTap');
                   setSelectedRun(entry);
+                  setShowTitleIntro(false);
                 }}
               >
                 {rowContent}
@@ -211,7 +213,63 @@ export const LeaderboardPanel: React.FC<LeaderboardPanelProps> = ({
       </div>
     </div>
 
-    {selectedRun && (
+    {selectedRun && !showTitleIntro && (
+      <motion.div
+        className="absolute inset-0 z-50 flex items-center justify-center bg-[#030309]/95 p-5 text-center backdrop-blur-sm"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.24 }}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="anomaly-question"
+        id="leaderboard-anomaly-prompt"
+      >
+        <motion.div
+          initial={{ opacity: 0, y: 8, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ delay: 0.08, duration: 0.28, ease: 'easeOut' }}
+          className="w-full max-w-[320px] rounded-2xl border border-white/10 bg-[#0b0a16] p-4 shadow-[0_18px_60px_rgba(0,0,0,0.65)]"
+        >
+          <div className="mb-4 grid grid-cols-[42px_1fr_54px] items-center rounded-lg border border-violet-400/20 bg-violet-500/[0.07] px-2.5 py-2 text-left text-[10px]">
+            <span className="font-mono font-black text-slate-500">{rankLabel(selectedRun.rank)}</span>
+            <span className="truncate font-bold text-violet-100">{selectedRun.name}</span>
+            <span className="text-right text-sm font-black text-cyan-200">{selectedRun.score}</span>
+          </div>
+          <p id="anomaly-question" className="text-sm font-black leading-snug text-white">
+            THE FIRST FEW RECORDS LOOK STRANGE.
+            <span className="mt-1 block text-cyan-200">IGNORE THEM?</span>
+          </p>
+          <div className="mt-5 flex flex-col gap-2">
+            <button
+              type="button"
+              autoFocus
+              onClick={() => {
+                audio.play('ui.close');
+                setSelectedRun(null);
+                setShowTitleIntro(false);
+              }}
+              className="min-h-11 w-full rounded-xl border border-white/10 bg-white/[0.06] text-xs font-black tracking-[0.22em] text-slate-300 transition-colors hover:bg-white/10 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+              id="ignore-anomaly-yes"
+            >
+              YES
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                audio.play('ui.primaryTap');
+                setShowTitleIntro(true);
+              }}
+              className="min-h-11 w-full rounded-xl border border-cyan-300/40 bg-cyan-300/[0.08] text-xs font-black tracking-[0.22em] text-cyan-100 shadow-[inset_0_0_14px_rgba(34,211,238,0.08)] transition-colors hover:bg-cyan-300/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/70"
+              id="ignore-anomaly-no"
+            >
+              NO
+            </button>
+          </div>
+        </motion.div>
+      </motion.div>
+    )}
+
+    {selectedRun && showTitleIntro && (
       <motion.div
         className="absolute inset-0 z-50 flex items-center justify-center overflow-hidden bg-[#030309] text-center"
         initial={{ opacity: 0 }}

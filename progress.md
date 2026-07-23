@@ -895,3 +895,11 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Every enabled text-like input now opens the embedded Meta keyboard; unregistered React-controlled inputs receive native input events and Enter submits their form.
 - Centered the Mara archive credential form away from the gripping hands and added restored-account, backup, access, and safety context above it.
 - Static verification passed: full tests 196/196 in the active worktree and 198/198 after integrating the latest remote delivery, TypeScript lint, production build, and diff checks; Browser and Preview remain intentionally unused.
+
+## 2026-07-23 — Refuse-to-ignore Meta decision
+
+- Selecting a suspicious top-six score now opens a contextual confirmation instead of starting the title timer.
+- The prompt asks `THE FIRST FEW RECORDS LOOK STRANGE. IGNORE THEM?` with `YES` above `NO`.
+- `YES` closes the prompt and returns to the leaderboard; only `NO` starts the formal title and Meta reveal.
+- The deliberately inverted wording makes investigation an explicit refusal to ignore the anomaly.
+- Verification remains static-only per project instructions.

@@ -41,6 +41,20 @@ test('the six anomalous top runs are the only leaderboard story entry points', (
   assert.doesNotMatch(panelSource, /INVESTIGATE/);
 });
 
+test('selecting a suspicious run asks whether to ignore it before the title can begin', () => {
+  const panelSource = readFileSync(new URL('../src/components/LeaderboardPanel.tsx', import.meta.url), 'utf8');
+
+  assert.match(panelSource, /id="leaderboard-anomaly-prompt"/);
+  assert.match(panelSource, /THE FIRST FEW RECORDS LOOK STRANGE\./);
+  assert.match(panelSource, /IGNORE THEM\?/);
+  assert.match(panelSource, /id="ignore-anomaly-yes"/);
+  assert.match(panelSource, /id="ignore-anomaly-no"/);
+  assert.match(panelSource, /if \(!showTitleIntro\) return;/);
+  assert.match(panelSource, /setSelectedRun\(null\);[\s\S]{0,100}setShowTitleIntro\(false\)/);
+  assert.match(panelSource, /id="ignore-anomaly-no"[\s\S]{0,160}>[\s\S]{0,30}NO/);
+  assert.match(panelSource, /setShowTitleIntro\(true\)/);
+});
+
 test('the cheap landing page uses a non-functional premium unlock instead of Learn More', () => {
   const flappySource = readFileSync(new URL('../src/components/FlappyGame.tsx', import.meta.url), 'utf8');
   const documentSource = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
