@@ -911,3 +911,13 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Once the chain is complete, Arcane takes control at Gate 40. Player input becomes inert while the Meta finger visibly performs the taps, distinguishing protagonist agency from an ordinary autoplay video.
 - The autonomous run restores Arcane's childhood memory at 184 and cross-checks that he was the real `ARC_184`, then continues to 256 so the ending is not gated behind two hundred additional execution checks.
 - The existing final height `0` remains intact, but Arcane performs it during the autonomous run before the completion screen and ending choice.
+
+## 2026-07-24 — Chapter 10 varied route-point challenge
+
+- Replaced the repetitive one-point-per-pipe centre line with a deterministic 28-point authored route.
+- Twenty points sit at varied safe heights inside the pre-40 pipe openings; eight additional points occupy selected lanes between neighbouring pipes.
+- Collection now requires the bird to physically touch each rendered light point. Passing a pipe no longer grants the point automatically.
+- The route remains identical across retries so repeated failures teach a learnable rhythm; missing any point in the current run still leaves Gate 40 sealed.
+- Chapter 10 focused verification passed 24/24 and diff checks passed. The complete runtime worktree production build also passed.
+- Full-project lint/test remain blocked by the pre-existing undefined `NOAH_ARCHIVE_FRAGMENTS` reference in `src/lib/chapterProgress.test.ts`; this iteration deliberately did not modify that unrelated test.
+- Browser and Preview remain intentionally unused by project instruction.

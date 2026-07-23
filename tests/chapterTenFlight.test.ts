@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import {
   CHAPTER_TEN_NODES,
   CHAPTER_TEN_SCORE_OVERFLOW,
+  CHAPTER_TEN_BETWEEN_POINT_GATES,
   DEFAULT_FLIGHT_CONFIG,
   createFlightState,
   createRunRouteState,
@@ -17,6 +18,7 @@ import {
   savedAltitudeForScore,
   shouldAcceptPlayerInput,
   stepFlight,
+  touchesRoutePoint,
   type ChapterTenPhase,
   type FlightState,
 } from '../src/lib/chapterTenFlight';
@@ -35,17 +37,26 @@ import { GATE_40_INDEX, getGateHeights, getGateOpeningBounds } from '../src/lib/
 const CANVAS_HEIGHT = 320;
 const BIRD_RADIUS = 12;
 
-// 1. Route points are derived deterministically from the existing Gate structure.
-test('route points are derived from the existing gate structure and lie on the path', () => {
+// 1. Route points form one authored rhythm across openings and interstitial lanes.
+test('route points form a deterministic varied path through gates and between them', () => {
   const a = deriveRoutePoints(CANVAS_HEIGHT, BIRD_RADIUS);
   const b = deriveRoutePoints(CANVAS_HEIGHT, BIRD_RADIUS);
 
-  assert.equal(a.length, GATE_40_INDEX);
-  assert.equal(requiredRoutePointCount(), GATE_40_INDEX);
+  assert.equal(a.length, GATE_40_INDEX + 8);
+  assert.equal(requiredRoutePointCount(), GATE_40_INDEX + 8);
   assert.deepEqual(a, b); // deterministic
 
-  // Every point sits inside its gate's real opening — a reachable path.
-  for (const point of a) {
+  const gatePoints = a.filter((point) => point.placement === 'gate');
+  const betweenPoints = a.filter((point) => point.placement === 'between');
+  assert.equal(gatePoints.length, GATE_40_INDEX);
+  assert.equal(betweenPoints.length, CHAPTER_TEN_BETWEEN_POINT_GATES.length);
+  assert.deepEqual(
+    betweenPoints.map((point) => point.gateIndex),
+    [...CHAPTER_TEN_BETWEEN_POINT_GATES],
+  );
+
+  // Gate points stay reachable but deliberately avoid one repeated centre line.
+  for (const point of gatePoints) {
     const opening = getGateOpeningBounds(
       getGateHeights(point.gateIndex, CANVAS_HEIGHT),
       CANVAS_HEIGHT,
@@ -53,6 +64,28 @@ test('route points are derived from the existing gate structure and lie on the p
     );
     assert.ok(point.y >= opening.top && point.y <= opening.bottom, `gate ${point.gateIndex} on path`);
   }
+  assert.ok(new Set(gatePoints.map((point) => Math.round(point.y))).size >= 10);
+  assert.ok(gatePoints.filter((point) => {
+    const opening = getGateOpeningBounds(
+      getGateHeights(point.gateIndex, CANVAS_HEIGHT),
+      CANVAS_HEIGHT,
+      BIRD_RADIUS,
+    );
+    return Math.abs(point.y - (opening.top + opening.bottom) / 2) < 2;
+  }).length <= 1);
+
+  // Interstitial points are real screen-space collectibles, not pipe aliases.
+  for (const point of betweenPoints) {
+    assert.equal(point.offsetX, 112);
+    assert.ok(point.y >= BIRD_RADIUS && point.y <= CANVAS_HEIGHT - BIRD_RADIUS);
+  }
+});
+
+test('route collection requires physical contact with each light point', () => {
+  assert.equal(touchesRoutePoint(80, 120, 80, 120), true);
+  assert.equal(touchesRoutePoint(80, 120, 96, 120), true);
+  assert.equal(touchesRoutePoint(80, 120, 98, 120), false);
+  assert.equal(touchesRoutePoint(80, 120, 80, 138), false);
 });
 
 // 2. Missing any single route point keeps Gate 40 sealed.

@@ -11,8 +11,10 @@ import {
   createRunRouteState,
   deriveRoutePoints,
   isGate40Passable,
+  requiredRoutePointCount,
   shouldAcceptPlayerInput,
   stepFlight,
+  touchesRoutePoint,
   type ChapterTenPhase,
   type FlightState,
 } from '../lib/chapterTenFlight';
@@ -471,6 +473,23 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
           pipe.x -= EASY_FLAPPY_SETTINGS.pipeSpeed;
         });
 
+        if (chapterTenActive) {
+          const routePoints = deriveRoutePoints(height, 12);
+          state.pipes.forEach((pipe) => {
+            routePoints
+              .filter((point) => point.gateIndex === pipe.index)
+              .forEach((point) => {
+                if (
+                  !state.chapterTenRoute.has(point.id)
+                  && touchesRoutePoint(80, state.birdY, pipe.x + point.offsetX, point.y)
+                ) {
+                  state.chapterTenRoute.add(point.id);
+                  audio.play('flight.altitudeStep', { variant: point.id % ALTITUDE_SEQUENCE.length });
+                }
+              });
+          });
+        }
+
         // Delete Offscreen Pipes
         state.pipes = state.pipes.filter((p) => p.x > -60);
 
@@ -482,13 +501,6 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
           // Check passing midpoint
           if (!pipe.passed && pipe.x < birdX) {
             pipe.passed = true;
-            if (chapterTenActive && pipe.index < GATE_40_INDEX) {
-              const routePoint = deriveRoutePoints(height, birdSize)[pipe.index];
-              if (routePoint && Math.abs(state.birdY - routePoint.y) <= 38) {
-                state.chapterTenRoute.add(pipe.index);
-                audio.play('flight.altitudeStep', { variant: pipe.index % ALTITUDE_SEQUENCE.length });
-              }
-            }
             const scoreBeforeGate = state.score;
             const nextScore = getScoreAfterPassingGate(pipe.index);
             state.score = Math.max(state.score, nextScore);
@@ -791,10 +803,11 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
       if (chapterTenActive && !state.chapterTenFlight) {
         const routePoints = deriveRoutePoints(height, 12);
         state.pipes.forEach((pipe) => {
-          const point = routePoints[pipe.index];
-          if (point) {
-            drawChapterTenRoutePoint(ctx, pipe.x, point, state.chapterTenRoute.has(pipe.index));
-          }
+          routePoints
+            .filter((point) => point.gateIndex === pipe.index)
+            .forEach((point) => {
+              drawChapterTenRoutePoint(ctx, pipe.x, point, state.chapterTenRoute.has(point.id));
+            });
         });
       }
 
@@ -959,7 +972,13 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
 
       // --- Draw Score HUD ---
       if (chapterTenActive && state.chapterTenFlight) {
-        drawChapterTenHud(ctx, width, state.score, state.chapterTenRoute.size, GATE_40_INDEX);
+        drawChapterTenHud(
+          ctx,
+          width,
+          state.score,
+          state.chapterTenRoute.size,
+          requiredRoutePointCount(),
+        );
         drawChapterTenBeat(
           ctx,
           width,

@@ -124,8 +124,9 @@ export const drawChapterTenRoutePoint = (
   ctx.save();
   ctx.globalAlpha = collected ? 0.2 : 0.72;
   ctx.fillStyle = collected ? '#80908b' : '#f0ddb0';
-  ctx.beginPath(); ctx.arc(pipeX + 25, point.y, collected ? 2 : 4, 0, Math.PI * 2); ctx.fill();
-  ctx.font = '7px "JetBrains Mono"'; ctx.fillText(String(point.altitude), pipeX + 32, point.y + 2);
+  const pointX = pipeX + point.offsetX;
+  ctx.beginPath(); ctx.arc(pointX, point.y, collected ? 2 : 4, 0, Math.PI * 2); ctx.fill();
+  ctx.font = '7px "JetBrains Mono"'; ctx.fillText(String(point.altitude), pointX + 7, point.y + 2);
   ctx.restore();
 };
 
