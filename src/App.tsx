@@ -10,6 +10,7 @@ import {
 } from './lib/metaInteraction';
 import audio from './lib/audio';
 import music, { getMusicPhase } from './lib/music';
+import { NOAH_FINAL_TRANSMISSION } from './lib/chapterTenCredits';
 import { 
   Award, Terminal, RefreshCw, Volume2, VolumeX,
   Sparkles, CheckCircle, Database, HelpCircle, Archive, Globe
@@ -75,6 +76,7 @@ export default function App() {
     return new URLSearchParams(window.location.search).get('debug') === 'true';
   });
   const [debugTargetApp, setDebugTargetApp] = useState<{ app: ReturnType<typeof getChapterById>['targetApp']; nonce: number } | null>(null);
+  const [finaleTrackEnded, setFinaleTrackEnded] = useState(false);
   const activeMusicPhase = getMusicPhase(progress);
 
   // Developer-only evidence tools stay out of the player's story surface.
@@ -131,8 +133,14 @@ export default function App() {
   }, [isMuted]);
 
   useEffect(() => {
-    music.setPhase(activeMusicPhase);
-  }, [activeMusicPhase]);
+    if (progress.phase === 'credits') {
+      music.playFinaleOnce();
+    } else {
+      music.setPhase(activeMusicPhase);
+    }
+  }, [activeMusicPhase, progress.phase]);
+
+  useEffect(() => music.onFinaleEnded(setFinaleTrackEnded), []);
 
   useEffect(() => audio.setVolume(soundVolume), [soundVolume]);
   useEffect(() => music.setVolume(musicVolume), [musicVolume]);
@@ -435,45 +443,40 @@ export default function App() {
                 </h1>
               </div>
 
-              {/* Emotional Developer text excerpt */}
+              {/* Noah's final transmission occupies the remainder of Finale. */}
               <div className="laos-panel p-4 text-left text-xs space-y-3 leading-relaxed font-laos text-[var(--laos-text)]">
                 <p className="laos-label text-[9px] border-b border-[var(--laos-line-dim)] pb-2">
-                  DEVELOPER RELEASE LOG // VER: 1.04_FINAL
+                  FINAL DEVELOPER TRANSMISSION // VER: 1.04_FINAL
                 </p>
-                <p>
-                  "這不是一款無限遊戲。我從來不想讓它無限。"
-                </p>
-                <p>
-                  "無限分數只是讓玩家不必面對結束的方法。但所有遊戲都會結束。裝置會停止生產，商店會關閉，伺服器會消失。"
-                </p>
-                <p>
-                  "我能做的，只是替它留下最後一關。有人抵達這裡，就代表它曾經存在。"
-                </p>
-                <div className="text-right text-[10px] text-[var(--laos-dim)] mt-2 font-semibold">
-                  —— Noah Kade (Silver Kite Games)
-                </div>
+                {NOAH_FINAL_TRANSMISSION.map((line) => <p key={line}>{line}</p>)}
               </div>
 
               {/* Credited names */}
               <div className="space-y-1.5 text-xs text-[var(--laos-dim)] font-laos text-center">
                 <div className="laos-label text-[9px] mb-2 !text-[var(--laos-text)]">SILVER KITE DEVELOPERS</div>
-                <div>Noah Kade — System Design & Mechanics</div>
-                <div>Elias Vale — Business Logistics</div>
-                <div>Mara — Special Supporting Partner</div>
-                <div>ARC_184 — Controversial Preservation Witness</div>
-                <div className="text-[var(--laos-warm)] font-semibold mt-2">AND YOU — THE PERSISTENT RETRIEVER</div>
+                <div>Noah Kade — Design, Code & Final Route</div>
+                <div>Mara Kade — World, Ending & First Believer</div>
+                <div>Elias Vale — Co-founder & Production</div>
+                <div>ARC_184 — Arcane Kade · First Human Record</div>
+                <div className="text-[var(--laos-warm)] font-semibold mt-2">ARCHIVE WITNESS — YOU</div>
               </div>
 
-              <button
-                onClick={() => {
-                  audio.playUnlock();
-                  setProgress((prev) => ({ ...prev, phase: 'ending_choice' }));
-                }}
-                className="laos-slow px-6 py-2.5 bg-[var(--laos-surface-2)] hover:bg-[var(--laos-line-dim)] text-[var(--laos-text)] border border-[var(--laos-line)] font-laos font-semibold tracking-[0.14em] text-[11px]"
-                id="credits-proceed-btn"
-              >
-                PROCEED TO FINAL STRATEGY
-              </button>
+              {finaleTrackEnded ? (
+                <button
+                  onClick={() => {
+                    audio.playUnlock();
+                    setProgress((prev) => ({ ...prev, phase: 'ending_choice' }));
+                  }}
+                  className="laos-slow px-6 py-2.5 bg-[var(--laos-surface-2)] hover:bg-[var(--laos-line-dim)] text-[var(--laos-text)] border border-[var(--laos-line)] font-laos font-semibold tracking-[0.14em] text-[11px]"
+                  id="credits-proceed-btn"
+                >
+                  PROCEED TO FINAL STRATEGY
+                </button>
+              ) : (
+                <div className="laos-label text-[9px] text-[var(--laos-dim)]" id="credits-finale-playing">
+                  FINAL TRANSMISSION CONTINUES WITH THE SONG
+                </div>
+              )}
             </div>
           </motion.div>
         )}

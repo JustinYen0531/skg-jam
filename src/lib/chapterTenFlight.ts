@@ -96,8 +96,14 @@ export const shouldAcceptPlayerInput = (
 // ---------------------------------------------------------------------------
 
 export interface RoutePoint {
-  /** The gate section this point belongs to (0 .. GATE_40_INDEX-1). */
+  /** Stable collectible id used by the one-run route set. */
+  id: number;
+  /** Pipe whose moving world position anchors this point. */
   gateIndex: number;
+  /** Whether the point sits inside the opening or in the following flight lane. */
+  placement: 'gate' | 'between';
+  /** Horizontal offset from the anchored pipe's left edge. */
+  offsetX: number;
   /** Sample altitude in the 0–256 space, purely for the preserved-trace look. */
   altitude: number;
   /** Canvas Y, always inside that gate's real opening (a reachable path). */
@@ -105,29 +111,76 @@ export interface RoutePoint {
 }
 
 /**
- * One quiet route point per existing flight segment up to (but not through)
- * Gate 40. Each point sits at the centre of that gate's real opening, so the
- * collection lies along a path the player can already fly — it never demands a
- * detour. The count follows `GATE_40_INDEX`; it is never a separate magic
- * number that could fall out of sync with the physics.
+ * A learnable but demanding route before Gate 40. Every gate has one point at
+ * a deliberately varied height, while eight selected lanes add a second point
+ * between neighbouring pipes. Nothing is random: failed runs teach the same
+ * authored rhythm on the next attempt.
  */
+export const CHAPTER_TEN_BETWEEN_POINT_GATES: readonly number[] = [
+  1, 3, 6, 8, 11, 13, 16, 18,
+];
+
+const GATE_POINT_FRACTIONS: readonly number[] = [
+  0.34, 0.68, 0.43, 0.74, 0.29,
+  0.61, 0.38, 0.72, 0.47, 0.25,
+  0.64, 0.36, 0.76, 0.45, 0.28,
+  0.66, 0.41, 0.71, 0.32, 0.58,
+];
+
 export const deriveRoutePoints = (
   canvasHeight: number,
   birdRadius: number,
 ): RoutePoint[] => {
   const points: RoutePoint[] = [];
+  let id = 0;
   for (let gateIndex = 0; gateIndex < GATE_40_INDEX; gateIndex += 1) {
     const heights = getGateHeights(gateIndex, canvasHeight);
     const opening = getGateOpeningBounds(heights, canvasHeight, birdRadius);
-    const y = (opening.top + opening.bottom) / 2;
+    const fraction = GATE_POINT_FRACTIONS[gateIndex % GATE_POINT_FRACTIONS.length];
+    const y = opening.top + (opening.bottom - opening.top) * fraction;
     const altitude = Math.round(((canvasHeight - y) / canvasHeight) * 256);
-    points.push({ gateIndex, altitude, y });
+    points.push({ id, gateIndex, placement: 'gate', offsetX: 25, altitude, y });
+    id += 1;
+
+    if (CHAPTER_TEN_BETWEEN_POINT_GATES.includes(gateIndex)) {
+      const nextOpening = getGateOpeningBounds(
+        getGateHeights(gateIndex + 1, canvasHeight),
+        canvasHeight,
+        birdRadius,
+      );
+      const nextFraction = GATE_POINT_FRACTIONS[(gateIndex + 1) % GATE_POINT_FRACTIONS.length];
+      const nextY = nextOpening.top + (nextOpening.bottom - nextOpening.top) * nextFraction;
+      const direction = gateIndex % 2 === 0 ? -1 : 1;
+      const laneY = Math.min(
+        canvasHeight - birdRadius,
+        Math.max(birdRadius, (y + nextY) / 2 + direction * 14),
+      );
+      points.push({
+        id,
+        gateIndex,
+        placement: 'between',
+        offsetX: 112,
+        altitude: Math.round(((canvasHeight - laneY) / canvasHeight) * 256),
+        y: laneY,
+      });
+      id += 1;
+    }
   }
   return points;
 };
 
 /** Total route points that must be collected before Gate 40 will open. */
-export const requiredRoutePointCount = (): number => GATE_40_INDEX;
+export const requiredRoutePointCount = (): number =>
+  GATE_40_INDEX + CHAPTER_TEN_BETWEEN_POINT_GATES.length;
+
+/** True only when the bird's body actually touches the rendered light point. */
+export const touchesRoutePoint = (
+  birdX: number,
+  birdY: number,
+  pointX: number,
+  pointY: number,
+  collectionRadius = 17,
+): boolean => Math.hypot(birdX - pointX, birdY - pointY) <= collectionRadius;
 
 /**
  * Gate 40 opens only when the current run has collected every route point.

@@ -1,5 +1,45 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-24 — Chapter 10 retro route-assist prompt
+
+- Replaced the modern cyan rounded assist modal and all Chinese copy with a compact English prompt belonging to Arcane's old game.
+- Restyled it as a square, double-framed 2013-era cartridge notice using muted phosphor green, aged cream, hard pixel shadows, and terse `ENABLE` / `KEEP TRYING` controls.
+- Preserved the existing fifth-failure trigger, deterministic route guide, decline path, and no-story-impact promise.
+- Browser and Preview remain intentionally unused by project instruction.
+
+## 2026-07-23 — Chapter 8 legacy-profile exit
+
+- The eighth correct restoration now leaves Noah's final sentence visible and does not auto-advance the chapter.
+- Replaced the hidden `PRESERVE RESTORED HUMAN RECORD` action with one attachment that changes from sealed to `LEGACY CHILD PROFILE · ACCESS LOCKED`.
+- Opening the recovered profile attachment is now the single deliberate Chapter 8 → 9 transition action.
+- Kept all Chapter 9 credentials, guidance rules, and route values unresolved and outside this implementation.
+- Static verification passed: focused Chapter 8 and flow tests 23/23, full suite 213/213, TypeScript, production build, and diff checks.
+- Browser and Preview remain intentionally unused by project instruction.
+
+## 2026-07-24 — Chapter 10 in-flight credits and Finale tail
+
+- Added five short Arcane reflections between Gate 40 and score 184, with sparse archival acknowledgements travelling through the canvas.
+- Score 184 clears the acknowledgements for the identity match. Score 185 starts `Phase 10 (Finale).mp3` once, without looping.
+- The 256 completion readout now holds at 256, visibly climbs to 65535, and then overflows instantly to -65535.
+- The remaining song runtime carries Noah's final transmission and corrected canonical credits; the final-choice button stays unavailable until the song ends.
+- Browser and Preview remain intentionally unused by project instruction.
+
+## 2026-07-23 — Chapter 8 developer answer key
+
+- Added an eight-entry question-and-answer key to the Chapter 8 advance guide.
+- The answer key is derived from the live Noah fragment and collected-memory data, so developer guidance cannot silently drift away from the actual puzzle.
+- Kept the answer key developer-only; the player-facing archive still requires collecting and matching each memory.
+- Static verification passed: focused guide and Chapter 8 tests 21/21, full suite 213/213, TypeScript, production build, and diff checks.
+- Browser and Preview remain intentionally unused by project instruction.
+
+## 2026-07-23 — Chapter 8 linear memory answer pool
+
+- Noah's damaged messages now restore strictly from the first message downward; later slots remain visibly sequence-locked.
+- Each collected side-thread memory adds one answer to the top question panel. Correct answers are consumed and disappear from the available pool.
+- Moved the question and current answer pool above the message list with a sticky position, so restoring later messages does not require scrolling to the bottom to answer.
+- Chapter 9 account-password and flight-height delivery remain intentionally pending a canon decision.
+- Static verification passed: Chapter 8 focused tests 8/8, full suite 212/212, TypeScript, production build, and diff checks. Browser and Preview remain intentionally unused.
+
 ## 2026-07-23 — Chapter 8 Mara memory restoration
 
 - Replaced the one-click Noah completion gate with eight Mara life threads, eight underlined collectible memories, and eight damaged Noah messages.
@@ -911,3 +951,45 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Once the chain is complete, Arcane takes control at Gate 40. Player input becomes inert while the Meta finger visibly performs the taps, distinguishing protagonist agency from an ordinary autoplay video.
 - The autonomous run restores Arcane's childhood memory at 184 and cross-checks that he was the real `ARC_184`, then continues to 256 so the ending is not gated behind two hundred additional execution checks.
 - The existing final height `0` remains intact, but Arcane performs it during the autonomous run before the completion screen and ending choice.
+
+## 2026-07-23 — Chapter 9 deletion ritual and silent rupture
+
+- Replaced the planned Chapter 9 password/height puzzle with an action-driven storage crisis: the legacy Flappy profile needs space while the Lumen Arc battery falls from 6%.
+- Added three gated deletion thresholds with free order inside each threshold: replaceable services, investigation records, then personal memory. FaceSpace must be removed before Messages.
+- Every deletion raises the visible legacy-restore percentage and drains battery, turning earlier sacrifices into sunk-cost pressure without using a real-time countdown.
+- Added a three-attempt Messages confrontation. Arcane refuses, identifies the archive as his mother's memory, then challenges whether the answer is worth erasing everything that led to it.
+- The third attempt leaves DELETE and CANCEL in unresolved conflict. Power fails before either side wins; setting the phone down resumes the interrupted cleanup and completes Chapter 9.
+- Reboot now produces a silent Chapter 10 home with only Flappy Something. Messages is gone, the legacy profile is restored, and Arcane provides no transition line or reaction.
+- Fullscreen-only/direct-input mode bypasses the physical rest-posture dependency so the story cannot deadlock when Meta posture control is unavailable.
+- This pass deliberately stops at the Chapter 10 handoff. Gate 40 route points and Arcane's autonomous 40–256 run remain the next gameplay iteration.
+
+## 2026-07-23 — Recovery-record Meta hit recovery
+
+- Marked the Chapter 8 `OPEN RECOVERY RECORD` attachment as both an immediate Meta control and a projected hit-recovery target.
+- The Meta pointer-down capture now resolves the transformed green attachment before posture movement can invalidate the browser click.
+- Added source-level regression coverage for both required input attributes.
+
+## 2026-07-23 — Chapter 9 identity download and native-home deletion
+
+- Replaced the immediate storage-cleanup screen with three competing recovery records: Noah's developer profile, the later public `ARC_184` mirror, and a twelve-year-old local child record.
+- This earlier three-profile implementation and its `ARCANE184` password were superseded by the single-profile `Arcane` password flow documented below.
+- A successful login now starts a real download sequence. It advances to 58% before unexpectedly failing with `ERROR · NOT ENOUGH STORAGE`; the cleanup requirement is not revealed beforehand.
+- Returning home preserves the familiar launcher, Widget, paging, and Dock layout. Only the left Widget column becomes `Make room`.
+- The app grid enters deletion mode only after a 520 ms press-and-hold. All remaining deletable icons receive the same red × and restrained wiggle; no visible tier labels, opacity locks, or highlighted correct answer are used.
+- Reordered the hidden emotional gates to Concept first; ViewTube, AmazeMart, and Deliveries second; Wayback and FaceSpace third; Messages last.
+- Concept is explicitly the player-facing Stop Killing Games manual, so Arcane treats it as the least personal thing on the device.
+
+## 2026-07-23 — Chapter 9 single-profile archive password
+
+- Removed the three-way Noah / imitator / child record choice. Chapter 9 now opens one ordinary download control for the twelve-year-old, device-signed Child Profile.
+- The initial archive hint asks who once held first place. Entering `ARC-184` triggers a story reveal instead of a generic wrong-password joke: it was the protagonist’s childhood leaderboard name, while the recovered account owner is `ARCANE KADE`.
+- After that reveal, the field asks for the owner’s first name; entering `Arcane` starts the same download and surprise 58% storage failure.
+- Static verification only; Browser and Preview remain intentionally excluded by project instruction.
+
+## 2026-07-24 — Chapter 10 varied route-point challenge
+
+- Replaced the repetitive one-point-per-pipe centre line with a deterministic 28-point authored route.
+- Twenty points sit at varied safe heights inside the pre-40 pipe openings; eight additional points occupy selected lanes between neighbouring pipes.
+- Collection now requires the bird to physically touch each rendered light point. Passing a pipe no longer grants the point automatically.
+- The route remains identical across retries so repeated failures teach a learnable rhythm; missing any point in the current run still leaves Gate 40 sealed.
+- Browser and Preview remain intentionally unused by project instruction.

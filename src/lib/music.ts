@@ -40,10 +40,14 @@ class MusicManager {
   private inLoopGap = false;
   private unlockArmed = false;
   private targetVolume = 0.28;
+  private playCurrentOnce = false;
+  private finaleEnded = false;
+  private finaleEndListeners = new Set<(ended: boolean) => void>();
 
   setPhase(phase: MusicPhase) {
     if (phase === this.currentPhase || typeof Audio === 'undefined') return;
 
+    this.playCurrentOnce = false;
     this.clearLoopGap();
 
     const previous = this.current;
@@ -67,6 +71,32 @@ class MusicManager {
     } else {
       this.fadeIn(next);
     }
+  }
+
+  playFinaleOnce() {
+    if (this.currentPhase === 'finale' && this.playCurrentOnce) return;
+    this.finaleEnded = false;
+    this.notifyFinaleEnded();
+    if (this.currentPhase !== 'finale') {
+      this.setPhase('finale');
+    } else if (this.current) {
+      this.current.currentTime = 0;
+      this.attachLoopHandlers(this.current);
+      this.tryPlay(this.current);
+    }
+    this.playCurrentOnce = true;
+  }
+
+  onFinaleEnded(listener: (ended: boolean) => void): () => void {
+    this.finaleEndListeners.add(listener);
+    listener(this.finaleEnded);
+    return () => {
+      this.finaleEndListeners.delete(listener);
+    };
+  }
+
+  private notifyFinaleEnded() {
+    this.finaleEndListeners.forEach((listener) => listener(this.finaleEnded));
   }
 
   setMuted(muted: boolean) {
@@ -117,6 +147,12 @@ class MusicManager {
       this.clearFade();
       track.volume = 0;
       track.currentTime = 0;
+      if (this.playCurrentOnce) {
+        this.playCurrentOnce = false;
+        this.finaleEnded = true;
+        this.notifyFinaleEnded();
+        return;
+      }
       this.inLoopGap = true;
       this.loopGapTimer = window.setTimeout(() => {
         if (this.current !== track) return;

@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import {
   CHAPTER_TEN_NODES,
   CHAPTER_TEN_SCORE_OVERFLOW,
+  CHAPTER_TEN_BETWEEN_POINT_GATES,
   DEFAULT_FLIGHT_CONFIG,
   createFlightState,
   createRunRouteState,
@@ -17,6 +18,7 @@ import {
   savedAltitudeForScore,
   shouldAcceptPlayerInput,
   stepFlight,
+  touchesRoutePoint,
   type ChapterTenPhase,
   type FlightState,
 } from '../src/lib/chapterTenFlight';
@@ -31,21 +33,36 @@ import {
   getPeelStage,
 } from '../src/lib/chapterTenVisualPhases';
 import { GATE_40_INDEX, getGateHeights, getGateOpeningBounds } from '../src/lib/flappyPhysics';
+import {
+  ARCANE_FLIGHT_REFLECTIONS,
+  CHAPTER_TEN_FLIGHT_CREDITS,
+  getCompletionScoreAtFrame,
+  getFlightCreditsAtScore,
+  NOAH_FINAL_TRANSMISSION,
+} from '../src/lib/chapterTenCredits';
 
 const CANVAS_HEIGHT = 320;
 const BIRD_RADIUS = 12;
 
 // 1. Route points are derived deterministically from the existing Gate structure.
-test('route points are derived from the existing gate structure and lie on the path', () => {
+test('route points form a deterministic varied path through gates and between them', () => {
   const a = deriveRoutePoints(CANVAS_HEIGHT, BIRD_RADIUS);
   const b = deriveRoutePoints(CANVAS_HEIGHT, BIRD_RADIUS);
 
-  assert.equal(a.length, GATE_40_INDEX);
-  assert.equal(requiredRoutePointCount(), GATE_40_INDEX);
+  assert.equal(a.length, GATE_40_INDEX + 8);
+  assert.equal(requiredRoutePointCount(), GATE_40_INDEX + 8);
   assert.deepEqual(a, b); // deterministic
 
-  // Every point sits inside its gate's real opening — a reachable path.
-  for (const point of a) {
+  const gatePoints = a.filter((point) => point.placement === 'gate');
+  const betweenPoints = a.filter((point) => point.placement === 'between');
+  assert.equal(gatePoints.length, GATE_40_INDEX);
+  assert.equal(betweenPoints.length, CHAPTER_TEN_BETWEEN_POINT_GATES.length);
+  assert.deepEqual(
+    betweenPoints.map((point) => point.gateIndex),
+    [...CHAPTER_TEN_BETWEEN_POINT_GATES],
+  );
+
+  for (const point of gatePoints) {
     const opening = getGateOpeningBounds(
       getGateHeights(point.gateIndex, CANVAS_HEIGHT),
       CANVAS_HEIGHT,
@@ -53,6 +70,27 @@ test('route points are derived from the existing gate structure and lie on the p
     );
     assert.ok(point.y >= opening.top && point.y <= opening.bottom, `gate ${point.gateIndex} on path`);
   }
+  assert.ok(new Set(gatePoints.map((point) => Math.round(point.y))).size >= 10);
+  assert.ok(gatePoints.filter((point) => {
+    const opening = getGateOpeningBounds(
+      getGateHeights(point.gateIndex, CANVAS_HEIGHT),
+      CANVAS_HEIGHT,
+      BIRD_RADIUS,
+    );
+    return Math.abs(point.y - (opening.top + opening.bottom) / 2) < 2;
+  }).length <= 1);
+
+  for (const point of betweenPoints) {
+    assert.equal(point.offsetX, 112);
+    assert.ok(point.y >= BIRD_RADIUS && point.y <= CANVAS_HEIGHT - BIRD_RADIUS);
+  }
+});
+
+test('route collection requires physical contact with each light point', () => {
+  assert.equal(touchesRoutePoint(80, 120, 80, 120), true);
+  assert.equal(touchesRoutePoint(80, 120, 96, 120), true);
+  assert.equal(touchesRoutePoint(80, 120, 98, 120), false);
+  assert.equal(touchesRoutePoint(80, 120, 80, 138), false);
 });
 
 // 2. Missing any single route point keeps Gate 40 sealed.
@@ -314,7 +352,7 @@ test('the live Chapter 10 renderer keeps the memory, terminal and finish beats',
   assert.match(source, /CHAPTER_TEN_MEMORY_LINES/);
   assert.match(source, /CHAPTER_TEN_TERMINAL_LABEL/);
   assert.match(source, /CHAPTER_TEN_COMPLETE_LINES/);
-  assert.match(source, /CHAPTER_TEN_SCORE_OVERFLOW/);
+  assert.match(source, /getCompletionScoreAtFrame/);
   assert.match(source, /distanceToEnd/);
 });
 
@@ -327,11 +365,39 @@ test('Meta input is blocked while Arcane owns the flight', () => {
   assert.match(source, /if \(autonomousTappingRef\.current\)/);
 });
 
-test('Chapter 10 keeps Arcane terse: one takeover line, then only typing dots', () => {
+test('Chapter 10 lets Arcane reflect before 184 and starts Finale only after it', () => {
   const source = readFileSync(new URL('../src/components/FlappyGame.tsx', import.meta.url), 'utf8');
   assert.match(source, /speak\(\['My turn\.'\]\)/);
-  assert.match(source, /speak\(\['\.\.\.'\]\)/);
   assert.match(source, /chapterTenTakeoverSpoken/);
-  assert.match(source, /chapterTenMemoryDotsSpoken/);
-  assert.match(source, /chapterTenTerminalDotsSpoken/);
+  assert.match(source, /ARCANE_FLIGHT_REFLECTIONS/);
+  assert.match(source, /CHAPTER_TEN_NODES\.distanceHudFrom/);
+  assert.match(source, /music\.playFinaleOnce\(\)/);
+  assert.equal(ARCANE_FLIGHT_REFLECTIONS.length, 5);
+  assert.ok(ARCANE_FLIGHT_REFLECTIONS.every((reflection) => reflection.score > 40 && reflection.score < 184));
+});
+
+test('flight credits stay sparse, leave 184 clear, and continue after the reveal', () => {
+  assert.ok(CHAPTER_TEN_FLIGHT_CREDITS.some((credit) => credit.startScore < 184));
+  assert.ok(CHAPTER_TEN_FLIGHT_CREDITS.some((credit) => credit.startScore > 184));
+  assert.deepEqual(getFlightCreditsAtScore(184), []);
+  for (let score = 40; score <= 256; score += 1) {
+    assert.ok(getFlightCreditsAtScore(score).length <= 1, `score ${score} stays readable`);
+  }
+});
+
+test('completion score climbs to the unsigned ceiling and then overflows at once', () => {
+  assert.equal(getCompletionScoreAtFrame(0), 256);
+  assert.equal(getCompletionScoreAtFrame(24), 256);
+  assert.ok(getCompletionScoreAtFrame(80) > 256);
+  assert.ok(getCompletionScoreAtFrame(143) < 65535);
+  assert.equal(getCompletionScoreAtFrame(144), 65535);
+  assert.equal(getCompletionScoreAtFrame(156), -65535);
+});
+
+test('Noah final transmission closes established canon without adding another puzzle', () => {
+  const message = NOAH_FINAL_TRANSMISSION.join(' ');
+  assert.match(message, /184, 40, and 256/);
+  assert.match(message, /counter overflowed/);
+  assert.match(message, /Devices stop working/);
+  assert.match(message, /You reached the end/);
 });
