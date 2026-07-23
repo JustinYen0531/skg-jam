@@ -930,3 +930,11 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - The remaining song runtime carries Noah's final transmission and corrected canonical credits; the final-choice button stays unavailable until the song ends.
 - Verification passed: Chapter 10 and music integration tests 32/32; complete runtime tests 255/255; TypeScript lint, production build, and diff checks all passed.
 - Browser and Preview remain intentionally unused by project instruction.
+
+## 2026-07-24 — Chapter 10 deterministic route assist integration
+
+- Integrated the independently authored assist on top of the committed 28-point route and Finale branch, without sweeping in the canonical runtime's unrelated uncommitted files.
+- Five consecutive Chapter 10 deaths before Gate 40 offer optional help. Accepting computes one deterministic 30-press route, restarts the run, and projects crosses toward the bird at the live world's speed.
+- The guide remains player-operated: it does not press Space, collect points automatically, weaken Gate 40, or alter story progress.
+- Static verification passed: focused Chapter 10 and music tests 40/40; canonical runtime full tests 263/263; TypeScript lint and production build passed. The build retains the existing non-fatal 500 kB chunk advisory.
+- Browser and Preview remain intentionally unused by project instruction.

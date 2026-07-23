@@ -29,10 +29,16 @@ import {
   drawChapterTenRoutePoint,
   drawChapterTenWorld,
 } from './chapterTenCanvas';
-import { useMetaInteraction } from './MetaInteractionScene';
 import {
-  ARCANE_FLIGHT_REFLECTIONS,
-} from '../lib/chapterTenCredits';
+  CHAPTER_TEN_ASSIST_FAIL_THRESHOLD,
+  CHAPTER_TEN_ASSIST_NOTE,
+  CHAPTER_TEN_ASSIST_PROMPT,
+  computeAssistPlan,
+  getAssistMarkPositions,
+  type AssistPlan,
+} from '../lib/chapterTenAssist';
+import { useMetaInteraction } from './MetaInteractionScene';
+import { ARCANE_FLIGHT_REFLECTIONS } from '../lib/chapterTenCredits';
 
 interface FlappyGameProps {
   progress: GameProgress;
@@ -71,6 +77,11 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
     speak,
   } = useMetaInteraction();
   const chapterTenActive = progress.currentChapter === 10;
+
+  const [assistOffered, setAssistOffered] = useState(false);
+  const assistEnabledRef = useRef(false);
+  const assistPlanRef = useRef<AssistPlan | null>(null);
+  const chapterTenFailsRef = useRef(0);
 
   // Core physics references to prevent state lag in canvas loop
   const stateRef = useRef({
@@ -154,6 +165,19 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
   const restartRun = () => {
     audio.play('flight.restart');
     resetGame();
+  };
+
+  const acceptAssist = () => {
+    if (!assistPlanRef.current) assistPlanRef.current = computeAssistPlan();
+    assistEnabledRef.current = true;
+    setAssistOffered(false);
+    audio.play('ui.toggle', { variant: 1 });
+    restartRun();
+  };
+
+  const declineAssist = () => {
+    setAssistOffered(false);
+    audio.play('ui.close');
   };
 
   const openLeaderboard = () => {
@@ -619,6 +643,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
                   state.chapterTenTakeoverSpoken = true;
                   speak(['My turn.']);
                 }
+                chapterTenFailsRef.current = 0;
                 audio.play('flight.level2Connect');
               } else if (progress.unlockedCodeRoute) {
                 // If the player knows the code, let's track real-time sequence matching!
@@ -837,6 +862,34 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
               drawChapterTenRoutePoint(ctx, pipe.x, point, state.chapterTenRoute.has(point.id));
             });
         });
+
+        if (assistEnabledRef.current && assistPlanRef.current && isPlaying && !state.gameOver) {
+          const marks = getAssistMarkPositions(assistPlanRef.current, state.frameCount);
+          for (const mark of marks) {
+            const radius = mark.imminent ? 9 : 6;
+            ctx.save();
+            ctx.strokeStyle = mark.imminent ? 'rgba(253, 224, 71, 0.95)' : 'rgba(148, 197, 255, 0.6)';
+            ctx.lineWidth = mark.imminent ? 3 : 2;
+            ctx.shadowColor = mark.imminent ? 'rgba(253, 224, 71, 0.8)' : 'transparent';
+            ctx.shadowBlur = mark.imminent ? 8 : 0;
+            ctx.beginPath();
+            ctx.moveTo(mark.x - radius, mark.y - radius);
+            ctx.lineTo(mark.x + radius, mark.y + radius);
+            ctx.moveTo(mark.x + radius, mark.y - radius);
+            ctx.lineTo(mark.x - radius, mark.y + radius);
+            ctx.stroke();
+            ctx.restore();
+          }
+          ctx.save();
+          ctx.strokeStyle = 'rgba(253, 224, 71, 0.25)';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.moveTo(80, 0);
+          ctx.lineTo(80, height);
+          ctx.stroke();
+          ctx.restore();
+        }
       }
 
       // --- Draw Bird ---
@@ -1196,6 +1249,16 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
 
       // Show the cheap results screen; the leaderboard is behind a button
       setShowResults(true);
+
+      if (chapterTenActive && state.score < CHAPTER_TEN_NODES.takeover) {
+        chapterTenFailsRef.current += 1;
+        if (
+          chapterTenFailsRef.current >= CHAPTER_TEN_ASSIST_FAIL_THRESHOLD
+          && !assistEnabledRef.current
+        ) {
+          setAssistOffered(true);
+        }
+      }
     };
 
     const triggerCompletion = () => {
@@ -1513,6 +1576,36 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({ progress, updateProgress
             </div>
 
             <div className="text-[7px] text-[#555555] mt-2">✨ Press SPACE to fly again ✨</div>
+          </div>
+        )}
+
+        {assistOffered && chapterTenActive && (
+          <div
+            className="absolute inset-0 z-40 flex items-center justify-center bg-black/70 p-6"
+            id="chapter-ten-assist-offer"
+          >
+            <div className="max-w-[300px] rounded-2xl border border-cyan-400/40 bg-[#0c1118] px-5 py-4 text-center shadow-[0_0_30px_rgba(56,189,248,0.25)]">
+              <div className="text-base font-bold text-cyan-100">{CHAPTER_TEN_ASSIST_PROMPT}</div>
+              <div className="mt-2 text-[11px] leading-relaxed text-slate-300">
+                （{CHAPTER_TEN_ASSIST_NOTE}）
+              </div>
+              <div className="mt-4 flex items-center justify-center gap-3">
+                <button
+                  onClick={acceptAssist}
+                  id="assist-accept"
+                  className="px-4 py-1.5 rounded-lg bg-cyan-500 text-[#04121f] text-xs font-bold hover:bg-cyan-400 transition-colors"
+                >
+                  好，幫我
+                </button>
+                <button
+                  onClick={declineAssist}
+                  id="assist-decline"
+                  className="px-4 py-1.5 rounded-lg border border-slate-500/50 text-slate-300 text-xs hover:bg-white/5 transition-colors"
+                >
+                  不用，我再試試
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
