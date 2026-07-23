@@ -901,6 +901,8 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                         <button
                           type="button"
                           onClick={handleOpenLegacyChildProfile}
+                          data-meta-immediate="true"
+                          data-meta-hit-recovery="true"
                           className="w-full rounded-lg border border-emerald-300/40 bg-emerald-300/10 p-3 text-center transition-colors hover:bg-emerald-300/15"
                           id="chapter-eight-legacy-profile-attachment"
                         >

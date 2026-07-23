@@ -54,6 +54,10 @@ test('Messages wires collection, gentle restoration, and the legacy-profile comp
   assert.match(messagesSource, /onClick=\{handleOpenLegacyChildProfile\}/);
   assert.match(
     messagesSource,
+    /onClick=\{handleOpenLegacyChildProfile\}[\s\S]{0,140}data-meta-immediate="true"[\s\S]{0,80}data-meta-hit-recovery="true"/,
+  );
+  assert.match(
+    messagesSource,
     /const handleOpenLegacyChildProfile = \(\) => \{\s*if \(!allNoahMessagesRestored\) return;[\s\S]{0,180}completePuzzleChapter\(prev, 8\)/,
   );
   assert.match(messagesSource, /LEGACY CHILD PROFILE · ACCESS LOCKED/);

@@ -947,3 +947,9 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Reboot now produces a silent Chapter 10 home with only Flappy Something. Messages is gone, the legacy profile is restored, and Arcane provides no transition line or reaction.
 - Fullscreen-only/direct-input mode bypasses the physical rest-posture dependency so the story cannot deadlock when Meta posture control is unavailable.
 - This pass deliberately stops at the Chapter 10 handoff. Gate 40 route points and Arcane's autonomous 40–256 run remain the next gameplay iteration.
+
+## 2026-07-23 — Recovery-record Meta hit recovery
+
+- Marked the Chapter 8 `OPEN RECOVERY RECORD` attachment as both an immediate Meta control and a projected hit-recovery target.
+- The Meta pointer-down capture now resolves the transformed green attachment before posture movement can invalidate the browser click.
+- Added source-level regression coverage for both required input attributes.
