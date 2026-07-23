@@ -10,26 +10,44 @@ import {
   getChapterNineRestorePercent,
   isChapterNineMessagesStandoffReady,
 } from '../src/lib/chapterNineDeletion';
+import {
+  CHAPTER_NINE_PLAYER_PASSWORD,
+  CHAPTER_NINE_RECOVERY_PROFILES,
+  canRecoverChapterNineChildProfile,
+} from '../src/lib/chapterNineRecovery';
 
 const readComponent = (name: string) =>
   readFileSync(new URL(`../src/components/${name}.tsx`, import.meta.url), 'utf8');
 
 test('Chapter 9 deletion is free within each tier but cannot skip emotional thresholds', () => {
-  assert.equal(canDeleteChapterNineApp('viewtube', []), true);
-  assert.equal(canDeleteChapterNineApp('screenshots', []), true);
+  assert.equal(canDeleteChapterNineApp('about', []), true);
+  assert.equal(canDeleteChapterNineApp('viewtube', []), false);
+  assert.equal(canDeleteChapterNineApp('screenshots', []), false);
   assert.equal(canDeleteChapterNineApp('browser', []), false);
   assert.equal(canDeleteChapterNineApp('messages', []), false);
 
-  const disposableGone = ['amazemart', 'screenshots', 'viewtube'] as const;
-  assert.equal(getChapterNineDeletionStage(disposableGone).id, 'evidence');
-  assert.equal(canDeleteChapterNineApp('about', disposableGone), true);
-  assert.equal(canDeleteChapterNineApp('social', disposableGone), false);
+  const manualGone = ['about'] as const;
+  assert.equal(getChapterNineDeletionStage(manualGone).id, 'disposable');
+  assert.equal(canDeleteChapterNineApp('viewtube', manualGone), true);
+  assert.equal(canDeleteChapterNineApp('social', manualGone), false);
 
-  const evidenceGone = [...disposableGone, 'about', 'browser'] as const;
-  assert.equal(getChapterNineDeletionStage(evidenceGone).id, 'memory');
-  assert.equal(canDeleteChapterNineApp('social', evidenceGone), true);
-  assert.equal(canDeleteChapterNineApp('messages', evidenceGone), false);
-  assert.equal(canDeleteChapterNineApp('messages', [...evidenceGone, 'social']), true);
+  const disposableGone = [...manualGone, 'amazemart', 'screenshots', 'viewtube'] as const;
+  assert.equal(getChapterNineDeletionStage(disposableGone).id, 'history');
+  assert.equal(canDeleteChapterNineApp('browser', disposableGone), true);
+  assert.equal(canDeleteChapterNineApp('social', disposableGone), true);
+  assert.equal(canDeleteChapterNineApp('messages', disposableGone), false);
+
+  const historyGone = [...disposableGone, 'browser', 'social'] as const;
+  assert.equal(getChapterNineDeletionStage(historyGone).id, 'memory');
+  assert.equal(canDeleteChapterNineApp('messages', historyGone), true);
+});
+
+test('the player must identify the child record and assert Arcane owns 184', () => {
+  assert.deepEqual(CHAPTER_NINE_RECOVERY_PROFILES.map(({ id }) => id), ['noah', 'impostor', 'child']);
+  assert.equal(CHAPTER_NINE_PLAYER_PASSWORD, 'ARCANE184');
+  assert.equal(canRecoverChapterNineChildProfile('noah', 'ARCANE184'), false);
+  assert.equal(canRecoverChapterNineChildProfile('impostor', 'ARCANE184'), false);
+  assert.equal(canRecoverChapterNineChildProfile('child', 'arcane 184'), true);
 });
 
 test('Messages standoff is available only after every other app has been removed', () => {
@@ -42,7 +60,7 @@ test('restore progress rises while battery falls from player actions', () => {
   const oneDeleted = addDeletedChapterNineApp([], 'viewtube');
   const sixDeleted = CHAPTER_NINE_DELETABLE_APPS.filter((app) => app !== 'messages');
 
-  assert.equal(getChapterNineRestorePercent([]), 8);
+  assert.equal(getChapterNineRestorePercent([]), 58);
   assert.ok(getChapterNineRestorePercent(oneDeleted) > getChapterNineRestorePercent([]));
   assert.equal(getChapterNineRestorePercent(sixDeleted), 96);
   assert.equal(getChapterNineBatteryPercent([], 0), 6);
@@ -56,10 +74,18 @@ test('runtime connects storage cleanup, the unresolved power loss, and silent Ch
   const home = readComponent('ChapterNineDeletionHome');
 
   assert.match(messages, /id="chapter-nine-legacy-restore"/);
+  assert.match(messages, /id="chapter-nine-profile-choices"/);
+  assert.match(messages, /id="chapter-nine-player-password"/);
+  assert.match(messages, /id="chapter-nine-download-progress"/);
+  assert.match(messages, /id="chapter-nine-storage-error"/);
   assert.match(messages, /onClick=\{onBeginChapterNineCleanup\}/);
   assert.doesNotMatch(messages, /completePuzzleChapter\(prev, 9/);
 
   assert.match(phone, /chapterNineMessageAttempts < 3/);
+  assert.match(phone, /handleChapterNineLongPressStart/);
+  assert.match(phone, /chapter-nine-editing/);
+  assert.match(phone, /ChapterNineMakeRoomWidget/);
+  assert.match(phone, /activeApp === 'home' && !chapterNineTerminalHome/);
   assert.match(phone, /chapterNineRestorePhase: 'blackout'/);
   assert.match(phone, /metaInteraction\.active && !metaInteraction\.deviceResting/);
   assert.match(phone, /chapterNineArcaneSilent: true/);

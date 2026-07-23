@@ -134,9 +134,11 @@ const CHAPTER_ADVANCE_GUIDES: Record<PuzzleChapter, ChapterAdvanceGuide> = {
     nextLabel: 'CHAPTER 10',
     objective: 'Make enough room to restore the legacy profile without losing Arcane\'s trust.',
     steps: [
-      'Open the legacy child profile and select MAKE SPACE.',
-      'Remove every replaceable service in any order.',
-      'Remove the investigation records, then FaceSpace.',
+      'Compare Noah, the public ARC_184 mirror, and the twelve-year-old local child record.',
+      'Select the child record and enter the password formed from the owner name and record.',
+      'Wait until the download stops with a storage error, then return home.',
+      'Press and hold the familiar app grid until the delete marks appear.',
+      'Remove Concept first, then the replaceable services, then Wayback and FaceSpace.',
       'Keep trying to remove Messages until the phone loses power.',
       'Put the dead phone down and wait for its interrupted cleanup to resume.',
     ],
@@ -197,6 +199,9 @@ const BASE_PROGRESS: GameProgress = {
   chapterEightMemoryIds: [],
   chapterEightRestoredMessageIds: [],
   chapterNineRestorePhase: 'idle',
+  chapterNineProfileChoice: null,
+  chapterNinePasswordVerified: false,
+  chapterNineDownloadState: 'idle',
   chapterNineDeletedAppIds: [],
   chapterNineMessageAttempts: 0,
   chapterNineArcaneSilent: false,
@@ -214,7 +219,7 @@ export const DEBUG_CHAPTERS: readonly DebugChapter[] = [
   { id: 6, shortTitle: '開發者帳號', title: '謎題 6：開發者的社群帳號', description: 'Silver Kite Games 的舊資料指向設計師 Noah Kade。', targetApp: 'social' },
   { id: 7, shortTitle: '最喜歡的數字', title: '謎題 7：最喜歡的數字', description: 'Mara 的生活貼文分別留下三個座標數字。', targetApp: 'social' },
   { id: 8, shortTitle: '尋回母親', title: '謎題 8：母親的舊帳號', description: '從 Mara 的生活對話尋回記憶，修復她與 Noah 的損壞訊息。', targetApp: 'messages' },
-  { id: 9, shortTitle: '替真相騰出空間', title: '謎題 9：替真相騰出空間', description: '逐層刪除手機內容，讓舊帳號資料在電量耗盡前完成復原。', targetApp: 'home' },
+  { id: 9, shortTitle: '認出自己的紀錄', title: '謎題 9：認出自己的紀錄', description: '從三份舊紀錄找出主角的童年帳號，登入後完成中斷的資料復原。', targetApp: 'messages' },
   { id: 10, shortTitle: '只剩下遊戲', title: '謎題 10：只剩下遊戲', description: '空白首頁只留下 Flappy Something；Arcane 已不再回應玩家。', targetApp: 'home' },
 ] as const;
 
@@ -227,8 +232,8 @@ const CHAPTER_OVERRIDES: Record<PuzzleChapter, Partial<GameProgress>> = {
   6: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true },
   7: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredMotherComment: true },
   8: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true, discoveredMaraAltitude184: true, discoveredMaraGate40: true, discoveredMaraEnd256: true, unlockedAdminLogin: true, loggedIntoAdmin: true },
-  9: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true, discoveredMaraAltitude184: true, discoveredMaraGate40: true, discoveredMaraEnd256: true, unlockedAdminLogin: true, loggedIntoAdmin: true, chapterNineRestorePhase: 'cleanup', chapterNineDeletedAppIds: [], chapterNineMessageAttempts: 0, chapterNineArcaneSilent: false },
-  10: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true, discoveredMaraAltitude184: true, discoveredMaraGate40: true, discoveredMaraEnd256: true, unlockedAdminLogin: true, loggedIntoAdmin: true, chapterNineRestorePhase: 'rebooted', chapterNineDeletedAppIds: [...CHAPTER_NINE_DELETABLE_APPS], chapterNineMessageAttempts: 3, chapterNineArcaneSilent: true, unlockedCodeRoute: true },
+  9: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true, discoveredMaraAltitude184: true, discoveredMaraGate40: true, discoveredMaraEnd256: true, unlockedAdminLogin: true, loggedIntoAdmin: true, chapterNineRestorePhase: 'idle', chapterNineProfileChoice: null, chapterNinePasswordVerified: false, chapterNineDownloadState: 'idle', chapterNineDeletedAppIds: [], chapterNineMessageAttempts: 0, chapterNineArcaneSilent: false },
+  10: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true, discoveredMaraAltitude184: true, discoveredMaraGate40: true, discoveredMaraEnd256: true, unlockedAdminLogin: true, loggedIntoAdmin: true, chapterNineRestorePhase: 'rebooted', chapterNineProfileChoice: 'child', chapterNinePasswordVerified: true, chapterNineDownloadState: 'storage-error', chapterNineDeletedAppIds: [...CHAPTER_NINE_DELETABLE_APPS], chapterNineMessageAttempts: 3, chapterNineArcaneSilent: true, unlockedCodeRoute: true },
 };
 
 export function getChapterById(chapter: PuzzleChapter): DebugChapter {

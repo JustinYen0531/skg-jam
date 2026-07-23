@@ -10,26 +10,31 @@ export type ChapterNineDeletableApp =
 export type ChapterNineRestorePhase = 'idle' | 'cleanup' | 'blackout' | 'rebooted';
 
 export interface ChapterNineDeletionStage {
-  id: 'disposable' | 'evidence' | 'memory';
+  id: 'manual' | 'disposable' | 'history' | 'memory';
   label: string;
   apps: readonly ChapterNineDeletableApp[];
 }
 
 export const CHAPTER_NINE_DELETION_STAGES: readonly ChapterNineDeletionStage[] = [
   {
+    id: 'manual',
+    label: 'Concept',
+    apps: ['about'],
+  },
+  {
     id: 'disposable',
     label: 'Replaceable services',
     apps: ['amazemart', 'screenshots', 'viewtube'],
   },
   {
-    id: 'evidence',
-    label: 'Investigation records',
-    apps: ['about', 'browser'],
+    id: 'history',
+    label: 'History',
+    apps: ['browser', 'social'],
   },
   {
     id: 'memory',
     label: 'Personal memory',
-    apps: ['social', 'messages'],
+    apps: ['messages'],
   },
 ] as const;
 
@@ -37,12 +42,12 @@ export const CHAPTER_NINE_DELETABLE_APPS = CHAPTER_NINE_DELETION_STAGES.flatMap(
 export const CHAPTER_NINE_PRE_MESSAGES_APPS = CHAPTER_NINE_DELETABLE_APPS.filter((app) => app !== 'messages');
 
 const RESTORE_PROGRESS: Readonly<Record<number, number>> = {
-  0: 8,
-  1: 21,
-  2: 34,
-  3: 47,
-  4: 63,
-  5: 78,
+  0: 58,
+  1: 64,
+  2: 70,
+  3: 76,
+  4: 82,
+  5: 88,
   6: 96,
   7: 100,
 };
@@ -72,7 +77,7 @@ export const addDeletedChapterNineApp = (
     : [...deletedIds, app].filter((id): id is ChapterNineDeletableApp => CHAPTER_NINE_DELETABLE_APPS.includes(id as ChapterNineDeletableApp));
 
 export const getChapterNineRestorePercent = (deletedIds: readonly string[]): number =>
-  RESTORE_PROGRESS[Math.min(CHAPTER_NINE_DELETABLE_APPS.length, new Set(deletedIds).size)] ?? 8;
+  RESTORE_PROGRESS[Math.min(CHAPTER_NINE_DELETABLE_APPS.length, new Set(deletedIds).size)] ?? 58;
 
 export const getChapterNineBatteryPercent = (
   deletedIds: readonly string[],

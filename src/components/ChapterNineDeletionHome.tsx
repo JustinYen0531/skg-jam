@@ -66,6 +66,96 @@ const STANDOFF_COPY = [
   },
 ] as const;
 
+export const ChapterNineMakeRoomWidget: React.FC<{
+  deletedAppIds: readonly ChapterNineDeletableApp[];
+  messageAttempts: number;
+  editMode: boolean;
+  onDone: () => void;
+}> = ({
+  deletedAppIds,
+  messageAttempts,
+  editMode,
+  onDone,
+}) => {
+  const restorePercent = getChapterNineRestorePercent(deletedAppIds);
+  const batteryPercent = getChapterNineBatteryPercent(deletedAppIds, messageAttempts);
+
+  return (
+    <aside
+      className="laos-panel laos-slow flex h-full min-h-0 flex-col p-4"
+      id="chapter-nine-make-room-widget"
+      data-edit-mode={editMode}
+    >
+      <div className="flex items-start justify-between gap-3 border-b border-[var(--laos-line-dim)] pb-3">
+        <div>
+          <div className="laos-label text-[8px]">LEGACY PROFILE RESTORE</div>
+          <h2 className="mt-1 text-[15px] font-semibold text-[var(--laos-text)]">Make room</h2>
+        </div>
+        {editMode && (
+          <button
+            type="button"
+            onClick={onDone}
+            className="border border-white/10 px-2 py-1 font-mono text-[7px] text-slate-300"
+            data-meta-immediate="true"
+            data-meta-hit-recovery="true"
+          >
+            DONE
+          </button>
+        )}
+      </div>
+
+      <div className="mt-4 space-y-4">
+        <div>
+          <div className="flex items-center justify-between text-[8px]">
+            <span className="flex items-center gap-1.5 text-slate-400"><HardDrive className="h-3 w-3" /> DOWNLOAD RESUME</span>
+            <span className="font-mono text-slate-200" id="chapter-nine-restore-percent">{restorePercent}%</span>
+          </div>
+          <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/10">
+            <motion.div animate={{ width: `${restorePercent}%` }} className="h-full bg-emerald-300/70" />
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between rounded-lg border border-amber-300/15 bg-amber-300/[0.05] px-3 py-2">
+          <span className="flex items-center gap-1.5 text-[8px] text-amber-200/70"><BatteryWarning className="h-3 w-3" /> BATTERY</span>
+          <span className="font-mono text-[10px] text-amber-100" id="chapter-nine-battery">{batteryPercent}%</span>
+        </div>
+      </div>
+
+      <div className="mt-5 border border-red-300/20 bg-red-300/[0.05] p-3">
+        <div className="font-mono text-[8px] font-bold tracking-[0.12em] text-red-200">18.0 GB STILL REQUIRED</div>
+        <p className="mt-2 text-[9px] leading-relaxed text-slate-400">
+          {editMode
+            ? 'Tap an app marked with × to remove its local data.'
+            : 'Press and hold any app until the icons begin to move.'}
+        </p>
+      </div>
+
+      {messageAttempts > 0 && (
+        <div
+          className="mt-3 border border-amber-300/25 bg-amber-300/[0.06] p-3"
+          id="chapter-nine-messages-standoff-widget"
+          data-standoff-attempt={messageAttempts}
+        >
+          <div className="text-[9px] font-semibold text-amber-100">
+            {STANDOFF_COPY[Math.min(STANDOFF_COPY.length - 1, messageAttempts - 1)].title}
+          </div>
+          <div className="mt-1 font-mono text-[7px] leading-relaxed text-amber-200/60">
+            {messageAttempts >= 3
+              ? 'DELETE / CANCEL · CONFLICTING INPUT · BATTERY CRITICAL'
+              : STANDOFF_COPY[Math.min(STANDOFF_COPY.length - 1, messageAttempts - 1)].body}
+          </div>
+        </div>
+      )}
+
+      <div className="mt-auto border-t border-white/[0.07] pt-3 font-mono text-[7px] leading-relaxed text-slate-600">
+        {deletedAppIds.length}/7 LOCAL DATA SETS REMOVED
+        <br />
+        INTERRUPTED DOWNLOAD WILL RESUME AFTER RESTART
+      </div>
+    </aside>
+  );
+};
+
 export const ChapterNineDeletionHome: React.FC<ChapterNineDeletionHomeProps> = ({
   phase,
   deletedAppIds,

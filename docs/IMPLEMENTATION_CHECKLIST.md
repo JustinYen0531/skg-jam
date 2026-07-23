@@ -114,7 +114,10 @@
 - [x] Chapter 8 從已登入的封存索引開始；八條 Mara 生活對話各自只提供一個可點選記憶。
 - [x] Noah 的八則損壞訊息必須使用 `Recovered memories` 逐一配對，單純打開對話不再過關。
 - [x] 八則人的訊息全部修復後才完成 Chapter 8；玩家主動開啟附件後才進入 Chapter 9。
-- [x] Chapter 9 以三層刪除儀式取代另一輪密碼／高度題；Messages 必須最後處理。
+- [x] Chapter 9 先以 Noah／公開仿冒者／十二年前孩子三份紀錄要求玩家辨認原始 `ARC_184`。
+- [x] 選中孩子紀錄並輸入 `ARCANE184` 後，下載到 58% 才突然因空間不足中斷。
+- [x] 清理留在原首頁；長按圖示才出現統一紅色叉叉與抖動，不另開全螢幕清理 App。
+- [x] 隱藏順序為 Concept → ViewTube／AmazeMart／Deliveries → Wayback／FaceSpace → Messages，畫面不直接分層提示。
 - [x] 第三次 Messages 對峙後以未解決的輸入衝突斷電，平放重啟後只剩 Flappy Something。
 - [x] 重啟後 Arcane 保持沉默，Chapter 10 的控制權奪回不在 Chapter 9 提前演出。
 - [ ] Chapter 10 實作 Gate 40 前引導點與 Arcane 自主飛行。

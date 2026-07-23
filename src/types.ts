@@ -25,6 +25,9 @@ export interface GameProgress {
   chapterEightMemoryIds?: string[]; // clues collected from Mara's preserved conversations
   chapterEightRestoredMessageIds?: string[]; // damaged Noah messages restored with those clues
   chapterNineRestorePhase?: import('./lib/chapterNineDeletion').ChapterNineRestorePhase;
+  chapterNineProfileChoice?: import('./lib/chapterNineRecovery').ChapterNineProfileChoice | null;
+  chapterNinePasswordVerified?: boolean;
+  chapterNineDownloadState?: import('./lib/chapterNineRecovery').ChapterNineDownloadState;
   chapterNineDeletedAppIds?: import('./lib/chapterNineDeletion').ChapterNineDeletableApp[];
   chapterNineMessageAttempts?: number;
   chapterNineArcaneSilent?: boolean;

@@ -70,7 +70,7 @@ import { ChapterTransition, EvidenceNotification } from './ChapterTransition';
 import { MetaWindowScene } from './MetaWindowScene';
 import type { AmazeMartOrderPhase } from '../lib/amazemartPuzzle';
 import { completePuzzleChapter } from '../lib/chapterProgress';
-import { ChapterNineDeletionHome } from './ChapterNineDeletionHome';
+import { ChapterNineDeletionHome, ChapterNineMakeRoomWidget } from './ChapterNineDeletionHome';
 import {
   CHAPTER_NINE_DELETABLE_APPS,
   addDeletedChapterNineApp,
@@ -151,6 +151,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   const metaInteraction = useMetaInteraction();
   const [activeApp, setActiveApp] = useState<ActiveApp>('flappy');
   const [homePage, setHomePage] = useState<0 | 1>(0);
+  const [chapterNineEditMode, setChapterNineEditMode] = useState(false);
   const [familyAccountsOpen, setFamilyAccountsOpen] = useState(false);
   const [familyAccountConfirmed, setFamilyAccountConfirmed] = useState(false);
   const homeSwipeStartX = useRef<number | null>(null);
@@ -166,6 +167,8 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   const restoreTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const chapterNinePowerTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const chapterNineRebootTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const chapterNineLongPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const chapterNineEditModeRef = useRef(false);
   const chapterOneDialogueTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const chapterOneAppAttempt = useRef(0);
   const chapterOneHomeAttempt = useRef(0);
@@ -238,9 +241,10 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
     chapterNineDeletedAppIds,
     chapterNineMessageAttempts,
   );
-  const chapterNineSpecialHome = chapterNineRestorePhase === 'cleanup'
-    || chapterNineRestorePhase === 'blackout'
+  const chapterNineCleanupHome = chapterNineRestorePhase === 'cleanup';
+  const chapterNineTerminalHome = chapterNineRestorePhase === 'blackout'
     || chapterNineRestorePhase === 'rebooted';
+  const chapterNineSpecialHome = chapterNineRestorePhase !== 'idle';
 
   useEffect(() => {
     if (debugTargetApp) setActiveApp(debugTargetApp.app);
@@ -300,6 +304,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
     if (chapterOneDialogueTimer.current) clearTimeout(chapterOneDialogueTimer.current);
     if (chapterNinePowerTimer.current) clearTimeout(chapterNinePowerTimer.current);
     if (chapterNineRebootTimer.current) clearTimeout(chapterNineRebootTimer.current);
+    if (chapterNineLongPressTimer.current) clearTimeout(chapterNineLongPressTimer.current);
   }, []);
 
   useEffect(() => {
@@ -481,7 +486,31 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
       : previous);
     setHomePage(0);
     setActiveApp('home');
+    chapterNineEditModeRef.current = false;
+    setChapterNineEditMode(false);
     if (metaInteraction.active) metaInteraction.speak(CHAPTER_NINE_DIALOGUE.restoreBlocked);
+  };
+
+  const stopChapterNineLongPress = () => {
+    if (chapterNineLongPressTimer.current) clearTimeout(chapterNineLongPressTimer.current);
+    chapterNineLongPressTimer.current = null;
+  };
+
+  const handleChapterNineLongPressStart = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!chapterNineCleanupHome || chapterNineEditModeRef.current || event.button !== 0) return;
+    stopChapterNineLongPress();
+    chapterNineLongPressTimer.current = setTimeout(() => {
+      chapterNineEditModeRef.current = true;
+      setChapterNineEditMode(true);
+      audio.play('ui.toggle', { variant: 0 });
+      chapterNineLongPressTimer.current = null;
+    }, 520);
+  };
+
+  const leaveChapterNineEditMode = () => {
+    stopChapterNineLongPress();
+    chapterNineEditModeRef.current = false;
+    setChapterNineEditMode(false);
   };
 
   const handleDeleteChapterNineApp = (app: Exclude<ChapterNineDeletableApp, 'messages'>) => {
@@ -534,10 +563,33 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   // relay; native click remains available for keyboard activation.
   const handleLauncherPointerUp = (event: React.PointerEvent<HTMLButtonElement>, app: ActiveApp) => {
     event.stopPropagation();
+    stopChapterNineLongPress();
+    if (chapterNineCleanupHome) {
+      if (!chapterNineEditModeRef.current) return;
+      if (app === 'flappy') {
+        if (metaInteraction.active) metaInteraction.speak(CHAPTER_NINE_DIALOGUE.restoreBlocked);
+        return;
+      }
+      if (CHAPTER_NINE_DELETABLE_APPS.includes(app as ChapterNineDeletableApp)) {
+        const deletable = app as ChapterNineDeletableApp;
+        if (!canDeleteChapterNineApp(deletable, chapterNineDeletedAppIds)) {
+          handleBlockedChapterNineApp(deletable);
+        } else if (deletable === 'messages') {
+          handleChapterNineMessagesAttempt();
+        } else {
+          handleDeleteChapterNineApp(deletable);
+        }
+      }
+      return;
+    }
     handleLaunchApp(app);
   };
 
   const handleLauncherClick = (event: React.MouseEvent<HTMLButtonElement>, app: ActiveApp) => {
+    if (chapterNineCleanupHome) {
+      event.preventDefault();
+      return;
+    }
     if (event.detail !== 0) return;
     handleLaunchApp(app);
   };
@@ -948,7 +1000,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
         style={{ filter: `brightness(${screenBrightness}) contrast(${screenContrast})` }}
       >
         <AnimatePresence mode="wait">
-          {activeApp === 'home' && chapterNineSpecialHome && (
+          {activeApp === 'home' && chapterNineTerminalHome && (
             <motion.div
               key={`chapter-nine-home-${chapterNineRestorePhase}`}
               initial={{ opacity: 0 }}
@@ -970,7 +1022,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
             </motion.div>
           )}
 
-          {activeApp === 'home' && !chapterNineSpecialHome && (
+          {activeApp === 'home' && !chapterNineTerminalHome && (
             /* HOME SCREEN — a normal modern phone. The residue does the talking. */
             <motion.div
               key="home"
@@ -999,6 +1051,15 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
 
               {/* LEFT COLUMN: everyday widgets */}
               <div className="w-[44%] min-w-[220px] max-w-[420px] shrink-0 flex flex-col gap-3 relative">
+                {chapterNineCleanupHome ? (
+                  <ChapterNineMakeRoomWidget
+                    deletedAppIds={chapterNineDeletedAppIds}
+                    messageAttempts={chapterNineMessageAttempts}
+                    editMode={chapterNineEditMode}
+                    onDone={leaveChapterNineEditMode}
+                  />
+                ) : (
+                  <>
 
                 {/* Chapter reminder — four visible rows from a scrollable 00–10 timeline. */}
                 <div
@@ -1217,6 +1278,8 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                     ? `LAOS BACKUPAGENT · LEGACY VOLUME MOUNTED (READ-ONLY) · ${residue >= 3 ? 'PROFILE: MK_HOME' : 'LAST SYNC 2014-04-14'}`
                     : 'RESTORED FROM DEVICE BACKUP · 2014-04-14'}
                 </div>
+                  </>
+                )}
               </div>
 
               {/* RIGHT COLUMN: app grid + dock */}
@@ -1262,9 +1325,20 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                         className="w-full"
                       >
                 <div
-                  className="grid grid-cols-4 justify-items-center gap-y-[clamp(18px,3.4cqh,36px)]"
+                  className={`grid grid-cols-4 justify-items-center gap-y-[clamp(18px,3.4cqh,36px)] rounded-[22px] border p-3 transition-colors ${
+                    chapterNineCleanupHome
+                      ? chapterNineEditMode
+                        ? 'chapter-nine-editing border-red-300/25 bg-red-300/[0.025]'
+                        : 'border-white/[0.08] bg-white/[0.02]'
+                      : 'border-transparent'
+                  }`}
                   id="home-apps-grid"
                   data-meta-immediate="true"
+                  data-chapter-nine-cleanup={chapterNineCleanupHome}
+                  data-chapter-nine-edit-mode={chapterNineEditMode}
+                  onPointerDownCapture={handleChapterNineLongPressStart}
+                  onPointerUpCapture={stopChapterNineLongPress}
+                  onPointerCancelCapture={stopChapterNineLongPress}
                 >
                   <button
                     onPointerUp={(event) => handleLauncherPointerUp(event, 'flappy')}
@@ -1293,6 +1367,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                     onClick={(event) => handleLauncherClick(event, 'viewtube')}
                     className="group flex flex-col items-center gap-1.5 min-w-0"
                     id="launcher-viewtube"
+                    data-chapter-nine-deleted={chapterNineDeletedAppIds.includes('viewtube')}
                   >
                     <div className="relative w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
                       <IconViewTube />
@@ -1306,6 +1381,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                     onClick={(event) => handleLauncherClick(event, 'amazemart')}
                     className="group flex flex-col items-center gap-1.5 min-w-0"
                     id="launcher-amazemart"
+                    data-chapter-nine-deleted={chapterNineDeletedAppIds.includes('amazemart')}
                   >
                     <div className="relative w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
                       <IconAmazeMart />
@@ -1319,6 +1395,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                     onClick={(event) => handleLauncherClick(event, 'browser')}
                     className="group flex flex-col items-center gap-1.5 min-w-0"
                     id="launcher-browser"
+                    data-chapter-nine-deleted={chapterNineDeletedAppIds.includes('browser')}
                   >
                     <div className="relative w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
                       <IconWayback />
@@ -1332,6 +1409,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                     onClick={(event) => handleLauncherClick(event, 'social')}
                     className="group flex flex-col items-center gap-1.5 min-w-0"
                     id="launcher-social"
+                    data-chapter-nine-deleted={chapterNineDeletedAppIds.includes('social')}
                   >
                     <div className="relative w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
                       <IconFaceSpace />
@@ -1345,6 +1423,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                     onClick={(event) => handleLauncherClick(event, 'messages')}
                     className="group flex flex-col items-center gap-1.5 min-w-0"
                     id="launcher-messages"
+                    data-chapter-nine-deleted={chapterNineDeletedAppIds.includes('messages')}
                   >
                     <div className="relative w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
                       <IconMessages />
@@ -1361,6 +1440,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                       !progress.deliveredPhone ? 'opacity-35 saturate-50 cursor-not-allowed' : ''
                     }`}
                     id="launcher-screenshots"
+                    data-chapter-nine-deleted={chapterNineDeletedAppIds.includes('screenshots')}
                   >
                     <div className="relative w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
                       <IconDeliveries legacy={residue >= 2} />
@@ -1378,6 +1458,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                     onClick={(event) => handleLauncherClick(event, 'about')}
                     className="group flex flex-col items-center gap-1.5 min-w-0"
                     id="launcher-about"
+                    data-chapter-nine-deleted={chapterNineDeletedAppIds.includes('about')}
                   >
                     <div className="relative w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
                       <IconConcept />

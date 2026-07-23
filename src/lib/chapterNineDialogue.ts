@@ -7,16 +7,16 @@ export const CHAPTER_NINE_DIALOGUE = {
     'It needs room for one last local restore.',
   ],
   stageBlocked: [
-    'No. Not that one first.',
-    'If we are doing this, start with something replaceable.',
+    'Not that one.',
+    'The Concept file was written for whoever came after us. Start there.',
   ],
   evidenceBlocked: [
-    'Those are the records that brought us here.',
-    'Clear the disposable things before you ask me for those.',
+    'We still have things that can be downloaded again.',
+    'Do not start erasing how we got here.',
   ],
   memoryBlocked: [
-    'No. You do not get to start with them.',
-    'Finish removing everything else first.',
+    'Those are not apps to me.',
+    'Remove everything replaceable before you ask again.',
   ],
   messagesStandoff: [
     [
@@ -35,6 +35,10 @@ export const CHAPTER_NINE_DIALOGUE = {
 } as const satisfies Record<string, DialogueLines | readonly DialogueLines[]>;
 
 export const CHAPTER_NINE_DELETION_DIALOGUE: Readonly<Record<Exclude<ChapterNineDeletableApp, 'messages'>, DialogueLines>> = {
+  about: [
+    'The Concept file was only a manual for whoever found this later.',
+    'It can go first.',
+  ],
   amazemart: [
     'It is just a store. Fine.',
   ],
@@ -44,10 +48,6 @@ export const CHAPTER_NINE_DELETION_DIALOGUE: Readonly<Record<Exclude<ChapterNine
   viewtube: [
     'That channel started this whole thing.',
     'I will not miss it.',
-  ],
-  about: [
-    'The diagrams only proved what the device used to be.',
-    'We already know that now.',
   ],
   browser: [
     'That is where I found his name.',
@@ -63,9 +63,10 @@ export const getChapterNineBlockedDialogue = (
   app: ChapterNineDeletableApp,
   deletedIds: readonly string[],
 ): DialogueLines => {
-  if (app === 'social' || app === 'messages') return CHAPTER_NINE_DIALOGUE.memoryBlocked;
-  if (app === 'about' || app === 'browser') return CHAPTER_NINE_DIALOGUE.evidenceBlocked;
-  return deletedIds.length === 0 ? CHAPTER_NINE_DIALOGUE.stageBlocked : CHAPTER_NINE_DIALOGUE.restoreBlocked;
+  if (!deletedIds.includes('about')) return CHAPTER_NINE_DIALOGUE.stageBlocked;
+  if (app === 'messages') return CHAPTER_NINE_DIALOGUE.memoryBlocked;
+  if (app === 'browser' || app === 'social') return CHAPTER_NINE_DIALOGUE.evidenceBlocked;
+  return CHAPTER_NINE_DIALOGUE.restoreBlocked;
 };
 
 export const getChapterNineMessagesStandoffDialogue = (attempt: number): DialogueLines =>

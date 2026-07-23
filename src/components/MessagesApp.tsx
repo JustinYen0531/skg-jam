@@ -5,7 +5,7 @@ import { canUseProgressionAction, completePuzzleChapter } from '../lib/chapterPr
 import { isSellerCodeAccepted, type AmazeMartOrderPhase } from '../lib/amazemartPuzzle';
 import { useMetaInteraction } from './MetaInteractionScene';
 import { CHAPTER_THREE_DIALOGUE, getChapterThreeSellerCodeResponse } from '../lib/chapterThreeDialogue';
-import { Check, ChevronLeft, ChevronRight, KeyRound, LockKeyhole, MessageCircle, MicOff, PhoneMissed, Send, ShieldAlert, Trash2, UserCircle2, Users } from 'lucide-react';
+import { AlertTriangle, Check, ChevronLeft, ChevronRight, Download, KeyRound, Loader2, LockKeyhole, MessageCircle, MicOff, PhoneMissed, Send, ShieldAlert, Trash2, UserCircle2, Users } from 'lucide-react';
 import {
   hasAllMaraNumberClues,
   isMaraCoordinateMappingCorrect,
@@ -40,6 +40,11 @@ import {
   getChapterEightMemorySelectionDialogue,
   getChapterEightThreadDialogue,
 } from '../lib/chapterEightDialogue';
+import {
+  CHAPTER_NINE_RECOVERY_PROFILES,
+  canRecoverChapterNineChildProfile,
+  type ChapterNineProfileChoice,
+} from '../lib/chapterNineRecovery';
 
 interface MessagesAppProps {
   progress: GameProgress;
@@ -157,12 +162,47 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
   const [mappingError, setMappingError] = useState('');
   const [sellerCode, setSellerCode] = useState('');
   const [sellerCodeError, setSellerCodeError] = useState('');
+  const [chapterNinePassword, setChapterNinePassword] = useState('');
+  const [chapterNineRecoveryError, setChapterNineRecoveryError] = useState('');
+  const [chapterNineDownloadProgress, setChapterNineDownloadProgress] = useState(0);
+  const chapterNineDownloadTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
   // Which of Mara's own conversations is open, once you are inside her account.
   const [archiveThread, setArchiveThread] = useState<MaraArchiveThreadId | null>(null);
   const [noahRestoreError, setNoahRestoreError] = useState('');
   const memoryRepeatAttempts = useRef(new Map<ChapterEightMemoryId, number>());
   const noahFailureAttempts = useRef(new Map<NoahArchiveFragmentId, number>());
   const firstNoahFragmentSpoken = useRef(false);
+
+  useEffect(() => () => {
+    chapterNineDownloadTimers.current.forEach(clearTimeout);
+    chapterNineDownloadTimers.current = [];
+  }, []);
+
+  useEffect(() => {
+    if (progress.currentChapter !== 9 || progress.chapterNineDownloadState !== 'downloading') return;
+    chapterNineDownloadTimers.current.forEach(clearTimeout);
+    setChapterNineDownloadProgress(0);
+    const checkpoints = [
+      { delay: 260, value: 9 },
+      { delay: 720, value: 24 },
+      { delay: 1240, value: 41 },
+      { delay: 1900, value: 58 },
+    ];
+    chapterNineDownloadTimers.current = checkpoints.map(({ delay, value }) => setTimeout(
+      () => setChapterNineDownloadProgress(value),
+      delay,
+    ));
+    chapterNineDownloadTimers.current.push(setTimeout(() => {
+      audio.playGlitch();
+      updateProgress((previous) => previous.currentChapter === 9
+        ? { ...previous, chapterNineDownloadState: 'storage-error' }
+        : previous);
+    }, 2550));
+    return () => {
+      chapterNineDownloadTimers.current.forEach(clearTimeout);
+      chapterNineDownloadTimers.current = [];
+    };
+  }, [progress.chapterNineDownloadState, progress.currentChapter, updateProgress]);
 
   const sellerThreadAvailable = chapterThreeOrderPhase !== 'idle';
 
@@ -271,6 +311,43 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
         : 'CREDENTIALS REJECTED. ENSURE ALTITUDE, GATE, AND END VALUES ARE PROPERLY SEQUENCE-PAIRED.');
       speakChapterSeven(getChapterSevenLoginDialogue(passwordInput, hasAllMaraNumberClues(progress), momMappingRead, nextFails));
     }
+  };
+
+  const handleChapterNineProfileChoice = (choice: ChapterNineProfileChoice) => {
+    audio.play('phone.tab');
+    setChapterNineRecoveryError('');
+    setChapterNinePassword('');
+    updateProgress((previous) => previous.currentChapter === 9
+      ? {
+          ...previous,
+          chapterNineProfileChoice: choice,
+          chapterNinePasswordVerified: false,
+          chapterNineDownloadState: 'idle',
+        }
+      : previous);
+  };
+
+  const handleChapterNineRecoveryLogin = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!canRecoverChapterNineChildProfile(progress.chapterNineProfileChoice, chapterNinePassword)) {
+      audio.play('auth.wrong');
+      setChapterNineRecoveryError(
+        progress.chapterNineProfileChoice === 'child'
+          ? 'PASSWORD REJECTED · HINT: OWNER NAME + RECORD'
+          : 'DEVICE SIGNATURE MISMATCH · THIS PROFILE DID NOT CREATE THE ORIGINAL RECORD',
+      );
+      return;
+    }
+
+    audio.play('auth.correct');
+    setChapterNineRecoveryError('');
+    updateProgress((previous) => previous.currentChapter === 9
+      ? {
+          ...previous,
+          chapterNinePasswordVerified: true,
+          chapterNineDownloadState: 'downloading',
+        }
+      : previous);
   };
 
   const collectedChapterEightMemories = progress.chapterEightMemoryIds ?? [];
@@ -734,33 +811,123 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
               </form>
             ) : progress.currentChapter === 9 ? (
               <section
-                className="laos-panel mx-auto max-w-[620px] space-y-4 p-5"
+                className="laos-panel mx-auto max-w-[720px] space-y-4 p-4"
                 id="chapter-nine-legacy-restore"
               >
                 <div className="flex items-start justify-between gap-3 border-b border-[var(--laos-line-dim)] pb-3">
                   <div>
-                    <div className="laos-label text-[8px]">LEGACY CHILD PROFILE</div>
-                    <h3 className="mt-1 font-laos text-sm font-semibold text-[var(--laos-text)]">Local restore package</h3>
+                    <div className="laos-label text-[8px]">RECOVERY RECORD INDEX</div>
+                    <h3 className="mt-1 font-laos text-sm font-semibold text-[var(--laos-text)]">Who left the original 184?</h3>
                   </div>
                   <LockKeyhole className="h-5 w-5 text-[var(--laos-warm)]" />
                 </div>
-                <div className="grid grid-cols-3 gap-px border border-[var(--laos-line-dim)] bg-[var(--laos-line-dim)] font-mono text-[7px]">
-                  <div className="bg-[var(--laos-bg)] p-2"><div className="text-[var(--laos-faint)]">REQUIRED</div><div className="mt-1 text-[var(--laos-text)]">18.4 GB</div></div>
-                  <div className="bg-[var(--laos-bg)] p-2"><div className="text-[var(--laos-faint)]">AVAILABLE</div><div className="mt-1 text-[var(--laos-warm)]">0.4 GB</div></div>
-                  <div className="bg-[var(--laos-bg)] p-2"><div className="text-[var(--laos-faint)]">BATTERY</div><div className="mt-1 text-[var(--laos-warm)]">6%</div></div>
-                </div>
-                <p className="font-laos text-[9px] leading-relaxed text-[var(--laos-dim)]">
-                  The preserved profile can be restored only by removing local app data. Expired accounts and offline archives cannot be downloaded again.
-                </p>
-                <button
-                  type="button"
-                  onClick={onBeginChapterNineCleanup}
-                  className="laos-slow w-full border border-[var(--laos-warm)]/60 bg-[var(--laos-surface-2)] px-3 py-2 font-laos text-[10px] font-semibold tracking-[0.14em] text-[var(--laos-warm)] hover:bg-[var(--laos-line-dim)]"
-                  id="chapter-nine-make-space"
-                  data-meta-immediate="true"
-                >
-                  MAKE SPACE
-                </button>
+
+                {progress.chapterNineDownloadState === 'downloading' ? (
+                  <div className="space-y-4 py-4" id="chapter-nine-download-progress">
+                    <div className="flex items-center gap-3">
+                      <Loader2 className="h-5 w-5 animate-spin text-emerald-300" />
+                      <div>
+                        <div className="text-[10px] font-semibold text-[var(--laos-text)]">Downloading original player data...</div>
+                        <div className="mt-0.5 font-mono text-[7px] text-[var(--laos-faint)]">AK_HOME · LOCAL SCORE RECORD · INPUT TRACE</div>
+                      </div>
+                    </div>
+                    <div className="h-2 overflow-hidden border border-[var(--laos-line)] bg-[var(--laos-bg)]">
+                      <div
+                        className="h-full bg-emerald-300/70 transition-[width] duration-500"
+                        style={{ width: `${chapterNineDownloadProgress}%` }}
+                      />
+                    </div>
+                    <div className="flex justify-between font-mono text-[8px] text-[var(--laos-dim)]">
+                      <span>RESTORING LEGACY PROFILE</span>
+                      <span>{chapterNineDownloadProgress}%</span>
+                    </div>
+                  </div>
+                ) : progress.chapterNineDownloadState === 'storage-error' ? (
+                  <div className="space-y-4" id="chapter-nine-storage-error">
+                    <div className="border border-red-300/35 bg-red-300/[0.07] p-3">
+                      <div className="flex items-center gap-2 text-red-200">
+                        <AlertTriangle className="h-4 w-4" />
+                        <span className="font-mono text-[9px] font-bold tracking-[0.12em]">ERROR · NOT ENOUGH STORAGE</span>
+                      </div>
+                      <p className="mt-2 text-[9px] leading-relaxed text-[var(--laos-dim)]">
+                        Download stopped at 58%. Free 18.0 GB of local app data, then resume the interrupted restore.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={onBeginChapterNineCleanup}
+                      className="laos-slow w-full border border-[var(--laos-warm)]/60 bg-[var(--laos-surface-2)] px-3 py-2 font-laos text-[10px] font-semibold tracking-[0.14em] text-[var(--laos-warm)] hover:bg-[var(--laos-line-dim)]"
+                      id="chapter-nine-make-space"
+                      data-meta-immediate="true"
+                      data-meta-hit-recovery="true"
+                    >
+                      RETURN HOME · MAKE ROOM
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <p className="font-laos text-[9px] leading-relaxed text-[var(--laos-dim)]">
+                      Three records claim the same impossible score. Select the record that belongs to this device.
+                    </p>
+                    <div className="grid grid-cols-3 gap-2" id="chapter-nine-profile-choices">
+                      {CHAPTER_NINE_RECOVERY_PROFILES.map((profile) => {
+                        const selected = progress.chapterNineProfileChoice === profile.id;
+                        return (
+                          <button
+                            key={profile.id}
+                            type="button"
+                            onClick={() => handleChapterNineProfileChoice(profile.id)}
+                            className={`min-h-[112px] border p-3 text-left transition-colors ${
+                              selected
+                                ? 'border-emerald-300/55 bg-emerald-300/[0.08]'
+                                : 'border-[var(--laos-line)] bg-[var(--laos-bg)] hover:border-[var(--laos-dim)]'
+                            }`}
+                            data-recovery-profile={profile.id}
+                            data-meta-immediate="true"
+                            data-meta-hit-recovery="true"
+                          >
+                            <div className="font-mono text-[8px] font-bold text-[var(--laos-text)]">{profile.owner}</div>
+                            <div className="mt-2 text-[8px] text-[var(--laos-dim)]">{profile.title}</div>
+                            <div className="mt-1 text-[7px] text-[var(--laos-faint)]">{profile.age}</div>
+                            <div className="mt-3 border-t border-[var(--laos-line-dim)] pt-2 text-[7px] leading-relaxed text-[var(--laos-faint)]">{profile.detail}</div>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {progress.chapterNineProfileChoice && (
+                      <form onSubmit={handleChapterNineRecoveryLogin} className="border-t border-[var(--laos-line-dim)] pt-3" id="chapter-nine-player-login">
+                        <div className="flex items-end gap-2">
+                          <label className="min-w-0 flex-1">
+                            <span className="laos-label block text-[7px]">PLAYER PASSWORD · OWNER NAME + RECORD</span>
+                            <input
+                              type="password"
+                              value={chapterNinePassword}
+                              onChange={(event) => setChapterNinePassword(event.target.value)}
+                              placeholder="Identity required"
+                              autoComplete="off"
+                              data-meta-hit-recovery="true"
+                              id="chapter-nine-player-password"
+                              className="mt-1 w-full border border-[var(--laos-line)] bg-[var(--laos-bg)] px-2.5 py-2 font-mono text-[10px] uppercase text-[var(--laos-text)] outline-none focus:border-[var(--laos-warm)]"
+                            />
+                          </label>
+                          <button
+                            type="submit"
+                            className="flex h-[34px] items-center gap-1.5 border border-emerald-300/35 bg-emerald-300/10 px-3 font-mono text-[8px] text-emerald-200"
+                            data-meta-immediate="true"
+                            data-meta-hit-recovery="true"
+                            id="chapter-nine-player-login-submit"
+                          >
+                            <Download className="h-3 w-3" /> RESTORE
+                          </button>
+                        </div>
+                        {chapterNineRecoveryError && (
+                          <div className="mt-2 font-mono text-[8px] text-red-300" id="chapter-nine-recovery-error">{chapterNineRecoveryError}</div>
+                        )}
+                      </form>
+                    )}
+                  </>
+                )}
               </section>
             ) : progress.currentChapter === 8 ? (
               activeArchive ? (

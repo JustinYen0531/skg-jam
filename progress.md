@@ -953,3 +953,13 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Marked the Chapter 8 `OPEN RECOVERY RECORD` attachment as both an immediate Meta control and a projected hit-recovery target.
 - The Meta pointer-down capture now resolves the transformed green attachment before posture movement can invalidate the browser click.
 - Added source-level regression coverage for both required input attributes.
+
+## 2026-07-23 — Chapter 9 identity download and native-home deletion
+
+- Replaced the immediate storage-cleanup screen with three competing recovery records: Noah's developer profile, the later public `ARC_184` mirror, and a twelve-year-old local child record.
+- The child record accepts `ARCANE184` from the `OWNER NAME + RECORD` hint, making the player actively state that Arcane owns the original 184 score.
+- A successful login now starts a real download sequence. It advances to 58% before unexpectedly failing with `ERROR · NOT ENOUGH STORAGE`; the cleanup requirement is not revealed beforehand.
+- Returning home preserves the familiar launcher, Widget, paging, and Dock layout. Only the left Widget column becomes `Make room`.
+- The app grid enters deletion mode only after a 520 ms press-and-hold. All remaining deletable icons receive the same red × and restrained wiggle; no visible tier labels, opacity locks, or highlighted correct answer are used.
+- Reordered the hidden emotional gates to Concept first; ViewTube, AmazeMart, and Deliveries second; Wayback and FaceSpace third; Messages last.
+- Concept is explicitly the player-facing Stop Killing Games manual, so Arcane treats it as the least personal thing on the device.

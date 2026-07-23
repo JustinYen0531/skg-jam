@@ -205,3 +205,46 @@ body {
   background-image: radial-gradient(rgba(0, 0, 0, 0.08) 0.8px, transparent 0.9px);
   background-size: 4px 4px;
 }
+
+@keyframes chapter-nine-icon-wiggle {
+  0%, 100% { transform: rotate(-0.7deg); }
+  50% { transform: rotate(0.7deg); }
+}
+
+.chapter-nine-editing > button {
+  position: relative;
+  animation: chapter-nine-icon-wiggle 0.18s ease-in-out infinite;
+  transform-origin: 50% 58%;
+}
+
+.chapter-nine-editing > button:nth-child(even) {
+  animation-delay: -0.09s;
+}
+
+.chapter-nine-editing > button:not(#launcher-game)::after {
+  content: '×';
+  position: absolute;
+  z-index: 12;
+  top: -0.35rem;
+  right: 10%;
+  display: grid;
+  width: 1.05rem;
+  height: 1.05rem;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 9999px;
+  background: #d94b51;
+  color: white;
+  font: 700 0.76rem/1 ui-sans-serif, system-ui, sans-serif;
+  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.45);
+}
+
+#home-apps-grid > button[data-chapter-nine-deleted='true'] {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chapter-nine-editing > button {
+    animation: none;
+  }
+}
