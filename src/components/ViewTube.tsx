@@ -17,7 +17,7 @@ import {
   getChapterOneIrrelevantVideoDialogue,
   getChapterOneSearchResponse,
 } from '../lib/chapterOneDialogue';
-import { Search, Play, Pause, ThumbsUp, MessageSquare, Share2, AlertTriangle, Radio, TrendingUp, Lock, X } from 'lucide-react';
+import { Search, Play, Pause, ThumbsUp, MessageSquare, Share2, AlertTriangle, Radio, TrendingUp, Lock, X, Maximize2, ChevronRight } from 'lucide-react';
 
 const VIEWTUBE_FEED = [
   { id: 'vt-1', title: 'I Let An Algorithm Plan My Entire Morning', channel: 'EverydayMax', views: '2.4M views', age: '6 hours ago', duration: '12:08', label: 'LIFE+', gradient: 'from-fuchsia-700 via-purple-700 to-cyan-600' },
@@ -175,9 +175,11 @@ const formatReplayTime = (elapsedMs: number): string => {
 interface ViewTubeProps {
   progress: GameProgress;
   updateProgress: (updater: (prev: GameProgress) => GameProgress) => void;
+  /** Developer chapter previews may inspect the Chapter 1 evidence directly. */
+  developerPreview?: boolean;
 }
 
-export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) => {
+export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress, developerPreview = false }) => {
   const metaInteraction = useMetaInteraction();
   const [searchQuery, setSearchQuery] = useState('');
   const [hasSearched, setHasSearched] = useState(progress.viewTubeSearchedArc);
@@ -227,7 +229,7 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
         return;
       }
 
-      if (!canUseProgressionAction('viewtube-arc-search', progress)) {
+      if (!developerPreview && !canUseProgressionAction('viewtube-arc-search', progress)) {
         audio.play('search.noResult');
         setSearchError('THAT NAME IS INTERESTING. YOUR CHARACTER HAS NOT SEEN IT YET.');
         return;
@@ -241,7 +243,7 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
     }
 
     if (query.includes('arc') || query.includes('184')) {
-      if (!canUseProgressionAction('viewtube-arc-search', progress)) {
+      if (!developerPreview && !canUseProgressionAction('viewtube-arc-search', progress)) {
         audio.play('search.noResult');
         setSearchError('THAT NAME IS INTERESTING. YOUR CHARACTER HAS NOT SEEN IT YET.');
         return;
@@ -265,12 +267,13 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
   }), [metaInteraction.registerInput, searchQuery, progress, updateProgress]);
 
   const startVideo = () => {
-    // Old player relay click; the compressed recording floor engages.
+    // Old player relay click; the compressed recording floor engages. The
+    // replay now plays inline in the card so the page stays one scrollable
+    // column (video → info → comments); fullscreen is an optional expand.
     audio.play('viewtube.videoStart');
     setIsPlayingVideo(true);
     setReplayPaused(false);
     setReplayElapsedMs(0);
-    setReplayFullscreenOpen(true);
     setReplayExitUnlocked(false);
     replayExitUnlockedRef.current = false;
     setReplayControlsVisible(true);
@@ -328,10 +331,16 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
     updateProgress((prev) => ({ ...prev, watchedVideo: true }));
   };
 
+  const openReplayFullscreen = () => {
+    audio.playTick();
+    setReplayFullscreenOpen(true);
+    setReplayControlsVisible(true);
+  };
+
+  // Fullscreen is now an optional expand: closing simply returns to the inline
+  // player (keeping playback state) rather than pausing or jumping the page.
   const closeReplayFullscreen = useCallback(() => {
     audio.playTick();
-    setReplayPaused(true);
-    document.getElementById('vt-comments')?.scrollIntoView({ block: 'start', inline: 'nearest' });
     setReplayFullscreenOpen(false);
     setReplayControlsVisible(true);
   }, []);
@@ -341,8 +350,7 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.preventDefault();
-        if (replayExitUnlockedRef.current) closeReplayFullscreen();
-        else revealReplayControls();
+        closeReplayFullscreen();
         return;
       }
       if (event.key === ' ' || event.key === 'Enter') {
@@ -475,18 +483,17 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
           {fullscreen && (
             <button
               type="button"
-              disabled={!replayExitUnlocked}
               onClick={(event) => {
                 event.stopPropagation();
                 closeReplayFullscreen();
               }}
-              className={`pointer-events-auto flex h-10 items-center gap-2 rounded-full border px-3 text-xs font-bold backdrop-blur-md ${replayExitUnlocked ? 'border-white/45 bg-black/55 text-white hover:bg-white/15' : 'cursor-not-allowed border-white/15 bg-black/35 text-white/40'}`}
+              className="pointer-events-auto flex h-10 items-center gap-2 rounded-full border border-white/45 bg-black/55 px-3 text-xs font-bold text-white backdrop-blur-md hover:bg-white/15"
               data-exit-unlocked={replayExitUnlocked ? 'true' : 'false'}
               id="vt-fullscreen-exit"
-              aria-label={replayExitUnlocked ? 'Exit fullscreen replay' : 'Fullscreen exit locked until Gate 41'}
+              aria-label="Exit fullscreen replay"
             >
-              {replayExitUnlocked ? <X className="h-4 w-4" /> : <Lock className="h-3.5 w-3.5" />}
-              <span>{replayExitUnlocked ? 'EXIT' : 'LOCKED'}</span>
+              <X className="h-4 w-4" />
+              <span>EXIT</span>
             </button>
           )}
         </div>
@@ -519,8 +526,22 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
             </span>
             <span className="ml-auto flex items-center gap-1.5 font-mono text-[10px] text-white/65">
               {!replayExitUnlocked && <Lock className="h-3 w-3" />}
-              {replayExitUnlocked ? 'GATE 41 REACHED · EXIT AVAILABLE' : 'MANDATORY EVIDENCE PLAYBACK'}
+              {replayExitUnlocked ? 'GATE 41 REACHED' : 'GATE 40 EVIDENCE RUN'}
             </span>
+            {!fullscreen && (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  openReplayFullscreen();
+                }}
+                className="grid h-9 w-9 place-items-center rounded-full text-white hover:bg-white/15"
+                id="vt-fullscreen-enter"
+                aria-label="Expand replay to fullscreen"
+              >
+                <Maximize2 className="h-4 w-4" />
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -528,7 +549,7 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-950 text-slate-100 font-sans overflow-hidden" id="viewtube-root">
+    <div className="min-h-0 flex flex-col h-full bg-slate-950 text-slate-100 font-sans overflow-hidden" id="viewtube-root">
       
       {/* ViewTube Header */}
       <div className="bg-red-700 p-3 flex items-center justify-between" id="vt-header">
@@ -558,7 +579,7 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
           ⚠ {searchError}
         </div>
       )}
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 space-y-4" id="vt-body">
+      <div className="h-0 min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 space-y-4" id="vt-body">
         {!hasSearched ? (
           <div className="space-y-3" id="vt-home-feed">
             <div className="flex gap-1.5 overflow-x-auto pb-1 text-[9px] font-bold whitespace-nowrap" id="vt-topic-chips">
@@ -705,8 +726,16 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
               <h3 className="text-xs font-bold text-slate-300 border-b border-slate-800 pb-1">Discussion (142)</h3>
               
               <div className="space-y-3.5 text-xs" id="vt-comment-list">
-                {/* Crowd noise above the first real lead */}
+                {/* Crowd noise above the reveal — the point is a long scroll of
+                    people not helping before the actual lead shows up. */}
                 {VT_COMMENTS_TOP.map((comment) => (
+                  <VtCommentRow key={comment.handle} comment={comment} />
+                ))}
+
+                {/* More crowd + foreshadow, pulled forward from where it used
+                    to trail the reveal, so the load-bearing reply isn't the
+                    first real comment a player's eye lands on. */}
+                {VT_COMMENTS_TAIL.map((comment) => (
                   <VtCommentRow key={comment.handle} comment={comment} />
                 ))}
 
@@ -721,7 +750,7 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
                   </p>
                   <button
                     type="button"
-                    className="w-full bg-slate-950 p-1.5 rounded text-left text-[10px] text-yellow-400 border border-yellow-950 mt-1"
+                    className="group flex w-full items-center gap-2 rounded border border-yellow-950 bg-slate-950 p-1.5 text-left text-[10px] text-yellow-400 transition-all duration-150 mt-1 hover:border-yellow-600/70 hover:bg-slate-900 hover:shadow-[0_0_0_1px_rgba(234,179,8,0.28),0_2px_10px_rgba(0,0,0,0.35)] active:scale-[0.99]"
                     id="vt-arc-reply"
                     onClick={() => {
                       audio.playTick();
@@ -733,7 +762,10 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
                       updateProgress((prev) => completePuzzleChapter(prev, 1, { watchedVideo: true }));
                     }}
                   >
-                    💬 **ARC_184 replied**: No emulator edits. No scripts. It runs on the <span className="underline font-bold text-white">Lumen Arc</span>, utilizing the native altitude sensor glitch of the LAOS operating system. Look up the device they recalled.
+                    <span className="min-w-0 flex-1">
+                      💬 **ARC_184 replied**: No emulator edits. No scripts. It runs on the <span className="underline font-bold text-white">Lumen Arc</span>, utilizing the native altitude sensor glitch of the LAOS operating system. Look up the device they recalled.
+                    </span>
+                    <ChevronRight className="h-3.5 w-3.5 shrink-0 text-yellow-500/60 opacity-0 transition-all duration-150 group-hover:translate-x-0.5 group-hover:opacity-100" />
                   </button>
                 </div>
 
@@ -768,11 +800,6 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
                     If anyone has the old original IPA file, it is preserved on Internet Archive. It is titled <span className="font-mono text-cyan-400">Skyline256_LAOS_Final.ipa</span>. Download it there if you have a device that supports it.
                   </p>
                 </div>
-
-                {/* The crowd trails off */}
-                {VT_COMMENTS_TAIL.map((comment) => (
-                  <VtCommentRow key={comment.handle} comment={comment} />
-                ))}
 
                 {VT_COMMENT_ARCHIVE.slice(0, visibleArchiveComments).map((comment) => (
                   <VtCommentRow key={comment.handle} comment={comment} />

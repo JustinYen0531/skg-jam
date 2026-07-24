@@ -5,7 +5,14 @@ import { readFileSync } from 'node:fs';
 test('ViewTube keeps its body scrollable inside the phone flex layout', () => {
   const source = readFileSync('src/components/ViewTube.tsx', 'utf8');
 
-  assert.match(source, /className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 space-y-4" id="vt-body"/);
+  assert.match(source, /className="min-h-0 flex flex-col h-full bg-slate-950 text-slate-100 font-sans overflow-hidden" id="viewtube-root"/);
+  assert.match(source, /className="h-0 min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 space-y-4" id="vt-body"/);
+});
+
+test('Meta wheel gestures relay to a scrollable phone list', () => {
+  const source = readFileSync('src/components/MetaInteractionScene.tsx', 'utf8');
+
+  assert.match(source, /event\.preventDefault\(\);\s*scrollable\.scrollBy\(\{ top: event\.deltaY, behavior: 'auto' \}\);/);
 });
 
 test('ViewTube loads its archived discussion in deterministic batches', () => {
@@ -18,4 +25,13 @@ test('ViewTube loads its archived discussion in deterministic batches', () => {
   assert.match(source, /VT_COMMENT_ARCHIVE\.slice\(0, visibleArchiveComments\)/);
   assert.match(source, /onClick=\{loadMoreComments\}/);
   assert.doesNotMatch(source, /onClick=\{\(\) => audio\.play\('ui\.disabled'\)\}/);
+});
+
+test('developer Chapter 1 previews can inspect ARC_184 without weakening the normal spoiler gate', () => {
+  const viewTube = readFileSync('src/components/ViewTube.tsx', 'utf8');
+  const phone = readFileSync('src/components/PhoneSimulator.tsx', 'utf8');
+
+  assert.match(viewTube, /developerPreview\?: boolean/);
+  assert.match(viewTube, /!developerPreview && !canUseProgressionAction\('viewtube-arc-search', progress\)/);
+  assert.match(phone, /<ViewTube[\s\S]{0,260}developerPreview=\{Boolean\(debugTargetApp\)\}/);
 });

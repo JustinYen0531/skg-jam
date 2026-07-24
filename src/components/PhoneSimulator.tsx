@@ -1602,7 +1602,11 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
               transition={{ duration: 0.22, ease: 'easeOut' }}
               className="absolute inset-0"
             >
-              <ViewTube progress={progress} updateProgress={updateProgress} />
+              <ViewTube
+                progress={progress}
+                updateProgress={updateProgress}
+                developerPreview={Boolean(debugTargetApp)}
+              />
             </motion.div>
           )}
 
