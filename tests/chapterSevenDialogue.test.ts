@@ -60,6 +60,8 @@ test('archive login reactions respect clue and Mom-explanation knowledge boundar
   ].join(' ');
   assert.doesNotMatch(beforeMapping, /ALT184GATE40END256/);
   assert.doesNotMatch(beforeMapping, /184[^.]*altitude|40[^.]*gate|256[^.]*end/i);
+  assert.match(CHAPTER_SEVEN_DIALOGUE.entry.join(' '), /Lumen Arc family backup/);
+  assert.doesNotMatch(CHAPTER_SEVEN_DIALOGUE.entry.join(' '), /Silver Kite archive/);
   assert.match(CHAPTER_SEVEN_DIALOGUE.momMappingRead.join(' '), /Altitude, gate, end/);
 });
 

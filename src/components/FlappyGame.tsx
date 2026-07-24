@@ -37,6 +37,7 @@ import {
   CHAPTER_TEN_ASSIST_FAIL_THRESHOLD,
   CHAPTER_TEN_ASSIST_NOTE,
   CHAPTER_TEN_ASSIST_PROMPT,
+  CHAPTER_TEN_BOOT_STATUS,
   CHAPTER_TEN_WELCOME_LABEL,
   CHAPTER_TEN_WELCOME_NOTE,
   computeAssistPlan,
@@ -2176,6 +2177,11 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
                 </div>
                 <div className="text-[16px] font-black tracking-[0.08em] text-[#fff2a6]">
                   {CHAPTER_TEN_WELCOME_LABEL}
+                </div>
+                <div className="mx-auto mt-3 max-w-[260px] border-y border-[#657168]/60 py-2 text-left text-[8px] leading-[1.8] tracking-[0.1em] text-[#aebaa9]">
+                  {CHAPTER_TEN_BOOT_STATUS.map((status) => (
+                    <div key={status}>{status}</div>
+                  ))}
                 </div>
                 <div className="mx-auto mt-3 max-w-[260px] text-[10px] leading-[1.65] text-[#c4cec0]">
                   {CHAPTER_TEN_WELCOME_NOTE}

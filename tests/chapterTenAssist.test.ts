@@ -6,6 +6,7 @@ import {
   CHAPTER_TEN_ASSIST_FAIL_THRESHOLD,
   CHAPTER_TEN_ASSIST_NOTE,
   CHAPTER_TEN_ASSIST_PROMPT,
+  CHAPTER_TEN_BOOT_STATUS,
   CHAPTER_TEN_WELCOME_LABEL,
   CHAPTER_TEN_WELCOME_NOTE,
   computeAssistPlan,
@@ -97,6 +98,10 @@ test('the offer wording is exactly the reassurance the player is promised', () =
 
 test('Chapter 10 opens with the recovered route guide addressing ARC-184', () => {
   assert.equal(CHAPTER_TEN_WELCOME_LABEL, 'WELCOME, ARC-184.');
+  assert.deepEqual(CHAPTER_TEN_BOOT_STATUS, [
+    'LUMEN ARC BACKUP · LINKED',
+    'ROUTE RECOVERY · AVAILABLE',
+  ]);
   assert.equal(
     CHAPTER_TEN_WELCOME_NOTE,
     'Recovered Skyline 256 route data is ready. Follow every light point to open Gate 40.',
@@ -110,6 +115,7 @@ test('Chapter 10 opens with the recovered route guide addressing ARC-184', () =>
   assert.match(welcome, /Skyline 256 \/\/ Route Recovery/);
   assert.doesNotMatch(welcome, /assistant/i);
   assert.match(welcome, /CHAPTER_TEN_WELCOME_LABEL/);
+  assert.match(welcome, /CHAPTER_TEN_BOOT_STATUS/);
   assert.match(welcome, /CHAPTER_TEN_WELCOME_NOTE/);
   assert.match(welcome, /id="chapter-ten-begin-trace"/);
   assert.match(welcome, />\s*BEGIN TRACE\s*</);

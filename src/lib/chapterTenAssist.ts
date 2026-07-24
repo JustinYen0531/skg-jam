@@ -71,6 +71,10 @@ export const ASSIST_WORLD: AssistWorldConfig = {
 
 /** First-entry guidance from the recovered game, not Arcane's dialogue. */
 export const CHAPTER_TEN_WELCOME_LABEL = 'WELCOME, ARC-184.';
+export const CHAPTER_TEN_BOOT_STATUS = [
+  'LUMEN ARC BACKUP · LINKED',
+  'ROUTE RECOVERY · AVAILABLE',
+] as const;
 export const CHAPTER_TEN_WELCOME_NOTE =
   'Recovered Skyline 256 route data is ready. Follow every light point to open Gate 40.';
 

@@ -20,7 +20,8 @@ export type ChapterSevenLoginKind =
 
 export const CHAPTER_SEVEN_DIALOGUE = {
   entry: [
-    'My parents left a Silver Kite archive on this phone. I still cannot open it.',
+    'This phone still carries an old Lumen Arc family backup.',
+    'One part of it is still sealed.',
     'Three numbers I know by heart, and no idea which memory belongs to which label.',
   ],
   homeReturned: [

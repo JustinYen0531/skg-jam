@@ -11,7 +11,10 @@ import {
   isChapterNineMessagesStandoffReady,
 } from '../src/lib/chapterNineDeletion';
 import {
+  CHAPTER_NINE_AUTHORIZATION_SOURCE,
   CHAPTER_NINE_CHILD_PROFILE,
+  CHAPTER_NINE_LICENSE_MATCH,
+  CHAPTER_NINE_OPERATOR_RESTORED,
   CHAPTER_NINE_PLAYER_PASSWORD,
   canRecoverChapterNineChildProfile,
   getChapterNinePasswordResult,
@@ -48,6 +51,9 @@ test('the legacy assistant separates its ARC-184 authorization record from its m
   assert.equal(CHAPTER_NINE_CHILD_PROFILE.score, 184);
   assert.equal(CHAPTER_NINE_CHILD_PROFILE.signature, 'ARC-184 · DEVICE VERIFIED');
   assert.equal(CHAPTER_NINE_CHILD_PROFILE.owner, 'ORIGINAL OPERATOR NAME MISSING');
+  assert.equal(CHAPTER_NINE_AUTHORIZATION_SOURCE, 'LUMEN ARC FAMILY BACKUP');
+  assert.equal(CHAPTER_NINE_OPERATOR_RESTORED, 'OPERATOR RESTORED · ARCANE KADE');
+  assert.equal(CHAPTER_NINE_LICENSE_MATCH, 'LICENSE MATCH · ARC-184');
   assert.equal(CHAPTER_NINE_PLAYER_PASSWORD, 'ARCANE');
   assert.equal(getChapterNinePasswordResult('ARC-184'), 'record-alias');
   assert.equal(getChapterNinePasswordResult('wrong'), 'rejected');

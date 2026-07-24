@@ -60,7 +60,8 @@ test('Messages wires collection, gentle restoration, and the legacy-profile comp
     messagesSource,
     /const handleOpenLegacyChildProfile = \(\) => \{\s*if \(!allNoahMessagesRestored\) return;[\s\S]{0,180}completePuzzleChapter\(prev, 8\)/,
   );
-  assert.match(messagesSource, /LEGACY CHILD PROFILE · ACCESS LOCKED/);
+  assert.match(messagesSource, /SILVER KITE LEGACY ASSISTANT · ACCESS LOCKED/);
+  assert.match(messagesSource, /Lumen Arc family backup/);
   assert.match(messagesSource, /OPEN RECOVERY RECORD/);
   assert.doesNotMatch(messagesSource, /PRESERVE RESTORED HUMAN RECORD/);
   assert.ok(

@@ -41,7 +41,10 @@ import {
   getChapterEightThreadDialogue,
 } from '../lib/chapterEightDialogue';
 import {
+  CHAPTER_NINE_AUTHORIZATION_SOURCE,
   CHAPTER_NINE_CHILD_PROFILE,
+  CHAPTER_NINE_LICENSE_MATCH,
+  CHAPTER_NINE_OPERATOR_RESTORED,
   canRecoverChapterNineChildProfile,
   getChapterNinePasswordResult,
 } from '../lib/chapterNineRecovery';
@@ -868,6 +871,10 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                         <div className="mt-0.5 font-mono text-[7px] text-[var(--laos-faint)]">ARC-184 · LOCAL AUTHORIZATION · INPUT TRACE</div>
                       </div>
                     </div>
+                    <div className="border border-emerald-300/25 bg-emerald-300/[0.05] px-3 py-2 font-mono text-[7px] leading-relaxed text-emerald-200">
+                      <div>{CHAPTER_NINE_OPERATOR_RESTORED}</div>
+                      <div>{CHAPTER_NINE_LICENSE_MATCH}</div>
+                    </div>
                     <div className="h-2 overflow-hidden border border-[var(--laos-line)] bg-[var(--laos-bg)]">
                       <div
                         className="h-full bg-emerald-300/70 transition-[width] duration-500"
@@ -929,6 +936,10 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                         <div>
                           <div className="text-[var(--laos-faint)]">LOCAL PACKAGE</div>
                           <div className="mt-1 text-[var(--laos-text)]">{CHAPTER_NINE_CHILD_PROFILE.packageSize} · {CHAPTER_NINE_CHILD_PROFILE.age}</div>
+                        </div>
+                        <div className="col-span-2">
+                          <div className="text-[var(--laos-faint)]">AUTHORIZATION SOURCE</div>
+                          <div className="mt-1 text-[var(--laos-text)]">{CHAPTER_NINE_AUTHORIZATION_SOURCE}</div>
                         </div>
                       </div>
                       <div className="flex items-center justify-between border-t border-[var(--laos-line-dim)] px-3 py-2 text-[7px]">
@@ -1128,10 +1139,10 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                         >
                           <UserCircle2 className="mx-auto h-5 w-5 text-emerald-300" />
                           <div className="mt-1.5 text-[8px] font-semibold tracking-[0.12em] text-emerald-200">
-                            LEGACY CHILD PROFILE · ACCESS LOCKED
+                            SILVER KITE LEGACY ASSISTANT · ACCESS LOCKED
                           </div>
                           <p className="mt-1 text-[8px] leading-relaxed text-slate-400">
-                            The final restored message recovered a device-bound profile. Open its recovery record to continue.
+                            Device license found in the Lumen Arc family backup. Authorized player record: ARC-184.
                           </p>
                           <div className="mt-2 font-mono text-[8px] font-bold tracking-[0.14em] text-emerald-300">
                             OPEN RECOVERY RECORD →
@@ -1154,7 +1165,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                             LEGACY ASSISTANT AUTHORIZATION · LOCAL COPY FOUND
                           </div>
                           <p className="mt-1 text-[8px] leading-relaxed text-slate-400">
-                            A device-bound authorization record is attached to Noah's final restored message.
+                            Silver Kite assistant license recovered from the Lumen Arc family backup · ARC-184.
                           </p>
                           <div className="mt-2 font-mono text-[8px] font-bold tracking-[0.14em] text-emerald-300">
                             ACCESS LOCAL RECORD →
@@ -1164,10 +1175,10 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                         <div className="rounded-lg border border-dashed border-slate-700 bg-black/20 p-3 text-center" id="chapter-eight-legacy-profile-attachment">
                           <LockKeyhole className="mx-auto h-4 w-4 text-slate-500" />
                           <div className="mt-1.5 text-[8px] font-semibold tracking-[0.12em] text-slate-400">
-                            LEGACY CHILD PROFILE · SEALED
+                            SILVER KITE LEGACY ASSISTANT · SEALED
                           </div>
                           <p className="mt-1 text-[8px] leading-relaxed text-slate-600">
-                            Restore all eight messages before this device-bound profile can be opened.
+                            Restore all eight messages before its Lumen Arc authorization source can be read.
                           </p>
                         </div>
                       )}
