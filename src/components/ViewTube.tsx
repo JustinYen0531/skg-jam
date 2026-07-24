@@ -543,7 +543,6 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress }) 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={() => speakChapterOne(CHAPTER_ONE_DIALOGUE.searchFocused)}
-            readOnly={metaInteraction.active}
             className="w-full bg-red-950/40 text-xs text-white placeholder-red-300 px-2.5 py-1.5 pr-8 rounded border border-red-800 focus:outline-none focus:border-red-500 font-mono"
             id="vt-search-input"
           />

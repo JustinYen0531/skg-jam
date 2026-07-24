@@ -1379,7 +1379,10 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     // explicitly marked control on pointer-down, before posture movement can
     // invalidate the browser's eventual click/focus target.
     const hitSlop = 16;
-    const selector = '#home-dock button, button[data-meta-hit-recovery="true"], input[data-meta-hit-recovery="true"]';
+    // Every real text field shares the projected-screen hit path. Otherwise an
+    // ordinary search box can miss its hand relay just because it was never
+    // tagged as a special recovery input.
+    const selector = '#home-dock button, button[data-meta-hit-recovery="true"], input[data-meta-hit-recovery="true"], input:not([disabled]):not([readonly])';
     const directControl = source.closest<HTMLElement>(selector);
     if (!directControl && source.closest('button, input')) return;
 
