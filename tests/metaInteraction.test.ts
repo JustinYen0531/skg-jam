@@ -281,6 +281,30 @@ test('home-screen launchers open on pointer release without waiting for the hand
   assert.equal((phoneSource.match(/onPointerUp=\{\(event\) => handleLauncherPointerUp/g) ?? []).length, 8);
 });
 
+test('every player click on the phone keeps the shared right-hand relay visible', () => {
+  const sceneSource = readFileSync(
+    new URL('../src/components/MetaInteractionScene.tsx', import.meta.url),
+    'utf8',
+  );
+
+  assert.match(
+    sceneSource,
+    /if \(source\.closest\('\[data-meta-immediate="true"\]'\)\) \{[\s\S]{0,260}void animateTap\(source, undefined, pointerPoint\)/,
+  );
+  assert.match(
+    sceneSource,
+    /if \(!target \|\| !sceneRef\.current\?\.contains\(target\)\) \{[\s\S]{0,260}void animateTap\(source, undefined, pointerPoint\)/,
+  );
+  assert.match(
+    sceneSource,
+    /if \(control instanceof HTMLInputElement\) \{[\s\S]{0,260}void animateTap\(control, undefined, point\)/,
+  );
+  assert.match(
+    sceneSource,
+    /if \(!canStartMetaInteraction\(active, pendingRef\.current, reducedMotion\)\) return;\s*event\.preventDefault\(\);\s*event\.stopPropagation\(\);/,
+  );
+});
+
 test('home navigation completes before the Chapter 1 entry transition starts', () => {
   const phoneSource = readFileSync(new URL('../src/components/PhoneSimulator.tsx', import.meta.url), 'utf8');
   assert.match(

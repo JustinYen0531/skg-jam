@@ -1163,3 +1163,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Traced the tapping-hand asset history and restored the genuine right-hand artwork from commit `aff32cf`, replacing the later diagonal artwork that could not read anatomically as a right hand under either mirror state.
 - Both tap and scroll gestures now rotate the restored hand around its real fingertip anchor toward the upper-left; no horizontal mirror is applied, so the right-hand anatomy remains intact.
 - Browser and Preview remain intentionally unused by project instruction; validation is static only.
+
+## 2026-07-24 — Restore the right hand for every phone click
+
+- Removed the shared Meta regression where `data-meta-immediate` controls, projected text inputs, and non-button phone targets skipped the visible tapping hand.
+- Every player-originated click inside the phone now relays its original pointer coordinates to the same right-hand animation, regardless of whether the target activates immediately or after the cinematic tap.
+- A rapid second click is no longer swallowed while the first hand animation is returning; the native control remains responsive even when the visual hand is occupied.
+- Browser and Preview remain intentionally unused by project instruction; validation is static only.

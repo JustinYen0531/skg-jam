@@ -1421,6 +1421,10 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     event.stopPropagation();
 
     if (control instanceof HTMLInputElement) {
+      const point = { clientX: event.clientX, clientY: event.clientY };
+      if (canStartMetaInteraction(active, pendingRef.current, reducedMotion)) {
+        void animateTap(control, undefined, point);
+      }
       control.focus({ preventScroll: true });
       if (isMetaKeyboardInput(control)) setKeyboardTarget(control);
       return;
@@ -1444,6 +1448,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     const recoveredPoint = recoveredClickPointRef.current;
     recoveredClickPointRef.current = null;
     const pointerPoint = recoveredPoint ?? { clientX: event.clientX, clientY: event.clientY };
+    const playerInitiated = event.nativeEvent.isTrusted || recoveredPoint !== null;
 
     const phone = document.getElementById('phone-bezel');
     const targetInsidePhone = Boolean(source.closest('#phone-bezel')) || Boolean(
@@ -1485,12 +1490,30 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
       }
     }
 
-    if (source.closest('[data-meta-immediate="true"]')) return;
+    if (source.closest('[data-meta-immediate="true"]')) {
+      if (
+        playerInitiated
+        && targetInsidePhone
+        && canStartMetaInteraction(active, pendingRef.current, reducedMotion)
+      ) {
+        void animateTap(source, undefined, pointerPoint);
+      }
+      return;
+    }
 
     const input = source.closest('input');
     const button = source.closest('button');
     const target = input ?? button;
-    if (!target || !sceneRef.current?.contains(target)) return;
+    if (!target || !sceneRef.current?.contains(target)) {
+      if (
+        playerInitiated
+        && targetInsidePhone
+        && canStartMetaInteraction(active, pendingRef.current, reducedMotion)
+      ) {
+        void animateTap(source, undefined, pointerPoint);
+      }
+      return;
+    }
 
     if (button instanceof HTMLButtonElement && replayingButtonsRef.current.has(button)) {
       replayingButtonsRef.current.delete(button);
@@ -1502,9 +1525,12 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
       return;
     }
 
+    // Never swallow a rapid second click merely because the first hand
+    // animation is still returning to the bezel. Let the native control
+    // complete immediately when the visual hand is occupied.
+    if (!canStartMetaInteraction(active, pendingRef.current, reducedMotion)) return;
     event.preventDefault();
     event.stopPropagation();
-    if (!canStartMetaInteraction(active, pendingRef.current, reducedMotion)) return;
 
     if (isMetaKeyboardInput(target)) {
       void animateTap(target, () => {
