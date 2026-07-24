@@ -1170,3 +1170,9 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Every player-originated click inside the phone now relays its original pointer coordinates to the same right-hand animation, regardless of whether the target activates immediately or after the cinematic tap.
 - A rapid second click is no longer swallowed while the first hand animation is returning; the native control remains responsive even when the visual hand is occupied.
 - Browser and Preview remain intentionally unused by project instruction; validation is static only.
+
+## 2026-07-24 — Restore native dragging for every settings slider
+
+- Exempted `input[type="range"]` controls from the Meta pointer-down recovery and delayed click replay. Music volume, interface volume, brightness, and contrast now retain the browser's complete pointer drag sequence instead of behaving like click-only fields.
+- Text inputs and ordinary buttons keep their existing projected-screen recovery paths.
+- Browser and Preview remain intentionally unused by project instruction; validation is static only.

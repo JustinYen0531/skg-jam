@@ -305,6 +305,33 @@ test('every player click on the phone keeps the shared right-hand relay visible'
   );
 });
 
+test('settings range controls retain native pointer dragging', () => {
+  const sceneSource = readFileSync(
+    new URL('../src/components/MetaInteractionScene.tsx', import.meta.url),
+    'utf8',
+  );
+  const phoneSource = readFileSync(
+    new URL('../src/components/PhoneSimulator.tsx', import.meta.url),
+    'utf8',
+  );
+  const pointerDownSource = sceneSource.slice(
+    sceneSource.indexOf('const handlePointerDownCapture'),
+    sceneSource.indexOf('const handleClickCapture'),
+  );
+  const clickSource = sceneSource.slice(
+    sceneSource.indexOf('const handleClickCapture'),
+    sceneSource.indexOf('const handleKeyDownCapture'),
+  );
+
+  assert.equal((phoneSource.match(/type="range"/g) ?? []).length, 4);
+  assert.equal(
+    (sceneSource.match(/if \(source\.closest\('input\[type="range"\]'\)\) return;/g) ?? []).length,
+    2,
+  );
+  assert.ok(pointerDownSource.indexOf('input[type="range"]') < pointerDownSource.indexOf('const selector'));
+  assert.ok(clickSource.indexOf('input[type="range"]') < clickSource.indexOf('const recoveredPoint'));
+});
+
 test('home navigation completes before the Chapter 1 entry transition starts', () => {
   const phoneSource = readFileSync(new URL('../src/components/PhoneSimulator.tsx', import.meta.url), 'utf8');
   assert.match(

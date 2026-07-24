@@ -1384,6 +1384,10 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     if (event.button !== 0) return;
     const source = event.target;
     if (!(source instanceof Element)) return;
+    // Range controls need the browser's uninterrupted pointer-down / move /
+    // release sequence. Treating them like projected text inputs collapses
+    // dragging into a single click.
+    if (source.closest('input[type="range"]')) return;
 
     // Chromium can route a point on the projected bottom edge to a later,
     // transparent scene layer instead of the transformed control. Resolve an
@@ -1445,6 +1449,9 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     }
     const source = event.target;
     if (!(source instanceof Element)) return;
+    // The native range interaction has already updated continuously during
+    // pointer movement; do not replay or delay its trailing click.
+    if (source.closest('input[type="range"]')) return;
     const recoveredPoint = recoveredClickPointRef.current;
     recoveredClickPointRef.current = null;
     const pointerPoint = recoveredPoint ?? { clientX: event.clientX, clientY: event.clientY };
