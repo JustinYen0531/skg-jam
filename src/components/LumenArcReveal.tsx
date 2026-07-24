@@ -90,8 +90,10 @@ export const LumenArcReveal: React.FC<LumenArcRevealProps> = ({ reducedMotion, o
   const [damage, setDamage] = useState(0);
   const [rotation, setRotation] = useState(0);
   const [draggingPhone, setDraggingPhone] = useState(false);
+  const revealRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const damageRef = useRef(0);
+  const scratchShieldPointer = useRef<number | null>(null);
   const scratchPointer = useRef<number | null>(null);
   const scratchPoint = useRef<{ x: number; y: number } | null>(null);
   // Do not remove the canvas in the middle of the drag that finishes it.
@@ -221,8 +223,21 @@ export const LumenArcReveal: React.FC<LumenArcRevealProps> = ({ reducedMotion, o
     };
 
     const handleScratchPointerDown = (event: PointerEvent) => {
+      const reveal = revealRef.current;
       const canvas = canvasRef.current;
-      if (!canvas || event.button !== 0 || scratchPointer.current !== null) return;
+      if (!reveal || !canvas || event.button !== 0 || scratchShieldPointer.current !== null) return;
+      const revealRect = reveal.getBoundingClientRect();
+      const insideReveal = event.clientX >= revealRect.left
+        && event.clientX <= revealRect.right
+        && event.clientY >= revealRect.top
+        && event.clientY <= revealRect.bottom;
+      if (!insideReveal) return;
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      suppressScratchClick.current = true;
+      scratchShieldPointer.current = event.pointerId;
+
       const rect = canvas.getBoundingClientRect();
       const insideCanvas = event.clientX >= rect.left
         && event.clientX <= rect.right
@@ -230,28 +245,30 @@ export const LumenArcReveal: React.FC<LumenArcRevealProps> = ({ reducedMotion, o
         && event.clientY <= rect.bottom;
       if (!insideCanvas) return;
 
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      suppressScratchClick.current = true;
       scratchPointer.current = event.pointerId;
       scratchPoint.current = null;
       scratchAt(event.clientX, event.clientY);
     };
 
     const handleScratchPointerMove = (event: PointerEvent) => {
-      if (scratchPointer.current !== event.pointerId) return;
+      if (scratchShieldPointer.current !== event.pointerId) return;
       event.preventDefault();
       event.stopImmediatePropagation();
-      scratchAt(event.clientX, event.clientY);
+      if (scratchPointer.current === event.pointerId) {
+        scratchAt(event.clientX, event.clientY);
+      }
     };
 
     const finishCapturedScratch = (event: PointerEvent) => {
-      if (scratchPointer.current !== event.pointerId) return;
+      if (scratchShieldPointer.current !== event.pointerId) return;
       event.preventDefault();
       event.stopImmediatePropagation();
-      scratchPointer.current = null;
-      scratchPoint.current = null;
-      finishScratchGesture();
+      scratchShieldPointer.current = null;
+      if (scratchPointer.current === event.pointerId) {
+        scratchPointer.current = null;
+        scratchPoint.current = null;
+        finishScratchGesture();
+      }
       releaseClickGuardSoon();
     };
 
@@ -264,6 +281,9 @@ export const LumenArcReveal: React.FC<LumenArcRevealProps> = ({ reducedMotion, o
       window.removeEventListener('pointermove', handleScratchPointerMove, true);
       window.removeEventListener('pointerup', finishCapturedScratch, true);
       window.removeEventListener('pointercancel', finishCapturedScratch, true);
+      scratchShieldPointer.current = null;
+      scratchPointer.current = null;
+      scratchPoint.current = null;
     };
   }, [finishScratchGesture, phase, scratchAt]);
 
@@ -293,8 +313,10 @@ export const LumenArcReveal: React.FC<LumenArcRevealProps> = ({ reducedMotion, o
 
   return (
     <motion.div
+      ref={revealRef}
       className="absolute inset-0 z-40 overflow-hidden bg-[#090f16] text-slate-100"
       id="lumen-arc-reveal"
+      data-meta-direct-gesture="true"
       data-reveal-phase={phase}
       data-package-damage={Math.round(damage)}
       data-phone-rotation={Math.round(rotation)}
