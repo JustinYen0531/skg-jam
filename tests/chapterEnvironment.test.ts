@@ -8,6 +8,11 @@ import {
   getMetaWallStage,
 } from '../src/lib/chapterEnvironment';
 
+const environmentSource = readFileSync(
+  new URL('../src/components/ChapterEnvironment.tsx', import.meta.url),
+  'utf8',
+);
+
 test('defines one deterministic physical environment for Chapter 0 through 10', () => {
   assert.deepEqual(Object.keys(CHAPTER_ENVIRONMENTS).map(Number), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
   for (let chapter = 0; chapter <= 10; chapter += 1) {
@@ -15,11 +20,13 @@ test('defines one deterministic physical environment for Chapter 0 through 10', 
   }
 });
 
-test('coffee sizes are explicit per posture without compounded wrapper scaling', () => {
-  const environmentSource = readFileSync(new URL('../src/components/ChapterEnvironment.tsx', import.meta.url), 'utf8');
-  assert.match(environmentSource, /deviceResting\s+\? \(pushedAway \? 'right-\[4%\] top-\[78%\] scale-\[1\.875\]' : tipped \? 'right-\[8%\] top-\[76%\] scale-\[2\.1\]' : 'right-\[6%\] top-\[76%\] scale-\[2\.025\]'\)/);
-  assert.match(environmentSource, /: \(pushedAway \? 'right-\[2%\] top-\[90%\] scale-\[2\.475\]' : tipped \? 'right-\[6%\] top-\[89%\] scale-\[2\.8125\]' : 'right-\[4%\] top-\[90%\] scale-\[2\.7\]'\)/);
-  assert.doesNotMatch(environmentSource, /data-coffee-(resting|upright)-scale/);
+test('the shared desk renderer contains no cups, spills, or white paper-ball clutter', () => {
+  assert.doesNotMatch(environmentSource, /CoffeeCup|TeaService|PaperBalls/);
+  assert.doesNotMatch(environmentSource, /meta-desk-coffee|meta-desk-tea|meta-desk-paper-balls/);
+  assert.doesNotMatch(environmentSource, /coffee-(?:full|empty-drip|tipped-spill)\.png/);
+  assert.equal(existsSync(new URL('../public/assets/coffee-full.png', import.meta.url)), false);
+  assert.equal(existsSync(new URL('../public/assets/coffee-empty-drip.png', import.meta.url)), false);
+  assert.equal(existsSync(new URL('../public/assets/coffee-tipped-spill.png', import.meta.url)), false);
 });
 
 test('Chapter 0 exposes no physical desk objects', () => {
@@ -55,22 +62,11 @@ test('desk evidence never appears before the player has earned it', () => {
   assert.equal(getChapterEnvironment(10).notebook, 'route');
 });
 
-test('coffee tells a chapter-specific desk story without revealing later evidence early', () => {
-  assert.equal(getChapterEnvironment(1).coffeeSteam, true);
-  assert.equal(getChapterEnvironment(2).coffeeSteam, true);
-  assert.equal(getChapterEnvironment(3).coffee, 'empty');
-  assert.equal(getChapterEnvironment(3).coffeeDrip, true);
-  assert.equal(getChapterEnvironment(3).coffeeSpill, false);
+test('desk evidence progresses without depending on removed drink clutter', () => {
   assert.equal(getChapterEnvironment(2).cable, 'loose');
   assert.equal(getChapterEnvironment(3).cable, 'connected');
-  assert.equal(getChapterEnvironment(4).coffeeDrip, false);
-  assert.equal(getChapterEnvironment(5).coffee, 'tipped-empty');
-  assert.equal(getChapterEnvironment(5).coffeeSpill, true);
   assert.equal(getChapterEnvironment(5).notebookPosition, 'lowered');
-  assert.equal(getChapterEnvironment(6).coffee, 'tipped-empty');
-  assert.equal(getChapterEnvironment(6).coffeeSpill, true);
-  assert.equal(getChapterEnvironment(6).teaService, true);
-  assert.equal(getChapterEnvironment(6).paperBalls, true);
+  assert.equal(getChapterEnvironment(6).notebook, 'noah');
 });
 
 test('the desk progresses from gathering to clutter, quiet, and organized', () => {
@@ -131,10 +127,7 @@ test('the physical environment is display-only and does not mutate progress', ()
   const environmentSource = readFileSync(new URL('../src/components/ChapterEnvironment.tsx', import.meta.url), 'utf8');
   const sceneSource = readFileSync(new URL('../src/components/MetaInteractionScene.tsx', import.meta.url), 'utf8');
   assert.doesNotMatch(environmentSource, /updateProgress|setProgress|GameProgress/);
-  assert.match(environmentSource, /id="meta-desk-coffee"/);
-  assert.match(environmentSource, /deviceResting\s+\? \(pushedAway \? 'right-\[4%\] top-\[78%\] scale-\[1\.875\]' : tipped \? 'right-\[8%\] top-\[76%\] scale-\[2\.1\]' : 'right-\[6%\] top-\[76%\] scale-\[2\.025\]'\)/);
-  assert.match(environmentSource, /: \(pushedAway \? 'right-\[2%\] top-\[90%\] scale-\[2\.475\]' : tipped \? 'right-\[6%\] top-\[89%\] scale-\[2\.8125\]' : 'right-\[4%\] top-\[90%\] scale-\[2\.7\]'\)/);
-  assert.match(environmentSource, /data-composition-offset=\{deviceResting \? 'resting-desk-right' : 'upright-desk-bottom'\}/);
+  assert.doesNotMatch(environmentSource, /meta-desk-coffee|meta-desk-tea|meta-desk-paper-balls/);
   assert.match(environmentSource, /data-scene-depth="front-of-device"/);
   assert.match(environmentSource, /deviceResting=\{deviceResting\}/);
   assert.match(environmentSource, /id="meta-desk-notebook"/);
@@ -148,23 +141,7 @@ test('the physical environment is display-only and does not mutate progress', ()
   assert.match(environmentSource, /scale-\[1\.7\]/);
   assert.match(environmentSource, /bottom-\[15\.5%\] right-\[-5%\]/);
   assert.match(environmentSource, /data-composition-offset="cable-right-3"/);
-  assert.match(environmentSource, /id="meta-coffee-steam"/);
-  assert.match(environmentSource, /id="meta-coffee-png"/);
-  assert.match(environmentSource, /coffee-full\.png/);
-  assert.match(environmentSource, /coffee-empty-drip\.png/);
-  assert.match(environmentSource, /coffee-tipped-spill\.png/);
   assert.match(environmentSource, /object-contain/);
-  assert.doesNotMatch(environmentSource, /chapter-coffee-states\.png|backgroundSize: '500% 210%'/);
-  assert.match(environmentSource, /data-coffee-drip=\{drip \|\| undefined\}/);
-  assert.match(environmentSource, /data-coffee-spill=\{spill \|\| undefined\}/);
-  assert.doesNotMatch(environmentSource, /id="meta-coffee-cup-drip"|id="meta-coffee-spill"/);
-  assert.equal(existsSync(new URL('../public/assets/coffee-full.png', import.meta.url)), true);
-  assert.equal(existsSync(new URL('../public/assets/coffee-empty-drip.png', import.meta.url)), true);
-  assert.equal(existsSync(new URL('../public/assets/coffee-tipped-spill.png', import.meta.url)), true);
-  assert.match(environmentSource, /id="meta-desk-tea-machine"/);
-  assert.match(environmentSource, /id="meta-desk-tea-cup"/);
-  assert.match(environmentSource, /id="meta-tea-bag-tag"/);
-  assert.match(environmentSource, /id="meta-desk-paper-balls"/);
   assert.match(environmentSource, /id="meta-cable-plug-tip"/);
   assert.match(environmentSource, /id="meta-cable-inserted-end"/);
   assert.match(environmentSource, /id="meta-cable-plug-housing"/);
@@ -173,8 +150,7 @@ test('the physical environment is display-only and does not mutate progress', ()
   assert.match(environmentSource, /data-cable-layer=\{part === 'insert' \? 'underlay' : 'foreground'\}/);
   assert.match(environmentSource, /M650 116 C590 116 552 116 510 116/);
   assert.match(environmentSource, /<Pen[\s\S]{0,400}<ChargingCable connected animateLayout=\{!reducedMotion\} part="insert"/);
-  assert.doesNotMatch(environmentSource, /underlay \? \([\s\S]{0,180}<CoffeeCup/);
-  assert.match(environmentSource, /\) : \(\s*<>\s*<CoffeeCup/);
+  assert.doesNotMatch(environmentSource, /CoffeeCup|TeaService|PaperBalls/);
   assert.match(environmentSource, /underlay \? 'z-\[9\]' : 'z-\[25\]'/);
   assert.match(environmentSource, /data-plug-target=\{connected && part === 'insert' \? 'phone-bottom-port'/);
   assert.match(environmentSource, /skg: \['SKG', '\?'\]/);
@@ -183,12 +159,12 @@ test('the physical environment is display-only and does not mutate progress', ()
   // `scale` is Framer-animated when the device rests, and a `layout` child
   // there re-projects against its own already-transformed box. Interrupting the
   // animation (chapter jumps / dev-panel toggles mid-transition) compounds that
-  // projection into a runaway — the coffee cup shooting across the desk. Each
-  // object is anchored in CSS and eased with a CSS transition instead.
+  // projection into a runaway. Each object is anchored in CSS and eased with
+  // a CSS transition instead.
   assert.equal((environmentSource.match(/layout=\{animateLayout\}/g) ?? []).length, 0);
   assert.doesNotMatch(environmentSource, /<motion\.(div|svg)\s+layout/);
   // The moving desk objects still ease their position via CSS transitions.
-  assert.match(environmentSource, /transition-\[top,right,scale\] duration-\[620ms\]/); // coffee cup
+  assert.match(environmentSource, /transition-\[top,left,scale\] duration-\[620ms\]/); // energy drinks
   assert.match(environmentSource, /transition-\[left,top,rotate,scale\] duration-\[620ms\]/); // pen
   assert.match(environmentSource, /transition-\[top,scale,rotate\] duration-\[620ms\]/); // notebook
 });

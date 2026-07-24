@@ -3,7 +3,6 @@ import { AnimatePresence, motion, useMotionValue, useTransform, type MotionValue
 import {
   getChapterEnvironment,
   getDeskDrink,
-  type CoffeeState,
   type DrinkVariant,
   type EnvironmentChapter,
   type NotebookState,
@@ -20,15 +19,6 @@ interface ChapterEnvironmentProps {
   restingView?: MotionValue<number>;
 }
 
-const COFFEE_ASSET_SOURCE: Record<Exclude<CoffeeState, 'none'>, string> = {
-  fresh: '/assets/coffee-full.png',
-  sipped: '/assets/coffee-full.png',
-  half: '/assets/coffee-empty-drip.png',
-  'near-empty': '/assets/coffee-empty-drip.png',
-  empty: '/assets/coffee-empty-drip.png',
-  'tipped-empty': '/assets/coffee-tipped-spill.png',
-  'pushed-away': '/assets/coffee-empty-drip.png',
-};
 const DRINK_ASSET_SOURCE: Record<Exclude<DrinkVariant, 'none'>, string> = {
   one: '/assets/drink-1.png',
   two: '/assets/drink-2.png',
@@ -56,86 +46,8 @@ const LIGHTING_CLASS = {
   ready: 'bg-[radial-gradient(circle_at_50%_66%,rgba(232,177,115,0.11),transparent_42%)]',
 } as const;
 
-const CoffeeCup: React.FC<{
-  state: CoffeeState;
-  ring: boolean;
-  steam: boolean;
-  drip: boolean;
-  spill: boolean;
-  animateLayout: boolean;
-  deviceResting: boolean;
-}> = ({ state, ring, steam, drip, spill, animateLayout, deviceResting }) => {
-  if (state === 'none') return null;
-  const pushedAway = state === 'pushed-away';
-  const tipped = state === 'tipped-empty';
-  const assetSource = COFFEE_ASSET_SOURCE[state];
-  const positionClass = deviceResting
-    ? (pushedAway ? 'right-[4%] top-[78%] scale-[1.875]' : tipped ? 'right-[8%] top-[76%] scale-[2.1]' : 'right-[6%] top-[76%] scale-[2.025]')
-    : (pushedAway ? 'right-[2%] top-[90%] scale-[2.475]' : tipped ? 'right-[6%] top-[89%] scale-[2.8125]' : 'right-[4%] top-[90%] scale-[2.7]');
-
-  // Position is anchored purely in CSS and eased with a CSS transition —
-  // deliberately NOT Framer's `layout`. This desk layer sits inside an env
-  // whose `scale` is Framer-animated when the device rests; a `layout` child
-  // inside a scale-animated parent measures its own already-transformed box
-  // and re-projects against it, so rapidly interrupting the animation (jumping
-  // chapters / toggling the dev panel mid-transition) compounds the projection
-  // and an oversized cup runs away across the desk. A CSS transform can't
-  // compound: the browser always re-renders it from its declared value.
-  const motionClass = animateLayout
-    ? 'transition-[top,right,scale] duration-[620ms] ease-out'
-    : '';
-
-  return (
-    <div
-      className={`absolute z-[3] h-[27%] w-[17%] min-w-36 origin-bottom-right ${motionClass} ${positionClass}`}
-      data-composition-offset={deviceResting ? 'resting-desk-right' : 'upright-desk-bottom'}
-      data-scene-depth="front-of-device"
-      data-coffee-state={state}
-      data-coffee-asset-state={tipped ? 'tipped' : state === 'fresh' || state === 'sipped' ? 'full' : 'empty'}
-      data-coffee-drip={drip || undefined}
-      data-coffee-spill={spill || undefined}
-      id="meta-desk-coffee"
-    >
-      {ring && !tipped && (
-        <div
-          className="absolute left-[14%] top-[84%] h-[14%] w-[67%] rounded-[50%] border-[3px] border-amber-950/35 opacity-60 blur-[0.4px]"
-          id="meta-coffee-ring"
-        />
-      )}
-      {steam && (
-        <svg className="absolute -top-[94%] left-[2%] z-[1] h-[100%] w-[92%] overflow-visible" viewBox="0 0 100 100" id="meta-coffee-steam" aria-hidden="true">
-          {[28, 50, 72].map((x, index) => (
-            <motion.path
-              key={x}
-              d={`M${x} 92 C${x - 11} 70 ${x + 13} 57 ${x} 30 C${x - 7} 18 ${x + 5} 10 ${x + 1} 2`}
-              fill="none"
-              stroke="rgba(237, 228, 213, 0.45)"
-              strokeLinecap="round"
-              strokeWidth="5"
-              initial={{ opacity: 0.15, y: 8 }}
-              animate={{ opacity: [0.12, 0.52, 0.08], y: [8, -4, -12] }}
-              transition={{ duration: 2.2 + index * 0.2, repeat: Infinity, ease: 'easeInOut', delay: index * 0.25 }}
-            />
-          ))}
-        </svg>
-      )}
-      <img
-        src={assetSource}
-        alt=""
-        className="absolute inset-0 h-full w-full object-contain drop-shadow-[0_10px_10px_rgba(0,0,0,0.36)]"
-        id="meta-coffee-png"
-      />
-    </div>
-  );
-};
-
-// The mirror of the coffee cup, on the LEFT of the desk. Every variant renders
-// through one identical box + object-contain, so Drink 1/2/3 can never change
-// size or drift — only their state changes (sealed pair → both cracked open →
-// crushed in a spill), exactly the way the mug empties on the right. It shares
-// the same resting/upright anchors and CSS-transition rules as the cup, and
-// because it lives in the same object-perspective wrapper it inherits the same
-// mouse-height and idle-camera view shifts for free.
+// Every energy-drink variant renders through one identical box, so its chapter
+// state can change without changing size or drifting across the desk.
 const DrinkCans: React.FC<{
   variant: DrinkVariant;
   animateLayout: boolean;
@@ -276,35 +188,6 @@ const Notebook: React.FC<{ state: NotebookState; stickyNote: string | null; posi
   );
 };
 
-const TeaService: React.FC = () => (
-  <div className="absolute right-[25%] top-[72%] z-[4] h-[18%] w-[15%] scale-[1.3]" id="meta-desk-tea-service">
-    <div className="absolute right-0 top-[4%] h-[64%] w-[52%] rounded-md border border-[#aeb8ab]/40 bg-gradient-to-r from-[#34433f] via-[#6c8174] to-[#29352f] shadow-[0_9px_12px_rgba(0,0,0,0.34)]" id="meta-desk-tea-machine">
-      <div className="absolute left-[16%] top-[13%] h-[16%] w-[62%] rounded-sm bg-[#17211d]" />
-      <div className="absolute left-[31%] top-[38%] h-[19%] w-[30%] rounded-full bg-emerald-200/65 shadow-[0_0_8px_rgba(110,231,183,0.5)]" />
-      <div className="absolute left-[36%] top-[63%] h-[29%] w-[23%] rounded-b-sm bg-[#171b19]" />
-    </div>
-    <div className="absolute bottom-0 left-[3%] h-[42%] w-[33%] rounded-b-[38%] rounded-t-[18%] border border-[#d3d0b5]/60 bg-gradient-to-r from-[#8a9b83] via-[#d2d8bd] to-[#71816c] shadow-[0_7px_9px_rgba(0,0,0,0.35)]" id="meta-desk-tea-cup">
-      <div className="absolute -top-[10%] left-[5%] h-[22%] w-[89%] rounded-[50%] border border-[#d3d0b5]/55 bg-[#8e7335]" />
-      <div className="absolute -right-[43%] top-[25%] h-[30%] w-[43%] rounded-r-full border-[3px] border-l-0 border-[#b7c1ab]/65" />
-      <div className="absolute left-[43%] top-[76%] h-[48%] w-px bg-[#c8b865]" />
-      <div className="absolute left-[30%] top-[119%] grid h-[22%] w-[28%] place-items-center bg-[#d8c65e] text-[4px] font-bold text-[#39402b] shadow-sm" id="meta-tea-bag-tag">TEA</div>
-    </div>
-  </div>
-);
-
-const PaperBalls: React.FC = () => (
-  <div className="absolute bottom-[13%] left-[31%] z-[4] h-[11%] w-[25%]" id="meta-desk-paper-balls">
-    {[
-      'left-[2%] top-[38%] h-[32%] w-[12%] rotate-[21deg]',
-      'left-[17%] top-[5%] h-[42%] w-[15%] rotate-[-17deg]',
-      'left-[38%] top-[40%] h-[29%] w-[11%] rotate-[31deg]',
-      'left-[57%] top-[10%] h-[45%] w-[16%] rotate-[-25deg]',
-    ].map((className, index) => (
-      <div key={index} className={`absolute rounded-[48%_52%_44%_56%] bg-[#b7aa92] shadow-[inset_2px_2px_3px_rgba(255,255,255,0.2),0_4px_5px_rgba(0,0,0,0.34)] ${className}`} />
-    ))}
-  </div>
-);
-
 export const ChapterEnvironment: React.FC<ChapterEnvironmentProps> = ({
   chapter,
   reducedMotion,
@@ -371,10 +254,7 @@ export const ChapterEnvironment: React.FC<ChapterEnvironmentProps> = ({
             </>
           ) : (
             <>
-              <CoffeeCup state={environment.coffee} ring={environment.coffeeRing} steam={environment.coffeeSteam} drip={environment.coffeeDrip} spill={environment.coffeeSpill} animateLayout={!reducedMotion} deviceResting={deviceResting} />
               <DrinkCans variant={getDeskDrink(chapter)} animateLayout={!reducedMotion} deviceResting={deviceResting} />
-              {environment.teaService && <TeaService />}
-              {environment.paperBalls && <PaperBalls />}
               {environment.cable !== 'none' && <ChargingCable connected={environment.cable === 'connected'} animateLayout={!reducedMotion} part="body" />}
             </>
           )}

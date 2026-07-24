@@ -1,5 +1,13 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-24 — Remove cups, spills, and white desk clutter
+
+- Removed the shared coffee-cup renderer, its rings, steam and spill artwork from every chapter.
+- Removed Chapter 6's tea machine/cup and the pale paper-ball cluster that read as white stains on the desk.
+- Deleted all three unused coffee PNG assets and replaced their former presence tests with a permanent absence regression.
+- Preserved notebooks, pens, cables, evidence, fireplace lighting, and the separate energy-drink progression.
+- Browser and Preview remain intentionally unused by project instruction.
+
 ## 2026-07-24 — Chapter 1 reveal boundary, Concept focus, and paced IPA failure
 
 - Removed the stale Lumen Arc name from the Chapter 1-to-2 handoff; Arcane now carries forward only the two facts Chapter 1 proved: Gate 40 was passable in the Legacy build and an archived filename exists.
