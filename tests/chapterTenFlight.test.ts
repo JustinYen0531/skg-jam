@@ -404,7 +404,7 @@ test('the live game wires Gate 40 to the deterministic Chapter 10 flight', () =>
   assert.match(source, /performanceSampleAt\(plan, state\.chapterTenPerfFrame\)/);
   assert.match(source, /shouldAcceptPlayerInput\(stateRef\.current\.chapterTenPhase\)/);
   assert.match(source, /beginAutonomousControlRef\.current\('flappy-canvas'\)/);
-  assert.match(source, /pulsePlayerTap\('flappy-canvas'\)/);
+  assert.match(source, /pulsePlayerTap\('flappy-canvas', point\)/);
   assert.match(source, /pulseAutonomousTap\(\)/);
 });
 

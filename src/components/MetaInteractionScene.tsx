@@ -62,6 +62,11 @@ interface MetaInputController {
   onSubmit: () => void;
 }
 
+interface MetaTapPoint {
+  clientX: number;
+  clientY: number;
+}
+
 interface MetaInteractionContextValue {
   active: boolean;
   deviceResting: boolean;
@@ -69,7 +74,7 @@ interface MetaInteractionContextValue {
   speak: (lines: DialogueLines, onComplete?: () => void) => void;
   tapElement: (id: string, onActivate: () => void) => void;
   tapSequence: (id: string, count: number, onComplete: () => void) => void;
-  pulsePlayerTap: (id: string) => void;
+  pulsePlayerTap: (id: string, point?: MetaTapPoint) => void;
   beginAutonomousControl: (id: string) => void;
   pulseAutonomousTap: () => void;
   endAutonomousControl: () => void;
@@ -814,6 +819,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   const pendingRef = useRef(false);
   const autonomousTappingRef = useRef(false);
   const autonomousPulseTimerRef = useRef<number | null>(null);
+  const recoveredClickPointRef = useRef<MetaTapPoint | null>(null);
   const playerTapReleaseTimerRef = useRef<number | null>(null);
   const playerTapDepartTimerRef = useRef<number | null>(null);
   const keyQueueRef = useRef<QueuedKey[]>([]);
@@ -915,18 +921,17 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   // Visual relay for direct canvas input. It deliberately never dispatches a
   // click: FlappyGame has already accepted the player's jump, and this only
   // lets Arcane's finger visibly perform that same action in the Meta view.
-  const pulsePlayerTap = useCallback((id: string) => {
+  const pulsePlayerTap = useCallback((id: string, point?: MetaTapPoint) => {
     const target = document.getElementById(id);
     const sceneRect = sceneRef.current?.getBoundingClientRect();
     if (!active || !target || !sceneRect || autonomousTappingRef.current) return;
     const targetRect = target.getBoundingClientRect();
-    const flappyTap = id === 'flappy-canvas';
     clearPlayerTapTimers();
     pendingRef.current = true;
     setInteractionPending(true);
     setPointer({
-      x: targetRect.left - sceneRect.left + targetRect.width * (flappyTap ? 0.88 : 0.54),
-      y: targetRect.top - sceneRect.top + targetRect.height * (flappyTap ? 0.52 : 0.58),
+      x: point ? point.clientX - sceneRect.left : targetRect.left - sceneRect.left + targetRect.width * 0.54,
+      y: point ? point.clientY - sceneRect.top : targetRect.top - sceneRect.top + targetRect.height * 0.58,
     });
     setPressed(true);
     audio.play('meta.fingerContact');
@@ -1165,7 +1170,11 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     }
   }, []);
 
-  const animateTap = useCallback((target: Element, onActivate?: () => void): Promise<void> => {
+  const animateTap = useCallback((
+    target: Element,
+    onActivate?: () => void,
+    point?: MetaTapPoint,
+  ): Promise<void> => {
     if (!active || reducedMotion) {
       onActivate?.();
       return Promise.resolve();
@@ -1180,8 +1189,8 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     // The holding hand leaves the frame: low skin-on-frame friction (§4.6).
     audio.play('meta.handDepart');
     const targetPosition = {
-      x: targetRect.left - sceneRect.left + targetRect.width / 2,
-      y: targetRect.top - sceneRect.top + targetRect.height / 2,
+      x: point ? point.clientX - sceneRect.left : targetRect.left - sceneRect.left + targetRect.width / 2,
+      y: point ? point.clientY - sceneRect.top : targetRect.top - sceneRect.top + targetRect.height / 2,
     };
 
     return new Promise((resolve) => {
@@ -1384,7 +1393,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     // Every real text field shares the projected-screen hit path. Otherwise an
     // ordinary search box can miss its hand relay just because it was never
     // tagged as a special recovery input.
-    const selector = '#home-dock button, button[data-meta-hit-recovery="true"], input[data-meta-hit-recovery="true"], input:not([disabled]):not([readonly])';
+    const selector = 'button:not([disabled]), input[data-meta-hit-recovery="true"], input:not([disabled]):not([readonly])';
     const directControl = source.closest<HTMLElement>(selector);
     if (!directControl && source.closest('button, input')) return;
 
@@ -1417,7 +1426,10 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
       return;
     }
 
-    if (control instanceof HTMLButtonElement && !control.disabled) control.click();
+    if (control instanceof HTMLButtonElement && !control.disabled) {
+      recoveredClickPointRef.current = { clientX: event.clientX, clientY: event.clientY };
+      control.click();
+    }
   };
 
   const handleClickCapture = (event: React.MouseEvent<HTMLDivElement>) => {
@@ -1429,11 +1441,14 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     }
     const source = event.target;
     if (!(source instanceof Element)) return;
+    const recoveredPoint = recoveredClickPointRef.current;
+    recoveredClickPointRef.current = null;
+    const pointerPoint = recoveredPoint ?? { clientX: event.clientX, clientY: event.clientY };
 
     const phone = document.getElementById('phone-bezel');
     const targetInsidePhone = Boolean(source.closest('#phone-bezel')) || Boolean(
       phone && isPointInsideProjectiveQuad(
-        { x: event.clientX, y: event.clientY },
+        { x: pointerPoint.clientX, y: pointerPoint.clientY },
         getPhoneCollisionQuad(phone),
       ),
     );
@@ -1495,7 +1510,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
       void animateTap(target, () => {
         target.focus();
         setKeyboardTarget(target);
-      });
+      }, pointerPoint);
       return;
     }
 
@@ -1504,7 +1519,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
       void animateTap(button, () => {
         replayingButtonsRef.current.add(button);
         button.click();
-      });
+      }, pointerPoint);
     }
   };
 
@@ -2161,11 +2176,11 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
                 alt=""
                 draggable={false}
                 className="absolute left-0 top-0 h-[clamp(441px,64.5vh,630px)] w-auto max-w-none select-none drop-shadow-[0_14px_12px_rgba(0,0,0,0.3)]"
-                style={{ transformOrigin: '15% 13%', translate: '-15% -13%' }}
+                style={{ transformOrigin: '83% 13%', translate: '-83% -13%' }}
                 initial={false}
-                animate={{ y: pressed ? 5 : 0, scale: pressed ? 0.98 : 1, scaleX: -1 }}
+                animate={{ y: pressed ? 5 : 0, scale: pressed ? 0.98 : 1, scaleX: 1 }}
                 transition={reducedMotion ? { duration: 0 } : HAND_PRESS_SPRING}
-                data-finger-orientation="upper-right-edge"
+                data-finger-orientation="horizontal-flip-right-hand"
                 aria-hidden="true"
                 id="meta-tapping-finger-asset"
               />

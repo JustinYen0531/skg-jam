@@ -1144,3 +1144,11 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - The game loads and parses that SRT at runtime; both lower-screen subtitles and the final `Thank you for reaching the end.` cue follow absolute audio time.
 - Flappy taps no longer chase the bird or the canvas centre. Player and autonomous tap relays use a fixed point at 88% across and 52% down the phone, keeping the right hand centred vertically with its wrist outside the right edge.
 - Browser and Preview remain intentionally unused by project instruction; validation is static only.
+
+## 2026-07-24 — Global Meta click-coordinate regression fix
+
+- Reverted the player-side fixed Flappy coordinate that caused the visible finger to miss the user's actual click. Mouse and touch coordinates now flow into the shared Meta tap renderer.
+- Expanded projected hit recovery to every enabled button and preserved the original pointer coordinates through its synthetic click replay, fixing the same mismatch across all chapters.
+- Kept the 88% / 52% right-side coordinate exclusively for Arcane's autonomous Flappy performance.
+- Horizontally flipped the pointing-hand asset back to the requested right-hand orientation and restored its matching fingertip anchor.
+- Browser and Preview remain intentionally unused by project instruction; validation is static only.

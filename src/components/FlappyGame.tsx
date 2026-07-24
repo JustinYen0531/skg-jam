@@ -477,7 +477,14 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
     ) return;
     stateRef.current.birdVelocity = stateRef.current.birdJump;
     stateRef.current.lastJumpFrame = stateRef.current.frameCount; // tap ripple
-    if (chapterTenActive) pulsePlayerTap('flappy-canvas');
+    if (chapterTenActive) {
+      const point = 'clientX' in e && typeof e.clientX === 'number'
+        ? { clientX: e.clientX, clientY: e.clientY }
+        : 'touches' in e && e.touches[0]
+          ? { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY }
+          : undefined;
+      pulsePlayerTap('flappy-canvas', point);
+    }
     audio.play('flight.flap');
   };
 

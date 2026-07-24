@@ -26,7 +26,14 @@ test('the Chapter 10 Finale uses audio-derived SRT timing and a right-edge tap p
   assert.match(gameSource, /Phase%2010%20\(Finale\)\.srt/);
   assert.match(gameSource, /data-lyric-time=/);
   assert.match(gameSource, /!chapterTenCreditsActive/);
+  assert.match(metaSource, /pulsePlayerTap = useCallback\(\(id: string, point\?: MetaTapPoint\)/);
+  assert.match(metaSource, /point \? point\.clientX - sceneRect\.left/);
+  assert.match(metaSource, /point \? point\.clientY - sceneRect\.top/);
+  assert.match(metaSource, /const selector = 'button:not\(\[disabled\]\)/);
+  assert.match(metaSource, /recoveredClickPointRef\.current = \{ clientX: event\.clientX, clientY: event\.clientY \}/);
   assert.match(metaSource, /flappyTap \? 0\.88/);
   assert.match(metaSource, /flappyTap \? 0\.52/);
-  assert.match(metaSource, /data-finger-orientation="upper-right-edge"/);
+  assert.match(metaSource, /data-finger-orientation="horizontal-flip-right-hand"/);
+  assert.match(metaSource, /scaleX: 1/);
+  assert.match(gameSource, /pulsePlayerTap\('flappy-canvas', point\)/);
 });
