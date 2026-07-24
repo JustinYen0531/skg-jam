@@ -14,11 +14,12 @@ const socialSource = readFileSync(new URL('../src/components/SocialApp.tsx', imp
 const messagesSource = readFileSync(new URL('../src/components/MessagesApp.tsx', import.meta.url), 'utf8');
 
 test('Mara owns three separate number clues inside a larger personal timeline', () => {
-  assert.equal(MARA_PROFILE_POSTS.length, 9);
+  assert.equal(MARA_PROFILE_POSTS.length, 10);
   const clues = MARA_PROFILE_POSTS.filter((post) => post.clue);
   assert.deepEqual(clues.map((post) => post.clue), ['arc', 'gate', 'end']);
   assert.deepEqual(clues.map((post) => getMaraNumberValue(post.clue!)), [184, 40, 256]);
   assert.doesNotMatch(MARA_PROFILE_POSTS.map((post) => post.content).join(' '), /184\s*[-–—/]\s*40\s*[-–—/]\s*256/);
+  assert.equal(MARA_PROFILE_POSTS.at(-1)?.id, 'mara-2013-12');
 });
 
 test('Chapter 7 re-entry exposes Mara through Recently viewed instead of Noah Q&A', () => {

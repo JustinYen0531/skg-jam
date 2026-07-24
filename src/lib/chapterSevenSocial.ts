@@ -22,6 +22,7 @@ export const MARA_PROFILE_POSTS: readonly MaraProfilePost[] = [
   { id: 'mara-2014-03', date: '2014-03-08', content: 'A quiet morning, a repaired radio, and absolutely no reason to check work mail.', reactions: 22, comments: 1 },
   { id: 'mara-2014-02', date: '2014-02-14', content: 'He remembered the flowers. I remembered the spare charger. Between us, one competent adult.', reactions: 63, comments: 11 },
   { id: 'mara-2014-01', date: '2014-01-26', content: 'Page 256. The ending of the book is still my favorite part: everyone finally chooses to go home.', reactions: 35, comments: 7, clue: 'end' },
+  { id: 'mara-2013-12', date: '2013-12-18', content: 'Rain all afternoon. The radio still works, the tea went cold, and nobody needed anything from us.', reactions: 19, comments: 2 },
 ] as const;
 
 export const getMaraNumberValue = (clue: MaraNumberClue): number => ({

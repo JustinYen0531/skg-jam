@@ -105,6 +105,10 @@ const MARA_POST_DIALOGUE: Readonly<Record<string, readonly string[]>> = {
     'He remembered the flowers, she remembered the charger. One competent adult between them.',
     'Romance, according to my parents: flowers, spare power, and shared quality control.',
   ],
+  'mara-2013-12': [
+    'Rain, cold tea, and a working radio. An ordinary day survived the archive.',
+    'Nothing to solve here. Just one more day they were both home.',
+  ],
 };
 
 const NOISE_DIALOGUE: Readonly<Record<ChapterSevenNoiseKind, readonly string[]>> = {
