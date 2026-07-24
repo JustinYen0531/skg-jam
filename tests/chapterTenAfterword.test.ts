@@ -28,6 +28,12 @@ test('the three imagined outcomes are an optional afterword inside Skyline 256',
   assert.match(CHAPTER_TEN_AFTERWORD_LINES.publicize.join(' '), /SKG Automation/);
   assert.match(CHAPTER_TEN_AFTERWORD_LINES.preserve.join(' '), /Dad would understand/);
   assert.match(CHAPTER_TEN_AFTERWORD_EASTER_EGG_HINTS.submit, /LOWEST SCORE/);
+  assert.match(gameSource, /getRememberedChapterTenAfterwords/);
+  const viewTubeSource = readFileSync(new URL('../src/components/ViewTube.tsx', import.meta.url), 'utf8');
+  const archiveSource = readFileSync(new URL('../src/components/ChapterTwoArchiveFinder.tsx', import.meta.url), 'utf8');
+  assert.match(viewTubeSource, /chapter-ten-publicize-easter-egg[\s\S]*COMMENT REMOVED BY AUTHOR/);
+  assert.match(archiveSource, /chapter-ten-preserve-mirror[\s\S]*LOCAL MIRROR AVAILABLE[\s\S]*1 COMPATIBLE DEVICE/);
+  assert.match(archiveSource, /chapter-ten-preserve-easter-egg[\s\S]*ONE COMPATIBLE DEVICE STILL ACCEPTS LOCAL COPIES/);
   assert.ok(gameSource.indexOf('id="chapter-ten-credit-score"') < gameSource.indexOf('id="chapter-ten-final-lyric"'));
   assert.equal(getFinalLyricWordIndex(0.85), -1);
   assert.equal(getFinalLyricWordIndex(0.86), 0);

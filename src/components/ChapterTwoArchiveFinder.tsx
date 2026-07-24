@@ -6,6 +6,7 @@ import {
   getChapterTwoFormatDialogue,
   getChapterTwoSearchResponse,
 } from '../lib/chapterTwoDialogue';
+import { hasRememberedChapterTenAfterword } from '../lib/chapterTenAfterword';
 import { useMetaInteraction } from './MetaInteractionScene';
 
 type ArchiveFormat = 'ipa' | 'apk' | 'jar' | 'sis' | 'zip';
@@ -73,7 +74,9 @@ export const ChapterTwoArchiveFinder: React.FC<ChapterTwoArchiveFinderProps> = (
   const [query, setQuery] = useState('');
   const [selectedFile, setSelectedFile] = useState(false);
   const [compatibilityPending, setCompatibilityPending] = useState(false);
+  const [preserveMirrorOpen, setPreserveMirrorOpen] = useState(false);
   const searchAttempt = useRef(0);
+  const preserveDoorRemembered = hasRememberedChapterTenAfterword('preserve');
 
   const speakChapterTwo = (lines: readonly string[]) => {
     if (dialogueActive && metaInteraction.active) metaInteraction.speak(lines);
@@ -139,6 +142,19 @@ export const ChapterTwoArchiveFinder: React.FC<ChapterTwoArchiveFinderProps> = (
             <div><span className="block text-slate-600">Integrity</span><span className="text-slate-300">Archive complete</span></div>
           </div>
         </article>
+
+        {preserveDoorRemembered && (
+          preserveMirrorOpen ? (
+            <div className="rounded-md border border-emerald-400/25 bg-emerald-400/[0.06] p-3 font-mono" id="chapter-ten-preserve-easter-egg">
+              <div className="text-[8px] tracking-[0.16em] text-emerald-300">LOCAL MIRROR · AVAILABLE</div>
+              <p className="mt-1.5 text-[10px] leading-relaxed text-emerald-100">ONE COMPATIBLE DEVICE STILL ACCEPTS LOCAL COPIES.</p>
+            </div>
+          ) : (
+            <button type="button" onClick={() => { audio.playTick(); setPreserveMirrorOpen(true); }} className="w-full rounded-md border border-emerald-400/20 bg-emerald-400/[0.04] px-3 py-2 text-left font-mono text-[9px] text-emerald-200/75 hover:border-emerald-300/45 hover:text-emerald-100" id="chapter-ten-preserve-mirror">
+              LOCAL MIRROR AVAILABLE · 1 COMPATIBLE DEVICE
+            </button>
+          )
+        )}
 
         {attempted ? (
           <div className="rounded-md border border-rose-400/25 bg-rose-400/[0.06] p-3" id="chapter-two-device-unsupported">

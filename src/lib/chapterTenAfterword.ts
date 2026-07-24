@@ -4,6 +4,21 @@ export type ChapterTenAfterword = NonNullable<GameProgress['selectedEnding']>;
 
 export const CHAPTER_TEN_AFTERWORD_MEMORY_STORAGE_KEY = 'skg.chapterTen.afterwordMemories';
 
+export const getRememberedChapterTenAfterwords = (): ChapterTenAfterword[] => {
+  if (typeof window === 'undefined') return [];
+  try {
+    const saved = JSON.parse(window.localStorage.getItem(CHAPTER_TEN_AFTERWORD_MEMORY_STORAGE_KEY) ?? '[]');
+    return Array.isArray(saved)
+      ? saved.filter((value): value is ChapterTenAfterword => ['submit', 'publicize', 'preserve'].includes(value))
+      : [];
+  } catch {
+    return [];
+  }
+};
+
+export const hasRememberedChapterTenAfterword = (afterword: ChapterTenAfterword): boolean =>
+  getRememberedChapterTenAfterwords().includes(afterword);
+
 export const CHAPTER_TEN_AFTERWORD_OPTIONS: ReadonlyArray<{
   id: ChapterTenAfterword;
   label: string;

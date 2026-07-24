@@ -59,6 +59,7 @@ import {
   CHAPTER_TEN_AFTERWORD_LINES,
   CHAPTER_TEN_AFTERWORD_OPTIONS,
   CHAPTER_TEN_AFTERWORD_MEMORY_STORAGE_KEY,
+  getRememberedChapterTenAfterwords,
   type ChapterTenAfterword,
 } from '../lib/chapterTenAfterword';
 import {
@@ -135,17 +136,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
   const [scoreSubmissionName, setScoreSubmissionName] = useState('');
   const [afterwordOpen, setAfterwordOpen] = useState(false);
   const [finaleLyricCues, setFinaleLyricCues] = useState<readonly FinaleLyricCue[]>([]);
-  const [rememberedAfterwords, setRememberedAfterwords] = useState<ChapterTenAfterword[]>(() => {
-    if (typeof window === 'undefined') return [];
-    try {
-      const saved = JSON.parse(window.localStorage.getItem(CHAPTER_TEN_AFTERWORD_MEMORY_STORAGE_KEY) ?? '[]');
-      return Array.isArray(saved)
-        ? saved.filter((value): value is ChapterTenAfterword => ['submit', 'publicize', 'preserve'].includes(value))
-        : [];
-    } catch {
-      return [];
-    }
-  });
+  const [rememberedAfterwords, setRememberedAfterwords] = useState<ChapterTenAfterword[]>(getRememberedChapterTenAfterwords);
   const creditsScrollRef = useRef<HTMLDivElement | null>(null);
   const scoreTypingTimerRef = useRef<number | null>(null);
   const scoreTransitionTimerRef = useRef<number | null>(null);
