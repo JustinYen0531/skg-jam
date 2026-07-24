@@ -820,6 +820,8 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   const autonomousTappingRef = useRef(false);
   const autonomousPulseTimerRef = useRef<number | null>(null);
   const recoveredClickPointRef = useRef<MetaTapPoint | null>(null);
+  const recoveredPointerButtonRef = useRef<{ pointerId: number; button: HTMLButtonElement } | null>(null);
+  const recoveredPointerReleaseTimerRef = useRef<number | null>(null);
   const playerTapReleaseTimerRef = useRef<number | null>(null);
   const playerTapDepartTimerRef = useRef<number | null>(null);
   const keyQueueRef = useRef<QueuedKey[]>([]);
@@ -876,6 +878,14 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   const clearTimers = useCallback(() => {
     timersRef.current.forEach((timer) => window.clearTimeout(timer));
     timersRef.current = [];
+  }, []);
+
+  const clearRecoveredPointerButton = useCallback(() => {
+    recoveredPointerButtonRef.current = null;
+    if (recoveredPointerReleaseTimerRef.current !== null) {
+      window.clearTimeout(recoveredPointerReleaseTimerRef.current);
+      recoveredPointerReleaseTimerRef.current = null;
+    }
   }, []);
 
   const registerInput = useCallback((id: string, controller: MetaInputController) => {
@@ -1164,6 +1174,35 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
 
   useEffect(() => clearTimers, [clearTimers]);
 
+  useEffect(() => {
+    const releaseRecoveredPointer = (event: PointerEvent) => {
+      if (recoveredPointerButtonRef.current?.pointerId !== event.pointerId) return;
+      if (recoveredPointerReleaseTimerRef.current !== null) {
+        window.clearTimeout(recoveredPointerReleaseTimerRef.current);
+      }
+      // A trusted click is dispatched immediately after pointer-up. Keep the
+      // guard alive through that click, then discard it if the browser emits
+      // no compatibility click for this pointer sequence.
+      recoveredPointerReleaseTimerRef.current = window.setTimeout(
+        clearRecoveredPointerButton,
+        0,
+      );
+    };
+    const cancelRecoveredPointer = (event: PointerEvent) => {
+      if (recoveredPointerButtonRef.current?.pointerId === event.pointerId) {
+        clearRecoveredPointerButton();
+      }
+    };
+
+    window.addEventListener('pointerup', releaseRecoveredPointer, true);
+    window.addEventListener('pointercancel', cancelRecoveredPointer, true);
+    return () => {
+      window.removeEventListener('pointerup', releaseRecoveredPointer, true);
+      window.removeEventListener('pointercancel', cancelRecoveredPointer, true);
+      clearRecoveredPointerButton();
+    };
+  }, [clearRecoveredPointerButton]);
+
   useEffect(() => () => {
     if (scrollGestureTimerRef.current !== null) {
       window.clearTimeout(scrollGestureTimerRef.current);
@@ -1450,6 +1489,10 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     }
 
     if (control instanceof HTMLButtonElement && !control.disabled) {
+      recoveredPointerButtonRef.current = {
+        pointerId: event.pointerId,
+        button: control,
+      };
       recoveredClickPointRef.current = { clientX: event.clientX, clientY: event.clientY };
       control.click();
     }
@@ -1464,6 +1507,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     }
     const source = event.target;
     if (!(source instanceof Element)) return;
+    const clickedButton = source.closest<HTMLButtonElement>('button');
     // The transition remains mounted as an input shield while it exits. It
     // must not trigger Meta hand recovery or any control behind the card.
     if (source.closest('#chapter-transition')) return;
@@ -1471,6 +1515,20 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     // The native range interaction has already updated continuously during
     // pointer movement; do not replay or delay its trailing click.
     if (source.closest('input[type="range"]')) return;
+    const recoveredPointerButton = recoveredPointerButtonRef.current;
+    if (
+      event.nativeEvent.isTrusted
+      && clickedButton
+      && recoveredPointerButton?.button === clickedButton
+    ) {
+      // Pointer-down recovery already scheduled this exact button once. The
+      // browser's trusted pointer-up click is the tail of the same gesture,
+      // not a second player command.
+      event.preventDefault();
+      event.stopPropagation();
+      clearRecoveredPointerButton();
+      return;
+    }
     const recoveredPoint = recoveredClickPointRef.current;
     recoveredClickPointRef.current = null;
     const pointerPoint = recoveredPoint ?? { clientX: event.clientX, clientY: event.clientY };
@@ -1517,7 +1575,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     }
 
     const input = source.closest('input');
-    const button = source.closest('button');
+    const button = clickedButton;
     const target = input ?? button;
     // Virtual keys already enqueue their own fingertip-contact animation before
     // committing a character. Do not wrap that sequence a second time.

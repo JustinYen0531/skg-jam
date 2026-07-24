@@ -308,6 +308,26 @@ test('every player click on the phone keeps the shared right-hand relay visible'
   assert.match(sceneSource, /if \(source\.closest\('button\[data-meta-key\]'\)\) return;/);
 });
 
+test('projected button recovery suppresses the trusted click tail from the same pointer', () => {
+  const sceneSource = readFileSync(
+    new URL('../src/components/MetaInteractionScene.tsx', import.meta.url),
+    'utf8',
+  );
+
+  assert.match(
+    sceneSource,
+    /recoveredPointerButtonRef\.current = \{\s*pointerId: event\.pointerId,\s*button: control,\s*\};[\s\S]{0,180}control\.click\(\)/,
+  );
+  assert.match(
+    sceneSource,
+    /event\.nativeEvent\.isTrusted[\s\S]{0,180}recoveredPointerButton\?\.button === clickedButton[\s\S]{0,220}event\.preventDefault\(\);[\s\S]{0,120}clearRecoveredPointerButton\(\)/,
+  );
+  assert.match(
+    sceneSource,
+    /window\.addEventListener\('pointerup', releaseRecoveredPointer, true\)[\s\S]{0,240}window\.removeEventListener\('pointerup', releaseRecoveredPointer, true\)/,
+  );
+});
+
 test('phone controls activate on fingertip contact, not when the finger lifts', () => {
   const sceneSource = readFileSync(
     new URL('../src/components/MetaInteractionScene.tsx', import.meta.url),
