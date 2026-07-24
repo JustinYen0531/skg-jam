@@ -1662,6 +1662,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   const handleWheelCapture = (event: React.WheelEvent<HTMLDivElement>) => {
     if (!active) return;
     const source = event.target;
+    const wheelAlreadyRelayed = event.defaultPrevented;
     // The game is embedded in itch.io's page. Claim every wheel gesture that
     // starts on the phone so it cannot chain into the parent page; eligible
     // phone lists are still scrolled manually below.
@@ -1694,7 +1695,9 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
       // The Meta layer owns this wheel event, so relay it to the phone list instead
       // of leaving the gesture visible while the underlying list stays still.
       event.preventDefault();
-      scrollable.scrollBy({ top: event.deltaY, behavior: 'auto' });
+      if (!wheelAlreadyRelayed) {
+        scrollable.scrollBy({ top: event.deltaY, behavior: 'auto' });
+      }
       const atTop = scrollable.scrollTop <= 1 && event.deltaY < 0;
       const atBottom = scrollable.scrollTop + scrollable.clientHeight >= scrollable.scrollHeight - 1 && event.deltaY > 0;
       if (atTop || atBottom) audio.play('phone.scrollLimit');

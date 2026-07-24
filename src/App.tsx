@@ -24,6 +24,7 @@ import {
   saveManualCheckpoint,
   type ChapterCheckpoint,
 } from './lib/chapterCheckpoint';
+import { canConsumeVerticalWheel } from './lib/wheelContainment';
 import { 
   Terminal, Volume2, VolumeX,
   CheckCircle, Database, HelpCircle
@@ -72,6 +73,7 @@ export default function App() {
   const [progress, setProgress] = useState<GameProgress>(() => checkpoint?.progress ?? INITIAL_PROGRESS);
   const [manualCheckpoint, setManualCheckpoint] = useState<ChapterCheckpoint | null>(() => loadManualCheckpoint(INITIAL_PROGRESS));
   const pendingCheckpointChapter = useRef<PuzzleChapter | null>(null);
+  const workspaceRef = useRef<HTMLDivElement | null>(null);
   const [isMuted, setIsMuted] = useState(false);
   const [soundVolume, setSoundVolume] = useState(1);
   const [musicVolume, setMusicVolume] = useState(1);
@@ -115,6 +117,50 @@ export default function App() {
   }, [debugMode, progress.currentChapter]);
 
   useEffect(() => audio.armUnlock(), []);
+
+  useEffect(() => {
+    const containGameWheel = (event: WheelEvent) => {
+      const workspace = workspaceRef.current;
+      const source = event.target;
+      if (!workspace || !(source instanceof Element) || !workspace.contains(source)) return;
+
+      // itch.io owns the page outside this iframe. Inside the game, cancel the
+      // browser default first so reaching a game list boundary cannot scroll
+      // the surrounding itch page.
+      event.preventDefault();
+
+      if (event.deltaY === 0) return;
+      let scrollable = source instanceof HTMLElement ? source : source.parentElement;
+      while (scrollable && workspace.contains(scrollable)) {
+        const overflowY = window.getComputedStyle(scrollable).overflowY;
+        const acceptsVerticalScroll = overflowY === 'auto'
+          || overflowY === 'scroll'
+          || overflowY === 'overlay';
+        if (
+          acceptsVerticalScroll
+          && canConsumeVerticalWheel(
+            scrollable.scrollTop,
+            scrollable.scrollHeight,
+            scrollable.clientHeight,
+            event.deltaY,
+          )
+        ) {
+          const deltaScale = event.deltaMode === WheelEvent.DOM_DELTA_LINE
+            ? 16
+            : event.deltaMode === WheelEvent.DOM_DELTA_PAGE
+              ? scrollable.clientHeight
+              : 1;
+          scrollable.scrollBy({ top: event.deltaY * deltaScale, behavior: 'auto' });
+          return;
+        }
+        if (scrollable === workspace) break;
+        scrollable = scrollable.parentElement;
+      }
+    };
+
+    window.addEventListener('wheel', containGameWheel, { capture: true, passive: false });
+    return () => window.removeEventListener('wheel', containGameWheel, true);
+  }, []);
 
   const jumpToChapter = (chapter: PuzzleChapter) => {
     const chapterInfo = getChapterById(chapter);
@@ -254,7 +300,7 @@ export default function App() {
     && shouldShowMetaScene(metaViewActive, debugMode, progress.phase);
 
   return (
-    <div className={`h-screen w-full flex flex-col md:flex-row relative overflow-hidden transition-all duration-700 ${
+    <div ref={workspaceRef} className={`h-screen w-full flex flex-col md:flex-row relative overflow-hidden overscroll-none transition-all duration-700 ${
       deskLamp ? 'bg-[#0b0c10]' : 'bg-[#020204]'
     }`} id="workspace-desk">
       
