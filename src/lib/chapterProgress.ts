@@ -221,16 +221,16 @@ const COMPLETED_CHAPTER_EIGHT_MEMORY_IDS = NOAH_ARCHIVE_FRAGMENTS.map((fragment)
 const COMPLETED_CHAPTER_EIGHT_MESSAGE_IDS = NOAH_ARCHIVE_FRAGMENTS.map((fragment) => fragment.id);
 
 export const DEBUG_CHAPTERS: readonly DebugChapter[] = [
-  { id: 1, shortTitle: '尋找第一名', title: '謎題 1：尋找第一名', description: '排行榜指出 ARC_184 是唯一明顯突破 40 的玩家。', targetApp: 'viewtube' },
-  { id: 2, shortTitle: '尋找舊版本', title: '謎題 2：尋找舊版本', description: '影片與留言把調查方向帶向 Archive 與 Lumen Arc。', targetApp: 'browser' },
-  { id: 3, shortTitle: '購買舊裝置', title: '謎題 3：購買舊裝置', description: '舊版需要已被回收的 Lumen Arc，尋找殘存裝置。', targetApp: 'amazemart' },
-  { id: 4, shortTitle: '解讀 SKG', title: '謎題 4：解讀 SKG', description: '收到的截圖揭露舊名稱與 SilverKite_Games。', targetApp: 'screenshots' },
-  { id: 5, shortTitle: '被覆蓋的公司', title: '謎題 5：被機器覆蓋的公司', description: '回溯 SKG Automation，追查被覆蓋的公司歷史。', targetApp: 'browser' },
-  { id: 6, shortTitle: '開發者帳號', title: '謎題 6：開發者的社群帳號', description: 'Silver Kite Games 的舊資料指向設計師 Noah Kade。', targetApp: 'social' },
-  { id: 7, shortTitle: '最喜歡的數字', title: '謎題 7：最喜歡的數字', description: 'Mara 的生活貼文分別留下三個座標數字。', targetApp: 'social' },
-  { id: 8, shortTitle: '尋回母親', title: '謎題 8：母親的舊帳號', description: '從 Mara 的生活對話尋回記憶，修復她與 Noah 的損壞訊息。', targetApp: 'messages' },
-  { id: 9, shortTitle: '認出自己的紀錄', title: '謎題 9：認出自己的紀錄', description: '開啟十二年前的 Child Profile，認出 ARC_184 是童年暱稱並使用 Arcane 下載舊資料。', targetApp: 'messages' },
-  { id: 10, shortTitle: '只剩下遊戲', title: '謎題 10：只剩下遊戲', description: '空白首頁只留下 Flappy Something；Arcane 已不再回應玩家。', targetApp: 'home' },
+  { id: 1, shortTitle: 'Find First Place', title: 'Puzzle 1: Find First Place', description: 'The leaderboard marks ARC_184 as the only player who clearly broke past 40.', targetApp: 'viewtube' },
+  { id: 2, shortTitle: 'Find the Legacy Build', title: 'Puzzle 2: Find the Legacy Build', description: 'The video and its comments lead the investigation toward the Archive and Lumen Arc.', targetApp: 'browser' },
+  { id: 3, shortTitle: 'Obtain an Old Device', title: 'Puzzle 3: Obtain an Old Device', description: 'The Legacy build requires the recalled Lumen Arc. Find a surviving device.', targetApp: 'amazemart' },
+  { id: 4, shortTitle: 'Decode SKG', title: 'Puzzle 4: Decode SKG', description: 'The delivered screenshots reveal an old name and SilverKite_Games.', targetApp: 'screenshots' },
+  { id: 5, shortTitle: 'The Overwritten Company', title: 'Puzzle 5: The Overwritten Company', description: 'Rewind SKG Automation and trace the history of the company it replaced.', targetApp: 'browser' },
+  { id: 6, shortTitle: 'The Developer Account', title: 'Puzzle 6: The Developer Account', description: 'The old Silver Kite Games records point to designer Noah Kade.', targetApp: 'social' },
+  { id: 7, shortTitle: 'Her Favorite Numbers', title: 'Puzzle 7: Her Favorite Numbers', description: 'Three of Mara’s ordinary posts preserve three coordinate numbers.', targetApp: 'social' },
+  { id: 8, shortTitle: 'Recover Mara', title: 'Puzzle 8: Recover Mara’s Account', description: 'Recover memories from Mara’s conversations and restore her damaged messages with Noah.', targetApp: 'messages' },
+  { id: 9, shortTitle: 'Recognize My Record', title: 'Puzzle 9: Recognize My Record', description: 'Open the twelve-year-old Child Profile, recognize ARC_184 as a childhood alias, and restore the package as Arcane.', targetApp: 'messages' },
+  { id: 10, shortTitle: 'Only the Game Remains', title: 'Puzzle 10: Only the Game Remains', description: 'The empty home screen leaves only Flappy Something. Arcane no longer answers the player.', targetApp: 'home' },
 ] as const;
 
 const CHAPTER_OVERRIDES: Record<PuzzleChapter, Partial<GameProgress>> = {

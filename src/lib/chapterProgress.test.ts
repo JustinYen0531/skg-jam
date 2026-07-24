@@ -54,6 +54,9 @@ test('Chapter 8 developer guide lists every restoration question and answer', ()
 test('defines exactly ten ordered GDD puzzle chapters', () => {
   assert.equal(DEBUG_CHAPTERS.length, 10);
   assert.deepEqual(DEBUG_CHAPTERS.map((chapter) => chapter.id), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+  for (const chapter of DEBUG_CHAPTERS) {
+    assert.doesNotMatch(`${chapter.shortTitle} ${chapter.title} ${chapter.description}`, /[\u3400-\u9fff]/);
+  }
 });
 
 test('each chapter snapshot records its own chapter and resets ending state', () => {

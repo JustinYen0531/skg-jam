@@ -227,7 +227,7 @@ export default function App() {
             </div>
             <h1 className="font-display font-black text-xl tracking-tight text-white flex items-center gap-2">
               <Terminal className="w-5 h-5 text-indigo-400" />
-              <span>SKG: SCOREKEEPER</span>
+              <span>GAME QUESTING, QUESTIONING GAME</span>
             </h1>
             <p className="text-[11px] text-slate-400 font-mono italic">
               "Nobody was supposed to finish."
@@ -265,7 +265,7 @@ export default function App() {
               ))}
             </div>
             <div className="rounded-lg border border-emerald-500/20 bg-emerald-950/10 p-2.5 text-[9px] leading-relaxed text-slate-400">
-              <span className="font-bold text-emerald-300">目前快照：</span>{' '}
+              <span className="font-bold text-emerald-300">CURRENT SNAPSHOT:</span>{' '}
               {getChapterById(progress.currentChapter).description}
             </div>
           </div>

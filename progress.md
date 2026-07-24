@@ -1,5 +1,12 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-24 — Developer panel English title and chapter labels
+
+- Replaced the stale `SKG: SCOREKEEPER` developer-panel heading with `GAME QUESTING, QUESTIONING GAME`.
+- Translated all ten developer chapter titles, full titles, snapshot descriptions, and the `CURRENT SNAPSHOT` label into English.
+- Kept chapter IDs, snapshots, target apps, navigation behavior, and progress logic unchanged.
+- Browser and Preview remain intentionally unused by project instruction.
+
 ## 2026-07-24 — Restore coffee; remove only tea clutter
 
 - Corrected the previous over-removal: the coffee cup and its chapter-specific full, empty, dripping, tipped, and spilled states are restored exactly.
