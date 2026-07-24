@@ -27,6 +27,37 @@ test('ViewTube loads its archived discussion in deterministic batches', () => {
   assert.doesNotMatch(source, /onClick=\{\(\) => audio\.play\('ui\.disabled'\)\}/);
 });
 
+test('Chapter 1 requires two comment clues without naming the later hardware', () => {
+  const source = readFileSync('src/components/ViewTube.tsx', 'utf8');
+
+  assert.match(source, /id="vt-evidence-counter"/);
+  assert.match(source, /EVIDENCE \{chapterOneEvidenceCount\}\/2/);
+  assert.match(source, /id="vt-arc-reply"/);
+  assert.match(source, /Gate 40 to 41 was passable in the old Legacy build/);
+  assert.match(source, /id="vt-ipa-evidence"/);
+  assert.match(source, /Skyline256_LAOS_Final\.ipa/);
+  assert.match(source, /collectChapterOneEvidence\('legacy-passage'\)/);
+  assert.match(source, /collectChapterOneEvidence\('legacy-ipa'\)/);
+  assert.doesNotMatch(source, /Lumen Arc/i);
+
+  const archiveRows = source.indexOf('VT_COMMENT_ARCHIVE.slice(0, visibleArchiveComments)');
+  const loadMore = source.indexOf('id="vt-comments-load-more"');
+  const ipaLead = source.indexOf('id="vt-ipa-evidence"');
+  assert.ok(archiveRows >= 0 && loadMore > archiveRows && ipaLead > loadMore);
+});
+
+test('ordinary comments are interactive but never change evidence progress', () => {
+  const source = readFileSync('src/components/ViewTube.tsx', 'utf8');
+
+  assert.match(source, /data-vt-comment=\{comment\.handle\}/);
+  assert.match(source, /onSelect=\{reactToComment\}/);
+  assert.match(source, /getChapterOneCommentDialogue\(comment\.handle/);
+  assert.doesNotMatch(
+    source,
+    /const reactToComment[\s\S]{0,500}(applyChapterOneEvidence|completePuzzleChapter)/,
+  );
+});
+
 test('developer Chapter 1 previews can inspect ARC_184 without weakening the normal spoiler gate', () => {
   const viewTube = readFileSync('src/components/ViewTube.tsx', 'utf8');
   const phone = readFileSync('src/components/PhoneSimulator.tsx', 'utf8');

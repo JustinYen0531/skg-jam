@@ -2,7 +2,11 @@ import React, { useCallback, useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { GameProgress } from '../types';
 import audio from '../lib/audio';
-import { canUseProgressionAction, completePuzzleChapter } from '../lib/chapterProgress';
+import { canUseProgressionAction } from '../lib/chapterProgress';
+import {
+  collectChapterOneEvidence as applyChapterOneEvidence,
+  getChapterOneEvidenceCount,
+} from '../lib/chapterOneEvidence';
 import { useMetaInteraction } from './MetaInteractionScene';
 import { ArcRunReplay } from './ArcRunReplay';
 import {
@@ -14,6 +18,7 @@ import { createFeedSeed, shuffleFeed } from '../lib/pseudoFeed';
 import {
   CHAPTER_ONE_DIALOGUE,
   DialogueLines,
+  getChapterOneCommentDialogue,
   getChapterOneIrrelevantVideoDialogue,
   getChapterOneSearchResponse,
 } from '../lib/chapterOneDialogue';
@@ -68,14 +73,13 @@ const AMBIENT_DANMAKU = [
   { text: 'watch Gate 40', top: 22, size: 11, duration: 10.8, delay: -5.7 },
 ] as const;
 
-// Chapter 1 comment section. Only the three load-bearing comments (rendered
-// inline below with #vt-arc-reply) advance the puzzle. Everything here is pure
+// Chapter 1 comment section. Only the ARC reply and the final IPA archive lead
+// advance the puzzle. Everything here is pure
 // texture: FORESHADOW rows imply later beats without ever printing a usable
 // answer; NOISE rows are the crowd that isn't here to help you. See
 // docs/CONTENT_EXPANSION_HANDOFF.md §3 for the non-spoiler boundary.
 // tier drives the visual weight: 'foreshadow' rows are legible-but-muted with a
 // hairline margin; 'noise' rows are the faintest, single-thought crowd chatter.
-// The three load-bearing comments (inline below) always sit above both.
 type FeedComment = { handle: string; age: string; text: string; tier: 'foreshadow' | 'noise' };
 
 // Rendered above SkyFlapMaster (load-bearing #1): pure crowd, no signal.
@@ -85,16 +89,16 @@ const VT_COMMENTS_TOP: readonly FeedComment[] = [
   { handle: 'passing_through', age: '1 month ago', text: 'why is this in my recommended twelve years later', tier: 'noise' },
 ] as const;
 
-// Rendered between SkyFlapMaster (#1) and LumenHacker (load-bearing #2).
+// Rendered between the ARC reply and the ordinary Legacy-build folklore.
 const VT_COMMENTS_MID: readonly FeedComment[] = [
   { handle: 'quietframes', age: '11y ago', text: 'whatever happened to the person who actually made the original? one final update, then just... gone. nobody ever talks about them.', tier: 'foreshadow' },
   { handle: 'pixel_grief', age: '9y ago', text: 'the compression on this is a war crime, i genuinely cannot see anything', tier: 'noise' },
-  { handle: 'warranty_void', age: '10y ago', text: 'fun fact these things got recalled for overheating lol. government made them collect every unit. rip my childhood brick.', tier: 'foreshadow' },
+  { handle: 'warranty_void', age: '10y ago', text: 'old uploads from this version keep disappearing. half the links in this thread are dead now.', tier: 'foreshadow' },
   { handle: 'uncle_of_the_year', age: '8y ago', text: 'my nephew could clear 40 in his sleep, 184 is just sweaty', tier: 'noise' },
   { handle: 'former_QA_maybe', age: '12y ago', text: "he's not tapping randomly. watch the rhythm. it's like he's reading a map only he can see.", tier: 'foreshadow' },
 ] as const;
 
-// Rendered between LumenHacker (#2) and WaybackLover (load-bearing #3).
+// Rendered between the ordinary folklore and the bottom archive filename.
 const VT_COMMENTS_LOW: readonly FeedComment[] = [
   { handle: 'ratio_enjoyer', age: '7y ago', text: "L + ratio + it's fake + didn't watch", tier: 'noise' },
   { handle: 'mall_ghost_2011', age: '10y ago', text: 'old heads know this used to be a game you could FINISH. like it had an ending. an actual one. not this infinite ad slop.', tier: 'foreshadow' },
@@ -103,9 +107,9 @@ const VT_COMMENTS_LOW: readonly FeedComment[] = [
   { handle: 'three_g_summary', age: '5y ago', text: 'gatekept, gaslit, girlbossed his way past gate 40', tier: 'noise' },
 ] as const;
 
-// Rendered after WaybackLover, trailing off into the crowd.
+// Authored crowd rows that trail before the two collectible leads.
 const VT_COMMENTS_TAIL: readonly FeedComment[] = [
-  { handle: 'keeps_receipts', age: '12y ago', text: "my mum had one of these devices. bought a whole stack of them once, wouldn't say why. she's not really... around to ask anymore.", tier: 'foreshadow' },
+  { handle: 'keeps_receipts', age: '12y ago', text: "my mum saved old games too. never said why. she's not really... around to ask anymore.", tier: 'foreshadow' },
   { handle: 'taking_notes', age: '8y ago', text: 'downloading an entire dead operating system to beat a bird game is certified insane behavior and i am taking notes', tier: 'noise' },
   { handle: 'dead_link_collector', age: '8y ago', text: 'this got swallowed by some "automation" company. they gut old apps, staple ads on the corpse, call it a business model. classic.', tier: 'foreshadow' },
   { handle: 'here_for_replies', age: '6y ago', text: 'this comment section is genuinely more entertaining than the run', tier: 'noise' },
@@ -114,7 +118,7 @@ const VT_COMMENTS_TAIL: readonly FeedComment[] = [
   { handle: 'streambrain_2026', age: '2 weeks ago', text: 'chat is this real', tier: 'noise' },
   { handle: 'soft_reset', age: '9y ago', text: "i don't think 184 was even the point for this guy. feels like he was trying to show us the score isn't the score.", tier: 'foreshadow' },
   { handle: 'wholesome_100', age: '5y ago', text: 'the real world record is the friends we ratioed along the way', tier: 'noise' },
-  { handle: 'latekeeper', age: '6y ago', text: "if you have to ask how he did it, the answer won't help you yet. you find the device first. everything else is downstream.", tier: 'foreshadow' },
+  { handle: 'latekeeper', age: '6y ago', text: "if you have to ask how he did it, the answer won't help you yet. find the build first. everything else is downstream.", tier: 'foreshadow' },
   { handle: 'above_it_all', age: '4y ago', text: 'imagine caring this much about a flappy clone', tier: 'noise' },
 ] as const;
 
@@ -145,24 +149,39 @@ const VT_COMMENT_ARCHIVE: readonly FeedComment[] = Array.from({ length: 114 }, (
 
 const COMMENT_LOAD_BATCH_SIZE = 12;
 
-const VtCommentRow: React.FC<{ comment: FeedComment }> = ({ comment }) => {
+const VtCommentRow: React.FC<{
+  comment: FeedComment;
+  onSelect?: (comment: FeedComment) => void;
+}> = ({ comment, onSelect }) => {
   if (comment.tier === 'foreshadow') {
-    return (
-      <div className="pl-2.5 border-l border-slate-800/70 space-y-0.5">
+    const className = 'w-full border-l border-slate-800/70 pl-2.5 text-left space-y-0.5 transition-colors hover:border-slate-600 hover:bg-slate-900/35';
+    const content = (
+      <>
         <div className="flex justify-between items-center text-[9px] font-mono text-slate-500">
           <span className="font-bold text-slate-400">{comment.handle}</span>
           <span>{comment.age}</span>
         </div>
         <p className="text-[11px] leading-snug text-slate-400">{comment.text}</p>
-      </div>
+      </>
     );
+    return onSelect ? (
+      <button type="button" className={className} onClick={() => onSelect(comment)} data-vt-comment={comment.handle}>
+        {content}
+      </button>
+    ) : <div className={className}>{content}</div>;
   }
-  return (
-    <div className="flex gap-1.5 text-[10px] leading-snug text-slate-500">
+  const className = 'flex w-full gap-1.5 text-left text-[10px] leading-snug text-slate-500 transition-colors hover:bg-slate-900/35 hover:text-slate-400';
+  const content = (
+    <>
       <span className="font-mono font-bold text-slate-600 shrink-0">{comment.handle}</span>
       <span className="min-w-0">{comment.text}</span>
-    </div>
+    </>
   );
+  return onSelect ? (
+    <button type="button" className={className} onClick={() => onSelect(comment)} data-vt-comment={comment.handle}>
+      {content}
+    </button>
+  ) : <div className={className}>{content}</div>;
 };
 
 const formatReplayTime = (elapsedMs: number): string => {
@@ -197,9 +216,11 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress, de
   const [recommendedVideos] = useState(() => shuffleFeed(VIEWTUBE_FEED, createFeedSeed('viewtube')));
   const chapterOneSearchAttempt = useRef(0);
   const chapterOneVideoAttempt = useRef(0);
+  const chapterOneCommentAttempt = useRef(0);
   const replayExitUnlockedRef = useRef(false);
   const replayControlsTimerRef = useRef<number | null>(null);
   const remainingArchiveComments = VT_COMMENT_ARCHIVE.length - visibleArchiveComments;
+  const chapterOneEvidenceCount = getChapterOneEvidenceCount(progress);
 
   const loadMoreComments = () => {
     audio.playTick();
@@ -213,6 +234,39 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress, de
     if (progress.currentChapter === 1 && metaInteraction.active) {
       metaInteraction.speak(lines);
     }
+  };
+
+  const reactToComment = (comment: FeedComment) => {
+    audio.playTick();
+    speakChapterOne(getChapterOneCommentDialogue(comment.handle, chapterOneCommentAttempt.current));
+    chapterOneCommentAttempt.current += 1;
+  };
+
+  const collectChapterOneEvidence = (kind: 'legacy-passage' | 'legacy-ipa') => {
+    audio.playTick();
+    if (progress.currentChapter !== 1) return;
+    if (kind === 'legacy-passage' && !progress.watchedVideo && !replayExitUnlocked) {
+      speakChapterOne(CHAPTER_ONE_DIALOGUE.videoReady);
+      return;
+    }
+
+    const alreadyCollected = kind === 'legacy-passage'
+      ? progress.discoveredLegacyPassage
+      : progress.discoveredLegacyIpa;
+    if (alreadyCollected) {
+      speakChapterOne(CHAPTER_ONE_DIALOGUE.evidenceAlreadyCollected);
+      return;
+    }
+
+    const completesPair = kind === 'legacy-passage'
+      ? progress.discoveredLegacyIpa
+      : progress.discoveredLegacyPassage;
+    const lead = kind === 'legacy-passage'
+      ? CHAPTER_ONE_DIALOGUE.legacyPassageLead
+      : CHAPTER_ONE_DIALOGUE.ipaLead;
+    speakChapterOne(completesPair ? [...lead, ...CHAPTER_ONE_DIALOGUE.evidenceComplete] : lead);
+
+    updateProgress((prev) => applyChapterOneEvidence(prev, kind));
   };
 
   const performSearch = () => {
@@ -723,20 +777,29 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress, de
 
             {/* Video Comment Section */}
             <div className="space-y-3" id="vt-comments">
-              <h3 className="text-xs font-bold text-slate-300 border-b border-slate-800 pb-1">Discussion (142)</h3>
+              <div className="flex items-center justify-between border-b border-slate-800 pb-1">
+                <h3 className="text-xs font-bold text-slate-300">Discussion (142)</h3>
+                <span
+                  className="font-mono text-[9px] font-bold tracking-[0.16em] text-cyan-400"
+                  id="vt-evidence-counter"
+                  data-evidence-count={chapterOneEvidenceCount}
+                >
+                  EVIDENCE {chapterOneEvidenceCount}/2
+                </span>
+              </div>
               
               <div className="space-y-3.5 text-xs" id="vt-comment-list">
                 {/* Crowd noise above the reveal — the point is a long scroll of
                     people not helping before the actual lead shows up. */}
                 {VT_COMMENTS_TOP.map((comment) => (
-                  <VtCommentRow key={comment.handle} comment={comment} />
+                  <VtCommentRow key={comment.handle} comment={comment} onSelect={reactToComment} />
                 ))}
 
                 {/* More crowd + foreshadow, pulled forward from where it used
                     to trail the reveal, so the load-bearing reply isn't the
                     first real comment a player's eye lands on. */}
                 {VT_COMMENTS_TAIL.map((comment) => (
-                  <VtCommentRow key={comment.handle} comment={comment} />
+                  <VtCommentRow key={comment.handle} comment={comment} onSelect={reactToComment} />
                 ))}
 
                 {/* Comment 1 — load-bearing: ARC_184 reply advances the puzzle */}
@@ -752,57 +815,43 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress, de
                     type="button"
                     className="group flex w-full items-center gap-2 rounded border border-yellow-950 bg-slate-950 p-1.5 text-left text-[10px] text-yellow-400 transition-all duration-150 mt-1 hover:border-yellow-600/70 hover:bg-slate-900 hover:shadow-[0_0_0_1px_rgba(234,179,8,0.28),0_2px_10px_rgba(0,0,0,0.35)] active:scale-[0.99]"
                     id="vt-arc-reply"
-                    onClick={() => {
-                      audio.playTick();
-                      if (!progress.watchedVideo && !replayExitUnlocked) {
-                        speakChapterOne(CHAPTER_ONE_DIALOGUE.videoReady);
-                        return;
-                      }
-                      speakChapterOne(CHAPTER_ONE_DIALOGUE.lumenLead);
-                      updateProgress((prev) => completePuzzleChapter(prev, 1, { watchedVideo: true }));
-                    }}
+                    data-evidence-collected={progress.discoveredLegacyPassage}
+                    onClick={() => collectChapterOneEvidence('legacy-passage')}
                   >
                     <span className="min-w-0 flex-1">
-                      💬 **ARC_184 replied**: No emulator edits. No scripts. It runs on the <span className="underline font-bold text-white">Lumen Arc</span>, utilizing the native altitude sensor glitch of the LAOS operating system. Look up the device they recalled.
+                      💬 **ARC_184 replied**: No emulator edits. No scripts. Gate 40 to 41 was passable in the old Legacy build. That is the version in this recording.
                     </span>
-                    <ChevronRight className="h-3.5 w-3.5 shrink-0 text-yellow-500/60 opacity-0 transition-all duration-150 group-hover:translate-x-0.5 group-hover:opacity-100" />
+                    {progress.discoveredLegacyPassage ? (
+                      <span className="shrink-0 font-mono text-[8px] text-emerald-400">COLLECTED</span>
+                    ) : (
+                      <ChevronRight className="h-3.5 w-3.5 shrink-0 text-yellow-500/60 opacity-0 transition-all duration-150 group-hover:translate-x-0.5 group-hover:opacity-100" />
+                    )}
                   </button>
                 </div>
 
                 {/* Foreshadow + noise between the first two leads */}
                 {VT_COMMENTS_MID.map((comment) => (
-                  <VtCommentRow key={comment.handle} comment={comment} />
+                  <VtCommentRow key={comment.handle} comment={comment} onSelect={reactToComment} />
                 ))}
 
-                {/* Comment 2 — load-bearing */}
+                {/* Ordinary version folklore: deliberately no hardware answer. */}
                 <div className="bg-slate-900/50 p-2.5 rounded border border-slate-800/40 space-y-1">
                   <div className="flex justify-between items-center text-[10px] font-mono text-slate-400">
-                    <span className="font-bold text-amber-400">LumenHacker</span>
+                    <span className="font-bold text-amber-400">legacy_runner</span>
                     <span>11y ago</span>
                   </div>
                   <p className="text-slate-200">
-                    Can confirm! The Lumen Arc's barometric sensor could be manipulated on LAOS by tapping in a specific rhythmic frequency. It allows bypassing absolute colliders! But where on earth do you even get a working Lumen Arc now? They recalled every single one of them.
+                    People keep arguing about the score, but this upload clearly is not the current build. Half the old mirrors are gone, so good luck proving which release it was.
                   </p>
                 </div>
 
                 {/* Foreshadow + noise before the archive tip */}
                 {VT_COMMENTS_LOW.map((comment) => (
-                  <VtCommentRow key={comment.handle} comment={comment} />
+                  <VtCommentRow key={comment.handle} comment={comment} onSelect={reactToComment} />
                 ))}
 
-                {/* Comment 3 — load-bearing */}
-                <div className="bg-slate-900/50 p-2.5 rounded border border-slate-800/40 space-y-1">
-                  <div className="flex justify-between items-center text-[10px] font-mono text-slate-400">
-                    <span className="font-bold text-blue-400">WaybackLover</span>
-                    <span>10y ago</span>
-                  </div>
-                  <p className="text-slate-200">
-                    If anyone has the old original IPA file, it is preserved on Internet Archive. It is titled <span className="font-mono text-cyan-400">Skyline256_LAOS_Final.ipa</span>. Download it there if you have a device that supports it.
-                  </p>
-                </div>
-
                 {VT_COMMENT_ARCHIVE.slice(0, visibleArchiveComments).map((comment) => (
-                  <VtCommentRow key={comment.handle} comment={comment} />
+                  <VtCommentRow key={comment.handle} comment={comment} onSelect={reactToComment} />
                 ))}
               </div>
 
@@ -823,6 +872,30 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress, de
                   All archived comments loaded
                 </div>
               )}
+
+              {/* The second required lead stays at the absolute bottom of the
+                  discussion, beneath every optional archive batch. */}
+              <button
+                type="button"
+                className="group w-full rounded border border-cyan-950 bg-slate-950 p-2.5 text-left transition-all hover:border-cyan-600/70 hover:bg-slate-900"
+                id="vt-ipa-evidence"
+                data-evidence-collected={progress.discoveredLegacyIpa}
+                onClick={() => collectChapterOneEvidence('legacy-ipa')}
+              >
+                <span className="flex items-center justify-between gap-3 text-[10px] font-mono text-slate-400">
+                  <span className="font-bold text-blue-400">WaybackLover · 10y ago</span>
+                  {progress.discoveredLegacyIpa && (
+                    <span className="text-[8px] text-emerald-400">COLLECTED</span>
+                  )}
+                </span>
+                <span className="mt-1 block text-[11px] leading-snug text-slate-200">
+                  The old original IPA is still indexed on Internet Archive:
+                  {' '}
+                  <span className="font-mono font-bold text-cyan-400 underline decoration-cyan-500/70 underline-offset-2">
+                    Skyline256_LAOS_Final.ipa
+                  </span>
+                </span>
+              </button>
             </div>
 
           </div>

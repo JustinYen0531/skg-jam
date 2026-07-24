@@ -103,7 +103,7 @@ test('ViewTube plays the replay inline with an optional fullscreen expand', () =
   assert.match(viewTube, /key=\{replayCycle\}/);
   assert.match(viewTube, /if \(replayPaused && replayExitUnlocked\)[\s\S]{0,100}replayFromStart\(\)/);
   assert.match(viewTube, /setReplayElapsedMs\(0\)[\s\S]{0,160}setReplayCycle\(\(cycle\) => cycle \+ 1\)/);
-  assert.match(viewTube, /if \(!progress\.watchedVideo && !replayExitUnlocked\)/);
+  assert.match(viewTube, /kind === 'legacy-passage'[\s\S]{0,120}!progress\.watchedVideo && !replayExitUnlocked/);
   assert.doesNotMatch(startVideoSource, /watchedVideo/);
   assert.doesNotMatch(viewTube, /COLLISION_BYPASS_DETECTION/);
   assert.doesNotMatch(viewTube, /Math\.random/);

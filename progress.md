@@ -1,5 +1,14 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-24 — Chapter 1 two-clue ViewTube investigation
+
+- Removed every premature Lumen Arc hardware reference from the Chapter 1 ViewTube surface.
+- Rewrote the impersonating ARC_184 reply to establish only that Gate 40→41 was passable in the old Legacy build.
+- Added persistent `EVIDENCE 0/2` progression: the ARC reply and the bottom-most `Skyline256_LAOS_Final.ipa` archive comment must both be collected before Chapter 2 begins.
+- Made ordinary authored and generated comments selectable, with rotating or comment-specific Arcane reactions that never mutate evidence progress or leak later answers.
+- Updated the North Star GDD, Chapter 1 dialogue specification, developer guide, debug snapshots, and regression coverage to preserve the revised reveal order.
+- Browser and Preview remain intentionally unused by project instruction.
+
 ## 2026-07-24 — Transition click containment and single virtual-key input
 
 - Chapter evidence transitions now accept the first pointer-down even while the title is still resolving, visibly dismiss within 140ms, and keep their full-screen input shield mounted until removal so the trailing click cannot launch a Home app.

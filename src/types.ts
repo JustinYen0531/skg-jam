@@ -10,6 +10,8 @@ export interface GameProgress {
   // Investigation state
   viewTubeSearchedArc: boolean;
   watchedVideo: boolean;
+  discoveredLegacyPassage: boolean;
+  discoveredLegacyIpa: boolean;
   archiveDownloaded: boolean;
   orderedPhone: boolean;
   deliveredPhone: boolean; // Triggers "Printed Screenshots" box

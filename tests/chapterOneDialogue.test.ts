@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import {
   CHAPTER_ONE_DIALOGUE,
+  getChapterOneCommentDialogue,
   getChapterOneCompanionDialogue,
   getChapterOneIrrelevantVideoDialogue,
   getChapterOneSearchResponse,
@@ -32,6 +33,8 @@ test('repeat interactions rotate companion and distraction dialogue', () => {
   assert.notDeepEqual(getChapterOneIrrelevantVideoDialogue(0), getChapterOneIrrelevantVideoDialogue(1));
   assert.notDeepEqual(getChapterOneCompanionDialogue(0), getChapterOneCompanionDialogue(1));
   assert.match(getChapterOneWrongAppDialogue('amazemart', 0)[0], /shopping/i);
+  assert.notDeepEqual(getChapterOneCommentDialogue('unknown', 0), getChapterOneCommentDialogue('unknown', 1));
+  assert.match(getChapterOneCommentDialogue('pixel_grief', 0)[0], /compression/i);
 });
 
 test('all Chapter 1 protagonist dialogue is English-only', () => {
@@ -39,6 +42,8 @@ test('all Chapter 1 protagonist dialogue is English-only', () => {
     ...Object.values(CHAPTER_ONE_DIALOGUE).flat(),
     ...Array.from({ length: 8 }, (_, index) => getChapterOneIrrelevantVideoDialogue(index)).flat(),
     ...Array.from({ length: 5 }, (_, index) => getChapterOneCompanionDialogue(index)).flat(),
+    ...Array.from({ length: 5 }, (_, index) => getChapterOneCommentDialogue('unknown', index)).flat(),
+    ...getChapterOneCommentDialogue('algorithm_victim', 0),
     ...(['flappy', 'amazemart', 'browser', 'social', 'messages', 'screenshots', 'about'] as const)
       .flatMap((app, index) => getChapterOneWrongAppDialogue(app, index)),
     ...[
@@ -61,6 +66,8 @@ test('Chapter 1 dialogue events are wired into the transcript, phone, and ViewTu
   assert.match(phone, /getChapterOneCompanionDialogue/);
   assert.match(viewTube, /getChapterOneSearchResponse/);
   assert.match(viewTube, /getChapterOneIrrelevantVideoDialogue/);
+  assert.match(viewTube, /getChapterOneCommentDialogue/);
   assert.match(viewTube, /id="vt-player-active"/);
   assert.match(viewTube, /id="vt-arc-reply"/);
+  assert.match(viewTube, /id="vt-ipa-evidence"/);
 });

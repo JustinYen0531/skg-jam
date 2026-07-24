@@ -7,12 +7,17 @@ const readComponent = (name: string) =>
 
 test('normal interactions connect every chapter completion from one through nine', () => {
   const expectedCompletions: ReadonlyArray<readonly [string, readonly number[]]> = [
-    ['ViewTube', [1]],
     ['BrowserApp', [2, 5]],
     ['PhoneSimulator', [3, 6, 9]],
     ['SavedScreenshots', [4]],
     ['MessagesApp', [7, 8]],
   ];
+
+  const chapterOneEvidence = readFileSync(
+    new URL('../src/lib/chapterOneEvidence.ts', import.meta.url),
+    'utf8',
+  );
+  assert.match(chapterOneEvidence, /completePuzzleChapter\([^,]+, 1(?:,|\))/);
 
   for (const [component, chapters] of expectedCompletions) {
     const source = readComponent(component);

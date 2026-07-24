@@ -27,7 +27,9 @@ test('Chapter 1 guide describes the real ViewTube path into Chapter 2', () => {
   assert.equal(guide.nextLabel, 'CHAPTER 02');
   assert.match(guide.steps.join(' '), /ViewTube/);
   assert.match(guide.steps.join(' '), /ARC_184/);
-  assert.match(guide.completion, /Lumen Arc/);
+  assert.match(guide.steps.join(' '), /Skyline256_LAOS_Final\.ipa/);
+  assert.match(guide.completion, /Legacy build/);
+  assert.doesNotMatch(guide.completion, /Lumen Arc/);
 });
 
 test('Chapter 8 developer guide lists every restoration question and answer', () => {
@@ -65,7 +67,11 @@ test('each chapter snapshot records its own chapter and resets ending state', ()
 
 test('chapter snapshots accumulate discoveries instead of leaking future discoveries backwards', () => {
   assert.equal(getChapterSnapshot(1).watchedVideo, false);
+  assert.equal(getChapterSnapshot(1).discoveredLegacyPassage, false);
+  assert.equal(getChapterSnapshot(1).discoveredLegacyIpa, false);
   assert.equal(getChapterSnapshot(2).watchedVideo, true);
+  assert.equal(getChapterSnapshot(2).discoveredLegacyPassage, true);
+  assert.equal(getChapterSnapshot(2).discoveredLegacyIpa, true);
   assert.equal(getChapterSnapshot(3).archiveDownloaded, true);
   assert.equal(getChapterSnapshot(4).discoveredOriginalTitle, false);
   assert.equal(getChapterSnapshot(5).discoveredOriginalTitle, true);

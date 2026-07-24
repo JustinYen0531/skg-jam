@@ -45,9 +45,20 @@ export const CHAPTER_ONE_DIALOGUE = {
     "I've seen enough. He's pulling some kind of cheating trick.",
     'What I need is the exact moment forty becomes forty-one.',
   ],
-  lumenLead: [
-    "Fine. Maybe he didn't fake the score.",
-    'Lumen Arc… I’ve never heard of it.',
+  legacyPassageLead: [
+    'So the old Legacy build really could pass from forty to forty-one.',
+    "That proves the route existed. It doesn't tell me where the build went.",
+  ],
+  ipaLead: [
+    'There. A filename, not a theory.',
+    'Skyline256_LAOS_Final.ipa. That is something an archive can actually find.',
+  ],
+  evidenceComplete: [
+    'Two pieces. The old route existed, and the build has a name.',
+    'Next stop: an archive.',
+  ],
+  evidenceAlreadyCollected: [
+    'Already filed. I need the other piece.',
   ],
 } as const satisfies Record<string, DialogueLines>;
 
@@ -75,6 +86,24 @@ const COMPANION_LINES = [
   "I'm curious too. That's becoming a problem.",
 ] as const;
 
+const COMMENT_REACTIONS: Readonly<Record<string, DialogueLines>> = {
+  algorithm_victim: ['Twelve years later, and the algorithm is doing archaeology by accident.'],
+  passing_through: ['Recommended after twelve years. Useful timing. Terrible filing system.'],
+  quietframes: ["The uploader isn't the developer. Different mystery."],
+  pixel_grief: ['The compression is awful. Unfortunately, the score still changes.'],
+  former_QA_maybe: ['A route, maybe. But through which version?'],
+  mall_ghost_2011: ['An actual ending. Not useful yet, but not nothing.'],
+  here_for_replies: ['At least somebody is enjoying this.'],
+  streambrain_2026: ["That's exactly what I'm trying to determine."],
+};
+
+const GENERIC_COMMENT_REACTIONS = [
+  'A timestamp, an opinion, and no evidence.',
+  'The comment section remains undefeated at saying almost nothing.',
+  'Noted. Filed under “people also watched the video.”',
+  'One hundred forty-two comments. Naturally, the useful part is buried.',
+] as const;
+
 const WRONG_APP_LINES: Partial<Record<ActiveApp, DialogueLines>> = {
   flappy: ["I can hit Gate 40 again, but that won't explain how he passed it."],
   amazemart: ["I'm investigating cheating, not shopping."],
@@ -95,6 +124,11 @@ export const getChapterOneIrrelevantVideoDialogue = (attempt: number): DialogueL
 export const getChapterOneCompanionDialogue = (attempt: number): DialogueLines => [
   rotate(COMPANION_LINES, attempt),
 ];
+
+export const getChapterOneCommentDialogue = (
+  handle: string,
+  attempt: number,
+): DialogueLines => COMMENT_REACTIONS[handle] ?? [rotate(GENERIC_COMMENT_REACTIONS, attempt)];
 
 export const getChapterOneWrongAppDialogue = (
   app: ActiveApp,

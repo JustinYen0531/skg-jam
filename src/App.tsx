@@ -23,6 +23,8 @@ const INITIAL_PROGRESS: GameProgress = {
   bestScore: 0,
   viewTubeSearchedArc: false,
   watchedVideo: false,
+  discoveredLegacyPassage: false,
+  discoveredLegacyIpa: false,
   archiveDownloaded: false,
   orderedPhone: false,
   deliveredPhone: false,

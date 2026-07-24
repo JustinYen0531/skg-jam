@@ -38,9 +38,10 @@ const CHAPTER_ADVANCE_GUIDES: Record<PuzzleChapter, ChapterAdvanceGuide> = {
     steps: [
       'Open ViewTube and search for ARC_184.',
       'Open the controversial Gate 40 run and let the evidence clip play.',
-      'Select ARC_184\'s highlighted reply beneath the video.',
+      'Collect ARC_184\'s highlighted reply about the old Legacy build.',
+      'Scroll to the bottom and collect the preserved Skyline256_LAOS_Final.ipa filename.',
     ],
-    completion: 'The Lumen Arc hardware lead is confirmed.',
+    completion: 'Both the passable Legacy build and its archived IPA filename are confirmed.',
   },
   2: {
     chapter: 2,
@@ -161,6 +162,8 @@ const CHAPTER_ADVANCE_GUIDES: Record<PuzzleChapter, ChapterAdvanceGuide> = {
 type ChapterEvidence = Partial<Pick<GameProgress,
   | 'viewTubeSearchedArc'
   | 'watchedVideo'
+  | 'discoveredLegacyPassage'
+  | 'discoveredLegacyIpa'
   | 'archiveDownloaded'
   | 'orderedPhone'
   | 'deliveredPhone'
@@ -184,6 +187,8 @@ const BASE_PROGRESS: GameProgress = {
   bestScore: 40,
   viewTubeSearchedArc: false,
   watchedVideo: false,
+  discoveredLegacyPassage: false,
+  discoveredLegacyIpa: false,
   archiveDownloaded: false,
   orderedPhone: false,
   deliveredPhone: false,
@@ -230,15 +235,15 @@ export const DEBUG_CHAPTERS: readonly DebugChapter[] = [
 
 const CHAPTER_OVERRIDES: Record<PuzzleChapter, Partial<GameProgress>> = {
   1: {},
-  2: { viewTubeSearchedArc: true, watchedVideo: true },
-  3: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true },
-  4: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true },
-  5: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true },
-  6: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true },
-  7: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredMotherComment: true },
-  8: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true, discoveredMaraAltitude184: true, discoveredMaraGate40: true, discoveredMaraEnd256: true, unlockedAdminLogin: true, loggedIntoAdmin: true },
-  9: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true, discoveredMaraAltitude184: true, discoveredMaraGate40: true, discoveredMaraEnd256: true, unlockedAdminLogin: true, loggedIntoAdmin: true, chapterEightMemoryIds: COMPLETED_CHAPTER_EIGHT_MEMORY_IDS, chapterEightRestoredMessageIds: COMPLETED_CHAPTER_EIGHT_MESSAGE_IDS, chapterNineRestorePhase: 'idle', chapterNineProfileChoice: null, chapterNinePasswordVerified: false, chapterNineDownloadState: 'idle', chapterNineDeletedAppIds: [], chapterNineMessageAttempts: 0, chapterNineArcaneSilent: false },
-  10: { viewTubeSearchedArc: true, watchedVideo: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true, discoveredMaraAltitude184: true, discoveredMaraGate40: true, discoveredMaraEnd256: true, unlockedAdminLogin: true, loggedIntoAdmin: true, chapterEightMemoryIds: COMPLETED_CHAPTER_EIGHT_MEMORY_IDS, chapterEightRestoredMessageIds: COMPLETED_CHAPTER_EIGHT_MESSAGE_IDS, chapterNineRestorePhase: 'rebooted', chapterNineProfileChoice: 'child', chapterNinePasswordVerified: true, chapterNineDownloadState: 'storage-error', chapterNineDeletedAppIds: [...CHAPTER_NINE_DELETABLE_APPS], chapterNineMessageAttempts: 3, chapterNineArcaneSilent: true, unlockedCodeRoute: true },
+  2: { viewTubeSearchedArc: true, watchedVideo: true, discoveredLegacyPassage: true, discoveredLegacyIpa: true },
+  3: { viewTubeSearchedArc: true, watchedVideo: true, discoveredLegacyPassage: true, discoveredLegacyIpa: true, archiveDownloaded: true },
+  4: { viewTubeSearchedArc: true, watchedVideo: true, discoveredLegacyPassage: true, discoveredLegacyIpa: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true },
+  5: { viewTubeSearchedArc: true, watchedVideo: true, discoveredLegacyPassage: true, discoveredLegacyIpa: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true },
+  6: { viewTubeSearchedArc: true, watchedVideo: true, discoveredLegacyPassage: true, discoveredLegacyIpa: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true },
+  7: { viewTubeSearchedArc: true, watchedVideo: true, discoveredLegacyPassage: true, discoveredLegacyIpa: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredMotherComment: true },
+  8: { viewTubeSearchedArc: true, watchedVideo: true, discoveredLegacyPassage: true, discoveredLegacyIpa: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true, discoveredMaraAltitude184: true, discoveredMaraGate40: true, discoveredMaraEnd256: true, unlockedAdminLogin: true, loggedIntoAdmin: true },
+  9: { viewTubeSearchedArc: true, watchedVideo: true, discoveredLegacyPassage: true, discoveredLegacyIpa: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true, discoveredMaraAltitude184: true, discoveredMaraGate40: true, discoveredMaraEnd256: true, unlockedAdminLogin: true, loggedIntoAdmin: true, chapterEightMemoryIds: COMPLETED_CHAPTER_EIGHT_MEMORY_IDS, chapterEightRestoredMessageIds: COMPLETED_CHAPTER_EIGHT_MESSAGE_IDS, chapterNineRestorePhase: 'idle', chapterNineProfileChoice: null, chapterNinePasswordVerified: false, chapterNineDownloadState: 'idle', chapterNineDeletedAppIds: [], chapterNineMessageAttempts: 0, chapterNineArcaneSilent: false },
+  10: { viewTubeSearchedArc: true, watchedVideo: true, discoveredLegacyPassage: true, discoveredLegacyIpa: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true, discoveredMaraAltitude184: true, discoveredMaraGate40: true, discoveredMaraEnd256: true, unlockedAdminLogin: true, loggedIntoAdmin: true, chapterEightMemoryIds: COMPLETED_CHAPTER_EIGHT_MEMORY_IDS, chapterEightRestoredMessageIds: COMPLETED_CHAPTER_EIGHT_MESSAGE_IDS, chapterNineRestorePhase: 'rebooted', chapterNineProfileChoice: 'child', chapterNinePasswordVerified: true, chapterNineDownloadState: 'storage-error', chapterNineDeletedAppIds: [...CHAPTER_NINE_DELETABLE_APPS], chapterNineMessageAttempts: 3, chapterNineArcaneSilent: true, unlockedCodeRoute: true },
 };
 
 export function getChapterById(chapter: PuzzleChapter): DebugChapter {
