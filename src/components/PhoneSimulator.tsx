@@ -76,7 +76,6 @@ import {
   CHAPTER_NINE_DELETABLE_APPS,
   addDeletedChapterNineApp,
   canDeleteChapterNineApp,
-  getChapterNineBatteryPercent,
   isChapterNineMessagesStandoffReady,
   type ChapterNineDeletableApp,
 } from '../lib/chapterNineDeletion';
@@ -86,6 +85,7 @@ import {
   getChapterNineBlockedDialogue,
   getChapterNineMessagesStandoffDialogue,
 } from '../lib/chapterNineDialogue';
+import { getChapterPhoneBatteryPercent } from '../lib/chapterPhoneBattery';
 
 /** Modern widget chassis: translucent, friendly, current-year. */
 const WIDGET_SHELL =
@@ -270,14 +270,16 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   const chapterNineRestorePhase = progress.chapterNineRestorePhase ?? 'idle';
   const chapterNineDeletedAppIds = progress.chapterNineDeletedAppIds ?? [];
   const chapterNineMessageAttempts = progress.chapterNineMessageAttempts ?? 0;
-  const chapterNineBatteryPercent = getChapterNineBatteryPercent(
-    chapterNineDeletedAppIds,
-    chapterNineMessageAttempts,
-  );
   const chapterNineCleanupHome = chapterNineRestorePhase === 'cleanup';
   const chapterNineTerminalHome = chapterNineRestorePhase === 'blackout'
     || chapterNineRestorePhase === 'rebooted';
   const chapterNineSpecialHome = chapterNineRestorePhase !== 'idle';
+  const phoneBatteryPercent = getChapterPhoneBatteryPercent(
+    progress.currentChapter,
+    chapterNineRestorePhase,
+    chapterNineDeletedAppIds,
+    chapterNineMessageAttempts,
+  );
 
   useEffect(() => {
     if (debugTargetApp) setActiveApp(debugTargetApp.app);
@@ -1052,15 +1054,13 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
           <span className="text-[8.5px] font-semibold text-slate-300">5G</span>
           <Wifi className="w-3 h-3 text-slate-300" />
           <span className="flex items-center gap-1">
-            {chapterNineSpecialHome && (
-              <span className="font-mono text-[7px] text-amber-200" id="status-chapter-nine-battery">
-                {chapterNineRestorePhase === 'rebooted' ? 2 : chapterNineBatteryPercent}%
-              </span>
-            )}
+            <span className={`font-mono text-[7px] ${progress.currentChapter === 9 ? 'text-amber-200' : 'text-slate-300'}`} id="status-phone-battery">
+              {phoneBatteryPercent}%
+            </span>
             <span className="relative w-[19px] h-[9px] rounded-[3px] border border-slate-400/70">
               <span
-                className={`absolute inset-[1.5px] right-[4px] rounded-[1px] ${chapterNineSpecialHome ? 'bg-amber-300' : 'bg-slate-200'}`}
-                style={{ width: chapterNineSpecialHome ? `${Math.max(5, chapterNineRestorePhase === 'rebooted' ? 2 : chapterNineBatteryPercent)}%` : '70%' }}
+                className={`absolute inset-[1.5px] right-[4px] rounded-[1px] ${progress.currentChapter === 9 ? 'bg-amber-300' : 'bg-slate-200'}`}
+                style={{ width: `${Math.max(5, phoneBatteryPercent)}%` }}
               ></span>
               <span className="absolute -right-[3px] top-[2px] w-[2px] h-[4px] rounded-r-[1px] bg-slate-400/70"></span>
             </span>

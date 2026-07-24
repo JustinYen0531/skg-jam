@@ -578,7 +578,8 @@ const getPhoneCollisionQuad = (phone: HTMLElement): ProjectiveQuad => {
   ];
 };
 
-const PROTAGONIST_LABEL = 'YOU';
+const getProtagonistLabel = (chapter: EnvironmentChapter): string =>
+  chapter >= 9 ? 'ARCANE' : 'YOU';
 
 /* --------------------------------------------------------------------------
    The protagonist's thought layer.
@@ -2317,7 +2318,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
               <div className="mb-4 flex items-center gap-2.5">
                 <span aria-hidden="true" className="h-[7px] w-[7px] rounded-[2px] border border-[#8ba4bd]/30 bg-[#66809a]/45" />
                 <span className="font-thought text-[11px] tracking-[0.3em] text-[#94a3b4]" id="meta-protagonist-name">
-                  {PROTAGONIST_LABEL}
+                  {getProtagonistLabel(chapter)}
                 </span>
               </div>
 

@@ -1779,6 +1779,16 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
               </div>
             )}
 
+            {finaleLyric && (
+              <div
+                className="pointer-events-none absolute inset-x-[10%] bottom-[10%] z-[35] rounded border border-white/10 bg-black/35 px-5 py-2 text-center font-thought text-[clamp(10px,1.35cqh,15px)] tracking-[0.08em] text-white/72 shadow-[0_8px_22px_rgba(0,0,0,0.2)] backdrop-blur-[2px]"
+                id="chapter-ten-credits-lyric-subtitle"
+                data-lyric-time={finalePlayback.currentTime.toFixed(3)}
+              >
+                {finaleLyric.line}
+              </div>
+            )}
+
             {!afterwordOpen && ((creditsPlaybackProgress ?? 0) >= CREDITS_SCROLL_END_PROGRESS
               || scoreSubmissionStage !== 'idle') && (
               <div

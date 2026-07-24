@@ -1,5 +1,12 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-24 — Arcane identity, Credits lyric, and battery arc
+
+- The Meta thought-layer speaker label now changes from `YOU` to `ARCANE` from Chapter 9, after the identity record has been restored.
+- Chapter 10 Credits now keep rendering the Finale SRT lyric subtitle with the same styling used during Arcane's autonomous flight.
+- The top-right phone battery is now chapter-driven: it begins at 100%, declines through Chapter 9, drains further through the cleanup, and returns to 100% in Chapter 10.
+- Browser and Preview remain intentionally unused by project instruction.
+
 ## 2026-07-24 — Developer panel English title and chapter labels
 
 - Replaced the stale `SKG: SCOREKEEPER` developer-panel heading with `GAME QUESTING, QUESTIONING GAME`.
