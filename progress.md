@@ -1157,3 +1157,9 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 
 - Mirrored the shared Meta tapping-hand sprite around its existing fingertip anchor. The fingertip still follows the player's real click coordinates, while the wrist now extends toward the lower-right so the gesture reads as a right hand pointing upper-left.
 - Browser and Preview remain intentionally unused by project instruction; validation is static only.
+
+## 2026-07-24 — Restore the historical anatomical right hand
+
+- Traced the tapping-hand asset history and restored the genuine right-hand artwork from commit `aff32cf`, replacing the later diagonal artwork that could not read anatomically as a right hand under either mirror state.
+- Both tap and scroll gestures now rotate the restored hand around its real fingertip anchor toward the upper-left; no horizontal mirror is applied, so the right-hand anatomy remains intact.
+- Browser and Preview remain intentionally unused by project instruction; validation is static only.

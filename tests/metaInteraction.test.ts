@@ -321,7 +321,7 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   );
   assert.equal(
     createHash('sha256').update(tappingFingerBytes).digest('hex'),
-    '24c713bfd019da0cb679072a70179397923868d2a2ff67f048424dd6383edc7c',
+    'b42d7942dff190af75a5ea5d3d6495e645cd5d37bfcdefdb1c5c9bd6f714b7fa',
   );
   assert.equal((sceneSource.match(/src="\/assets\/meta-hand-grip\.png"/g) ?? []).length, 2);
   assert.match(sceneSource, /id="meta-left-hand-asset"/);
@@ -372,13 +372,13 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   assert.match(sceneSource, /className="[^"]*z-\[8\][^"]*"[\s\S]{0,180}id="meta-tapping-hand-back"/);
   assert.match(sceneSource, /className="[^"]*z-\[60\][^"]*"[\s\S]{0,500}id="meta-pointer-hand"/);
   assert.equal((sceneSource.match(/src="\/assets\/meta-tapping-finger\.png"/g) ?? []).length, 2);
-  assert.equal((sceneSource.match(/data-finger-orientation="upper-left"/g) ?? []).length, 1);
-  assert.equal((sceneSource.match(/data-finger-orientation="right-hand-upper-left"/g) ?? []).length, 1);
-  assert.equal((sceneSource.match(/rotate: '-90deg'/g) ?? []).length, 1);
+  assert.equal((sceneSource.match(/data-finger-orientation="restored-right-hand-upper-left-scroll"/g) ?? []).length, 1);
+  assert.equal((sceneSource.match(/data-finger-orientation="restored-right-hand-upper-left-tap"/g) ?? []).length, 1);
+  assert.equal((sceneSource.match(/rotate: '-35deg'/g) ?? []).length, 2);
   assert.equal((sceneSource.match(/h-\[clamp\(441px,64\.5vh,630px\)\]/g) ?? []).length, 2);
   assert.doesNotMatch(sceneSource, /h-\[clamp\(294px,43vh,420px\)\]/);
-  assert.match(sceneSource, /transformOrigin: '83% 13%'[\s\S]{0,600}id="meta-tapping-finger-asset"/);
-  assert.match(sceneSource, /animate=\{\{ y: pressed \? 5 : 0, scale: pressed \? 0\.98 : 1, scaleX: -1 \}\}/);
+  assert.match(sceneSource, /transformOrigin: '50% 5%'[\s\S]{0,600}id="meta-tapping-finger-asset"/);
+  assert.match(sceneSource, /animate=\{\{ y: pressed \? 5 : 0, scale: pressed \? 0\.98 : 1 \}\}/);
   assert.match(sceneSource, /onWheelCapture=\{handleWheelCapture\}/);
   assert.match(sceneSource, /id="meta-scroll-finger"/);
   assert.match(sceneSource, /data-scroll-direction=\{scrollGesture\.travelY < 0 \? 'finger-up' : 'finger-down'\}/);
