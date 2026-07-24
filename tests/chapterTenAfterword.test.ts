@@ -32,7 +32,7 @@ test('the three imagined outcomes are an optional afterword inside Skyline 256',
   assert.match(gameSource, /getRememberedChapterTenAfterwords/);
   const viewTubeSource = readFileSync(new URL('../src/components/ViewTube.tsx', import.meta.url), 'utf8');
   const archiveSource = readFileSync(new URL('../src/components/ChapterTwoArchiveFinder.tsx', import.meta.url), 'utf8');
-  assert.match(viewTubeSource, /chapter-ten-publicize-easter-egg[\s\S]*COMMENT REMOVED BY AUTHOR/);
+  assert.match(viewTubeSource, /chapter-ten-publicize-easter-egg[\s\S]*I saved the Gate 40 crossing[\s\S]*chapter-ten-publicize-moderation[\s\S]*FLAGGED AS SPAM[\s\S]*REMOVED BY VIDEO OWNER/);
   assert.match(archiveSource, /chapter-ten-preserve-mirror[\s\S]*LOCAL MIRROR AVAILABLE[\s\S]*1 COMPATIBLE DEVICE/);
   assert.match(archiveSource, /chapter-ten-preserve-easter-egg[\s\S]*ONE COMPATIBLE DEVICE STILL ACCEPTS LOCAL COPIES/);
   assert.ok(gameSource.indexOf('id="chapter-ten-credit-score"') < gameSource.indexOf('id="chapter-ten-final-lyric"'));
@@ -40,6 +40,17 @@ test('the three imagined outcomes are an optional afterword inside Skyline 256',
   assert.equal(getFinalLyricWordIndex(0.86), 0);
   assert.doesNotMatch(appSource, /id="ending-choice-overlay"/);
   assert.doesNotMatch(appSource, /HOW SHOULD THE SKYLINE CONCLUDE\?/);
+});
+
+test('the Chapter 10 developer panel can persist any afterword trace or clear them for a clean demo', () => {
+  const appSource = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
+
+  assert.match(appSource, /id="debug-chapter-ten-afterword"/);
+  assert.match(appSource, /id=\{`debug-afterword-\$\{option\.id\}`\}/);
+  assert.match(appSource, /rememberChapterTenAfterword\(afterword\)/);
+  assert.match(appSource, /id="debug-afterword-clean"/);
+  assert.match(appSource, /clearChapterTenEasterEggs\(\)/);
+  assert.match(appSource, /The next loop starts with no easter eggs\./);
 });
 
 test('the replay leaves only Arcane negative record and zero defeated flyers', () => {

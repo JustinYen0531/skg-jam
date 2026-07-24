@@ -1,4 +1,5 @@
 import type { GameProgress } from '../types';
+import { ARCANE_NEGATIVE_RECORD_STORAGE_KEY } from './leaderboard';
 
 export type ChapterTenAfterword = NonNullable<GameProgress['selectedEnding']>;
 
@@ -18,6 +19,24 @@ export const getRememberedChapterTenAfterwords = (): ChapterTenAfterword[] => {
 
 export const hasRememberedChapterTenAfterword = (afterword: ChapterTenAfterword): boolean =>
   getRememberedChapterTenAfterwords().includes(afterword);
+
+export const rememberChapterTenAfterword = (afterword: ChapterTenAfterword): ChapterTenAfterword[] => {
+  const remembered = getRememberedChapterTenAfterwords();
+  const next = remembered.includes(afterword) ? remembered : [...remembered, afterword];
+  if (typeof window !== 'undefined') {
+    window.localStorage.setItem(CHAPTER_TEN_AFTERWORD_MEMORY_STORAGE_KEY, JSON.stringify(next));
+  }
+  return next;
+};
+
+export const clearRememberedChapterTenAfterwords = (): void => {
+  if (typeof window !== 'undefined') window.localStorage.removeItem(CHAPTER_TEN_AFTERWORD_MEMORY_STORAGE_KEY);
+};
+
+export const clearChapterTenEasterEggs = (): void => {
+  clearRememberedChapterTenAfterwords();
+  if (typeof window !== 'undefined') window.localStorage.removeItem(ARCANE_NEGATIVE_RECORD_STORAGE_KEY);
+};
 
 export const CHAPTER_TEN_AFTERWORD_OPTIONS: ReadonlyArray<{
   id: ChapterTenAfterword;
@@ -66,6 +85,6 @@ export const CHAPTER_TEN_AFTERWORD_LINES: Readonly<Record<ChapterTenAfterword, r
 
 export const CHAPTER_TEN_AFTERWORD_EASTER_EGG_HINTS: Readonly<Record<ChapterTenAfterword, string>> = {
   submit: 'NEXT LOOP: THE LOWEST SCORE IS NOT AT THE TOP.',
-  publicize: 'NEXT LOOP: A ROUTE LEAVES A TRACE BEFORE IT GETS ERASED.',
+  publicize: 'NEXT LOOP: A ROUTE LEAVES A TRACE UNDER A MODERATION FLAG.',
   preserve: 'NEXT LOOP: SOME DOORS STAY OPEN WITHOUT AN ANNOUNCEMENT.',
 };

@@ -8,6 +8,13 @@ import {
   shouldRevealMetaView,
   shouldShowMetaScene,
 } from './lib/metaInteraction';
+import {
+  CHAPTER_TEN_AFTERWORD_OPTIONS,
+  clearChapterTenEasterEggs,
+  getRememberedChapterTenAfterwords,
+  rememberChapterTenAfterword,
+  type ChapterTenAfterword,
+} from './lib/chapterTenAfterword';
 import audio from './lib/audio';
 import music, { getMusicPhase } from './lib/music';
 import { 
@@ -184,6 +191,18 @@ export default function App() {
     setMetaViewActive(true);
   };
 
+  const setDeveloperAfterword = (afterword: ChapterTenAfterword) => {
+    rememberChapterTenAfterword(afterword);
+    setProgress((previous) => ({ ...previous, selectedEnding: afterword }));
+  };
+
+  const clearDeveloperAfterword = () => {
+    clearChapterTenEasterEggs();
+    setProgress((previous) => ({ ...previous, selectedEnding: null }));
+  };
+
+  const rememberedAfterwords = getRememberedChapterTenAfterwords();
+
   const chapterAdvanceGuide = getChapterAdvanceGuide(progress.currentChapter);
   // Fullscreen-only is a player-owned safety override. Meta may remain unlocked
   // underneath, but its projected camera and input relay are completely bypassed.
@@ -333,6 +352,44 @@ export default function App() {
               </div>
             </div>
           </section>
+
+          {progress.currentChapter === 10 && (
+            <section className="space-y-3" id="debug-chapter-ten-afterword">
+              <div>
+                <h3 className="font-mono text-[10px] font-bold uppercase tracking-wider text-violet-300">Afterword / Easter egg state</h3>
+                <p className="mt-1 text-[9px] leading-relaxed text-slate-500">Persist a loop trace for testing, or clear all traces for a clean recording demo.</p>
+              </div>
+              <div className="grid gap-2">
+                {CHAPTER_TEN_AFTERWORD_OPTIONS.map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    onClick={() => setDeveloperAfterword(option.id)}
+                    className={`rounded border px-3 py-2 text-left text-[9px] transition-colors ${
+                      rememberedAfterwords.includes(option.id)
+                        ? 'border-violet-300/50 bg-violet-400/10 text-violet-100'
+                        : 'border-slate-800 bg-slate-900/70 text-slate-400 hover:border-violet-400/40 hover:text-slate-200'
+                    }`}
+                    id={`debug-afterword-${option.id}`}
+                    data-remembered={rememberedAfterwords.includes(option.id)}
+                  >
+                    <span className="block font-mono font-bold tracking-[0.1em]">{option.label}</span>
+                    <span className="mt-1 block leading-snug opacity-70">{option.description}</span>
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={clearDeveloperAfterword}
+                  className="rounded border border-slate-600 bg-slate-900 px-3 py-2 text-left text-[9px] text-slate-300 transition-colors hover:border-rose-400/55 hover:text-rose-200"
+                  id="debug-afterword-clean"
+                  data-remembered-count={rememberedAfterwords.length}
+                >
+                  <span className="block font-mono font-bold tracking-[0.1em]">NO AFTERWORD / CLEAN DEMO</span>
+                  <span className="mt-1 block leading-snug opacity-70">Clear every stored trace. The next loop starts with no easter eggs.</span>
+                </button>
+              </div>
+            </section>
+          )}
 
         </div>
 

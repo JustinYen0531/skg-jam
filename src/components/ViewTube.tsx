@@ -214,7 +214,6 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress, de
   const [barrageActive, setBarrageActive] = useState(false);
   const [barrageCycle, setBarrageCycle] = useState(0);
   const [visibleArchiveComments, setVisibleArchiveComments] = useState(0);
-  const [publicizeTraceRemoved, setPublicizeTraceRemoved] = useState(false);
   const [recommendedVideos] = useState(() => shuffleFeed(VIEWTUBE_FEED, createFeedSeed('viewtube')));
   const chapterOneSearchAttempt = useRef(0);
   const chapterOneVideoAttempt = useRef(0);
@@ -224,12 +223,6 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress, de
   const remainingArchiveComments = VT_COMMENT_ARCHIVE.length - visibleArchiveComments;
   const chapterOneEvidenceCount = getChapterOneEvidenceCount(progress);
   const publicizeTraceRemembered = hasRememberedChapterTenAfterword('publicize');
-
-  useEffect(() => {
-    if (!isPlayingVideo || !publicizeTraceRemembered || publicizeTraceRemoved) return;
-    const timer = window.setTimeout(() => setPublicizeTraceRemoved(true), 3600);
-    return () => window.clearTimeout(timer);
-  }, [isPlayingVideo, publicizeTraceRemembered, publicizeTraceRemoved]);
 
   const loadMoreComments = () => {
     audio.playTick();
@@ -839,20 +832,14 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress, de
                 </div>
 
                 {publicizeTraceRemembered && (
-                  <div
-                    className={`rounded border p-2.5 font-mono text-[10px] transition-colors ${
-                      publicizeTraceRemoved
-                        ? 'border-rose-900/45 bg-rose-950/15 text-rose-200/55'
-                        : 'border-cyan-700/55 bg-cyan-950/20 text-cyan-100'
-                    }`}
-                    id="chapter-ten-publicize-easter-egg"
-                    data-trace-status={publicizeTraceRemoved ? 'removed' : 'live'}
-                  >
-                    {publicizeTraceRemoved ? (
-                      <span>ARCHIVE WITNESS · COMMENT REMOVED BY AUTHOR</span>
-                    ) : (
-                      <><span className="font-bold text-cyan-300">ARCHIVE WITNESS · NOW</span><p className="mt-1 leading-snug">I saved the Gate 40 crossing. If this disappears, the mirror was real.</p></>
-                    )}
+                  <div className="space-y-2" id="chapter-ten-publicize-easter-egg" data-trace-status="flagged">
+                    <div className="rounded border border-cyan-700/55 bg-cyan-950/20 p-2.5 font-mono text-[10px] text-cyan-100">
+                      <span className="font-bold text-cyan-300">ARCHIVE WITNESS · 1m ago</span>
+                      <p className="mt-1 leading-snug">I saved the Gate 40 crossing. The mirror was real.</p>
+                    </div>
+                    <div className="border-y border-rose-900/35 bg-rose-950/10 px-2 py-1.5 text-center font-mono text-[8px] tracking-[0.08em] text-rose-200/55" id="chapter-ten-publicize-moderation">
+                      THIS COMMENT HAS BEEN FLAGGED AS SPAM · REMOVED BY VIDEO OWNER
+                    </div>
                   </div>
                 )}
 

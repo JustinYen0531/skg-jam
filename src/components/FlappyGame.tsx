@@ -60,6 +60,7 @@ import {
   CHAPTER_TEN_AFTERWORD_OPTIONS,
   CHAPTER_TEN_AFTERWORD_MEMORY_STORAGE_KEY,
   getRememberedChapterTenAfterwords,
+  rememberChapterTenAfterword,
   type ChapterTenAfterword,
 } from '../lib/chapterTenAfterword';
 import {
@@ -157,6 +158,11 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
   const chapterTenTakeoverFallbackTimerRef = useRef<number | null>(null);
   beginAutonomousControlRef.current = beginAutonomousControl;
   metaInteractionActiveRef.current = metaInteractionActive;
+
+  useEffect(() => {
+    if (progress.currentChapter !== 1 || typeof window === 'undefined') return;
+    setArcaneNegativeRecordSubmitted(window.localStorage.getItem(ARCANE_NEGATIVE_RECORD_STORAGE_KEY) === 'true');
+  }, [progress.currentChapter]);
 
   useEffect(() => {
     if (!chapterTenActive) {
@@ -1645,9 +1651,8 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
 
   const rememberAfterword = (afterword: ChapterTenAfterword) => {
     if (rememberedAfterwords.includes(afterword)) return;
-    const next = [...rememberedAfterwords, afterword];
+    const next = rememberChapterTenAfterword(afterword);
     setRememberedAfterwords(next);
-    window.localStorage.setItem(CHAPTER_TEN_AFTERWORD_MEMORY_STORAGE_KEY, JSON.stringify(next));
     audio.play('ui.primaryTap');
     speak(['I remember this one.', CHAPTER_TEN_AFTERWORD_EASTER_EGG_HINTS[afterword]]);
   };
