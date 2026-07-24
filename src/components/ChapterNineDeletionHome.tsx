@@ -70,11 +70,13 @@ export const ChapterNineMakeRoomWidget: React.FC<{
   deletedAppIds: readonly ChapterNineDeletableApp[];
   messageAttempts: number;
   editMode: boolean;
+  interactionReady: boolean;
   onDone: () => void;
 }> = ({
   deletedAppIds,
   messageAttempts,
   editMode,
+  interactionReady,
   onDone,
 }) => {
   const restorePercent = getChapterNineRestorePercent(deletedAppIds);
@@ -124,7 +126,9 @@ export const ChapterNineMakeRoomWidget: React.FC<{
       <div className="mt-5 border border-red-300/20 bg-red-300/[0.05] p-3">
         <div className="font-mono text-[8px] font-bold tracking-[0.12em] text-red-200">18.0 GB STILL REQUIRED</div>
         <p className="mt-2 text-[9px] leading-relaxed text-slate-400">
-          {editMode
+          {!interactionReady
+            ? 'Waiting for local operator input...'
+            : editMode
             ? 'Tap an app marked with × to remove its local data.'
             : 'Press and hold any app until the icons begin to move.'}
         </p>

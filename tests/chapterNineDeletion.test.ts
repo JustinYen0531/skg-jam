@@ -61,6 +61,10 @@ test('the legacy assistant separates its ARC-184 authorization record from its m
   assert.match(CHAPTER_NINE_DIALOGUE.authorizationLocated.join(' '), /official assistant tool/);
   assert.match(CHAPTER_NINE_DIALOGUE.recordClarified.join(' '), /When was I ARC-184/);
   assert.match(CHAPTER_NINE_DIALOGUE.operatorIdentityRestored.join(' '), /score and the name belonged to the same person/);
+  assert.equal(
+    CHAPTER_NINE_DIALOGUE.cleanupInstruction.at(-1),
+    'I need room. Holding an icon should let me make it; tapping will not.',
+  );
   assert.deepEqual(CHAPTER_NINE_DIALOGUE.poweredDown, ['You win.']);
   assert.deepEqual(CHAPTER_NINE_DIALOGUE.restingHint, [
     'It is dead.',
@@ -122,6 +126,10 @@ test('runtime connects storage cleanup, the unresolved power loss, and silent Ch
 
   assert.match(phone, /chapterNineMessageAttempts < 3/);
   assert.match(phone, /handleChapterNineLongPressStart/);
+  assert.match(phone, /chapterNineCleanupReady/);
+  assert.match(phone, /CHAPTER_NINE_DIALOGUE\.cleanupInstruction/);
+  assert.match(phone, /\(\) => setChapterNineCleanupReady\(true\)/);
+  assert.match(phone, /!chapterNineCleanupReady[\s\S]{0,120}chapterNineEditModeRef/);
   assert.match(phone, /chapter-nine-editing/);
   assert.match(phone, /ChapterNineMakeRoomWidget/);
   assert.match(phone, /activeApp === 'home' && !chapterNineTerminalHome/);
@@ -137,6 +145,8 @@ test('runtime connects storage cleanup, the unresolved power loss, and silent Ch
   assert.match(phone, /completePuzzleChapter\(poweredDownState, 9/);
 
   assert.match(home, /id="chapter-nine-messages-standoff"/);
+  assert.match(home, /interactionReady/);
+  assert.match(home, /Waiting for local operator input/);
   assert.match(home, /CONFLICTING INPUT/);
   assert.match(home, /id="chapter-nine-power-loss"/);
   assert.match(home, /id="chapter-nine-resting-hint"/);

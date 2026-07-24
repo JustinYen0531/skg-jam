@@ -1302,3 +1302,17 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - If the upright phone remains off for 2.6 seconds, the protagonist quietly reasons, `It is dead. ...Maybe I should put it down.`
 - Resting the device cancels the hint timer and preserves the existing automatic recovery sequence.
 - Browser and Preview remain intentionally unused by project instruction; validation is static only.
+
+## 2026-07-24 — Persistent manual save and transition cue
+
+- FileBox now keeps a separate manual local save slot beside the automatic chapter checkpoint; each slot is validated independently and survives a normal browser restart on the same itch.io build origin.
+- Every chapter transition now quietly confirms the auto checkpoint and tells the player that FileBox can preserve a second manual save.
+- Browser and Preview remain intentionally unused by project instruction; static verification only.
+
+## 2026-07-24 — Chapter 9 long-press handoff
+
+- Fixed the dialogue race that replaced the only long-press instruction as soon as the cleanup home opened.
+- The storage-error monologue now ends before the player leaves Messages; the cleanup home then delivers one final line: `I need room. Holding an icon should let me make it; tapping will not.`
+- Long-press and launcher deletion input remain locked until that final line finishes, giving the player a quiet beat to interpret it before acting.
+- The cleanup widget reports that it is waiting for local operator input during the handoff, then restores the existing press-and-hold instruction.
+- Browser and Preview remain intentionally unused by project instruction; validation is static only.
