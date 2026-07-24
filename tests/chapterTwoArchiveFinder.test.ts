@@ -27,6 +27,8 @@ test('the Skyline IPA is not highlighted and reveals an unsupported-device messa
   assert.match(finder, /IPA application packages are not supported on the current device/);
   assert.match(finder, /Lumen Arc/);
   assert.match(finder, /onCompatibilityDiscovered/);
+  assert.match(finder, /Reading compatibility record/);
+  assert.match(finder, /metaInteraction\.speak\(CHAPTER_TWO_DIALOGUE\.compatibilityBlocked,\s*revealCompatibilityError\)/);
 });
 
 test('Browser exposes the Chapter 2 archive route but locks SKG before Chapter 5', () => {

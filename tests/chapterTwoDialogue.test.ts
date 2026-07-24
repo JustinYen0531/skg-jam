@@ -19,6 +19,11 @@ test('Chapter 2 uses the approved A maternal-memory ending', () => {
   ]);
 });
 
+test('the Chapter 1 handoff does not reveal Lumen Arc before the archive proves it', () => {
+  assert.doesNotMatch(CHAPTER_TWO_DIALOGUE.entry.join(' '), /Lumen\s*Arc/i);
+  assert.match(CHAPTER_TWO_DIALOGUE.entry.join(' '), /Gate forty|Legacy build|filename/i);
+});
+
 test('archive format reactions guide by evidence without naming the answer early', () => {
   const formats: readonly ChapterTwoArchiveFormat[] = ['zip', 'apk', 'jar', 'sis', 'ipa'];
   const reactions = formats.map((format) => getChapterTwoFormatDialogue(format));
@@ -110,6 +115,9 @@ test('Chapter 2 dialogue is wired through the transcript, phone, browser, and ar
 
   const attemptStart = finder.indexOf('const attemptToOpen =');
   const unsupportedDialogue = finder.indexOf('CHAPTER_TWO_DIALOGUE.compatibilityBlocked', attemptStart);
+  const completionCallback = finder.indexOf('revealCompatibilityError', unsupportedDialogue);
   const completion = finder.indexOf('onCompatibilityDiscovered()', attemptStart);
-  assert.ok(attemptStart >= 0 && unsupportedDialogue > attemptStart && completion > unsupportedDialogue);
+  assert.ok(attemptStart >= 0 && unsupportedDialogue > attemptStart);
+  assert.ok(completionCallback > unsupportedDialogue && completion > attemptStart);
+  assert.match(finder.slice(attemptStart, completionCallback + 200), /metaInteraction\.speak\(CHAPTER_TWO_DIALOGUE\.compatibilityBlocked,\s*revealCompatibilityError\)/);
 });

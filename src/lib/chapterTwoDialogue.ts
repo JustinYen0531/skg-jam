@@ -14,8 +14,8 @@ export type ChapterTwoPortalDistraction =
 
 export const CHAPTER_TWO_DIALOGUE = {
   entry: [
-    'Lumen Arc. Recalled hardware, a dead operating system, and an impossible score.',
-    'If the current game cannot do it, I need the version ARC_184 was running.',
+    'Gate forty was not always the end. The Legacy build proves that much.',
+    'The filename survived. Now I need to find out what kind of thing it is.',
   ],
   homeReturned: [
     'Old software leaves traces.',

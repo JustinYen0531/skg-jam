@@ -1702,40 +1702,43 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
               <div className="border-b border-white/[0.07] pb-3 flex items-start gap-2 mt-4">
                 <CheckCircle2 className="mt-0.5 w-5 h-5 shrink-0 text-emerald-400" />
                 <div>
-                  <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-emerald-300/75">Concept // preservation note</p>
-                  <h2 className="mt-1 font-semibold text-sm text-white">WHEN SUPPORT ENDS, THE GAME SHOULD NOT.</h2>
+                  <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-emerald-300/75">Concept // why this game exists</p>
+                  <h2 className="mt-1 font-semibold text-sm text-white">THE HIGH SCORE IS THE BAIT. THE MISSING GAME IS THE STORY.</h2>
                 </div>
               </div>
 
               <div className="space-y-4 text-xs leading-relaxed text-slate-300">
                 <p>
-                  <strong className="text-white">Skyline 256 / Flappy Something</strong> is an independent fictional reflection on <strong className="text-amber-400">Stop Killing Games</strong>: the idea that ending publisher support must not make a game that people bought impossible to play.
+                  <strong className="text-white">High Score Chaser</strong> begins with one cheap game and one petty goal: beat <strong className="text-amber-300">ARC_184</strong>. Then Gate 40 reveals that the contest is no longer fair. The current release kept the title, the bird, and the leaderboard, but removed a route that the Legacy build could actually complete.
                 </p>
 
                 <p>
-                  This is not a request for every service to run forever. It is a question about the end of service: when the store, server, device, or company disappears, is there still a lawful, practical path for people to launch the game and keep its history intact?
+                  The player is not digging through old files because retro technology is automatically important. The investigation exists because the score cannot be understood without recovering the version, hardware, people, and records that once made it possible.
                 </p>
 
                 <section className="rounded-xl border border-emerald-300/[0.14] bg-emerald-300/[0.045] p-3" aria-labelledby="concept-in-game">
-                  <h3 id="concept-in-game" className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-200">How this game carries that question</h3>
+                  <h3 id="concept-in-game" className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-200">What was actually lost</h3>
                   <ul className="mt-2 space-y-2 text-slate-300 marker:text-emerald-300">
-                    <li><strong className="text-white">A replaced build:</strong> the current game preserves the shell, but removes the route that made the original whole.</li>
-                    <li><strong className="text-white">A disappearing dependency:</strong> the playable version survives only through an archived package and obsolete Lumen Arc hardware.</li>
-                    <li><strong className="text-white">A broken record:</strong> store pages, server history, creator context, and the leaderboard each hold a different part of what the game was.</li>
+                    <li><strong className="text-white">The playable route:</strong> an update preserved the product shell while deleting the original ending.</li>
+                    <li><strong className="text-white">The means to run it:</strong> the surviving build depends on an archived package and discontinued hardware.</li>
+                    <li><strong className="text-white">The human record:</strong> the leaderboard, creator history, family messages, and company archive were split across systems that were never designed to remember together.</li>
                   </ul>
                 </section>
 
                 <section className="rounded-xl border border-white/[0.08] bg-[#0c0e12] p-3" aria-labelledby="concept-score">
-                  <h3 id="concept-score" className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-amber-300">Why it is also a High Score Chaser story</h3>
+                  <h3 id="concept-score" className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-amber-300">Why the high score matters</h3>
                   <p className="mt-2">
-                    Everyone begins by chasing a number: first place, attention, proof, an ending. The score makes the loss visible, but it is not the answer. The chase only matters because it leads back to the people, tools, and playable version that a replacement system treated as disposable.
+                    Arcane chases first place. The impersonator chases attention. Noah chases an ending. The player chases an explanation. The number is never the answer; it is the visible scar left by a version of the game that can no longer be reached through normal play.
                   </p>
                 </section>
 
                 <section className="rounded-xl border border-white/[0.07] bg-white/[0.025] p-3" aria-labelledby="concept-player">
-                  <h3 id="concept-player" className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-200">What the player is being asked to notice</h3>
+                  <h3 id="concept-player" className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-200">Where Stop Killing Games enters</h3>
                   <p className="mt-2">
-                    Preservation is more than saving a file. A game remains possible when its executable build, the means to run it, and enough context to understand it can outlive the business decision that ended support. This phone turns that principle into a small, uncomfortable act: deleting the explanation first makes the later losses easier to accept.
+                    This is not a general introduction to an organization, nor a demand that every server run forever. It dramatizes the preservation question associated with <strong className="text-white">Stop Killing Games</strong>: after official support ends, can a lawful owner still launch a complete version without depending forever on a dead server, vanished device, or company decision?
+                  </p>
+                  <p className="mt-2">
+                    Saving only the download is not enough. <strong className="text-white">Skyline 256</strong> remains possible only when the executable build, a way to run it, and enough human context to understand what was removed survive together.
                   </p>
                 </section>
 
@@ -1744,7 +1747,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                 </p>
 
                 <div className="border-t border-white/[0.07] pt-3 font-mono text-[9px] leading-relaxed text-slate-500">
-                  Fictional work. Not an official Stop Killing Games product or statement. Read this before Chapter 9: it is the first thing Arcane permits you to erase because it was written for whoever came after.
+                  Fictional work. Not an official Stop Killing Games product or statement. This file exists for the player who comes after Arcane: a record of why his impossible score became a preservation story.
                 </div>
               </div>
             </motion.div>

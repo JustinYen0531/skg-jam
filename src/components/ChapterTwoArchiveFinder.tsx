@@ -72,6 +72,7 @@ export const ChapterTwoArchiveFinder: React.FC<ChapterTwoArchiveFinderProps> = (
   const [selectedFormat, setSelectedFormat] = useState<ArchiveFormat>('zip');
   const [query, setQuery] = useState('');
   const [selectedFile, setSelectedFile] = useState(false);
+  const [compatibilityPending, setCompatibilityPending] = useState(false);
   const searchAttempt = useRef(0);
 
   const speakChapterTwo = (lines: readonly string[]) => {
@@ -103,15 +104,27 @@ export const ChapterTwoArchiveFinder: React.FC<ChapterTwoArchiveFinderProps> = (
   };
 
   const attemptToOpen = () => {
+    if (compatibilityPending || attempted) return;
     audio.play('ui.disabled');
-    speakChapterTwo(CHAPTER_TWO_DIALOGUE.compatibilityBlocked);
-    if (!attempted) onCompatibilityDiscovered();
+    setCompatibilityPending(true);
+
+    const revealCompatibilityError = () => {
+      setCompatibilityPending(false);
+      onCompatibilityDiscovered();
+    };
+
+    if (dialogueActive && metaInteraction.active) {
+      metaInteraction.speak(CHAPTER_TWO_DIALOGUE.compatibilityBlocked, revealCompatibilityError);
+      return;
+    }
+
+    revealCompatibilityError();
   };
 
   if (selectedFile) {
     return (
       <section className="mx-auto max-w-xl space-y-3" id="chapter-two-archive-record">
-        <button type="button" onClick={() => { audio.playTick(); setSelectedFile(false); }} className="flex items-center gap-1 text-[9px] text-slate-500 hover:text-slate-300">
+          <button type="button" disabled={compatibilityPending} onClick={() => { audio.playTick(); setSelectedFile(false); }} className="flex items-center gap-1 text-[9px] text-slate-500 hover:text-slate-300 disabled:cursor-wait disabled:opacity-35">
           <ChevronLeft className="h-3 w-3" /> Back to .ipa records
         </button>
         <article className="overflow-hidden rounded-md border border-white/[0.08] bg-slate-900/55">
@@ -134,8 +147,8 @@ export const ChapterTwoArchiveFinder: React.FC<ChapterTwoArchiveFinderProps> = (
             <div className="mt-2 border-t border-rose-200/10 pt-2 text-[9px] text-slate-300">Compatible hardware required: <span className="font-semibold text-slate-100">Lumen Arc</span> running LAOS 4.1 with its native altitude sensor.</div>
           </div>
         ) : (
-          <button type="button" onClick={attemptToOpen} className="w-full rounded-md border border-slate-600 bg-slate-800/70 px-3 py-2.5 text-[10px] font-semibold text-slate-200 hover:bg-slate-800" id="chapter-two-open-ipa">
-            Open preserved package
+          <button type="button" disabled={compatibilityPending} onClick={attemptToOpen} className="w-full rounded-md border border-slate-600 bg-slate-800/70 px-3 py-2.5 text-[10px] font-semibold text-slate-200 hover:bg-slate-800 disabled:cursor-wait disabled:border-slate-700 disabled:text-slate-500" id="chapter-two-open-ipa">
+            {compatibilityPending ? 'Reading compatibility record…' : 'Open preserved package'}
           </button>
         )}
       </section>
