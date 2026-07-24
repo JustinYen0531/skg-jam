@@ -86,6 +86,7 @@ import {
   getChapterNineMessagesStandoffDialogue,
 } from '../lib/chapterNineDialogue';
 import { getChapterPhoneBatteryPercent } from '../lib/chapterPhoneBattery';
+import { formatCheckpointTimestamp } from '../lib/chapterCheckpoint';
 
 /** Modern widget chassis: translucent, friendly, current-year. */
 const WIDGET_SHELL =
@@ -125,6 +126,9 @@ interface PhoneSimulatorProps {
   onChapterTenTakeover: () => void;
   onRestartCurrentChapter: () => void;
   onRestartLoop: () => void;
+  checkpointChapter: number;
+  checkpointSavedAt: string | null;
+  onLoadCheckpoint: () => void;
 }
 
 export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
@@ -157,6 +161,9 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   onChapterTenTakeover,
   onRestartCurrentChapter,
   onRestartLoop,
+  checkpointChapter,
+  checkpointSavedAt,
+  onLoadCheckpoint,
 }) => {
   const metaInteraction = useMetaInteraction();
   const [activeApp, setActiveApp] = useState<ActiveApp>('flappy');
@@ -883,10 +890,15 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
         return (
           <div className="space-y-3" id="dock-filebox-controls">
             <div className="rounded-lg border border-white/[0.07] bg-black/20 px-3 py-2.5">
-              <div className="text-[9px] text-slate-500">CURRENT SESSION</div>
-              <div className="mt-1 font-mono text-[11px] text-slate-200">CHAPTER {progress.currentChapter.toString().padStart(2, '0')}</div>
-              <div className="mt-0.5 text-[9px] text-slate-500">Progress is held for this session.</div>
+              <div className="text-[9px] text-slate-500">AUTO CHECKPOINT</div>
+              <div className="mt-1 font-mono text-[11px] text-slate-200">CHAPTER {checkpointChapter.toString().padStart(2, '0')}</div>
+              <div className="mt-0.5 text-[9px] text-slate-500">
+                {checkpointSavedAt ? `LAST SAVED · ${formatCheckpointTimestamp(checkpointSavedAt)}` : 'NO CHECKPOINT FOUND'}
+              </div>
             </div>
+            <button type="button" onClick={onLoadCheckpoint} className={`${actionButtonClassName} w-full`} id="dock-load-checkpoint">
+              Load saved game
+            </button>
             <button type="button" onClick={() => handleResetRequest('chapter')} className={`${actionButtonClassName} w-full`} id="dock-restart-chapter">
               {resetConfirmation === 'chapter' ? 'Press again to restore chapter start' : 'Restore current chapter'}
             </button>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { GameProgress, PuzzleChapter } from './types';
 import { PhoneSimulator } from './components/PhoneSimulator';
 import { MetaInteractionScene } from './components/MetaInteractionScene';
@@ -17,6 +17,11 @@ import {
 } from './lib/chapterTenAfterword';
 import audio from './lib/audio';
 import music, { getMusicPhase } from './lib/music';
+import {
+  loadChapterCheckpoint,
+  saveChapterCheckpoint,
+  type ChapterCheckpoint,
+} from './lib/chapterCheckpoint';
 import { 
   Terminal, Volume2, VolumeX,
   CheckCircle, Database, HelpCircle
@@ -60,7 +65,11 @@ const INITIAL_PROGRESS: GameProgress = {
 
 const FULLSCREEN_ONLY_STORAGE_KEY = 'skg.fullscreenOnly';
 export default function App() {
-  const [progress, setProgress] = useState<GameProgress>(INITIAL_PROGRESS);
+  const [checkpoint, setCheckpoint] = useState<ChapterCheckpoint | null>(() => (
+    loadChapterCheckpoint(INITIAL_PROGRESS) ?? saveChapterCheckpoint(INITIAL_PROGRESS)
+  ));
+  const [progress, setProgress] = useState<GameProgress>(() => checkpoint?.progress ?? INITIAL_PROGRESS);
+  const pendingCheckpointChapter = useRef<PuzzleChapter | null>(null);
   const [isMuted, setIsMuted] = useState(false);
   const [soundVolume, setSoundVolume] = useState(1);
   const [musicVolume, setMusicVolume] = useState(1);
@@ -75,7 +84,8 @@ export default function App() {
   const [deskLamp, setDeskLamp] = useState(true);
   const [metaViewActive, setMetaViewActive] = useState(() => {
     if (typeof window === 'undefined') return false;
-    return new URLSearchParams(window.location.search).get('meta') === 'true';
+    return new URLSearchParams(window.location.search).get('meta') === 'true'
+      || (checkpoint?.progress.phase !== 'intro_game');
   });
   const [chapterTenPlayerFullscreen, setChapterTenPlayerFullscreen] = useState(false);
   const [chapterTenSceneryRewound, setChapterTenSceneryRewound] = useState(false);
@@ -155,6 +165,9 @@ export default function App() {
   const updateProgress = (updater: (prev: GameProgress) => GameProgress) => {
     setProgress((prev) => {
       const next = updater(prev);
+      if (next.currentChapter > prev.currentChapter) {
+        pendingCheckpointChapter.current = next.currentChapter;
+      }
       // Play brief hacker tick sound when items unlock
       if (
         next.deliveredPhone !== prev.deliveredPhone ||
@@ -166,6 +179,13 @@ export default function App() {
       return next;
     });
   };
+
+  useEffect(() => {
+    if (pendingCheckpointChapter.current !== progress.currentChapter) return;
+    pendingCheckpointChapter.current = null;
+    const savedCheckpoint = saveChapterCheckpoint(progress);
+    if (savedCheckpoint) setCheckpoint(savedCheckpoint);
+  }, [progress]);
 
   const handleMuteToggle = () => {
     const nextMuted = !isMuted;
@@ -181,10 +201,23 @@ export default function App() {
     setChapterTenPlayerFullscreen(false);
     setChapterTenSceneryRewound(false);
     setMetaViewActive(false);
+    setCheckpoint(saveChapterCheckpoint(INITIAL_PROGRESS));
     setDebugTargetApp(null);
   };
 
   const restartCurrentChapter = () => jumpToChapter(progress.currentChapter);
+
+  const loadSavedCheckpoint = () => {
+    const savedCheckpoint = loadChapterCheckpoint(INITIAL_PROGRESS);
+    if (!savedCheckpoint) return;
+    audio.play('ui.primaryTap');
+    setCheckpoint(savedCheckpoint);
+    setProgress(savedCheckpoint.progress);
+    setChapterTenPlayerFullscreen(false);
+    setChapterTenSceneryRewound(false);
+    setMetaViewActive(savedCheckpoint.progress.phase !== 'intro_game');
+    setDebugTargetApp(null);
+  };
 
   const openDeveloperTools = () => {
     setDebugMode(true);
@@ -466,6 +499,9 @@ export default function App() {
             }}
             onRestartCurrentChapter={restartCurrentChapter}
             onRestartLoop={restartLoop}
+            checkpointChapter={checkpoint?.progress.currentChapter ?? 1}
+            checkpointSavedAt={checkpoint?.savedAt ?? null}
+            onLoadCheckpoint={loadSavedCheckpoint}
           />
         </MetaInteractionScene>
 

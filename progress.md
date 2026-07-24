@@ -1273,3 +1273,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Replaced the obsolete `ALT / GATE / END` login frame with `ARC / GATE / END`: Mara's first clue, notebook, account mapping, password (`ARC184GATE40END256`), progress keys, dialogue, tests, and design documentation now agree.
 - Removed the abandoned Gate 40 altitude-sequence bypass and its sensor panel. Gate 40 now has no non-Chapter-10 fallback; Chapter 10 continues to use its existing route-point gate.
 - Static verification only by project instruction; targeted migration tests and TypeScript passed. Browser and Preview were not used.
+
+## 2026-07-24 — Single-slot chapter checkpoints
+
+- Converted FileBox into one persistent automatic save slot backed by local storage.
+- The slot is overwritten only when normal gameplay advances to a new chapter; clue collection and developer chapter jumps do not write saves.
+- Reopening the game restores the saved chapter automatically, while FileBox also exposes manual load, restore-current-chapter, and restart-loop controls.
+- New checkpoint tests, TypeScript, and production build passed. Browser and Preview were not used by project instruction.

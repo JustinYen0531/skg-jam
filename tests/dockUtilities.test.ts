@@ -38,6 +38,7 @@ test('all five dock icons expose working utility controls', () => {
     'dock-music-volume',
     'dock-sound-volume',
     'dock-master-mute',
+    'dock-load-checkpoint',
     'dock-restart-chapter',
     'dock-restart-loop',
     'dock-screen-brightness',
