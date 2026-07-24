@@ -920,12 +920,13 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     const sceneRect = sceneRef.current?.getBoundingClientRect();
     if (!active || !target || !sceneRect || autonomousTappingRef.current) return;
     const targetRect = target.getBoundingClientRect();
+    const flappyTap = id === 'flappy-canvas';
     clearPlayerTapTimers();
     pendingRef.current = true;
     setInteractionPending(true);
     setPointer({
-      x: targetRect.left - sceneRect.left + targetRect.width * 0.54,
-      y: targetRect.top - sceneRect.top + targetRect.height * 0.58,
+      x: targetRect.left - sceneRect.left + targetRect.width * (flappyTap ? 0.88 : 0.54),
+      y: targetRect.top - sceneRect.top + targetRect.height * (flappyTap ? 0.52 : 0.58),
     });
     setPressed(true);
     audio.play('meta.fingerContact');
@@ -949,6 +950,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     const sceneRect = sceneRef.current?.getBoundingClientRect();
     if (!active || !target || !sceneRect || autonomousTappingRef.current) return;
     const targetRect = target.getBoundingClientRect();
+    const flappyTap = id === 'flappy-canvas';
     clearPlayerTapTimers();
     autonomousTappingRef.current = true;
     pendingRef.current = true;
@@ -956,8 +958,8 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     setInteractionPending(true);
     setScrollGesture(null);
     setPointer({
-      x: targetRect.left - sceneRect.left + targetRect.width * 0.28,
-      y: targetRect.top - sceneRect.top + targetRect.height * 0.72,
+      x: targetRect.left - sceneRect.left + targetRect.width * (flappyTap ? 0.88 : 0.28),
+      y: targetRect.top - sceneRect.top + targetRect.height * (flappyTap ? 0.52 : 0.72),
     });
     audio.play('meta.handDepart');
   }, [active, clearPlayerTapTimers]);

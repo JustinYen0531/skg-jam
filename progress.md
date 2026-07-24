@@ -1137,3 +1137,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Corrected the actual player-tap finger asset, not only the autonomous grip: it is now mirrored so its wrist enters from and is cropped by the right edge rather than exposing a hollow left-side forearm.
 - Added deterministic lower-screen subtitles for the user-supplied Finale lyric during Arcane's Chapter 10 performance. The subtitle follows real Finale playback progress and yields to the end-credit screen.
 - Browser and Preview remain intentionally unused by project instruction; validation is static only.
+
+## 2026-07-24 — Audio-timed Finale SRT and corrected right-hand composition
+
+- Replaced the evenly distributed lyric approximation with a real 119.24-second audio transcription pass. The supplied canonical lyric now lives in an SRT whose cue boundaries come from the Finale recording.
+- The game loads and parses that SRT at runtime; both lower-screen subtitles and the final `Thank you for reaching the end.` cue follow absolute audio time.
+- Flappy taps no longer chase the bird or the canvas centre. Player and autonomous tap relays use a fixed point at 88% across and 52% down the phone, keeping the right hand centred vertically with its wrist outside the right edge.
+- Browser and Preview remain intentionally unused by project instruction; validation is static only.

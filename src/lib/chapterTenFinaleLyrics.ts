@@ -1,56 +1,45 @@
 export interface FinaleLyricCue {
-  start: number;
-  end: number;
+  startSeconds: number;
+  endSeconds: number;
   line: string;
 }
 
-const FINALE_LYRIC_LINES = [
-  'I made a little world one afternoon',
-  'Just squares and skies of painted blue',
-  'A bird that never asked to fly',
-  'Until somebody pressed “Retry”',
-  'I thought a score would make it last',
-  'A number no one could surpass',
-  'But numbers only learned to grow',
-  'While all the names were left below',
-  'If every update hides a trace',
-  'Would someone still remember this place?',
-  'If every version fades away',
-  'Will anybody choose to stay?',
-  'Don’t chase the highest score tonight',
-  'Follow where the echoes hide',
-  'Some stories never reach “The End”',
-  'Until somebody plays again',
-  'If one more heart can hear this song',
-  'Then maybe nothing’s truly gone',
-  'The sky was never made to keep',
-  'Only those who dared to leap',
-  'The world moved on to brighter screens',
-  'To faster dreams and newer things',
-  'But somewhere underneath the code',
-  'The little road still waits alone',
-  'The final notes were always there',
-  'Just no one stayed to hear them end',
-  'You found the path',
-  'They couldn’t see',
-  'The missing line',
-  'Inside of me',
-  'No cheats',
-  'No myths',
-  'No perfect run',
-  'Just someone',
-  'Who finally listened',
-] as const;
+const parseSrtTime = (value: string): number => {
+  const match = value.match(/^(\d{2}):(\d{2}):(\d{2}),(\d{3})$/);
+  if (!match) return Number.NaN;
+  const [, hours, minutes, seconds, milliseconds] = match;
+  return Number(hours) * 3600 + Number(minutes) * 60 + Number(seconds) + Number(milliseconds) / 1000;
+};
 
-const CUE_DURATION = 1 / (FINALE_LYRIC_LINES.length + 1);
+export const parseChapterTenFinaleSrt = (srt: string): readonly FinaleLyricCue[] => (
+  srt
+    .trim()
+    .split(/\r?\n\r?\n/)
+    .flatMap((block) => {
+      const lines = block.split(/\r?\n/);
+      const timing = lines[1]?.match(/^(.+?)\s+-->\s+(.+)$/);
+      if (!timing || lines.length < 3) return [];
+      const startSeconds = parseSrtTime(timing[1]);
+      const endSeconds = parseSrtTime(timing[2]);
+      if (!Number.isFinite(startSeconds) || !Number.isFinite(endSeconds)) return [];
+      return [{ startSeconds, endSeconds, line: lines.slice(2).join(' ') }];
+    })
+);
 
-export const CHAPTER_TEN_FINALE_LYRICS: readonly FinaleLyricCue[] = FINALE_LYRIC_LINES.map((line, index) => ({
-  start: index * CUE_DURATION,
-  end: (index + 1) * CUE_DURATION,
-  line,
-}));
+export const getChapterTenFinaleLyric = (
+  currentTime: number,
+  cues: readonly FinaleLyricCue[],
+): FinaleLyricCue | null => (
+  cues.find((cue) => currentTime >= cue.startSeconds && currentTime < cue.endSeconds) ?? null
+);
 
-export const getChapterTenFinaleLyric = (progress: number | null): FinaleLyricCue | null => {
-  if (progress === null || progress < 0 || progress >= 1) return null;
-  return CHAPTER_TEN_FINALE_LYRICS.find((cue) => progress >= cue.start && progress < cue.end) ?? null;
+export const getFinaleLyricWordIndex = (
+  currentTime: number,
+  cue: FinaleLyricCue | null,
+  wordCount: number,
+): number => {
+  if (!cue || wordCount <= 0 || currentTime < cue.startSeconds || currentTime >= cue.endSeconds) return -1;
+  const duration = Math.max(0.001, cue.endSeconds - cue.startSeconds);
+  const progress = Math.max(0, Math.min(1, (currentTime - cue.startSeconds) / duration));
+  return Math.min(wordCount - 1, Math.floor(progress * wordCount));
 };

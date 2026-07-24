@@ -51,7 +51,6 @@ import {
   FINAL_LYRIC_WORDS,
   getCreditsOverflowProgress,
   getCreditsScoreAtProgress,
-  getFinalLyricWordIndex,
   NOAH_FINAL_TRANSMISSION,
 } from '../lib/chapterTenCredits';
 import {
@@ -69,7 +68,12 @@ import {
   type PerformancePlan,
 } from '../lib/chapterTenPerformance';
 import { drawPerformanceBird, drawPerformanceObstacles } from './chapterTenPerformanceCanvas';
-import { getChapterTenFinaleLyric } from '../lib/chapterTenFinaleLyrics';
+import {
+  getChapterTenFinaleLyric,
+  getFinaleLyricWordIndex,
+  parseChapterTenFinaleSrt,
+  type FinaleLyricCue,
+} from '../lib/chapterTenFinaleLyrics';
 import { useReducedMotion } from '../lib/useReducedMotion';
 
 interface FlappyGameProps {
@@ -129,6 +133,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
   const [scoreSubmissionStage, setScoreSubmissionStage] = useState<ScoreSubmissionStage>('idle');
   const [scoreSubmissionName, setScoreSubmissionName] = useState('');
   const [afterwordOpen, setAfterwordOpen] = useState(false);
+  const [finaleLyricCues, setFinaleLyricCues] = useState<readonly FinaleLyricCue[]>([]);
   const [rememberedAfterwords, setRememberedAfterwords] = useState<ChapterTenAfterword[]>(() => {
     if (typeof window === 'undefined') return [];
     try {
@@ -195,10 +200,30 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
     : getFinaleCreditProgress(creditsPlaybackStartedAt, finalePlayback);
   const creditsOverflowProgress = getCreditsOverflowProgress(creditsPlaybackProgress ?? 0);
   const creditsScore = getCreditsScoreAtProgress(creditsOverflowProgress);
-  const finalLyricWordIndex = getFinalLyricWordIndex(creditsPlaybackProgress ?? 0);
-  const finaleLyric = getChapterTenFinaleLyric(
-    finalePlayback.duration === null ? null : finalePlayback.currentTime / finalePlayback.duration,
+  const finaleLyric = getChapterTenFinaleLyric(finalePlayback.currentTime, finaleLyricCues);
+  const finalLyricCue = finaleLyricCues.find((cue) => cue.line === 'Thank you for reaching the end.') ?? null;
+  const finalLyricWordIndex = getFinaleLyricWordIndex(
+    finalePlayback.currentTime,
+    finalLyricCue,
+    FINAL_LYRIC_WORDS.length,
   );
+
+  useEffect(() => {
+    if (!chapterTenActive || finaleLyricCues.length > 0) return;
+    let cancelled = false;
+    fetch('/assets/music/Phase%2010%20(Finale).srt')
+      .then((response) => {
+        if (!response.ok) throw new Error(`Finale subtitle unavailable: ${response.status}`);
+        return response.text();
+      })
+      .then((srt) => {
+        if (!cancelled) setFinaleLyricCues(parseChapterTenFinaleSrt(srt));
+      })
+      .catch(() => {
+        if (!cancelled) setFinaleLyricCues([]);
+      });
+    return () => { cancelled = true; };
+  }, [chapterTenActive, finaleLyricCues.length]);
 
   useEffect(() => {
     if (!chapterTenActive || !hackedMode) return;
@@ -1662,7 +1687,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
         <div
           className="pointer-events-none absolute inset-x-[10%] bottom-[12%] z-20 rounded border border-white/10 bg-black/35 px-5 py-2 text-center font-thought text-[clamp(10px,1.35cqh,15px)] tracking-[0.08em] text-white/72 shadow-[0_8px_22px_rgba(0,0,0,0.2)] backdrop-blur-[2px]"
           id="chapter-ten-finale-lyric-subtitle"
-          data-lyric-progress={finalePlayback.duration === null ? 'unknown' : finalePlayback.currentTime / finalePlayback.duration}
+          data-lyric-time={finalePlayback.currentTime.toFixed(3)}
         >
           {finaleLyric.line}
         </div>
@@ -1765,7 +1790,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
                     {creditsScore}
                   </div>
 
-                  <div
+                  {finalLyricWordIndex >= 0 && <div
                     className="mx-auto mt-8 grid w-full max-w-[420px] grid-cols-6 gap-1 text-center"
                     id="chapter-ten-final-lyric"
                     data-active-word={finalLyricWordIndex}
@@ -1780,7 +1805,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
                         {word}
                       </span>
                     ))}
-                  </div>
+                  </div>}
 
                   {finalePlayback.ended && creditsScrollComplete && (
                     <div className="mx-auto mt-5 max-w-[280px]">

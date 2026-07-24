@@ -2,20 +2,31 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import {
-  CHAPTER_TEN_FINALE_LYRICS,
   getChapterTenFinaleLyric,
+  getFinaleLyricWordIndex,
+  parseChapterTenFinaleSrt,
 } from '../src/lib/chapterTenFinaleLyrics';
 
-test('the Chapter 10 Finale uses the supplied lyric as deterministic lower-screen subtitles', () => {
+test('the Chapter 10 Finale uses audio-derived SRT timing and a right-edge tap pose', () => {
   const gameSource = readFileSync(new URL('../src/components/FlappyGame.tsx', import.meta.url), 'utf8');
   const metaSource = readFileSync(new URL('../src/components/MetaInteractionScene.tsx', import.meta.url), 'utf8');
+  const srt = readFileSync(new URL('../public/assets/music/Phase 10 (Finale).srt', import.meta.url), 'utf8');
+  const auditSrt = readFileSync(new URL('../output/transcribe/phase-10-finale/Phase 10 (Finale).srt', import.meta.url), 'utf8');
+  const cues = parseChapterTenFinaleSrt(srt);
 
-  assert.equal(CHAPTER_TEN_FINALE_LYRICS[0]?.line, 'I made a little world one afternoon');
-  assert.equal(CHAPTER_TEN_FINALE_LYRICS.at(-1)?.line, 'Who finally listened');
-  assert.equal(getChapterTenFinaleLyric(null), null);
-  assert.equal(getChapterTenFinaleLyric(0)?.line, 'I made a little world one afternoon');
-  assert.match(gameSource, /id="chapter-ten-finale-lyric-subtitle"/);
+  assert.equal(auditSrt, srt);
+  assert.equal(cues.length, 36);
+  assert.equal(getChapterTenFinaleLyric(41.98, cues)?.line, 'Would someone still remember this place?');
+  assert.equal(getChapterTenFinaleLyric(54.8, cues)?.line, 'Don’t chase the highest score tonight');
+  assert.equal(getChapterTenFinaleLyric(90.38, cues)?.line, 'You found the path');
+  const finalCue = getChapterTenFinaleLyric(112, cues);
+  assert.equal(finalCue?.line, 'Thank you for reaching the end.');
+  assert.equal(getFinaleLyricWordIndex(111.36, finalCue, 6), 0);
+  assert.equal(getChapterTenFinaleLyric(115, cues), null);
+  assert.match(gameSource, /Phase%2010%20\(Finale\)\.srt/);
+  assert.match(gameSource, /data-lyric-time=/);
   assert.match(gameSource, /!chapterTenCreditsActive/);
+  assert.match(metaSource, /flappyTap \? 0\.88/);
+  assert.match(metaSource, /flappyTap \? 0\.52/);
   assert.match(metaSource, /data-finger-orientation="upper-right-edge"/);
-  assert.match(metaSource, /scaleX: -1/);
 });
