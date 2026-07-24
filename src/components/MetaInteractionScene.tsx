@@ -1661,13 +1661,18 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
 
   const handleWheelCapture = (event: React.WheelEvent<HTMLDivElement>) => {
     if (!active) return;
-    if (autonomousTappingRef.current) {
+    const source = event.target;
+    // The game is embedded in itch.io's page. Claim every wheel gesture that
+    // starts on the phone so it cannot chain into the parent page; eligible
+    // phone lists are still scrolled manually below.
+    if (source instanceof Element && source.closest('#phone-bezel')) {
       event.preventDefault();
+    }
+    if (autonomousTappingRef.current) {
       event.stopPropagation();
       return;
     }
     if (reducedMotion || interactionPending) return;
-    const source = event.target;
     if (!(source instanceof Element) || !source.closest('#phone-bezel')) return;
 
     const travelY = getScrollFingerTravel(event.deltaY);

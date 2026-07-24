@@ -192,6 +192,13 @@ test('the Flappy game renders its sky from the day-to-night transition', () => {
   assert.match(source, /getFlappyNightMix\(state\.score\)/);
 });
 
+test('each two-point pipe pass renders one matching +2 popup', () => {
+  const source = readFileSync('src/components/FlappyGame.tsx', 'utf8');
+
+  assert.match(source, /ctx\.fillText\('\+2', p\.x, p\.y - rise\)/);
+  assert.doesNotMatch(source, /ctx\.fillText\('\+1', p\.x, p\.y - rise\)/);
+});
+
 test('the Flappy game uses the special Gate 40 spawn position', () => {
   const source = readFileSync('src/components/FlappyGame.tsx', 'utf8');
 

@@ -1363,7 +1363,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
           ctx.font = 'bold 13px "Inter"';
           ctx.shadowColor = 'rgba(139, 92, 246, 0.8)';
           ctx.shadowBlur = 10;
-          ctx.fillText('+1', p.x, p.y - rise);
+          ctx.fillText('+2', p.x, p.y - rise);
           ctx.font = 'bold 7px "Inter"';
           ctx.fillStyle = '#a5f3fc';
           ctx.fillText(p.text, p.x, p.y + 10 - rise);

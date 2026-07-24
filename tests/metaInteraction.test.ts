@@ -476,6 +476,7 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   assert.match(sceneSource, /transformOrigin: '40% 5\.8%'[\s\S]{0,600}id="meta-tapping-finger-asset"/);
   assert.match(sceneSource, /animate=\{\{ y: pressed \? 5 : 0, scale: pressed \? 0\.98 : 1 \}\}/);
   assert.match(sceneSource, /onWheelCapture=\{handleWheelCapture\}/);
+  assert.match(sceneSource, /source\.closest\('#phone-bezel'\)[\s\S]{0,100}event\.preventDefault\(\)/);
   assert.match(sceneSource, /id="meta-scroll-finger"/);
   assert.match(sceneSource, /data-scroll-direction=\{scrollGesture\.travelY < 0 \? 'finger-up' : 'finger-down'\}/);
   assert.match(appSource, /setMetaViewActive\(true\);[\s\S]{0,180}setDebugTargetApp/);
