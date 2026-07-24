@@ -466,19 +466,34 @@ export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, up
   const runPackageRevealReaction = () => {
     revealReactionScope.current += 1;
     const scope = revealReactionScope.current;
+    let openingFinished = false;
+    let tappingFinished = false;
+    let aftermathStarted = false;
 
-    metaInteraction.speak(CHAPTER_FOUR_DIALOGUE.packageOpened, () => {
-      if (revealReactionScope.current !== scope) return;
-      metaInteraction.speak(CHAPTER_FOUR_DIALOGUE.packageAnger, () => {
+    const continueAfterOpeningAndTaps = () => {
+      if (
+        revealReactionScope.current !== scope
+        || !openingFinished
+        || !tappingFinished
+        || aftermathStarted
+      ) return;
+      aftermathStarted = true;
+      metaInteraction.speak(CHAPTER_FOUR_DIALOGUE.packageDespair, () => {
         if (revealReactionScope.current !== scope) return;
-        metaInteraction.tapSequence('lumen-arc-frustration-tap-zone', 5, () => {
-          if (revealReactionScope.current !== scope) return;
-          metaInteraction.speak(CHAPTER_FOUR_DIALOGUE.packageDespair, () => {
-            if (revealReactionScope.current !== scope) return;
-            metaInteraction.speak(CHAPTER_FOUR_DIALOGUE.packageResolve);
-          });
-        });
+        metaInteraction.speak(CHAPTER_FOUR_DIALOGUE.packageResolve);
       });
+    };
+
+    // The hand loses control at the same instant the screenshot stack bursts
+    // out. It does not wait for another long anger speech, but the next thought
+    // still waits for both this motion and the opening realization to finish.
+    metaInteraction.speak(CHAPTER_FOUR_DIALOGUE.packageOpened, () => {
+      openingFinished = true;
+      continueAfterOpeningAndTaps();
+    });
+    metaInteraction.tapSequence('lumen-arc-frustration-tap-zone', 5, () => {
+      tappingFinished = true;
+      continueAfterOpeningAndTaps();
     });
   };
 

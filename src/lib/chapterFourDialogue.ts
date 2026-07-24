@@ -24,10 +24,6 @@ export const CHAPTER_FOUR_DIALOGUE = {
     "Wait. No—no, that's not a phone.",
     'Those are screenshots. He sent me screenshots.',
   ],
-  packageAnger: [
-    'You sold me a stack of pictures and called it a device.',
-    'Come on. Open. Do something.',
-  ],
   packageDespair: [
     "There's nothing underneath.",
     "I paid for somebody else's leftovers.",
