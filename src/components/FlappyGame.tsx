@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { GameProgress, ActiveApp } from '../types';
 import audio from '../lib/audio';
-import music from '../lib/music';
+import music, { getFinaleCreditProgress } from '../lib/music';
 import { EASY_FLAPPY_SETTINGS, FlappyDeathCause, GATE_40_INDEX, getCheapTelemetry, getFlappyNightMix, getGateHeights, getGateSpawnX, getGateVisualStyle, getScoreAfterPassingGate, nextGate40DeathCount, resolvePipeCollision } from '../lib/flappyPhysics';
 import { calculateBeatPercentage, createPublicLeaderboard } from '../lib/leaderboard';
 import { RefreshCw, Play, Volume2, VolumeX, CheckCircle, Zap, Crown, Sparkles, Rocket, Brain, Activity } from 'lucide-react';
@@ -40,7 +40,12 @@ import {
   type AssistPlan,
 } from '../lib/chapterTenAssist';
 import { useMetaInteraction } from './MetaInteractionScene';
-import { ARCANE_FLIGHT_REFLECTIONS, ARCANE_TAKEOVER_LINES } from '../lib/chapterTenCredits';
+import {
+  ARCANE_FLIGHT_REFLECTIONS,
+  ARCANE_TAKEOVER_LINES,
+  getCreditsScoreAtProgress,
+  NOAH_FINAL_TRANSMISSION,
+} from '../lib/chapterTenCredits';
 import {
   computePerformancePlan,
   getPerformanceObstaclePositions,
@@ -49,6 +54,7 @@ import {
   type PerformancePlan,
 } from '../lib/chapterTenPerformance';
 import { drawPerformanceBird, drawPerformanceObstacles } from './chapterTenPerformanceCanvas';
+import { useReducedMotion } from '../lib/useReducedMotion';
 
 interface FlappyGameProps {
   progress: GameProgress;
@@ -93,6 +99,11 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
   const [showChapterTenWelcome, setShowChapterTenWelcome] = useState(
     progress.currentChapter === 10,
   );
+  const [finalePlayback, setFinalePlayback] = useState(() => music.getFinalePlayback());
+  const [creditsPlaybackStartedAt, setCreditsPlaybackStartedAt] = useState<number | null>(null);
+  const [creditsScrollComplete, setCreditsScrollComplete] = useState(false);
+  const creditsScrollRef = useRef<HTMLDivElement | null>(null);
+  const reducedMotion = useReducedMotion();
   const {
     active: metaInteractionActive,
     pulsePlayerTap,
@@ -102,6 +113,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
     speak,
   } = useMetaInteraction();
   const chapterTenActive = progress.currentChapter === 10;
+  const chapterTenCreditsActive = chapterTenActive && progress.phase === 'credits';
   const chapterTenEntryDotsSpokenRef = useRef(false);
   const beginAutonomousControlRef = useRef(beginAutonomousControl);
   const metaInteractionActiveRef = useRef(metaInteractionActive);
@@ -119,6 +131,48 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
       speak(['...']);
     }
   }, [chapterTenActive, speak]);
+
+  useEffect(() => {
+    if (!chapterTenCreditsActive) {
+      setCreditsPlaybackStartedAt(null);
+      setCreditsScrollComplete(false);
+      return;
+    }
+
+    music.playFinaleOnce();
+    const playback = music.getFinalePlayback();
+    setFinalePlayback(playback);
+    setCreditsPlaybackStartedAt(playback.currentTime);
+    setCreditsScrollComplete(false);
+    return music.onFinalePlayback(setFinalePlayback);
+  }, [chapterTenCreditsActive]);
+
+  const creditsPlaybackProgress = creditsPlaybackStartedAt === null
+    ? null
+    : getFinaleCreditProgress(creditsPlaybackStartedAt, finalePlayback);
+  const creditsScore = getCreditsScoreAtProgress(creditsPlaybackProgress ?? 0);
+
+  useEffect(() => {
+    if (!chapterTenCreditsActive) return;
+    const scrollBox = creditsScrollRef.current;
+    if (!scrollBox) return;
+
+    if (reducedMotion) {
+      scrollBox.scrollTop = 0;
+      setCreditsScrollComplete(finalePlayback.ended);
+      return;
+    }
+
+    const progressRatio = creditsPlaybackProgress ?? 0;
+    const maxScroll = Math.max(0, scrollBox.scrollHeight - scrollBox.clientHeight);
+    scrollBox.scrollTop = maxScroll * progressRatio;
+    setCreditsScrollComplete(finalePlayback.ended && progressRatio >= 1);
+  }, [
+    chapterTenCreditsActive,
+    creditsPlaybackProgress,
+    finalePlayback.ended,
+    reducedMotion,
+  ]);
 
   // Chapter 10 route-point assist. After five straight sub-41 runs the game
   // offers a precise, deterministic click pattern (see chapterTenAssist.ts) that
@@ -1505,6 +1559,90 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
           id="flappy-canvas"
         />
 
+        {chapterTenCreditsActive && (
+          <div
+            className="absolute inset-0 z-50 overflow-hidden bg-black font-mono text-white"
+            id="chapter-ten-game-credits"
+            data-credit-surface="skyline-256-phone-game"
+          >
+            <div
+              className="pointer-events-none absolute right-5 top-4 z-20 text-right"
+              id="chapter-ten-credit-score"
+              data-score={creditsScore}
+            >
+              <div className="text-[7px] tracking-[0.28em] text-white/45">SCORE</div>
+              <div className="mt-0.5 text-[18px] font-bold tabular-nums tracking-[0.06em] text-white">
+                {creditsScore}
+              </div>
+            </div>
+
+            <div
+              ref={creditsScrollRef}
+              className={`h-full w-full px-[12%] ${
+                reducedMotion ? 'overflow-y-auto' : 'overflow-hidden'
+              }`}
+              id="chapter-ten-credit-scroll"
+              data-scroll-progress={creditsPlaybackProgress ?? 'waiting-for-audio-metadata'}
+              aria-label="Skyline 256 final developer transmission"
+            >
+              <div className="mx-auto w-full max-w-[470px] space-y-12 pb-[48%] pt-[48%] text-center">
+                <div className="space-y-2">
+                  <div className="text-[8px] tracking-[0.34em] text-white/50">
+                    SKYLINE 256
+                  </div>
+                  <h1 className="text-[19px] font-bold tracking-[0.18em] text-white">
+                    SKYLINE COMPLETE
+                  </h1>
+                  <div className="text-[8px] tracking-[0.24em] text-white/45">
+                    FINAL DEVELOPER TRANSMISSION
+                  </div>
+                </div>
+
+                <div className="space-y-5 text-left text-[10px] leading-[1.9] text-white/88">
+                  {NOAH_FINAL_TRANSMISSION.map((line) => (
+                    <p key={line}>{line}</p>
+                  ))}
+                </div>
+
+                <div className="space-y-3 text-[9px] leading-relaxed text-white/60">
+                  <div className="mb-5 text-[8px] tracking-[0.3em] text-white/42">
+                    SILVER KITE DEVELOPERS
+                  </div>
+                  <div>NOAH KADE — DESIGN, CODE &amp; FINAL ROUTE</div>
+                  <div>MARA KADE — WORLD, ENDING &amp; FIRST BELIEVER</div>
+                  <div>ELIAS VALE — CO-FOUNDER &amp; PRODUCTION</div>
+                  <div>ARC_184 — ARCANE KADE · FIRST HUMAN RECORD</div>
+                  <div className="pt-3 font-bold tracking-[0.16em] text-white">
+                    ARCHIVE WITNESS — YOU
+                  </div>
+                </div>
+
+                <div className="flex min-h-[52px] items-start justify-center">
+                  {finalePlayback.ended && creditsScrollComplete ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        audio.playUnlock();
+                        updateProgress((previous) => ({ ...previous, phase: 'ending_choice' }));
+                      }}
+                      className="border border-white/65 bg-black px-5 py-2 text-[9px] font-bold tracking-[0.2em] text-white hover:bg-white hover:text-black"
+                      id="credits-proceed-btn"
+                    >
+                      PROCEED TO FINAL STRATEGY
+                    </button>
+                  ) : (
+                    <div className="text-[7px] tracking-[0.26em] text-white/35" id="credits-finale-playing">
+                      {finalePlayback.duration === null
+                        ? 'WAITING FOR AUDIO'
+                        : 'TRANSMISSION IN PROGRESS'}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {chapterTenPlayerFullscreen && chapterTenActive && (
           <div
             className="pointer-events-none absolute inset-x-0 bottom-0 z-30 border-t border-white/10 bg-[#080b10]/55 px-6 py-4 backdrop-blur-[2px]"
@@ -1739,7 +1877,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
             <div className="relative w-full max-w-[350px] border-2 border-[#d6d0a8] bg-[#26352f] p-1 text-center shadow-[6px_6px_0_#080c0a]">
               <div className="border border-[#71806a] bg-[#18231f] px-6 py-5 shadow-[inset_0_0_0_1px_#0b100e]">
                 <div className="mb-3 text-[8px] font-bold uppercase tracking-[0.24em] text-[#87957f]">
-                  Route Guide // Legacy Profile
+                  Skyline 256 // Route Recovery
                 </div>
                 <div className="text-[16px] font-black tracking-[0.08em] text-[#fff2a6]">
                   {CHAPTER_TEN_WELCOME_LABEL}

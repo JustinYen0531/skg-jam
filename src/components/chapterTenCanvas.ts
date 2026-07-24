@@ -18,10 +18,7 @@ import {
   getTerminalDrain,
   isNostalgicFlight,
 } from '../lib/chapterTenVisualPhases';
-import {
-  getCompletionScoreAtFrame,
-  getFlightCreditsAtScore,
-} from '../lib/chapterTenCredits';
+import { getFlightCreditsAtScore } from '../lib/chapterTenCredits';
 
 interface PipeShape {
   x: number;
@@ -268,13 +265,12 @@ export const drawChapterTenComplete = (
   ctx: CanvasRenderingContext2D,
   width: number,
   height: number,
-  frame: number,
+  _frame: number,
 ): void => {
   ctx.fillStyle = '#050708'; ctx.fillRect(0, 0, width, height);
   ctx.textAlign = 'center'; ctx.font = '17px "JetBrains Mono"'; ctx.fillStyle = '#dce7e2';
   ctx.fillText(CHAPTER_TEN_COMPLETE_LINES[0], width / 2, height / 2 - 20);
   ctx.font = '10px "JetBrains Mono"'; ctx.fillStyle = '#8fa8a0';
   ctx.fillText(CHAPTER_TEN_COMPLETE_LINES[1], width / 2, height / 2 + 8);
-  const overflow = getCompletionScoreAtFrame(frame);
-  ctx.fillText(`SCORE ${overflow}`, width / 2, height / 2 + 36);
+  ctx.fillText('SCORE 256', width / 2, height / 2 + 36);
 };

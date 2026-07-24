@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { GameProgress, PuzzleChapter } from './types';
 import { PhoneSimulator } from './components/PhoneSimulator';
 import { MetaInteractionScene } from './components/MetaInteractionScene';
@@ -9,9 +9,7 @@ import {
   shouldShowMetaScene,
 } from './lib/metaInteraction';
 import audio from './lib/audio';
-import music, { getFinaleCreditProgress, getMusicPhase } from './lib/music';
-import { NOAH_FINAL_TRANSMISSION } from './lib/chapterTenCredits';
-import { useReducedMotion } from './lib/useReducedMotion';
+import music, { getMusicPhase } from './lib/music';
 import { 
   Award, Terminal, RefreshCw, Volume2, VolumeX,
   Sparkles, CheckCircle, Database, HelpCircle, Archive, Globe
@@ -79,12 +77,6 @@ export default function App() {
     return new URLSearchParams(window.location.search).get('debug') === 'true';
   });
   const [debugTargetApp, setDebugTargetApp] = useState<{ app: ReturnType<typeof getChapterById>['targetApp']; nonce: number } | null>(null);
-  const [finaleTrackEnded, setFinaleTrackEnded] = useState(false);
-  const [finalePlayback, setFinalePlayback] = useState(() => music.getFinalePlayback());
-  const [creditsPlaybackStartedAt, setCreditsPlaybackStartedAt] = useState<number | null>(null);
-  const [creditsScrollComplete, setCreditsScrollComplete] = useState(false);
-  const creditsScrollRef = useRef<HTMLDivElement>(null);
-  const reducedMotion = useReducedMotion();
   const activeMusicPhase = getMusicPhase(progress);
 
   // Developer-only evidence tools stay out of the player's story surface.
@@ -145,51 +137,10 @@ export default function App() {
   useEffect(() => {
     if (progress.phase === 'credits') {
       music.playFinaleOnce();
-      const playback = music.getFinalePlayback();
-      setFinalePlayback(playback);
-      setCreditsPlaybackStartedAt(playback.currentTime);
-      setCreditsScrollComplete(false);
     } else {
       music.setPhase(activeMusicPhase);
-      setCreditsPlaybackStartedAt(null);
-      setCreditsScrollComplete(false);
     }
   }, [activeMusicPhase, progress.phase]);
-
-  useEffect(() => music.onFinaleEnded(setFinaleTrackEnded), []);
-  useEffect(() => {
-    if (progress.phase !== 'credits') return;
-    return music.onFinalePlayback(setFinalePlayback);
-  }, [progress.phase]);
-
-  const creditsPlaybackProgress = creditsPlaybackStartedAt === null
-    ? null
-    : getFinaleCreditProgress(creditsPlaybackStartedAt, finalePlayback);
-
-  useEffect(() => {
-    if (progress.phase !== 'credits') return;
-    const scrollBox = creditsScrollRef.current;
-    if (!scrollBox) return;
-
-    if (reducedMotion) {
-      // A static, manually readable document replaces continuous motion.
-      scrollBox.scrollTop = 0;
-      setCreditsScrollComplete(finalePlayback.ended);
-      return;
-    }
-
-    // Unknown metadata deliberately holds the first frame instead of guessing
-    // a duration. Once known, audio time is the single animation clock.
-    const progressRatio = creditsPlaybackProgress ?? 0;
-    const maxScroll = Math.max(0, scrollBox.scrollHeight - scrollBox.clientHeight);
-    scrollBox.scrollTop = maxScroll * progressRatio;
-    setCreditsScrollComplete(finalePlayback.ended && progressRatio >= 1);
-  }, [
-    creditsPlaybackProgress,
-    finalePlayback.ended,
-    progress.phase,
-    reducedMotion,
-  ]);
 
   useEffect(() => audio.setVolume(soundVolume), [soundVolume]);
   useEffect(() => music.setVolume(musicVolume), [musicVolume]);
@@ -484,81 +435,8 @@ export default function App() {
 
       </div>
 
-      {/* STORY CREDITS AND ENDING DECISION OVERLAYS (Phase triggered) */}
+      {/* ENDING DECISION OVERLAY (Phase triggered) */}
       <AnimatePresence>
-        {progress.phase === 'credits' && (
-          /* The old system holds the whole display now. It is not broken —
-             it has simply waited a long time to show this page. */
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={reducedMotion ? { duration: 0 } : { duration: 0.9, ease: 'easeOut' }}
-            className="fixed inset-0 bg-[#0a0e13]/[0.99] flex items-stretch justify-center px-6 z-50 overflow-hidden"
-            id="credits-overlay"
-          >
-            <div
-              ref={creditsScrollRef}
-              className={`relative h-full max-w-lg w-full ${
-                reducedMotion ? 'overflow-y-auto' : 'overflow-hidden'
-              }`}
-              id="credits-scroll-box"
-              data-scroll-progress={creditsPlaybackProgress ?? 'waiting-for-audio-metadata'}
-              aria-label="Final developer transmission and credits"
-            >
-              <div className="min-h-full space-y-10 text-center px-4 pt-[14vh] pb-[18vh]">
-              <div className="space-y-1.5">
-                <div className="laos-label text-[10px] !text-[var(--laos-warm)]">
-                  - CONNECTION COMPLETED -
-                </div>
-                <h1 className="font-laos font-semibold text-2xl text-[var(--laos-text)] tracking-[0.06em]">
-                  SKYLINE COMPLETE
-                </h1>
-              </div>
-
-              {/* Noah's final transmission occupies the remainder of Finale. */}
-              <div className="laos-panel p-4 text-left text-xs space-y-3 leading-relaxed font-laos text-[var(--laos-text)]">
-                <p className="laos-label text-[9px] border-b border-[var(--laos-line-dim)] pb-2">
-                  FINAL DEVELOPER TRANSMISSION // VER: 1.04_FINAL
-                </p>
-                {NOAH_FINAL_TRANSMISSION.map((line) => <p key={line}>{line}</p>)}
-              </div>
-
-              {/* Credited names */}
-              <div className="space-y-1.5 text-xs text-[var(--laos-dim)] font-laos text-center">
-                <div className="laos-label text-[9px] mb-2 !text-[var(--laos-text)]">SILVER KITE DEVELOPERS</div>
-                <div>Noah Kade — Design, Code & Final Route</div>
-                <div>Mara Kade — World, Ending & First Believer</div>
-                <div>Elias Vale — Co-founder & Production</div>
-                <div>ARC_184 — Arcane Kade · First Human Record</div>
-                <div className="text-[var(--laos-warm)] font-semibold mt-2">ARCHIVE WITNESS — YOU</div>
-              </div>
-
-              <div className="min-h-[42px] flex items-start justify-center">
-              {finaleTrackEnded && creditsScrollComplete ? (
-                <button
-                  onClick={() => {
-                    audio.playUnlock();
-                    setProgress((prev) => ({ ...prev, phase: 'ending_choice' }));
-                  }}
-                  className="laos-slow px-6 py-2.5 bg-[var(--laos-surface-2)] hover:bg-[var(--laos-line-dim)] text-[var(--laos-text)] border border-[var(--laos-line)] font-laos font-semibold tracking-[0.14em] text-[11px]"
-                  id="credits-proceed-btn"
-                >
-                  PROCEED TO FINAL STRATEGY
-                </button>
-              ) : (
-                <div className="laos-label text-[9px] text-[var(--laos-dim)]" id="credits-finale-playing">
-                  {finalePlayback.duration === null
-                    ? 'FINAL TRANSMISSION IS WAITING FOR THE SONG'
-                    : 'FINAL TRANSMISSION CONTINUES WITH THE SONG'}
-                </div>
-              )}
-              </div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
         {progress.phase === 'ending_choice' && (
           /* The final choice belongs to the old system's page too. Three
              plain documents, no fireworks — attention stays on the decision. */

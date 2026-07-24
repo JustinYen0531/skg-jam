@@ -1085,3 +1085,12 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Unknown audio metadata holds the letter at its opening frame; the final action remains locked until both the song and the scroll have reached their end.
 - Reduced-motion mode presents the same transmission as a static, manually readable document.
 - Browser and Preview remain intentionally unused by project instruction.
+
+## 2026-07-24 — Skyline 256 in-phone credits correction
+
+- Corrected the previous presentation-layer mistake: the Final Developer Transmission no longer covers the room or the whole browser. It now remains inside the horizontal Flappy game surface on the phone.
+- Replaced the document-card composition with a black game screen, white rolling text, and one clipped phone-sized scroll viewport.
+- Moved the score overflow into the in-game credits: the pre-credit completion frame holds at `256`; the top-right credits score follows `256 → 65535 → -65535`, reaching the negative value at the Finale ending.
+- Kept the launcher named `Flappy Something` because the recovered download augments the existing app instead of replacing it with another game.
+- Chapter 10 entry now identifies the recovered material subtly as `SKYLINE 256 // ROUTE RECOVERY`; it does not call itself an assistant.
+- Browser and Preview remain intentionally unused by project instruction.

@@ -55,6 +55,11 @@ export const getCompletionScoreAtFrame = (frame: number): number => {
   return -65535;
 };
 
+export const getCreditsScoreAtProgress = (progress: number): number => {
+  const clamped = Math.max(0, Math.min(1, progress));
+  return getCompletionScoreAtFrame(Math.round(clamped * 156));
+};
+
 export const NOAH_FINAL_TRANSMISSION: readonly string[] = [
   'Arcane—',
   'If this page opened, you found the route without me giving you the answer.',

@@ -79,7 +79,6 @@ test('every track fades and repeats only after a short silent gap', () => {
 
 test('Chapter 10 Finale starts after the typed Gate 40 takeover, plays once, and gates the final choice', () => {
   const flappySource = readFileSync(new URL('../src/components/FlappyGame.tsx', import.meta.url), 'utf8');
-  const appSource = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
   const musicSource = readFileSync(new URL('../src/lib/music.ts', import.meta.url), 'utf8');
 
   assert.match(flappySource, /speak\(ARCANE_TAKEOVER_LINES, resumeChapterTenTakeover\)/);
@@ -91,12 +90,11 @@ test('Chapter 10 Finale starts after the typed Gate 40 takeover, plays once, and
   assert.match(musicSource, /if \(this\.playCurrentOnce\)/);
   assert.match(musicSource, /this\.finaleEnded = true/);
   assert.match(musicSource, /window\.requestAnimationFrame\(update\)/);
-  assert.match(appSource, /getFinaleCreditProgress\(creditsPlaybackStartedAt, finalePlayback\)/);
-  assert.match(appSource, /scrollBox\.scrollTop = maxScroll \* progressRatio/);
-  assert.match(appSource, /finaleTrackEnded && creditsScrollComplete/);
-  assert.match(appSource, /music\.onFinaleEnded\(setFinaleTrackEnded\)/);
-  assert.match(appSource, /finaleTrackEnded && creditsScrollComplete \?/);
-  assert.match(appSource, /FINAL TRANSMISSION CONTINUES WITH THE SONG/);
+  assert.match(flappySource, /getFinaleCreditProgress\(creditsPlaybackStartedAt, finalePlayback\)/);
+  assert.match(flappySource, /scrollBox\.scrollTop = maxScroll \* progressRatio/);
+  assert.match(flappySource, /finalePlayback\.ended && creditsScrollComplete \?/);
+  assert.match(flappySource, /music\.onFinalePlayback\(setFinalePlayback\)/);
+  assert.match(flappySource, /TRANSMISSION IN PROGRESS/);
 });
 
 test('the title logo suppresses only background music while it is mounted', () => {

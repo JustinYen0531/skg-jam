@@ -42,6 +42,7 @@ import {
   ARCANE_TAKEOVER_LINES,
   CHAPTER_TEN_FLIGHT_CREDITS,
   getCompletionScoreAtFrame,
+  getCreditsScoreAtProgress,
   getFlightCreditsAtScore,
   NOAH_FINAL_TRANSMISSION,
 } from '../src/lib/chapterTenCredits';
@@ -464,7 +465,7 @@ test('the live Chapter 10 renderer keeps the memory, terminal and finish beats',
   assert.match(source, /CHAPTER_TEN_MEMORY_LINES/);
   assert.match(source, /CHAPTER_TEN_TERMINAL_LABEL/);
   assert.match(source, /CHAPTER_TEN_COMPLETE_LINES/);
-  assert.match(source, /getCompletionScoreAtFrame/);
+  assert.match(source, /fillText\('SCORE 256'/);
   assert.match(source, /distanceToEnd/);
 });
 
@@ -505,6 +506,26 @@ test('completion score climbs to the unsigned ceiling and then overflows at once
   assert.ok(getCompletionScoreAtFrame(143) < 65535);
   assert.equal(getCompletionScoreAtFrame(144), 65535);
   assert.equal(getCompletionScoreAtFrame(156), -65535);
+  assert.equal(getCreditsScoreAtProgress(0), 256);
+  assert.equal(getCreditsScoreAtProgress(144 / 156), 65535);
+  assert.equal(getCreditsScoreAtProgress(1), -65535);
+});
+
+test('Skyline credits stay inside the phone game and own the score overflow', () => {
+  const gameSource = readFileSync(new URL('../src/components/FlappyGame.tsx', import.meta.url), 'utf8');
+  const canvasSource = readFileSync(new URL('../src/components/chapterTenCanvas.ts', import.meta.url), 'utf8');
+  const appSource = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
+  const phoneSource = readFileSync(new URL('../src/components/PhoneSimulator.tsx', import.meta.url), 'utf8');
+
+  assert.match(gameSource, /id="chapter-ten-game-credits"/);
+  assert.match(gameSource, /data-credit-surface="skyline-256-phone-game"/);
+  assert.match(gameSource, /id="chapter-ten-credit-score"/);
+  assert.match(gameSource, /getCreditsScoreAtProgress\(creditsPlaybackProgress \?\? 0\)/);
+  assert.match(canvasSource, /fillText\('SCORE 256'/);
+  assert.doesNotMatch(canvasSource, /getCompletionScoreAtFrame/);
+  assert.doesNotMatch(appSource, /id="credits-overlay"/);
+  assert.match(phoneSource, />\s*Flappy Something\s*</);
+  assert.doesNotMatch(phoneSource, /progress\.unlockedCodeRoute \? 'Skyline 256'/);
 });
 
 test('Noah final transmission closes established canon without adding another puzzle', () => {

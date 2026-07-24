@@ -99,7 +99,7 @@ test('Chapter 10 opens with the recovered route guide addressing ARC-184', () =>
   assert.equal(CHAPTER_TEN_WELCOME_LABEL, 'WELCOME, ARC-184.');
   assert.equal(
     CHAPTER_TEN_WELCOME_NOTE,
-    'Follow every light point. Complete the trace to open Gate 40.',
+    'Recovered Skyline 256 route data is ready. Follow every light point to open Gate 40.',
   );
   const source = readFileSync(new URL('../src/components/FlappyGame.tsx', import.meta.url), 'utf8');
   const start = source.indexOf('id="chapter-ten-route-welcome"');
@@ -107,7 +107,8 @@ test('Chapter 10 opens with the recovered route guide addressing ARC-184', () =>
   const welcome = source.slice(start, end);
 
   assert.ok(start >= 0 && end > start);
-  assert.match(welcome, /Route Guide \/\/ Legacy Profile/);
+  assert.match(welcome, /Skyline 256 \/\/ Route Recovery/);
+  assert.doesNotMatch(welcome, /assistant/i);
   assert.match(welcome, /CHAPTER_TEN_WELCOME_LABEL/);
   assert.match(welcome, /CHAPTER_TEN_WELCOME_NOTE/);
   assert.match(welcome, /id="chapter-ten-begin-trace"/);

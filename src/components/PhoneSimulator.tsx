@@ -1370,7 +1370,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                       {launcherSignals('flappy')}
                     </div>
                     <span className="font-laos text-[clamp(10px,1.05cqw,12.5px)] tracking-[0.04em] text-[#b9c2d4] truncate max-w-full">
-                      {progress.unlockedCodeRoute ? 'Skyline 256' : 'Flappy Someth.'}
+                      Flappy Something
                     </span>
                   </button>
 
