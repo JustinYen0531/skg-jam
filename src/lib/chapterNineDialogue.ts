@@ -21,6 +21,7 @@ export const CHAPTER_NINE_DIALOGUE = {
   storageBlocked: [
     'It found him, and now it cannot finish waking up.',
     'The authorization is intact. The phone is not.',
+    'I need room. Holding an icon should let me make it; tapping will not.',
   ],
   poweredDown: [
     'You win.',

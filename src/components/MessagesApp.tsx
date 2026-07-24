@@ -680,6 +680,9 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
         >
           <UserCircle2 className="h-3.5 w-3.5" />
           <span className="font-medium">{account === 'silverkite' ? 'Silver Kite' : 'You'}</span>
+          {progress.currentChapter === 7 && hasAllMaraNumberClues(progress) && account === 'me' && !progress.loggedIntoAdmin && (
+            <span className="flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-[#e04a3d] px-1 text-[7px] font-semibold text-white" aria-label="Silver Kite account has one new lead">1</span>
+          )}
           <ChevronRight className={`h-3 w-3 transition-transform ${accountMenuOpen ? 'rotate-90' : ''}`} />
         </button>
 

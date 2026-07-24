@@ -48,10 +48,11 @@ export const CHAPTER_SIX_DIALOGUE = {
   maraCommentSelected: [
     'I saved one fully loaded device for our child. He will find it when he is older.',
     'That sounds like the device on my desk. I need to know who that child was.',
+    'This phone still has another page tied to the family backup. I should check whose account it calls mine.',
   ],
   profilePageOpened: [
     'Arcane Kade. My name, pulled from the same 2014 migration.',
-    'And Mara Kade is attached to this backup.',
+    'The family records are under the linked accounts.',
   ],
   completed: [
     'I saved one fully loaded device for our child.',

@@ -39,7 +39,7 @@ export const CHAPTER_SEVEN_DIALOGUE = {
   ],
   momMappingRead: [
     'Altitude, gate, end. Her three places, in their order.',
-    'The password was never his or hers alone. It was theirs.',
+    'The old Silver Kite account is still waiting in the corner.',
   ],
   maraProfileOpened: [
     'Her profile is still up. Twelve years of an ordinary life, left running.',

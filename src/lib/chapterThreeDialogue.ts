@@ -20,7 +20,7 @@ export const CHAPTER_THREE_DIALOGUE = {
   riskVisible: ['Fraudulent, unsafe, imaginary.', 'At least the warning is comprehensive.'],
   riskCancelled: ['Good instinct.', 'Unfortunately, I still need another lead.'],
   riskAccepted: ['I do not need the phone to work.', 'I need whatever survived with it.'],
-  sellerNotification: ['That was fast.', 'Too fast.'],
+  sellerNotification: ['That was fast.', 'Too fast.', 'The store sent the check somewhere else. Messages.'],
   sellerRelayOpened: ['A buyer check. Not money—a score.', 'They know why someone would want this device.'],
   correctScore: ['ARC_184.', 'The score was sitting in the name the whole time.'],
   sellerMatched: ['Match.', 'The delivery archive just updated.'],

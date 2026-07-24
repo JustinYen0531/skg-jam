@@ -57,6 +57,7 @@ import {
   getChapterPhoneSignals,
   type PhoneLauncherApp,
 } from '../lib/chapterPhoneSignals';
+import { hasAllMaraNumberClues } from '../lib/chapterSevenSocial';
 import { getChapterPhoneWidgetState } from '../lib/chapterPhoneWidgets';
 import { getChapterReminderRows } from '../lib/chapterReminders';
 import { getMetaWallStage } from '../lib/chapterEnvironment';
@@ -217,6 +218,22 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
 
   const residue = getResidueLevel(progress);
   const phoneSignals = getChapterPhoneSignals(progress.currentChapter);
+  const chapterSevenReadyForMessages = progress.currentChapter === 7
+    && hasAllMaraNumberClues(progress)
+    && !progress.loggedIntoAdmin;
+  const handoffSignal = progress.currentChapter === 3 && sellerMessageUnread
+    ? {
+        notification: { app: 'messages' as const, label: '1', accessibleLabel: 'New message from coldboot_17' },
+        recentApp: 'amazemart' as const,
+      }
+    : progress.currentChapter === 6 && progress.discoveredMotherComment && !familyAccountConfirmed
+      ? { notification: null, recentApp: 'social' as const }
+      : chapterSevenReadyForMessages
+        ? {
+            notification: { app: 'messages' as const, label: '1', accessibleLabel: 'Messages has an old-account lead' },
+            recentApp: 'social' as const,
+          }
+        : phoneSignals;
   const phoneWidgets = getChapterPhoneWidgetState(progress.currentChapter);
   const widgetWeatherStage = getMetaWallStage(progress.currentChapter);
   const chapterReminderRows = getChapterReminderRows(progress);
@@ -224,10 +241,10 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   const launcherSignals = (app: PhoneLauncherApp) => {
     const notification = app === 'messages' && sellerMessageUnread
       ? { label: '1', accessibleLabel: 'New message from coldboot_17' }
-      : phoneSignals.notification?.app === app
-      ? phoneSignals.notification
+      : handoffSignal.notification?.app === app
+      ? handoffSignal.notification
       : null;
-    const recentlyUsed = phoneSignals.recentApp === app;
+    const recentlyUsed = handoffSignal.recentApp === app;
 
     return (
       <>
@@ -1412,7 +1429,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                         are from another catalog; its label wears the old face. */}
                     <div className="relative w-[clamp(64px,7.8cqw,104px)] h-[clamp(64px,7.8cqw,104px)] drop-shadow-[0_8px_14px_rgba(0,0,0,0.45)] transition-transform duration-150 group-hover:scale-[1.04] group-active:scale-95">
                       <IconFlappy />
-                      {phoneSignals.notification.app !== 'flappy' && (
+                      {phoneSignals.notification.app !== 'flappy' && handoffSignal.notification?.app !== 'flappy' && (
                         <span className="absolute -top-1 -right-1.5 bg-[#3c66c4] text-white font-semibold text-[6.5px] tracking-wide px-1.5 py-px rounded-full shadow">
                           UPDATED
                         </span>
@@ -1539,10 +1556,13 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                     disabled={!profilePageUnlocked}
                     onClick={() => selectHomePage(1)}
                     data-meta-hit-recovery="true"
-                    className="ml-1 flex h-7 w-7 items-center justify-center rounded-full border border-white/[0.08] bg-black/15 transition-colors hover:bg-white/[0.08] disabled:opacity-20"
+                    className="relative ml-1 flex h-7 w-7 items-center justify-center rounded-full border border-white/[0.08] bg-black/15 transition-colors hover:bg-white/[0.08] disabled:opacity-20"
                     aria-label="Next page: linked accounts"
                     id="home-profile-page-next"
                   >
+                    {progress.currentChapter === 6 && progress.discoveredMotherComment && !familyAccountConfirmed && (
+                      <span className="absolute -right-1 -top-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full border border-[#182031] bg-[#e04a3d] px-1 text-[7px] font-semibold text-white" aria-label="Linked accounts have one new family record">1</span>
+                    )}
                     <span className="h-0 w-0 border-y-[5px] border-l-[8px] border-y-transparent border-l-slate-200/75" aria-hidden="true" />
                   </button>
                 </div>
