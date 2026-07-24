@@ -9,10 +9,12 @@ test('ViewTube keeps its body scrollable inside the phone flex layout', () => {
   assert.match(source, /className="h-0 min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 space-y-4" id="vt-body"/);
 });
 
-test('Meta wheel gestures relay to a scrollable phone list', () => {
-  const source = readFileSync('src/components/MetaInteractionScene.tsx', 'utf8');
+test('game wheel gestures relay to a scrollable phone list without chaining into itch', () => {
+  const appSource = readFileSync('src/App.tsx', 'utf8');
+  const metaSource = readFileSync('src/components/MetaInteractionScene.tsx', 'utf8');
 
-  assert.match(source, /event\.preventDefault\(\);\s*scrollable\.scrollBy\(\{ top: event\.deltaY, behavior: 'auto' \}\);/);
+  assert.match(appSource, /event\.preventDefault\(\);[\s\S]{0,1200}scrollable\.scrollBy\(\{ top: event\.deltaY \* deltaScale, behavior: 'auto' \}\);/);
+  assert.match(metaSource, /if \(!wheelAlreadyRelayed\) \{\s*scrollable\.scrollBy\(\{ top: event\.deltaY, behavior: 'auto' \}\);/);
 });
 
 test('ViewTube loads its archived discussion in deterministic batches', () => {

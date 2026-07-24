@@ -48,6 +48,7 @@ import {
   getFinalLyricWordIndex,
   getFlightCreditsAtScore,
   NOAH_FINAL_TRANSMISSION,
+  shouldLockCreditsInput,
 } from '../src/lib/chapterTenCredits';
 import { getChapterEnvironment, getDeskDrink } from '../src/lib/chapterEnvironment';
 
@@ -507,6 +508,20 @@ test('completion score climbs to the unsigned ceiling and then overflows at once
   assert.equal(getCreditsScoreAtProgress(0), 256);
   assert.equal(getCreditsScoreAtProgress(144 / 156), 65535);
   assert.equal(getCreditsScoreAtProgress(1), -65535);
+});
+
+test('credits reject every player input until playback and automatic scrolling both finish', () => {
+  const gameSource = readFileSync(new URL('../src/components/FlappyGame.tsx', import.meta.url), 'utf8');
+
+  assert.equal(shouldLockCreditsInput(false, false, false), false);
+  assert.equal(shouldLockCreditsInput(true, false, false), true);
+  assert.equal(shouldLockCreditsInput(true, true, false), true);
+  assert.equal(shouldLockCreditsInput(true, false, true), true);
+  assert.equal(shouldLockCreditsInput(true, true, true), false);
+  assert.match(gameSource, /creditsInputLockedRef\.current = true;[\s\S]{0,160}setIsPlaying\(false\)/);
+  assert.match(gameSource, /event\.stopImmediatePropagation\(\)/);
+  assert.match(gameSource, /'pointerdown'[\s\S]{0,260}'wheel'[\s\S]{0,80}'keydown'/);
+  assert.match(gameSource, /data-input-lock=\{creditsInputLocked \? 'locked' : 'post-credit-controls'\}/);
 });
 
 test('Skyline credits stay inside the phone game and own the score overflow', () => {

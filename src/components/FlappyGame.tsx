@@ -54,6 +54,7 @@ import {
   getCreditsOverflowProgress,
   getCreditsScoreAtProgress,
   NOAH_FINAL_TRANSMISSION,
+  shouldLockCreditsInput,
 } from '../lib/chapterTenCredits';
 import {
   CHAPTER_TEN_AFTERWORD_EASTER_EGG_HINTS,
@@ -148,6 +149,13 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
   } = useMetaInteraction();
   const chapterTenActive = progress.currentChapter === 10;
   const chapterTenCreditsActive = chapterTenActive && progress.phase === 'credits';
+  const creditsInputLocked = shouldLockCreditsInput(
+    chapterTenCreditsActive,
+    finalePlayback.ended,
+    creditsScrollComplete,
+  );
+  const creditsInputLockedRef = useRef(creditsInputLocked);
+  creditsInputLockedRef.current = creditsInputLocked;
   const chapterTenEntryDotsSpokenRef = useRef(false);
   const beginAutonomousControlRef = useRef(beginAutonomousControl);
   const metaInteractionActiveRef = useRef(metaInteractionActive);
@@ -188,6 +196,39 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
     setCreditsScrollComplete(false);
     return music.onFinalePlayback(setFinalePlayback);
   }, [chapterTenCreditsActive]);
+
+  useEffect(() => {
+    const blockCreditInput: EventListener = (event) => {
+      if (!creditsInputLockedRef.current) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    };
+    const lockedEvents = [
+      'pointerdown',
+      'pointerup',
+      'pointermove',
+      'mousedown',
+      'mouseup',
+      'mousemove',
+      'click',
+      'dblclick',
+      'contextmenu',
+      'touchstart',
+      'touchend',
+      'wheel',
+      'keydown',
+      'keyup',
+    ] as const;
+
+    lockedEvents.forEach((eventName) => {
+      window.addEventListener(eventName, blockCreditInput, { capture: true, passive: false });
+    });
+    return () => {
+      lockedEvents.forEach((eventName) => {
+        window.removeEventListener(eventName, blockCreditInput, true);
+      });
+    };
+  }, []);
 
   const creditsPlaybackProgress = creditsPlaybackStartedAt === null
     ? null
@@ -442,6 +483,10 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
   };
 
   const handleJump = (e: React.MouseEvent | React.TouchEvent | KeyboardEvent) => {
+    if (creditsInputLockedRef.current || chapterTenCreditsActive) {
+      if (e.cancelable) e.preventDefault();
+      return;
+    }
     if (e.type === 'keydown' && (e as KeyboardEvent).code !== 'Space') return;
     if (e.cancelable) e.preventDefault();
 
@@ -1491,6 +1536,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
     const triggerCompletion = () => {
       const state = stateRef.current;
       state.gameOver = true;
+      creditsInputLockedRef.current = true;
       setIsPlaying(false);
       // Simple early-mobile completion — never the five-step victory chord.
       audio.play('flight.complete');
@@ -1639,6 +1685,8 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
             className="absolute inset-0 z-50 overflow-hidden bg-black font-mono text-white"
             id="chapter-ten-game-credits"
             data-credit-surface="skyline-256-phone-game"
+            data-input-lock={creditsInputLocked ? 'locked' : 'post-credit-controls'}
+            aria-busy={creditsInputLocked}
           >
             <div
               ref={creditsScrollRef}

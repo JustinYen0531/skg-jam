@@ -77,6 +77,12 @@ export const getFinalLyricWordIndex = (progress: number): number => {
 export const getCreditsOverflowProgress = (progress: number): number =>
   Math.max(0, Math.min(1, (progress - CREDITS_SCROLL_END_PROGRESS) / (1 - CREDITS_SCROLL_END_PROGRESS)));
 
+export const shouldLockCreditsInput = (
+  creditsActive: boolean,
+  finaleEnded: boolean,
+  creditsScrollComplete: boolean,
+): boolean => creditsActive && !(finaleEnded && creditsScrollComplete);
+
 export const NOAH_FINAL_TRANSMISSION: readonly string[] = [
   'Arcane—',
   'If this page opened, you found the route without me giving you the answer.',
