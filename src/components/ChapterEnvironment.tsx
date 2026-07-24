@@ -1,5 +1,5 @@
 import React from 'react';
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence, motion, useMotionValue, useTransform, type MotionValue } from 'motion/react';
 import {
   getChapterEnvironment,
   getDeskDrink,
@@ -16,6 +16,8 @@ interface ChapterEnvironmentProps {
   layer?: 'lighting' | 'underlay' | 'objects';
   /** Share the tablet's resting camera scale so desk props remain one scene. */
   deviceResting?: boolean;
+  /** Mouse-height camera depth shared by every object on the resting desk. */
+  restingView?: MotionValue<number>;
 }
 
 const COFFEE_ASSET_SOURCE: Record<Exclude<CoffeeState, 'none'>, string> = {
@@ -32,11 +34,6 @@ const DRINK_ASSET_SOURCE: Record<Exclude<DrinkVariant, 'none'>, string> = {
   two: '/assets/drink-2.png',
   three: '/assets/drink-3.png',
 };
-const DRINK_ASSET_SOURCE: Record<Exclude<DrinkVariant, 'none'>, string> = {
-  one: '/assets/drink-1.png',
-  two: '/assets/drink-2.png',
-  three: '/assets/drink-3.png',
-};
 const NOTEBOOK_COPY: Record<NotebookState, readonly string[]> = {
   none: [],
   closed: [],
@@ -44,6 +41,7 @@ const NOTEBOOK_COPY: Record<NotebookState, readonly string[]> = {
   skg: ['SKG', '?'],
   company: ['SILVER KITE GAMES', '→ SKG AUTOMATION', 'YEAR ?'],
   noah: ['NOAH KADE?', 'old posts / earliest'],
+  mara: ['MARA · PLACES', 'ALT?  GATE?  END?'],
   numbers: ['184 — 40 — 256', 'ALT?  GATE?  END?'],
   password: ['184 / 40 / 256', 'ALT184GATE40END256'],
   quiet: [],
@@ -81,7 +79,7 @@ const CoffeeCup: React.FC<{
   // inside a scale-animated parent measures its own already-transformed box
   // and re-projects against it, so rapidly interrupting the animation (jumping
   // chapters / toggling the dev panel mid-transition) compounds the projection
-  // and the 2.7x-scaled cup runs away across the desk. A CSS transform can't
+  // and an oversized cup runs away across the desk. A CSS transform can't
   // compound: the browser always re-renders it from its declared value.
   const motionClass = animateLayout
     ? 'transition-[top,right,scale] duration-[620ms] ease-out'
@@ -90,7 +88,8 @@ const CoffeeCup: React.FC<{
   return (
     <div
       className={`absolute z-[3] h-[27%] w-[17%] min-w-36 origin-bottom-right ${motionClass} ${positionClass}`}
-      data-composition-offset={deviceResting ? 'resting-coffee-up-14' : 'upright-original'}
+      data-composition-offset={deviceResting ? 'resting-desk-right' : 'upright-desk-bottom'}
+      data-scene-depth="front-of-device"
       data-coffee-state={state}
       data-coffee-asset-state={tipped ? 'tipped' : state === 'fresh' || state === 'sipped' ? 'full' : 'empty'}
       data-coffee-drip={drip || undefined}
@@ -134,7 +133,9 @@ const CoffeeCup: React.FC<{
 // through one identical box + object-contain, so Drink 1/2/3 can never change
 // size or drift — only their state changes (sealed pair → both cracked open →
 // crushed in a spill), exactly the way the mug empties on the right. It shares
-// the same resting/upright anchors and CSS-transition rules as the cup.
+// the same resting/upright anchors and CSS-transition rules as the cup, and
+// because it lives in the same object-perspective wrapper it inherits the same
+// mouse-height and idle-camera view shifts for free.
 const DrinkCans: React.FC<{
   variant: DrinkVariant;
   animateLayout: boolean;
@@ -166,42 +167,7 @@ const DrinkCans: React.FC<{
     </div>
   );
 };
-// The mirror of the coffee cup, on the LEFT of the desk. Every variant renders
-// through one identical box + object-contain, so Drink 1/2/3 can never change
-// size or drift — only their state changes (sealed pair → both cracked open →
-// crushed in a spill), exactly the way the mug empties on the right. It shares
-// the same resting/upright anchors and CSS-transition rules as the cup.
-const DrinkCans: React.FC<{
-  variant: DrinkVariant;
-  animateLayout: boolean;
-  deviceResting: boolean;
-}> = ({ variant, animateLayout, deviceResting }) => {
-  if (variant === 'none') return null;
-  const assetSource = DRINK_ASSET_SOURCE[variant];
-  const positionClass = deviceResting
-    ? 'left-[6%] top-[76%] scale-[2.025]'
-    : 'left-[4%] top-[90%] scale-[2.7]';
-  const motionClass = animateLayout
-    ? 'transition-[top,left,scale] duration-[620ms] ease-out'
-    : '';
 
-  return (
-    <div
-      className={`absolute z-[3] h-[27%] w-[17%] min-w-36 origin-bottom-left ${motionClass} ${positionClass}`}
-      data-composition-offset={deviceResting ? 'resting-desk-left' : 'upright-desk-bottom-left'}
-      data-scene-depth="front-of-device"
-      data-drink-variant={variant}
-      id="meta-desk-drink"
-    >
-      <img
-        src={assetSource}
-        alt=""
-        className="absolute inset-0 h-full w-full object-contain object-bottom drop-shadow-[0_10px_10px_rgba(0,0,0,0.36)]"
-        id="meta-drink-png"
-      />
-    </div>
-  );
-};
 // None of the desk objects use Framer's `layout` — they live inside an env
 // whose `scale` is Framer-animated when the device rests, and a `layout` child
 // there re-projects against its own already-transformed box, compounding into
@@ -344,7 +310,12 @@ export const ChapterEnvironment: React.FC<ChapterEnvironmentProps> = ({
   reducedMotion,
   layer = 'objects',
   deviceResting = false,
+  restingView,
 }) => {
+  const restingViewFallback = useMotionValue(0.5);
+  const restingViewSource = restingView ?? restingViewFallback;
+  const restingObjectScale = useTransform(restingViewSource, [0, 0.5, 1], [0.82, 1, 1.18]);
+  const restingObjectY = useTransform(restingViewSource, [0, 0.5, 1], ['7%', '0%', '-8%']);
   const environment = getChapterEnvironment(chapter);
   if (chapter === 0) return null;
 
@@ -377,6 +348,12 @@ export const ChapterEnvironment: React.FC<ChapterEnvironmentProps> = ({
       data-desk-resting-scale={deviceResting ? 'shared' : 'full'}
       id={underlay ? 'meta-chapter-underlay' : 'meta-chapter-environment'}
     >
+      <motion.div
+        className="absolute inset-0"
+        style={deviceResting ? { scale: restingObjectScale, y: restingObjectY, transformOrigin: '50% 72%' } : undefined}
+        data-resting-object-scale={deviceResting ? 'shared-mouse-depth' : 'upright'}
+        id={underlay ? 'meta-chapter-underlay-perspective' : 'meta-chapter-object-perspective'}
+      >
       <AnimatePresence mode="popLayout">
         <motion.div
           key={`${layer}-${chapter}`}
@@ -395,7 +372,6 @@ export const ChapterEnvironment: React.FC<ChapterEnvironmentProps> = ({
           ) : (
             <>
               <CoffeeCup state={environment.coffee} ring={environment.coffeeRing} steam={environment.coffeeSteam} drip={environment.coffeeDrip} spill={environment.coffeeSpill} animateLayout={!reducedMotion} deviceResting={deviceResting} />
-              <DrinkCans variant={getDeskDrink(chapter)} animateLayout={!reducedMotion} deviceResting={deviceResting} />
               <DrinkCans variant={getDeskDrink(chapter)} animateLayout={!reducedMotion} deviceResting={deviceResting} />
               {environment.teaService && <TeaService />}
               {environment.paperBalls && <PaperBalls />}
@@ -418,6 +394,7 @@ export const ChapterEnvironment: React.FC<ChapterEnvironmentProps> = ({
           CASE {chapter.toString().padStart(2, '0')} // {environment.caseLabel}
         </motion.div>
       </AnimatePresence>}
+      </motion.div>
     </motion.div>
   );
 };

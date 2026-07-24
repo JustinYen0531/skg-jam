@@ -62,5 +62,5 @@ test('P2 fine-detail sounds are defined, restrained, and connected to their inte
   assert.match(metaSource, /audio\.play\('meta\.deskContact', \{ delay: 1\.15 \}\)/);
   assert.match(metaSource, /audio\.play\('meta\.deviceCreak'\)/);
   assert.match(screenshotsSource, /audio\.play\('screenshot\.rotate'\)/);
-  assert.equal((appSource.match(/audio\.play\('story\.downloadCount'/g) ?? []).length, 2);
+  assert.equal((flappySource.match(/audio\.play\('story\.downloadCount'/g) ?? []).length, 2);
 });

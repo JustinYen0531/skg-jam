@@ -42,7 +42,7 @@ const CHAPTER_SIGNALS: Record<PuzzleChapter, ChapterPhoneSignals> = {
     notification: {
       app: 'screenshots',
       label: '1',
-      accessibleLabel: 'Schematics has one new file',
+      accessibleLabel: 'Deliveries has one signed package',
     },
     recentApp: 'amazemart',
   },

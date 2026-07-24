@@ -21,9 +21,9 @@ const NAMED_PLAYERS = [
 const ANONYMOUS_LABELS = ['Anonymous Visitor', 'Guest Player', 'Unnamed Flyer'] as const;
 
 const getAnonymousScore = (index: number): number => {
-  if (index < 3) return 40;
-  if (index < 33) return 39;
-  return index % 3 === 0 ? 37 : 38;
+  if (index < 40) return 40;
+  if (index < 44) return 39;
+  return index % 2 === 0 ? 38 : 37;
 };
 
 export const createPublicLeaderboard = (
@@ -69,3 +69,6 @@ export const calculateBeatPercentage = (playerBestScore: number): number => {
   if (score < 184) return Number((97 + ((score - 40) / 144) * 2.8).toFixed(1));
   return 99.99;
 };
+
+export const isSuspiciousLeaderboardEntry = (entry: PublicLeaderboardEntry): boolean =>
+  entry.rank <= 6 && entry.kind !== 'player';

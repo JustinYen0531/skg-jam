@@ -113,9 +113,15 @@
 - [x] Messages 只在三段 Mara 數字線索全部取得時接受座標密碼；登入成功才完成 Chapter 7。
 - [x] Chapter 8 從已登入的封存索引開始；八條 Mara 生活對話各自只提供一個可點選記憶。
 - [x] Noah 的八則損壞訊息必須使用 `Recovered memories` 逐一配對，單純打開對話不再過關。
-- [x] 八則人的訊息全部修復後才完成 Chapter 8；高度附件仍鎖到 Chapter 9。
-- [ ] Chapter 9 解鎖附件後，才顯示完整高度序列。
-- [ ] 沒有完成前置調查時，不能直接輸入密碼或取得完整路線。
+- [x] 八則人的訊息全部修復後才完成 Chapter 8；玩家主動開啟附件後才進入 Chapter 9。
+- [x] Chapter 9 只顯示十二年前的本機 Child Profile，以正常舊資料下載控制台呈現，不再使用三選一題型。
+- [x] 壓縮包密碼提示為「誰曾經是排行榜第一名？」；玩家輸入 `ARC-184` 後，劇情揭露它只是主角年幼時自取的排行榜名稱，真實帳號為 `ARCANE KADE`，改輸入 `Arcane` 才開始下載。
+- [x] 下載到 58% 才突然因空間不足中斷。
+- [x] 清理留在原首頁；長按圖示才出現統一紅色叉叉與抖動，不另開全螢幕清理 App。
+- [x] 隱藏順序為 Concept → ViewTube／AmazeMart／Deliveries → Wayback／FaceSpace → Messages，畫面不直接分層提示。
+- [x] 第三次 Messages 對峙後以未解決的輸入衝突斷電，平放重啟後只剩 Flappy Something。
+- [x] 重啟後 Arcane 保持沉默，Chapter 10 的控制權奪回不在 Chapter 9 提前演出。
+- [ ] Chapter 10 實作 Gate 40 前引導點與 Arcane 自主飛行。
 
 **驗收：** 新遊戲不能直接從 Messages 或任何單一 app 取得完整答案；每個關鍵答案都要有前置條件。
 
@@ -167,7 +173,9 @@
 - [ ] 玩家必須使用高度 `0`，完全不點擊，從底部穿過。
 - [ ] 完成時顯示 `SKYLINE COMPLETE` 與 `THANK YOU FOR PLAYING`。
 - [ ] 分數依序跳動：`256 → 65535 → -65535`。
-- [ ] 完成後才進入 Credit 與三選一結局。
+- [ ] 40–184 以 Arcane 五段短獨白與稀疏開發致謝開始沿途謝幕；184 暫停其他文字。
+- [ ] 185 起播放一次 `Phase 10 (Finale)`，不循環；沿途 Credit 保持低密度。
+- [ ] 256 後顯示 Noah 最終傳訊；歌曲自然播完才開放三選一結局。
 
 **驗收：** 玩家能明確感受到「抵達真正終點」，而不是只看到一般的完成 overlay。
 

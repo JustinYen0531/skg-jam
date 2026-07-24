@@ -205,3 +205,103 @@ body {
   background-image: radial-gradient(rgba(0, 0, 0, 0.08) 0.8px, transparent 0.9px);
   background-size: 4px 4px;
 }
+
+@keyframes chapter-nine-icon-wiggle {
+  0%, 100% { transform: rotate(-0.7deg); }
+  50% { transform: rotate(0.7deg); }
+}
+
+.chapter-nine-editing > button {
+  position: relative;
+  animation: chapter-nine-icon-wiggle 0.18s ease-in-out infinite;
+  transform-origin: 50% 58%;
+}
+
+.chapter-nine-editing > button:nth-child(even) {
+  animation-delay: -0.09s;
+}
+
+.chapter-nine-editing > button:not(#launcher-game)::after {
+  content: '×';
+  position: absolute;
+  z-index: 12;
+  top: -0.35rem;
+  right: 10%;
+  display: grid;
+  width: 1.05rem;
+  height: 1.05rem;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 9999px;
+  background: #d94b51;
+  color: white;
+  font: 700 0.76rem/1 ui-sans-serif, system-ui, sans-serif;
+  box-shadow: 0 2px 7px rgba(0, 0, 0, 0.45);
+}
+
+#home-apps-grid > button[data-chapter-nine-deleted='true'] {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chapter-nine-editing > button {
+    animation: none;
+  }
+}
+
+/* ==========================================================================
+   Hearth "fire rose": a flame built from many nested teardrop petals. Each
+   petal is a rotated square (border-radius 0 50% 50% 50% -> a teardrop with a
+   pointed top). The petals share a base and shrink inward, warm on the outside
+   to white-hot at the core, and each flickers on its own clock so the layers
+   sway against one another like petals opening and closing.
+   ========================================================================== */
+
+.meta-flame-petal {
+  position: absolute;
+  left: 50%;
+  transform-origin: 50% 100%;
+  will-change: transform, opacity;
+  transform: translateX(-50%);
+  /* An upward flame silhouette: a pointed tip, a wide base, and a couple of
+     licks along each edge. Every petal shares it, so the nested layers read as
+     one flame rather than a stack of blobs. */
+  clip-path: polygon(50% 0%, 62% 22%, 57% 40%, 72% 58%, 61% 82%, 50% 100%, 39% 82%, 28% 58%, 43% 40%, 38% 22%);
+}
+
+/* Three flicker profiles with different sway so adjacent layers never move in
+   lockstep: squash, lean (skew), and a little side drift, all rising from the
+   base (transform-origin bottom). */
+@keyframes meta-flame-a {
+  0%, 100% { transform: translateX(-50%) scale(1, 1)       skewX(0deg); }
+  22%      { transform: translateX(-53%) scale(0.94, 1.13) skewX(-5deg); }
+  46%      { transform: translateX(-47%) scale(1.06, 0.9)  skewX(4deg); }
+  70%      { transform: translateX(-52%) scale(0.98, 1.07) skewX(-2deg); }
+}
+@keyframes meta-flame-b {
+  0%, 100% { transform: translateX(-50%) scale(1, 1)       skewX(0deg); }
+  25%      { transform: translateX(-47%) scale(1.05, 0.91) skewX(5deg); }
+  55%      { transform: translateX(-53%) scale(0.92, 1.15) skewX(-6deg); }
+  80%      { transform: translateX(-49%) scale(1.02, 0.97) skewX(2deg); }
+}
+@keyframes meta-flame-c {
+  0%, 100% { transform: translateX(-50%) scale(1, 1)       skewX(0deg); }
+  30%      { transform: translateX(-51%) scale(0.97, 1.09) skewX(-3deg); }
+  60%      { transform: translateX(-49%) scale(1.05, 0.93) skewX(3deg); }
+}
+
+/* The white-hot core pulses in brightness more than shape. */
+@keyframes meta-flame-core {
+  0%, 100% { transform: translateX(-50%) scale(1, 1);      opacity: 0.9; }
+  50%      { transform: translateX(-50%) scale(0.94, 1.12); opacity: 1; }
+}
+
+/* Ambient hearth glow breathing behind the flame. */
+@keyframes meta-flame-glow {
+  0%, 100% { transform: translate(-50%, -50%) scale(1);    opacity: 0.85; }
+  50%      { transform: translate(-50%, -50%) scale(1.08); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meta-flame-petal { animation: none !important; }
+}

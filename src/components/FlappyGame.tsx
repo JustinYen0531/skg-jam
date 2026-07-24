@@ -1643,6 +1643,10 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
         : afterword === 'submit' ? 'story.endingSubmit'
           : 'story.endingPublicize',
     );
+    if (afterword === 'preserve') {
+      audio.play('story.downloadCount', { delay: 2.4 });
+      audio.play('story.downloadCount', { delay: 3.6 });
+    }
     updateProgress((previous) => ({ ...previous, selectedEnding: afterword }));
     speak(CHAPTER_TEN_AFTERWORD_LINES[afterword]);
   };

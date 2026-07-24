@@ -43,14 +43,40 @@ test('Chapter 8 dialogue preserves the Chapter 9 identity and route boundaries',
   assert.doesNotMatch(dialogue, /I am ARC_184|Arcane is ARC_184|ARC_184 was me/i);
 });
 
-test('Messages wires collection, gentle restoration, sealed attachment, and completion gate', () => {
+test('Messages wires collection, gentle restoration, and the legacy-profile completion gate', () => {
   assert.match(messagesSource, /handleCollectChapterEightMemory/);
   assert.match(messagesSource, /id="chapter-eight-memory-drawer"/);
   assert.match(messagesSource, /id="chapter-eight-restore-prompt"/);
   assert.match(messagesSource, /Not this memory\./);
-  assert.match(messagesSource, /id="chapter-eight-route-attachment"/);
+  assert.match(messagesSource, /id="chapter-eight-legacy-profile-attachment"/);
   assert.match(messagesSource, /hasRestoredAllNoahFragments/);
-  assert.match(messagesSource, /id="chapter-eight-complete"/);
+  assert.match(messagesSource, /handleOpenLegacyChildProfile/);
+  assert.match(messagesSource, /onClick=\{handleOpenLegacyChildProfile\}/);
+  assert.match(
+    messagesSource,
+    /onClick=\{handleOpenLegacyChildProfile\}[\s\S]{0,140}data-meta-immediate="true"[\s\S]{0,80}data-meta-hit-recovery="true"/,
+  );
+  assert.match(
+    messagesSource,
+    /const handleOpenLegacyChildProfile = \(\) => \{\s*if \(!allNoahMessagesRestored\) return;[\s\S]{0,180}completePuzzleChapter\(prev, 8\)/,
+  );
+  assert.match(messagesSource, /LEGACY CHILD PROFILE · ACCESS LOCKED/);
+  assert.match(messagesSource, /OPEN RECOVERY RECORD/);
+  assert.doesNotMatch(messagesSource, /PRESERVE RESTORED HUMAN RECORD/);
+  assert.ok(
+    messagesSource.indexOf('NOAH_ARCHIVE_FRAGMENTS.map') < messagesSource.indexOf('id="chapter-eight-legacy-profile-attachment"'),
+    'the final restored sentence must render before the Chapter 9 attachment',
+  );
   assert.match(messagesSource, /getChapterEightMemorySelectionDialogue/);
+  assert.match(messagesSource, /getNextNoahArchiveFragment\(restoredNoahMessages\)/);
+  assert.match(messagesSource, /getAvailableChapterEightMemoryIds\(/);
+  assert.match(messagesSource, /canRestoreNoahFragmentInOrder\(fragmentId, restoredNoahMessages\)/);
+  assert.match(messagesSource, /data-restoration-order=/);
+  assert.match(messagesSource, /disabled=\{!current\}/);
+  assert.match(messagesSource, /data-available-answer-count=\{availableChapterEightMemories\.length\}/);
+  assert.match(messagesSource, /sticky top-0/);
+  assert.match(messagesSource, /data-memory-used=\{used\}/);
+  assert.match(messagesSource, /availableChapterEightMemories\.map/);
+  assert.doesNotMatch(messagesSource, /collectedChapterEightMemories\.map\(\(memoryId\) => \{[\s\S]{0,400}data-restore-choice/);
   assert.doesNotMatch(messagesSource, /onClick=\{handleOpenArchiveThread\}[\s\S]{0,120}completePuzzleChapter\(prev, 8\)/);
 });

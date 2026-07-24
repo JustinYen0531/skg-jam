@@ -33,11 +33,12 @@ test('the screenshot pile hides exactly three clues among many decoys', () => {
   assert.ok(sheetIds.length >= 9, `expected at least 9 screenshots, found ${sheetIds.length}`);
 
   // Exactly three sheets carry a clueId, one per required detail.
-  const clueSheets = source.match(/clueId: '(title|params|numbers)'/g) ?? [];
+  const clueSheets = source.match(/clueId: '(title|params|archive)'/g) ?? [];
   assert.equal(clueSheets.length, 3);
   assert.match(source, /clueId: 'title'/);
   assert.match(source, /clueId: 'params'/);
-  assert.match(source, /clueId: 'numbers'/);
+  assert.match(source, /clueId: 'archive'/);
+  assert.doesNotMatch(source, /184-40-256/);
 
   // Each clue is a clickable, underlined word; decoys never render one.
   assert.match(source, /data-clue-word=\{clueId\}/);
@@ -47,9 +48,11 @@ test('the screenshot pile hides exactly three clues among many decoys', () => {
 test('the viewer counts key details and only advances the chapter when assembled', () => {
   const source = readFileSync(new URL('../src/components/SavedScreenshots.tsx', import.meta.url), 'utf8');
 
-  // A running n / 3 counter, shown per the requested progression.
-  assert.match(source, /KEY DETAILS · \$\{found\.size\}\/\$\{CLUE_SHEET_COUNT\}/);
-  assert.match(source, /CASE ASSEMBLED · 3\/3/);
+  // A prominent running n / 3 counter, shown per the requested progression.
+  assert.match(source, /id="spec-clue-counter"/);
+  assert.match(source, /KEY DETAILS/);
+  assert.match(source, /\{found\.size\}<span[^>]*>\/\{CLUE_SHEET_COUNT\}/);
+  assert.match(source, /CASE ASSEMBLED/);
 
   // The advance is gated behind the assembled banner's Continue button, which
   // completes chapter 4 — never the individual clue clicks.
@@ -58,4 +61,62 @@ test('the viewer counts key details and only advances the chapter when assembled
   assert.match(source, /completePuzzleChapter\(prev, 4, \{ discoveredOriginalTitle: true \}\)/);
   // Finding a clue must not itself complete the chapter.
   assert.doesNotMatch(source, /findClue[\s\S]{0,200}completePuzzleChapter/);
+});
+
+test('the zoomed screenshot has a reliable Back control that returns to the pile', () => {
+  const source = readFileSync(new URL('../src/components/SavedScreenshots.tsx', import.meta.url), 'utf8');
+
+  assert.match(source, /const closeActiveSheet = \(\) => \{[\s\S]{0,120}setActiveSheet\(null\)/);
+  assert.match(source, /id="spec-back-to-screenshots"/);
+  assert.match(source, /aria-label="Back to Lumen Arc screenshots"/);
+  assert.match(source, /onClick=\{closeActiveSheet\}/);
+  assert.match(source, /id="spec-back-to-screenshots"[\s\S]{0,120}>[\s\S]{0,80}BACK/);
+  assert.match(source, /data-meta-immediate="true"[\s\S]{0,80}data-meta-hit-recovery="true"/);
+  assert.doesNotMatch(source, /const closeActiveSheet = \(\) => \{[\s\S]{0,160}setActiveDeliveryId/);
+});
+
+test('the Lumen Arc evidence must be found inside a normal delivery archive', () => {
+  const source = readFileSync(new URL('../src/components/SavedScreenshots.tsx', import.meta.url), 'utf8');
+
+  assert.match(source, /const DELIVERY_RECORDS/);
+  assert.match(source, /id: 'lumen-arc'/);
+  assert.match(source, /Lumen Arc Recovery Lot/);
+  assert.match(source, /activeDeliveryId === 'lumen-arc'/);
+  assert.match(source, /id="delivery-archive"/);
+  assert.match(source, /id="delivery-back-to-archive"/);
+});
+
+test('the parcel only reveals after scratching and angle-driven paper inspection', () => {
+  const source = readFileSync(new URL('../src/components/SavedScreenshots.tsx', import.meta.url), 'utf8');
+
+  assert.match(source, /import \{ LumenArcReveal \}/);
+  assert.match(source, /revealPlaying && viewingLumenPackage/);
+  assert.match(source, /if \(record\.id === 'lumen-arc'\) \{[\s\S]{0,280}setRevealPlaying\(true\)/);
+  assert.match(source, /<LumenArcReveal[\s\S]{0,500}onDeceptionRevealed=\{\(\) =>[\s\S]{0,240}runPackageRevealReaction\(\)[\s\S]{0,300}onComplete=\{\(\) =>[\s\S]{0,120}setRevealPlaying\(false\)/);
+
+  const reveal = readFileSync(new URL('../src/components/LumenArcReveal.tsx', import.meta.url), 'utf8');
+  assert.match(reveal, /type RevealPhase = 'scratch' \| 'phone-ready' \| 'inspect' \| 'burst' \| 'clear'/);
+  assert.match(reveal, /useState<RevealPhase>\('scratch'\)/);
+  assert.match(reveal, /id="lumen-arc-package-scratch-layer"/);
+  assert.match(reveal, /globalCompositeOperation = 'destination-out'/);
+  assert.match(reveal, /onPointerMove=\{\(event\) =>[\s\S]{0,240}scratchAt\(event\.clientX, event\.clientY\)/);
+  assert.match(reveal, /next >= SCRATCH_COMPLETE_AT[\s\S]{0,120}setPhase\('phone-ready'\)/);
+  assert.doesNotMatch(reveal, /OPEN PARCEL/);
+
+  assert.match(reveal, /id="lumen-arc-inspect-phone"/);
+  assert.match(reveal, /setPhase\('inspect'\)/);
+  assert.match(reveal, /PHONE_ROTATION_SENSITIVITY = 0\.21/);
+  assert.match(reveal, /delta \* PHONE_ROTATION_SENSITIVITY/);
+  assert.match(reveal, /Math\.abs\(next\) >= BURST_ANGLE/);
+  assert.match(reveal, /if \(phase !== 'burst'\) return;/);
+  assert.match(reveal, /REVEAL_TIME_SCALE = 2/);
+  assert.match(reveal, /3900 \* REVEAL_TIME_SCALE/);
+  assert.match(reveal, /3\.05 \* REVEAL_TIME_SCALE/);
+  assert.match(reveal, /onDeceptionRevealed\(\)[\s\S]{0,100}setPhase\('burst'\)/);
+
+  assert.match(reveal, /PHONE_DEPTH_LAYERS/);
+  assert.match(reveal, /data-phone-material="stacked-paper"/);
+  assert.match(reveal, /data-jester-box-sting="true"/);
+  assert.match(reveal, /y: \[-10, image\.apexY, image\.finalY\]/);
+  assert.equal((reveal.match(/\{ apexX:/g) ?? []).length, 10);
 });

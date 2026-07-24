@@ -65,7 +65,7 @@ test('the replay loops deterministically', () => {
   );
 });
 
-test('ViewTube locks the real replay canvas inside the phone until Gate 41', () => {
+test('ViewTube plays the replay inline with an optional fullscreen expand', () => {
   const viewTube = readFileSync(new URL('../src/components/ViewTube.tsx', import.meta.url), 'utf8');
   const replay = readFileSync(new URL('../src/components/ArcRunReplay.tsx', import.meta.url), 'utf8');
   const startVideoStart = viewTube.indexOf('const startVideo = () =>');
@@ -88,10 +88,13 @@ test('ViewTube locks the real replay canvas inside the phone until Gate 41', () 
   assert.match(viewTube, /absolute inset-0 z-\[80\] h-full w-full/);
   assert.match(viewTube, /data-fullscreen-lock=/);
   assert.match(viewTube, /id="vt-fullscreen-exit"/);
-  assert.match(viewTube, /disabled=\{!replayExitUnlocked\}/);
+  // The replay plays inline by default; fullscreen is an optional expand reached
+  // from the inline controls, and its exit is always available (no lock).
+  assert.match(viewTube, /id="vt-fullscreen-enter"/);
+  assert.doesNotMatch(startVideoSource, /setReplayFullscreenOpen\(true\)/);
+  assert.doesNotMatch(viewTube, /disabled=\{!replayExitUnlocked\}/);
   assert.doesNotMatch(closeSource, /replayExitUnlockedRef/);
-  assert.match(closeSource, /setReplayPaused\(true\)/);
-  assert.match(closeSource, /getElementById\('vt-comments'\)\?\.scrollIntoView/);
+  assert.doesNotMatch(closeSource, /scrollIntoView/);
   assert.match(closeSource, /setReplayFullscreenOpen\(false\)/);
   assert.match(viewTube, /onMouseMove=\{revealReplayControls\}/);
   assert.match(viewTube, /id="vt-replay-timeline-progress"/);

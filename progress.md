@@ -1183,3 +1183,12 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Virtual keyboard keys remain a deliberate exception because their own queued hand animation already applies the character at contact.
 - Range sliders still retain immediate native dragging.
 - Browser and Preview remain intentionally unused by project instruction; validation is static only.
+
+## 2026-07-24 — Full uncommitted-work integration audit
+
+- Inventoried every tracked modification and untracked file across Chapters 2–8, environment evolution, leaderboard, audio, Meta input, documentation, source art, and generated previews.
+- Confirmed every new runtime TypeScript module is imported by the application and every decoded /assets reference resolves to an existing public file.
+- Restored the two preserve-route download-count sounds lost when the Chapter 10 afterword moved into FlappyGame.
+- Updated stale static assertions to the current all-button Meta recovery selector, fingertip-contact input path, optional dialogue completion callback, and Chapter 10 fullscreen Meta bypass.
+- Kept root source art/audio on disk but explicitly ignored it; public/assets remains the only runtime asset source. Removed the empty NUL file that broke recursive searches.
+- Static validation only by project rule: 304/304 tests passed, TypeScript passed, production build passed, and git diff --check passed. Browser/preview was not used.

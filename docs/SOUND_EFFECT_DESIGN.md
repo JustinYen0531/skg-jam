@@ -35,9 +35,9 @@
 | `sfx_flight_score` | 小鳥真正通過一根水管並加分 | 40–80 ms 的小型計分 ping；比 flap 更高、更乾淨 | 每 5 或 10 分可加一層很輕的高音，不可每分奏旋律 | P0 |
 | `sfx_flight_pipe_hit` | 撞到普通水管正面或特殊表面 | 短而鈍的塑膠／金屬殼碰撞，先有接觸再有失速 | 依普通水管、Level 2 材質、尖刺分 2–3 類 | P0 |
 | `sfx_flight_bird_fall` | 碰撞後開始下墜 | 150–300 ms 的下滑音，不需額外爆炸 | 與撞擊分開，讓死亡因果可讀 | P0 |
-| `sfx_flight_death_result` | 死亡結果面板出現 | 廉價廣告遊戲式失敗 sting，短、尷尬、略顯開心 | Gate 40 第二次死亡後降低裝飾，避免破壞 Meta 揭露 | P0 |
+| `sfx_flight_death_result` | 死亡結果面板出現 | 廉價廣告遊戲式失敗 sting，短、尷尬、略顯開心 | 第一次 Gate 40 死亡仍保持廉價表層；真正開榜後才讓 Meta 揭露接管 | P0 |
 | `sfx_flight_restart` | Retry／重新開始 | 80–140 ms 的反向吸入或快速重置音 | 不使用解鎖和成功音 | P0 |
-| `sfx_flight_gate40_block` | 撞上看得見的 Gate 40 | 普通碰撞後疊一個非常短的低頻鎖定脈衝 | 第一次與第二次相同，不能提前暗示秘密路線 | P1 |
+| `sfx_flight_gate40_block` | 撞上看得見的 Gate 40 | 普通碰撞後疊一個非常短的低頻鎖定脈衝 | 第一次死亡不能自行暗示 Meta 或秘密路線 | P1 |
 | `sfx_flight_level2_material` | 首次進入 Level 2 | 舊版合成音重新接通，像被壓住的聲道恢復 | 只播放一次，不做電影式爆發 | P1 |
 | `sfx_flight_altitude_step` | 高度序列中的一步被正確維持 | 柔和感應器脈衝，音高依序列位置而非高度數值排列 | 錯誤時不立刻鳴笛，讓飛行失敗本身回饋 | P1 |
 | `sfx_flight_collision_bypass` | 第六個高度造成短暫穿牆 | 兩段極短資料錯位：碰撞聲被切掉，留下缺失感 | 不用大 Glitch，不可蓋過通過水管的聲音 | P1 |
@@ -105,7 +105,7 @@
 
 | ID | 觸發 | 聲音設計 | 優先級 |
 |---|---|---|---|
-| `sfx_meta_camera_pullback` | 第二次 Gate 40 死亡後實際開榜，鏡頭拉遠 | 螢幕錄影訊號切斷＋很輕的房間空氣出現 | P0 |
+| `sfx_meta_camera_pullback` | 第一次 Gate 40 死亡後實際開榜，鏡頭拉遠 | 螢幕錄影訊號切斷＋很輕的房間空氣出現 | P0 |
 | `sfx_meta_hand_depart` | 右側握持手離開，操作手開始移動 | 低音量皮膚／布料摩擦，100 ms 內 | P1 |
 | `sfx_meta_finger_contact` | 食指真正碰到玻璃 | 柔軟指腹 tap，包含極短玻璃高頻 | P0 |
 | `sfx_meta_finger_release` | 食指離開玻璃 | 更輕的黏離聲，可只在重要按鈕使用 | P2 |

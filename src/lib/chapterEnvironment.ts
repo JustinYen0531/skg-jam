@@ -7,7 +7,7 @@ export type DeskLighting = 'hidden' | 'cool' | 'focused' | 'still' | 'ready';
 export type CoffeeState = 'none' | 'fresh' | 'sipped' | 'half' | 'near-empty' | 'empty' | 'tipped-empty' | 'pushed-away';
 export type DrinkVariant = 'none' | 'one' | 'two' | 'three';
 export type CableState = 'none' | 'loose' | 'connected';
-export type NotebookState = 'none' | 'closed' | 'blank' | 'skg' | 'company' | 'noah' | 'numbers' | 'password' | 'quiet' | 'route';
+export type NotebookState = 'none' | 'closed' | 'blank' | 'skg' | 'company' | 'noah' | 'mara' | 'numbers' | 'password' | 'quiet' | 'route';
 export type PenState = 'none' | 'neat' | 'working' | 'crossed' | 'resting' | 'route';
 export type DeskOrder = 'hidden' | 'clean' | 'gathering' | 'cluttered' | 'quiet' | 'organized';
 
@@ -169,10 +169,10 @@ export const CHAPTER_ENVIRONMENTS: Readonly<Record<EnvironmentChapter, ChapterEn
     teaService: false,
     paperBalls: false,
     cable: 'connected',
-    notebook: 'noah',
+    notebook: 'mara',
     notebookPosition: 'default',
     pen: 'working',
-    stickyNote: 'MARA COMMENT',
+    stickyNote: 'RECENTLY VIEWED',
     deskOrder: 'cluttered',
   },
   8: {
@@ -234,13 +234,20 @@ export const CHAPTER_ENVIRONMENTS: Readonly<Record<EnvironmentChapter, ChapterEn
 export const getChapterEnvironment = (chapter: EnvironmentChapter): ChapterEnvironmentState =>
   CHAPTER_ENVIRONMENTS[chapter];
 
-/** Energy cans mirror the coffee on the left side of the desk. */
+/** A second consumable, mirrored on the LEFT of the desk opposite the coffee.
+ * Energy cans take over the mug's storytelling role for the back half of the
+ * case, evolving with the escalation: a sealed pair (5–6) → both cracked open
+ * mid-binge (7–8) → crushed in a spilled puddle (9–10). Two chapters per state,
+ * matching the room-aging cadence. Chapters 0–4 show no drink. Kept out of
+ * `ChapterEnvironmentState` so it stays a pure function of the chapter number
+ * and never widens the deterministic environment record. */
 export const getDeskDrink = (chapter: EnvironmentChapter): DrinkVariant => {
   if (chapter >= 5 && chapter <= 6) return 'one';
   if (chapter >= 7 && chapter <= 8) return 'two';
   if (chapter === 9) return 'three';
   return 'none';
 };
+
 /** Two chapters share each supplied wall state so the room ages in five
  * deliberate steps without leaking the generated floor into the desk layer. */
 export const getMetaWallStage = (chapter: EnvironmentChapter): MetaWallStage =>

@@ -12,6 +12,12 @@ export const META_CAMERA_PITCH = {
   restDeg: 5.5,
 } as const;
 
+export const META_IDLE_DESK_VIEW = {
+  top: 0,
+  rest: 0.5,
+  bottom: 2 / 3,
+} as const;
+
 export interface ProjectivePoint {
   x: number;
   y: number;
@@ -123,6 +129,14 @@ export const getMetaCameraPitch = (pointerY: number, sceneHeight: number): numbe
     + (META_CAMERA_PITCH.bottomDeg - META_CAMERA_PITCH.topDeg) * normalizedY;
 };
 
+export const getMetaIdleDeskView = (pointerY: number, sceneHeight: number): number => {
+  if (!Number.isFinite(pointerY) || !Number.isFinite(sceneHeight) || sceneHeight <= 0) {
+    return META_IDLE_DESK_VIEW.rest;
+  }
+
+  return Math.min(META_IDLE_DESK_VIEW.bottom, Math.max(META_IDLE_DESK_VIEW.top, pointerY / sceneHeight));
+};
+
 export interface VirtualKeyResult {
   value: string;
   submit: boolean;
@@ -130,8 +144,8 @@ export interface VirtualKeyResult {
 
 export const shouldRevealMetaView = (
   deathsAt40: number,
-  leaderboardActuallyOpened: boolean,
-): boolean => deathsAt40 >= 2 && leaderboardActuallyOpened;
+  suspiciousRunSelected: boolean,
+): boolean => deathsAt40 >= 1 && suspiciousRunSelected;
 
 export const shouldShowMetaScene = (
   metaViewUnlocked: boolean,

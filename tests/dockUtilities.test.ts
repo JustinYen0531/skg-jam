@@ -16,6 +16,17 @@ test('dock utilities stay on the home screen in one small non-modal popover', ()
   assert.match(phoneSource, /w-\[min\(88%,400px\)\]/);
   assert.doesNotMatch(typesSource, /'voicelog'|'filebox'|'gallery'|'terminal'|'controls'/);
   assert.match(phoneSource, /toggleDockUtility\(utility\)/);
+  assert.match(phoneSource, /id="home-dock"\s+data-meta-immediate="true"/);
+  assert.match(phoneSource, /onPointerDown=\{\(event\) => handleDockUtilityPointerDown\(event, utility\)\}/);
+  assert.doesNotMatch(phoneSource, /handleDockUtilityPointerUp/);
+  assert.match(phoneSource, /onClick=\{\(event\) => handleDockUtilityClick\(event, utility\)\}/);
+  assert.match(metaSource, /onPointerDownCapture=\{handlePointerDownCapture\}/);
+  assert.match(metaSource, /button:not\(\[disabled\]\), input\[data-meta-hit-recovery="true"\]/);
+  assert.match(metaSource, /input\[data-meta-hit-recovery="true"\]/);
+  assert.match(metaSource, /getBoundingClientRect\(\)/);
+  assert.match(metaSource, /const hitSlop = 16/);
+  assert.match(metaSource, /control instanceof HTMLButtonElement && !control\.disabled\)[\s\S]{0,180}control\.click\(\)/);
+  assert.match(metaSource, /className="pointer-events-none absolute bottom-\[2\.5%\][^"]+"\s+id="meta-terminal-dialogue"/);
 });
 
 test('all five dock icons expose working utility controls', () => {
@@ -34,6 +45,7 @@ test('all five dock icons expose working utility controls', () => {
     'dock-open-developer-tools',
     'dock-camera-follow',
     'dock-desk-posture',
+    'dock-fullscreen-only',
   ]) {
     assert.match(phoneSource, new RegExp(`id="${controlId}"`));
   }
@@ -55,11 +67,25 @@ test('Terminal opens the existing developer panel and keeps Meta active', () => 
 });
 
 test('Controls independently gate camera follow and desk posture', () => {
-  assert.match(metaSource, /if \(!active \|\| !cameraPitchEnabled \|\| deviceResting/);
+  assert.match(metaSource, /if \(!active \|\| !cameraPitchEnabled \|\| reducedMotion/);
+  assert.match(metaSource, /if \(deviceResting\) \{[\s\S]{0,160}getMetaIdleDeskView/);
   assert.match(metaSource, /const postureAction = postureControlEnabled/);
   assert.match(metaSource, /if \(!postureControlEnabled\) setDeviceResting\(false\)/);
   assert.match(phoneSource, /onCameraPitchEnabledChange\(!cameraPitchEnabled\)/);
   assert.match(phoneSource, /onPostureControlEnabledChange\(!postureControlEnabled\)/);
+});
+
+test('Controls provides a persistent fullscreen-only Meta bypass', () => {
+  assert.match(phoneSource, /id="dock-fullscreen-only"/);
+  assert.match(phoneSource, /aria-checked=\{fullscreenOnly\}/);
+  assert.match(phoneSource, /onFullscreenOnlyChange\(!fullscreenOnly\)/);
+  assert.match(phoneSource, /data-meta-hit-recovery="true"/);
+  assert.match(appSource, /FULLSCREEN_ONLY_STORAGE_KEY = 'skg\.fullscreenOnly'/);
+  assert.match(appSource, /localStorage\.getItem\(FULLSCREEN_ONLY_STORAGE_KEY\) === 'true'/);
+  assert.match(appSource, /localStorage\.setItem\(FULLSCREEN_ONLY_STORAGE_KEY, String\(fullscreenOnly\)\)/);
+  assert.match(appSource, /const metaSceneActive = !chapterTenPlayerFullscreen[\s\S]{0,100}&& !fullscreenOnly[\s\S]{0,100}&& shouldShowMetaScene/);
+  assert.match(appSource, /fullscreenOnly=\{fullscreenOnly\}/);
+  assert.match(appSource, /onFullscreenOnlyChange=\{setFullscreenOnly\}/);
 });
 
 test('FileBox destructive actions require the same choice twice', () => {

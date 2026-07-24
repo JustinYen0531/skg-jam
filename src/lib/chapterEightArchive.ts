@@ -365,6 +365,30 @@ export const getChapterEightMemory = (id: ChapterEightMemoryId): ChapterEightMem
 export const getNoahArchiveFragment = (id: NoahArchiveFragmentId): NoahArchiveFragment | undefined =>
   NOAH_ARCHIVE_FRAGMENTS.find((fragment) => fragment.id === id);
 
+export const getNextNoahArchiveFragment = (
+  restoredIds: readonly string[],
+): NoahArchiveFragment | undefined =>
+  NOAH_ARCHIVE_FRAGMENTS.find((fragment) => !restoredIds.includes(fragment.id));
+
+export const getAvailableChapterEightMemoryIds = (
+  collectedIds: readonly string[],
+  restoredFragmentIds: readonly string[],
+): readonly ChapterEightMemoryId[] => {
+  const usedMemoryIds = new Set(
+    NOAH_ARCHIVE_FRAGMENTS
+      .filter((fragment) => restoredFragmentIds.includes(fragment.id))
+      .map((fragment) => fragment.memoryId),
+  );
+  return collectedIds.filter((id): id is ChapterEightMemoryId =>
+    CHAPTER_EIGHT_MEMORY_IDS.includes(id as ChapterEightMemoryId)
+    && !usedMemoryIds.has(id as ChapterEightMemoryId));
+};
+
+export const canRestoreNoahFragmentInOrder = (
+  fragmentId: NoahArchiveFragmentId,
+  restoredIds: readonly string[],
+): boolean => getNextNoahArchiveFragment(restoredIds)?.id === fragmentId;
+
 export const addUniqueChapterEightId = <T extends string>(ids: readonly T[], id: T): readonly T[] =>
   ids.includes(id) ? ids : [...ids, id];
 

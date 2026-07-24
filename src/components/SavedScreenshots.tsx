@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { GameProgress } from '../types';
 import audio from '../lib/audio';
 import { completePuzzleChapter } from '../lib/chapterProgress';
@@ -7,8 +7,22 @@ import {
   REQUIRED_CLUE_IDS,
   type LumenArcClueId,
 } from '../lib/lumenArcClues';
+import {
+  CHAPTER_FOUR_DIALOGUE,
+  getChapterFourClueDialogue,
+  getChapterFourDecoyDialogue,
+  getChapterFourStalledDialogue,
+  getChapterFourWrongDeliveryDialogue,
+  type ChapterFourDecoySheetId,
+  type ChapterFourDeliveryId,
+  type ChapterFourSheetId,
+  type ChapterFourWrongDeliveryId,
+} from '../lib/chapterFourDialogue';
+import { useReducedMotion } from '../lib/useReducedMotion';
+import { LumenArcReveal } from './LumenArcReveal';
+import { useMetaInteraction } from './MetaInteractionScene';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowRight, Check, FolderOpen, ImageIcon, X, ZoomIn } from 'lucide-react';
+import { ArrowRight, Check, FolderOpen, ImageIcon, PackageCheck, PackageOpen, Truck, X, ZoomIn } from 'lucide-react';
 
 interface SavedScreenshotsProps {
   progress: GameProgress;
@@ -20,7 +34,7 @@ interface SavedScreenshotsProps {
 type ClueRenderer = ((label: React.ReactNode) => React.ReactNode) | null;
 
 interface Sheet {
-  id: string;
+  id: ChapterFourSheetId;
   file: string;
   title: string;
   subtitle: string;
@@ -30,6 +44,30 @@ interface Sheet {
   clueId?: LumenArcClueId;
   content: (clue: ClueRenderer) => React.ReactNode;
 }
+
+interface DeliveryRecordBase {
+  item: string;
+  detail: string;
+  date: string;
+  status: string;
+}
+
+type DeliveryRecord =
+  | (DeliveryRecordBase & { id: 'lumen-arc'; target: true })
+  | (DeliveryRecordBase & { id: ChapterFourWrongDeliveryId; target?: false });
+
+// This is a delivery archive, not a hand-authored evidence browser. The
+// Lumen Arc parcel sits among ordinary orders the protagonist has actually
+// received; only its signed attachment opens the Chapter 4 evidence folder.
+const DELIVERY_RECORDS: readonly DeliveryRecord[] = [
+  { id: 'tea', item: 'Cedar mint tea refills', detail: 'Kitchen supplies · 2 items', date: 'Today · 08:14', status: 'DELIVERED' },
+  { id: 'bulb', item: 'Warm filament bulbs', detail: 'Home lighting · 4 pack', date: 'Yesterday · 18:42', status: 'DELIVERED' },
+  { id: 'lumen-arc', item: 'Lumen Arc Recovery Lot', detail: 'coldboot_17 · recovery lot contents indexed', date: 'Yesterday · 17:03', status: 'SIGNED', target: true },
+  { id: 'notebook', item: 'Grid notebook, charcoal', detail: 'Stationery · 1 item', date: 'Mon · 13:19', status: 'DELIVERED' },
+  { id: 'cable', item: 'Braided charging cable', detail: 'Electronics · 2 m', date: 'Sun · 11:06', status: 'DELIVERED' },
+  { id: 'filters', item: 'Coffee filters, cone 02', detail: 'Kitchen supplies · 100 count', date: 'Fri · 09:51', status: 'DELIVERED' },
+  { id: 'tape', item: 'Archival tape, matte', detail: 'Office supplies · 3 rolls', date: 'Wed · 16:22', status: 'DELIVERED' },
+];
 
 // Ten screenshots, dumped in no particular order. Three hide a detail; the rest
 // are the ordinary residue of a used device — battery, storage, a stranger's
@@ -185,7 +223,7 @@ const SHEETS: readonly Sheet[] = [
     angle: 4,
     bg: 'bg-[#fefce8]',
     textColor: 'text-yellow-950',
-    clueId: 'numbers',
+    clueId: 'archive',
     content: (clue) => (
       <div className="space-y-2 p-1 font-sans text-[10px] text-yellow-900">
         <div className="border-b-2 border-yellow-900/15 pb-1 font-mono text-[9px] font-bold text-yellow-800/80">NOTES · untitled</div>
@@ -193,7 +231,7 @@ const SHEETS: readonly Sheet[] = [
           <li>— pick up milk, bread</li>
           <li>— dentist thurs @ 3</li>
           <li>— return the drill to Sam</li>
-          <li>— lucky combo again: {clue ? clue('184-40-256') : '184-40-256'}</li>
+          <li>— old backup account: {clue ? clue('SilverKite_Games') : 'SilverKite_Games'}</li>
           <li>— call about the warranty</li>
         </ul>
       </div>
@@ -254,21 +292,103 @@ const SHEETS: readonly Sheet[] = [
 const CLUE_SHEET_COUNT = SHEETS.filter((sheet) => sheet.clueId).length;
 
 export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, updateProgress }) => {
+  const metaInteraction = useMetaInteraction();
+  const reducedMotion = useReducedMotion();
   const [activeSheet, setActiveSheet] = useState<number | null>(null);
+  const [activeDeliveryId, setActiveDeliveryId] = useState<string | null>(null);
+  // The package view appears first; the physical collapse begins only after
+  // the player explicitly clicks the suspended parcel.
+  const [revealPlaying, setRevealPlaying] = useState(false);
   // If the chapter is already complete (a later snapshot, or a re-visit), every
   // detail counts as found so the viewer shows its assembled state.
   const [found, setFound] = useState<Set<LumenArcClueId>>(
     () => (progress.discoveredOriginalTitle ? new Set(REQUIRED_CLUE_IDS) : new Set()),
   );
+  const wrongDeliveryAttempts = useRef(new Map<ChapterFourDeliveryId, number>());
+  const decoyAttempts = useRef(new Map<ChapterFourDecoySheetId, number>());
+  const clueRepeatAttempts = useRef(new Map<LumenArcClueId, number>());
+  const decoysSinceClue = useRef(0);
+  const stalledAttempts = useRef(0);
+  const packageOpenCount = useRef(0);
+  const revealSeen = useRef(false);
+  const completedRevisitSpoken = useRef(false);
+  const completedHere = useRef(false);
+  const caseDialogueTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const revealReactionTimers = useRef<number[]>([]);
+  const revealReactionScope = useRef(0);
 
   const assembled = hasAssembledCase(found);
+  const activeDelivery = DELIVERY_RECORDS.find((record) => record.id === activeDeliveryId) ?? null;
+  const chapterFourActive = progress.currentChapter === 4 && metaInteraction.active;
+
+  useEffect(() => () => {
+    if (caseDialogueTimer.current) clearTimeout(caseDialogueTimer.current);
+    revealReactionScope.current += 1;
+    revealReactionTimers.current.forEach((timer) => window.clearTimeout(timer));
+    revealReactionTimers.current = [];
+  }, []);
+
+  useEffect(() => {
+    if (
+      progress.currentChapter === 5
+      && progress.discoveredOriginalTitle
+      && metaInteraction.active
+      && !completedHere.current
+      && !completedRevisitSpoken.current
+    ) {
+      completedRevisitSpoken.current = true;
+      metaInteraction.speak(CHAPTER_FOUR_DIALOGUE.completedRevisit);
+    }
+  }, [metaInteraction.active, metaInteraction.speak, progress.currentChapter, progress.discoveredOriginalTitle]);
+
+  const openDelivery = (record: DeliveryRecord) => {
+    if (record.id === 'lumen-arc') {
+      // The reveal owns the physical opening sound and the first reaction. A
+      // solved re-visit skips the theatre and goes straight to the image pile.
+      if (!progress.discoveredOriginalTitle && !revealSeen.current) {
+        revealSeen.current = true;
+        setRevealPlaying(true);
+      } else {
+        audio.play('ui.primaryTap');
+        if (chapterFourActive) {
+          metaInteraction.speak(CHAPTER_FOUR_DIALOGUE.packetReentered);
+          packageOpenCount.current += 1;
+        }
+      }
+    } else {
+      audio.play('ui.secondaryTap');
+      if (chapterFourActive) {
+        const attempt = wrongDeliveryAttempts.current.get(record.id) ?? 0;
+        metaInteraction.speak(getChapterFourWrongDeliveryDialogue(record.id, attempt));
+        wrongDeliveryAttempts.current.set(record.id, attempt + 1);
+      }
+    }
+    setActiveDeliveryId(record.id);
+  };
 
   const findClue = (clueId: LumenArcClueId) => {
     if (found.has(clueId)) {
       audio.play('ui.secondaryTap');
+      if (chapterFourActive) {
+        const attempt = clueRepeatAttempts.current.get(clueId) ?? 0;
+        metaInteraction.speak(getChapterFourClueDialogue(clueId, attempt));
+        clueRepeatAttempts.current.set(clueId, attempt + 1);
+      }
       return;
     }
     audio.play('story.clueUnlock');
+    const willAssemble = REQUIRED_CLUE_IDS.every((id) => id === clueId || found.has(id));
+    if (chapterFourActive) {
+      metaInteraction.speak(getChapterFourClueDialogue(clueId));
+      decoysSinceClue.current = 0;
+      if (willAssemble) {
+        if (caseDialogueTimer.current) clearTimeout(caseDialogueTimer.current);
+        caseDialogueTimer.current = setTimeout(() => {
+          metaInteraction.speak(CHAPTER_FOUR_DIALOGUE.caseAssembled);
+          caseDialogueTimer.current = null;
+        }, 850);
+      }
+    }
     setFound((prev) => {
       const next = new Set(prev);
       next.add(clueId);
@@ -308,42 +428,145 @@ export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, up
   const handleContinue = () => {
     audio.play('ui.primaryTap');
     audio.play('story.clueUnlock', { delay: 0.16 });
+    if (caseDialogueTimer.current) {
+      clearTimeout(caseDialogueTimer.current);
+      caseDialogueTimer.current = null;
+    }
+    completedHere.current = true;
+    if (chapterFourActive) metaInteraction.speak(CHAPTER_FOUR_DIALOGUE.completed);
     updateProgress((prev) => completePuzzleChapter(prev, 4, { discoveredOriginalTitle: true }));
+  };
+
+  const closeActiveSheet = () => {
+    audio.play('phone.modalClose');
+    setActiveSheet(null);
   };
 
   const openSheet = (index: number) => {
     audio.play('screenshot.zoom');
+    const sheet = SHEETS[index];
+    if (chapterFourActive && !sheet.clueId) {
+      const decoyId = sheet.id as ChapterFourDecoySheetId;
+      const attempt = decoyAttempts.current.get(decoyId) ?? 0;
+      const observation = getChapterFourDecoyDialogue(decoyId, attempt);
+      decoyAttempts.current.set(decoyId, attempt + 1);
+      decoysSinceClue.current += 1;
+      if (decoysSinceClue.current % 3 === 0) {
+        metaInteraction.speak([
+          ...observation,
+          ...getChapterFourStalledDialogue(stalledAttempts.current),
+        ]);
+        stalledAttempts.current += 1;
+      } else {
+        metaInteraction.speak(observation);
+      }
+    }
     setActiveSheet(index);
   };
 
+  const viewingLumenPackage = activeDeliveryId === 'lumen-arc';
+
+  const runPackageRevealReaction = () => {
+    revealReactionScope.current += 1;
+    const scope = revealReactionScope.current;
+    revealReactionTimers.current.forEach((timer) => window.clearTimeout(timer));
+    revealReactionTimers.current = [];
+
+    metaInteraction.speak(CHAPTER_FOUR_DIALOGUE.packageOpened);
+    const angerTimer = window.setTimeout(() => {
+      if (revealReactionScope.current !== scope) return;
+      metaInteraction.speak(CHAPTER_FOUR_DIALOGUE.packageAnger);
+      metaInteraction.tapSequence('lumen-arc-frustration-tap-zone', 5, () => {
+        if (revealReactionScope.current !== scope) return;
+        metaInteraction.speak(CHAPTER_FOUR_DIALOGUE.packageDespair);
+        const resolveTimer = window.setTimeout(() => {
+          if (revealReactionScope.current !== scope) return;
+          metaInteraction.speak(CHAPTER_FOUR_DIALOGUE.packageResolve);
+        }, 2200);
+        revealReactionTimers.current.push(resolveTimer);
+      });
+    }, 1700);
+    revealReactionTimers.current.push(angerTimer);
+  };
+
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-[var(--laos-bg)] font-sans text-[var(--laos-text)]" id="screenshots-root">
+    <div className="relative flex h-full flex-col overflow-hidden bg-[var(--laos-bg)] font-sans text-[var(--laos-text)]" id="screenshots-root">
+      {!viewingLumenPackage ? (
+        <>
+          <div className="flex items-center justify-between border-b border-[var(--laos-line)] bg-[var(--laos-surface)] p-3" id="delivery-archive-header">
+            <div className="flex items-center gap-1.5 font-laos text-xs font-semibold tracking-wide">
+              <PackageOpen className="h-4 w-4 text-amber-300" strokeWidth={1.5} />
+              <span>Delivery Archive</span>
+            </div>
+            <span className="laos-label text-[8px] text-[var(--laos-dim)]">7 SIGNED PARCELS</span>
+          </div>
 
-      {/* Viewer chrome: this is a folder the seller uploaded, not a curated
-          exhibit. It knows how many files it holds, not which ones matter. */}
-      <div className="flex items-center justify-between border-b border-[var(--laos-line)] bg-[var(--laos-surface)] p-3" id="spec-header">
-        <div className="flex items-center gap-1.5 font-laos text-xs font-semibold tracking-wide text-[var(--laos-text)]">
-          <FolderOpen className="h-4 w-4 text-[var(--laos-dim)]" strokeWidth={1.5} />
-          <span>Lumen_Arc_Screenshots.zip</span>
-          <span className="text-[var(--laos-dim)]">· {SHEETS.length} images</span>
-        </div>
-        <span
-          className={`laos-label border px-2 py-0.5 text-[8px] transition-colors ${
-            assembled
-              ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300'
-              : 'border-[var(--laos-line-dim)] bg-[var(--laos-bg)]'
-          }`}
-          data-clues-found={found.size}
-          id="spec-clue-counter"
-        >
-          {assembled ? 'CASE ASSEMBLED · 3/3' : `KEY DETAILS · ${found.size}/${CLUE_SHEET_COUNT}`}
-        </span>
-      </div>
+          <div className="flex-1 overflow-y-auto p-3.5" id="delivery-archive">
+            <div className="mb-4 rounded-md border border-[var(--laos-line)] bg-[var(--laos-surface)] p-3">
+              <div className="flex items-center gap-2 text-[11px] font-semibold">
+                <Truck className="h-4 w-4 text-sky-300" /> Recent deliveries
+              </div>
+              <p className="mt-1 text-[9px] leading-relaxed text-[var(--laos-dim)]">Signed parcels, household orders, and old purchase records kept on this device.</p>
+            </div>
 
-      {/* Pile of screenshots */}
+            <div className="space-y-2">
+              {DELIVERY_RECORDS.map((record) => (
+                <button
+                  type="button"
+                  key={record.id}
+                  onClick={() => openDelivery(record)}
+                  data-delivery-id={record.id}
+                  className="w-full rounded-md border border-[var(--laos-line)] bg-[var(--laos-surface)] p-3 text-left transition-colors hover:border-[var(--laos-line-bright)] hover:bg-[var(--laos-surface-hover)]"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 text-[11px] font-semibold"><PackageCheck className="h-3.5 w-3.5 shrink-0 text-[var(--laos-dim)]" />{record.item}</div>
+                      <p className="mt-1 truncate text-[9px] text-[var(--laos-dim)]">{record.detail}</p>
+                    </div>
+                    <span className={`laos-label shrink-0 text-[8px] ${record.status === 'SIGNED' ? 'text-amber-300' : 'text-[var(--laos-dim)]'}`}>{record.status}</span>
+                  </div>
+                  <div className="mt-2 border-t border-[var(--laos-line-dim)] pt-1.5 font-mono text-[8px] text-[var(--laos-dim)]">{record.date}</div>
+                </button>
+              ))}
+            </div>
+
+            {activeDelivery && !activeDelivery.target && (
+              <div className="mt-3 rounded-md border border-[var(--laos-line-dim)] bg-[var(--laos-bg)] p-3 text-[9px] text-[var(--laos-dim)]" id="delivery-selection">
+                <span className="font-semibold text-[var(--laos-text)]">{activeDelivery.item}</span> arrived normally. Nothing here belongs to the old game case.
+              </div>
+            )}
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="flex items-center justify-between border-b border-[var(--laos-line)] bg-[var(--laos-surface)] p-3" id="spec-header">
+            <div className="flex min-w-0 items-center gap-2 font-laos text-xs font-semibold tracking-wide text-[var(--laos-text)]">
+              <button type="button" onClick={() => { audio.play('phone.modalClose'); setActiveDeliveryId(null); setActiveSheet(null); }} className="rounded p-1 text-[var(--laos-dim)] hover:bg-[var(--laos-surface-hover)]" id="delivery-back-to-archive" aria-label="Back to delivery archive">
+                <ArrowRight className="h-3.5 w-3.5 rotate-180" />
+              </button>
+              <FolderOpen className="h-4 w-4 shrink-0 text-amber-300" strokeWidth={1.5} />
+              <span className="truncate">Lumen Arc Recovery Lot</span>
+            </div>
+            <div
+              className={`min-w-[108px] rounded-md border-2 px-2.5 py-1 text-right transition-colors ${assembled ? 'border-emerald-400 bg-emerald-500/15 text-emerald-200' : 'border-amber-300/60 bg-[var(--laos-bg)] text-amber-200'}`}
+              data-clues-found={found.size}
+              id="spec-clue-counter"
+            >
+              <div className="laos-label text-[8px]">KEY DETAILS</div>
+              <div className="font-mono text-base font-black leading-none">{found.size}<span className="text-[10px] opacity-75">/{CLUE_SHEET_COUNT}</span></div>
+              <div className="mt-0.5 text-[7px] font-semibold">{assembled ? 'CASE ASSEMBLED' : 'IMAGE PACKET'}</div>
+            </div>
+          </div>
+
+      {/* The signed parcel contains an uncurated attachment bundle. */}
       <div className="relative flex-1 space-y-3 overflow-y-auto p-3.5" id="spec-workspace">
+        <div
+          className="pointer-events-none absolute left-1/2 top-[42%] h-20 w-28 -translate-x-1/2 -translate-y-1/2"
+          id="lumen-arc-frustration-tap-zone"
+          data-protagonist-tap-target="true"
+        />
         <div className="text-center font-laos text-[10px] text-[var(--laos-dim)]">
-          A stranger dumped their whole device here. Open the screenshots and see what they left behind.
+          coldboot_17 · signed image packet attached. Three details may belong to the same case.
         </div>
 
         <div className="relative grid grid-cols-2 gap-3 sm:grid-cols-3" id="spec-pile">
@@ -379,7 +602,7 @@ export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, up
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 12 }}
-              className="sticky bottom-0 z-10 rounded-md border border-emerald-500/30 bg-[var(--laos-surface)] p-3 shadow-[0_-8px_24px_rgba(0,0,0,0.4)]"
+              className="sticky bottom-0 z-10 rounded-md border border-emerald-300 bg-emerald-500/15 p-3 ring-1 ring-emerald-400/35 shadow-[0_-8px_24px_rgba(0,0,0,0.4)]"
               id="spec-case-assembled"
             >
               <div className="flex items-center justify-between gap-3">
@@ -426,7 +649,7 @@ export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, up
                     </div>
                     <button
                       type="button"
-                      onClick={() => { audio.play('phone.modalClose'); setActiveSheet(null); }}
+                      onClick={closeActiveSheet}
                       className="rounded-full p-1 transition-colors hover:bg-black/10"
                       id="spec-close-button"
                     >
@@ -441,11 +664,39 @@ export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, up
                   <span className="flex items-center gap-1"><ZoomIn className="h-3 w-3" /> Lumen_Arc_Screenshots.zip</span>
                   <span>{String(activeSheet + 1).padStart(2, '0')} / {SHEETS.length}</span>
                 </div>
+                <button
+                  type="button"
+                  onClick={closeActiveSheet}
+                  data-meta-immediate="true"
+                  data-meta-hit-recovery="true"
+                  className="mt-3 flex w-full items-center justify-center gap-1.5 rounded border border-current/30 bg-black/80 px-3 py-2 font-laos text-[10px] font-semibold tracking-wide text-white shadow-sm transition-colors hover:bg-black/95"
+                  id="spec-back-to-screenshots"
+                  aria-label="Back to Lumen Arc screenshots"
+                >
+                  <ArrowRight className="h-3.5 w-3.5 rotate-180" /> BACK
+                </button>
               </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
+        </>
+      )}
+
+      {revealPlaying && viewingLumenPackage && (
+        <LumenArcReveal
+          reducedMotion={reducedMotion}
+          onDeceptionRevealed={() => {
+            if (chapterFourActive) {
+              runPackageRevealReaction();
+              packageOpenCount.current += 1;
+            }
+          }}
+          onComplete={() => {
+            setRevealPlaying(false);
+          }}
+        />
+      )}
     </div>
   );
 };

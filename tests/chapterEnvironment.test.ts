@@ -49,8 +49,8 @@ test('desk evidence never appears before the player has earned it', () => {
   assert.equal(getChapterEnvironment(4).notebook, 'blank');
   assert.equal(getChapterEnvironment(5).stickyNote, '');
   assert.equal(getChapterEnvironment(6).stickyNote, 'NOAH KADE?');
-  assert.equal(getChapterEnvironment(7).notebook, 'noah');
-  assert.equal(getChapterEnvironment(7).stickyNote, 'MARA COMMENT');
+  assert.equal(getChapterEnvironment(7).notebook, 'mara');
+  assert.equal(getChapterEnvironment(7).stickyNote, 'RECENTLY VIEWED');
   assert.equal(getChapterEnvironment(8).notebook, 'password');
   assert.equal(getChapterEnvironment(10).notebook, 'route');
 });
@@ -129,11 +129,13 @@ test('the supplied floor artwork shares each state across two chapters and meets
 
 test('the physical environment is display-only and does not mutate progress', () => {
   const environmentSource = readFileSync(new URL('../src/components/ChapterEnvironment.tsx', import.meta.url), 'utf8');
+  const sceneSource = readFileSync(new URL('../src/components/MetaInteractionScene.tsx', import.meta.url), 'utf8');
   assert.doesNotMatch(environmentSource, /updateProgress|setProgress|GameProgress/);
   assert.match(environmentSource, /id="meta-desk-coffee"/);
   assert.match(environmentSource, /deviceResting\s+\? \(pushedAway \? 'right-\[4%\] top-\[78%\] scale-\[1\.875\]' : tipped \? 'right-\[8%\] top-\[76%\] scale-\[2\.1\]' : 'right-\[6%\] top-\[76%\] scale-\[2\.025\]'\)/);
   assert.match(environmentSource, /: \(pushedAway \? 'right-\[2%\] top-\[90%\] scale-\[2\.475\]' : tipped \? 'right-\[6%\] top-\[89%\] scale-\[2\.8125\]' : 'right-\[4%\] top-\[90%\] scale-\[2\.7\]'\)/);
-  assert.match(environmentSource, /data-composition-offset=\{deviceResting \? 'resting-coffee-up-14' : 'upright-original'\}/);
+  assert.match(environmentSource, /data-composition-offset=\{deviceResting \? 'resting-desk-right' : 'upright-desk-bottom'\}/);
+  assert.match(environmentSource, /data-scene-depth="front-of-device"/);
   assert.match(environmentSource, /deviceResting=\{deviceResting\}/);
   assert.match(environmentSource, /id="meta-desk-notebook"/);
   assert.match(environmentSource, /id=\{part === 'insert' \? 'meta-cable-insert-layer' : 'meta-desk-cable'\}/);
@@ -171,7 +173,9 @@ test('the physical environment is display-only and does not mutate progress', ()
   assert.match(environmentSource, /data-cable-layer=\{part === 'insert' \? 'underlay' : 'foreground'\}/);
   assert.match(environmentSource, /M650 116 C590 116 552 116 510 116/);
   assert.match(environmentSource, /<Pen[\s\S]{0,400}<ChargingCable connected animateLayout=\{!reducedMotion\} part="insert"/);
-  assert.match(environmentSource, /<CoffeeCup[\s\S]{0,400}<ChargingCable connected=\{environment\.cable === 'connected'\} animateLayout=\{!reducedMotion\} part="body"/);
+  assert.doesNotMatch(environmentSource, /underlay \? \([\s\S]{0,180}<CoffeeCup/);
+  assert.match(environmentSource, /\) : \(\s*<>\s*<CoffeeCup/);
+  assert.match(environmentSource, /underlay \? 'z-\[9\]' : 'z-\[25\]'/);
   assert.match(environmentSource, /data-plug-target=\{connected && part === 'insert' \? 'phone-bottom-port'/);
   assert.match(environmentSource, /skg: \['SKG', '\?'\]/);
   assert.match(environmentSource, /quiet: \[\]/);
@@ -187,4 +191,27 @@ test('the physical environment is display-only and does not mutate progress', ()
   assert.match(environmentSource, /transition-\[top,right,scale\] duration-\[620ms\]/); // coffee cup
   assert.match(environmentSource, /transition-\[left,top,rotate,scale\] duration-\[620ms\]/); // pen
   assert.match(environmentSource, /transition-\[top,scale,rotate\] duration-\[620ms\]/); // notebook
+});
+
+test('resting desk props share one mouse-depth scale instead of drifting independently', () => {
+  const environmentSource = readFileSync(new URL('../src/components/ChapterEnvironment.tsx', import.meta.url), 'utf8');
+  assert.match(environmentSource, /restingObjectScale = useTransform\(restingViewSource, \[0, 0\.5, 1\], \[0\.82, 1, 1\.18\]\)/);
+  assert.match(environmentSource, /restingObjectY = useTransform\(restingViewSource, \[0, 0\.5, 1\], \['7%', '0%', '-8%'\]\)/);
+  assert.match(environmentSource, /data-resting-object-scale=\{deviceResting \? 'shared-mouse-depth' : 'upright'\}/);
+  assert.match(environmentSource, /id=\{underlay \? 'meta-chapter-underlay-perspective' : 'meta-chapter-object-perspective'\}/);
+});
+
+test('maximum symbolic fireplace light illuminates every visible room chapter', () => {
+  const sceneSource = readFileSync(new URL('../src/components/MetaInteractionScene.tsx', import.meta.url), 'utf8');
+  for (let chapter = 1; chapter <= 10; chapter += 1) {
+    assert.ok(getMetaWallStage(chapter as keyof typeof CHAPTER_ENVIRONMENTS) > 0);
+  }
+  assert.match(sceneSource, /id="meta-fireplace"/);
+  assert.match(sceneSource, /left-1\/2 top-\[42%\] z-\[2\] h-\[17%\]/);
+  assert.match(sceneSource, /data-fireplace-intensity="maximum"/);
+  assert.match(sceneSource, /data-fireplace-local-glow="strong"/);
+  assert.match(sceneSource, /<MetaFireplace reducedMotion=\{reducedMotion\} chapter=\{chapter\} \/>/);
+  assert.match(sceneSource, /id="meta-room-firelight"/);
+  assert.match(sceneSource, /data-room-firelight="maximum-all-chapters"/);
+  assert.match(sceneSource, /mix-blend-screen/);
 });

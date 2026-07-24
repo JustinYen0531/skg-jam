@@ -55,7 +55,7 @@ test('Chapter 1 dialogue events are wired into the transcript, phone, and ViewTu
   const phone = readFileSync(new URL('../src/components/PhoneSimulator.tsx', import.meta.url), 'utf8');
   const viewTube = readFileSync(new URL('../src/components/ViewTube.tsx', import.meta.url), 'utf8');
 
-  assert.match(scene, /speak: \(lines: DialogueLines\) => void/);
+  assert.match(scene, /speak: \(lines: DialogueLines, onComplete\?: \(\) => void\) => void/);
   assert.match(scene, /dialogueLines\.map/);
   assert.match(phone, /getChapterOneWrongAppDialogue/);
   assert.match(phone, /getChapterOneCompanionDialogue/);

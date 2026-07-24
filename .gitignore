@@ -6,3 +6,28 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Root-level source art/audio is retained for authoring; runtime copies live in public/assets.
+/Phase *.mp3
+/drink 1.png
+/drink 2.png
+/drink 3.png
+/finger.png
+/hand.png
+/hand_2.png
+/new finger.png
+/new_finger__2.png
+/floor1.png
+/floor2.png
+/floor3.png
+/floor4.png
+/floor5.png
+/table.png
+/wall 5.png
+/wall_2-removebg-preview.png
+/wall_3-removebg-preview.png
+/wall_4-removebg-preview.png
+/wall_5-removebg-preview.png
+
+# Generated hand-composition previews; keep the renderer, not its output.
+/scripts/__hand_previews/
