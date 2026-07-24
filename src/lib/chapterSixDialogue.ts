@@ -25,7 +25,7 @@ export const CHAPTER_SIX_DIALOGUE = {
   ],
   sponsoredWallVisible: [
     'His own page, and the top of it is ads for the thing that ate his company.',
-    'A founder voice, generated from whatever fragments remain. They are puppeting a dead man.',
+    'A founder voice, generated from whatever fragments remain. They are puppeting a man nobody can account for.',
   ],
   sortedOldest: [
     'The sponsored garbage can wait. This is where he started.',
@@ -55,7 +55,8 @@ export const CHAPTER_SIX_DIALOGUE = {
   ],
   completed: [
     'I saved one fully loaded device for our child.',
-    'That device is on my desk. I am the child. Noah Kade was my father.',
+    'That device is on my desk. I am the child.',
+    'I remember Dad. I never knew Noah was the name he used here.',
   ],
   completedRevisit: [
     'I know whose device this was, and who it was waiting for.',

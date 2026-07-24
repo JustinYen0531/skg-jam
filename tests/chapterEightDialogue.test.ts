@@ -62,6 +62,11 @@ test('Messages wires collection, gentle restoration, and the legacy-profile comp
   );
   assert.match(messagesSource, /SILVER KITE LEGACY ASSISTANT · ACCESS LOCKED/);
   assert.match(messagesSource, /Lumen Arc family backup/);
+  assert.match(messagesSource, /id="chapter-eight-noah-status"/);
+  assert.match(messagesSource, /CURRENT STATUS/);
+  assert.match(messagesSource, />UNKNOWN</);
+  assert.match(messagesSource, /DEPARTURE RECORD/);
+  assert.match(messagesSource, />NOT FOUND</);
   assert.match(messagesSource, /OPEN RECOVERY RECORD/);
   assert.doesNotMatch(messagesSource, /PRESERVE RESTORED HUMAN RECORD/);
   assert.ok(

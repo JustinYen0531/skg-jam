@@ -344,7 +344,7 @@ Established 2009. Reinvented 2014. Operated by nobody since.
   open for the person patient enough to stop pushing.
   〔指向：隱藏路線的存在。刻意不可行動化——沒有數字、沒有機制。〕
   broken image: family_2014_do_not_publish.jpg — image not archived
-  〔指向：Noah/Mara/未來的孩子。檔名說「別公開」，玩家看得到卻打不開，剛好呼應保存主題。〕
+  〔指向：Noah、Mara 與當時年幼的 Arcane。檔名說「別公開」，玩家看得到卻打不開，剛好呼應保存主題。〕
 
 [BLOG E · 2014-04-14 · Noah Kade]  Log: The Recall Decision   ← 已存在，保留
   broken image: recall_notice_scan.jpg — image not archived   ← 已存在，保留

@@ -60,7 +60,9 @@ test('Chapter 6 remains English-only and does not leak Chapter 7 or the later AR
   assert.doesNotMatch(beforeMaraSelection, /my father|I am the child|left for me/i);
   assert.doesNotMatch(CHAPTER_SIX_DIALOGUE.maraCommentSelected.join(' '), /my father|I am the child/i);
   assert.match(CHAPTER_SIX_DIALOGUE.completed.join(' '), /I am the child/);
-  assert.match(CHAPTER_SIX_DIALOGUE.completed.join(' '), /father/);
+  assert.match(CHAPTER_SIX_DIALOGUE.completed.join(' '), /remember Dad/);
+  assert.match(CHAPTER_SIX_DIALOGUE.completed.join(' '), /Noah was the name/);
+  assert.doesNotMatch(Object.values(CHAPTER_SIX_DIALOGUE).flat().join(' '), /dead man/i);
 });
 
 test('Chapter 6 dialogue is wired to Meta entry, Phone navigation, and FaceSpace investigation events', () => {

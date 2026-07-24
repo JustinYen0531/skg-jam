@@ -70,3 +70,15 @@ test('the human archive never leaks the Chapter 9 altitude attachment', () => {
   assert.match(ceiling?.restoredText ?? '', /Not my signature/);
   assert.doesNotMatch(JSON.stringify(NOAH_ARCHIVE_FRAGMENTS), /ARC_184\s*=\s*Noah/i);
 });
+
+test('the archive treats Arcane as an existing young son and leaves Noah missing', () => {
+  const archive = JSON.stringify(MARA_ARCHIVE_THREADS);
+  const fragments = JSON.stringify(NOAH_ARCHIVE_FRAGMENTS);
+  assert.doesNotMatch(`${archive} ${fragments}`, /future son|unborn|child we have not met/i);
+  assert.match(archive, /young son/);
+  assert.match(fragments, /our son, until he was old enough/);
+
+  const noah = MARA_ARCHIVE_THREADS.find(({ id }) => id === 'noah');
+  assert.match(noah?.subtitle ?? '', /status unknown/i);
+  assert.match(noah?.preview ?? '', /no confirmed departure record/i);
+});

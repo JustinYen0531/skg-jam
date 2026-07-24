@@ -57,6 +57,7 @@ export const CHAPTER_SEVEN_DIALOGUE = {
   ],
   completed: [
     'Her lookout, their gate, her ending.',
+    'No obituary. No goodbye. His record simply stops.',
     'Twelve years, and the door still knows them.',
   ],
   completedRevisit: [

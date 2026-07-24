@@ -1011,6 +1011,11 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
 
                   {activeArchive.isCase ? (
                     <div className="space-y-3" id="chapter-eight-noah-recovery">
+                      <div className="grid grid-cols-3 gap-px border border-slate-700/70 bg-slate-700/70 font-mono text-[7px]" id="chapter-eight-noah-status">
+                        <div className="bg-slate-950/90 p-2"><div className="text-slate-600">LAST LOCAL ACTIVITY</div><div className="mt-1 text-slate-300">2014-04-20</div></div>
+                        <div className="bg-slate-950/90 p-2"><div className="text-slate-600">CURRENT STATUS</div><div className="mt-1 text-amber-200">UNKNOWN</div></div>
+                        <div className="bg-slate-950/90 p-2"><div className="text-slate-600">DEPARTURE RECORD</div><div className="mt-1 text-slate-300">NOT FOUND</div></div>
+                      </div>
                       <div className="rounded-lg border border-amber-300/20 bg-amber-200/[0.04] p-2.5" id="chapter-eight-memory-drawer">
                         <div className="flex items-center justify-between gap-2">
                           <span className="text-[8px] font-semibold uppercase tracking-[0.14em] text-amber-200">Recovered memories</span>
@@ -1318,7 +1323,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                       </p>
                     )}
                     <p className="text-[var(--laos-text)] font-laos leading-relaxed">
-                      I don't expect common players to find this. But I'll leave the device with you. Let our future son fly it one day. Let him see that we existed.
+                      I don't expect common players to find this. But I'll leave the device with you. Let our son fly it when he is old enough. Let him see that we existed.
                     </p>
                   </div>
 

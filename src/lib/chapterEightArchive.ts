@@ -255,7 +255,7 @@ export const MARA_ARCHIVE_THREADS: readonly MaraArchiveThread[] = [
         from: 'mara',
         time: '2014',
         text: 'DO NOT RETURN THE LUMEN ARC STACK. Bought every recalled unit I could. One is for our child.',
-        memory: memory('lumen-stack', 'THE LUMEN ARC STACK', 'Mara secretly kept the recalled devices, including one for her future son.', 'memo'),
+        memory: memory('lumen-stack', 'THE LUMEN ARC STACK', 'Mara secretly kept the recalled devices, including one for her young son.', 'memo'),
       },
       { from: 'mara', time: '2016', text: 'SEC_PARTNER copy remains offline. Store beside the blue scarf.' },
       { from: 'mara', time: '2020', status: 'deleted', note: 'Mara deleted this reminder' },
@@ -269,8 +269,8 @@ export const MARA_ARCHIVE_THREADS: readonly MaraArchiveThread[] = [
     tint: '#c96f5a',
     era: '2014',
     isCase: true,
-    subtitle: 'Silver Kite Games · damaged private record',
-    preview: '8 damaged messages · human record incomplete',
+    subtitle: 'Silver Kite Games · missing creator · status unknown',
+    preview: 'Last local activity 2014 · no confirmed departure record',
     messages: [],
   },
 ] as const;
@@ -337,7 +337,7 @@ export const NOAH_ARCHIVE_FRAGMENTS: readonly NoahArchiveFragment[] = [
     memoryId: 'lumen-stack',
     prompt: 'What did Mara hide from the recall?',
     hint: 'Her private memo used capital letters for one thing.',
-    restoredText: 'I bought the recalled Lumen Arcs. A ridiculous stack of them. I kept one unopened for the child we have not met yet.',
+    restoredText: 'I bought the recalled Lumen Arcs. A ridiculous stack of them. I kept one unopened for our son, until he was old enough.',
   },
   {
     id: 'farewell',
