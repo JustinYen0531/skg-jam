@@ -17,8 +17,8 @@ test('defines one deterministic physical environment for Chapter 0 through 10', 
 
 test('coffee sizes are explicit per posture without compounded wrapper scaling', () => {
   const environmentSource = readFileSync(new URL('../src/components/ChapterEnvironment.tsx', import.meta.url), 'utf8');
-  assert.match(environmentSource, /deviceResting\s+\? \(pushedAway \? 'right-\[4%\] top-\[66%\] scale-\[1\.875\]' : tipped \? 'right-\[8%\] top-\[64%\] scale-\[2\.1\]' : 'right-\[6%\] top-\[64%\] scale-\[2\.025\]'\)/);
-  assert.match(environmentSource, /: \(pushedAway \? 'right-\[2%\] top-\[78%\] scale-\[2\.475\]' : tipped \? 'right-\[6%\] top-\[77%\] scale-\[2\.8125\]' : 'right-\[4%\] top-\[78%\] scale-\[2\.7\]'\)/);
+  assert.match(environmentSource, /deviceResting\s+\? \(pushedAway \? 'right-\[4%\] top-\[78%\] scale-\[1\.875\]' : tipped \? 'right-\[8%\] top-\[76%\] scale-\[2\.1\]' : 'right-\[6%\] top-\[76%\] scale-\[2\.025\]'\)/);
+  assert.match(environmentSource, /: \(pushedAway \? 'right-\[2%\] top-\[90%\] scale-\[2\.475\]' : tipped \? 'right-\[6%\] top-\[89%\] scale-\[2\.8125\]' : 'right-\[4%\] top-\[90%\] scale-\[2\.7\]'\)/);
   assert.doesNotMatch(environmentSource, /data-coffee-(resting|upright)-scale/);
 });
 
@@ -68,7 +68,7 @@ test('coffee tells a chapter-specific desk story without revealing later evidenc
   assert.equal(getChapterEnvironment(5).coffeeSpill, true);
   assert.equal(getChapterEnvironment(5).notebookPosition, 'lowered');
   assert.equal(getChapterEnvironment(6).coffee, 'tipped-empty');
-  assert.equal(getChapterEnvironment(6).coffeeSpill, false);
+  assert.equal(getChapterEnvironment(6).coffeeSpill, true);
   assert.equal(getChapterEnvironment(6).teaService, true);
   assert.equal(getChapterEnvironment(6).paperBalls, true);
 });
@@ -131,8 +131,8 @@ test('the physical environment is display-only and does not mutate progress', ()
   const environmentSource = readFileSync(new URL('../src/components/ChapterEnvironment.tsx', import.meta.url), 'utf8');
   assert.doesNotMatch(environmentSource, /updateProgress|setProgress|GameProgress/);
   assert.match(environmentSource, /id="meta-desk-coffee"/);
-  assert.match(environmentSource, /deviceResting\s+\? \(pushedAway \? 'right-\[4%\] top-\[66%\] scale-\[1\.875\]' : tipped \? 'right-\[8%\] top-\[64%\] scale-\[2\.1\]' : 'right-\[6%\] top-\[64%\] scale-\[2\.025\]'\)/);
-  assert.match(environmentSource, /: \(pushedAway \? 'right-\[2%\] top-\[78%\] scale-\[2\.475\]' : tipped \? 'right-\[6%\] top-\[77%\] scale-\[2\.8125\]' : 'right-\[4%\] top-\[78%\] scale-\[2\.7\]'\)/);
+  assert.match(environmentSource, /deviceResting\s+\? \(pushedAway \? 'right-\[4%\] top-\[78%\] scale-\[1\.875\]' : tipped \? 'right-\[8%\] top-\[76%\] scale-\[2\.1\]' : 'right-\[6%\] top-\[76%\] scale-\[2\.025\]'\)/);
+  assert.match(environmentSource, /: \(pushedAway \? 'right-\[2%\] top-\[90%\] scale-\[2\.475\]' : tipped \? 'right-\[6%\] top-\[89%\] scale-\[2\.8125\]' : 'right-\[4%\] top-\[90%\] scale-\[2\.7\]'\)/);
   assert.match(environmentSource, /data-composition-offset=\{deviceResting \? 'resting-coffee-up-14' : 'upright-original'\}/);
   assert.match(environmentSource, /deviceResting=\{deviceResting\}/);
   assert.match(environmentSource, /id="meta-desk-notebook"/);

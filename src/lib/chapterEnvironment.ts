@@ -5,6 +5,7 @@ export type MetaWallStage = 0 | 1 | 2 | 3 | 4 | 5;
 export type MetaFloorStage = MetaWallStage;
 export type DeskLighting = 'hidden' | 'cool' | 'focused' | 'still' | 'ready';
 export type CoffeeState = 'none' | 'fresh' | 'sipped' | 'half' | 'near-empty' | 'empty' | 'tipped-empty' | 'pushed-away';
+export type DrinkVariant = 'none' | 'one' | 'two' | 'three';
 export type CableState = 'none' | 'loose' | 'connected';
 export type NotebookState = 'none' | 'closed' | 'blank' | 'skg' | 'company' | 'noah' | 'numbers' | 'password' | 'quiet' | 'route';
 export type PenState = 'none' | 'neat' | 'working' | 'crossed' | 'resting' | 'route';
@@ -146,7 +147,7 @@ export const CHAPTER_ENVIRONMENTS: Readonly<Record<EnvironmentChapter, ChapterEn
     coffeeRing: false,
     coffeeSteam: false,
     coffeeDrip: false,
-    coffeeSpill: false,
+    coffeeSpill: true,
     teaService: true,
     paperBalls: true,
     cable: 'connected',
@@ -160,11 +161,11 @@ export const CHAPTER_ENVIRONMENTS: Readonly<Record<EnvironmentChapter, ChapterEn
     chapter: 7,
     caseLabel: 'NUMBERS ARE A ROAD',
     lighting: 'focused',
-    coffee: 'empty',
-    coffeeRing: true,
+    coffee: 'tipped-empty',
+    coffeeRing: false,
     coffeeSteam: false,
     coffeeDrip: false,
-    coffeeSpill: false,
+    coffeeSpill: true,
     teaService: false,
     paperBalls: false,
     cable: 'connected',
@@ -178,11 +179,11 @@ export const CHAPTER_ENVIRONMENTS: Readonly<Record<EnvironmentChapter, ChapterEn
     chapter: 8,
     caseLabel: 'THE OLD ACCOUNT',
     lighting: 'focused',
-    coffee: 'empty',
-    coffeeRing: true,
+    coffee: 'tipped-empty',
+    coffeeRing: false,
     coffeeSteam: false,
     coffeeDrip: false,
-    coffeeSpill: false,
+    coffeeSpill: true,
     teaService: false,
     paperBalls: false,
     cable: 'connected',
@@ -196,11 +197,11 @@ export const CHAPTER_ENVIRONMENTS: Readonly<Record<EnvironmentChapter, ChapterEn
     chapter: 9,
     caseLabel: 'MARA AND NOAH',
     lighting: 'still',
-    coffee: 'pushed-away',
-    coffeeRing: true,
+    coffee: 'tipped-empty',
+    coffeeRing: false,
     coffeeSteam: false,
     coffeeDrip: false,
-    coffeeSpill: false,
+    coffeeSpill: true,
     teaService: false,
     paperBalls: false,
     cable: 'connected',
@@ -214,11 +215,11 @@ export const CHAPTER_ENVIRONMENTS: Readonly<Record<EnvironmentChapter, ChapterEn
     chapter: 10,
     caseLabel: 'THE ROUTE IN THE NAME',
     lighting: 'ready',
-    coffee: 'none',
+    coffee: 'tipped-empty',
     coffeeRing: false,
     coffeeSteam: false,
     coffeeDrip: false,
-    coffeeSpill: false,
+    coffeeSpill: true,
     teaService: false,
     paperBalls: false,
     cable: 'connected',
@@ -233,6 +234,13 @@ export const CHAPTER_ENVIRONMENTS: Readonly<Record<EnvironmentChapter, ChapterEn
 export const getChapterEnvironment = (chapter: EnvironmentChapter): ChapterEnvironmentState =>
   CHAPTER_ENVIRONMENTS[chapter];
 
+/** Energy cans mirror the coffee on the left side of the desk. */
+export const getDeskDrink = (chapter: EnvironmentChapter): DrinkVariant => {
+  if (chapter >= 5 && chapter <= 6) return 'one';
+  if (chapter >= 7 && chapter <= 8) return 'two';
+  if (chapter === 9) return 'three';
+  return 'none';
+};
 /** Two chapters share each supplied wall state so the room ages in five
  * deliberate steps without leaking the generated floor into the desk layer. */
 export const getMetaWallStage = (chapter: EnvironmentChapter): MetaWallStage =>

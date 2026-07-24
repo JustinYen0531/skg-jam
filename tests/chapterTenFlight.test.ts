@@ -49,7 +49,7 @@ import {
   getFlightCreditsAtScore,
   NOAH_FINAL_TRANSMISSION,
 } from '../src/lib/chapterTenCredits';
-import { getChapterEnvironment } from '../src/lib/chapterEnvironment';
+import { getChapterEnvironment, getDeskDrink } from '../src/lib/chapterEnvironment';
 
 const CANVAS_HEIGHT = 320;
 const BIRD_RADIUS = 12;
@@ -552,9 +552,10 @@ test('the final lyric, overflow score, and Arcane signature form one determinist
   assert.doesNotMatch(appSource, /id="ending-choice-overlay"/);
 });
 
-test('Chapter 10 removes both drink stories for a suddenly clean desk', () => {
-  assert.equal(getChapterEnvironment(10).coffee, 'none');
-  assert.equal(getChapterEnvironment(10).coffeeRing, false);
+test('Chapter 10 keeps the abandoned tipped coffee but clears the energy cans', () => {
+  assert.equal(getChapterEnvironment(10).coffee, 'tipped-empty');
+  assert.equal(getChapterEnvironment(10).coffeeSpill, true);
+  assert.equal(getDeskDrink(10), 'none');
 });
 
 test('Noah final transmission closes established canon without adding another puzzle', () => {
