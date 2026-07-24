@@ -1588,6 +1588,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                 onSuspiciousRunSelected={onSuspiciousRunSelected}
                 chapterTenPlayerFullscreen={chapterTenPlayerFullscreen}
                 onChapterTenTakeover={onChapterTenTakeover}
+                onRestartLoop={onRestartLoop}
               />
             </motion.div>
           )}

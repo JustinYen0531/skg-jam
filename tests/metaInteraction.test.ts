@@ -198,7 +198,7 @@ test('rest posture lays down the phone and swaps the grip for desk-plane hands',
   assert.match(scene, /id="meta-device-projective-plane"/);
   assert.match(scene, /deviceResting \? \{ rotateY: 0, rotateZ: 0 \} : \{ rotateY: -1\.4, rotateZ: -0\.35 \}/);
   assert.match(scene, /opacity: deviceResting \? 0 : 1,[\s\S]{0,100}x: deviceResting \? '-3%' : 0/);
-  assert.match(scene, /opacity: deviceResting \|\| interactionPending \|\| scrollGesture \? 0 : 1/);
+  assert.match(scene, /opacity: deviceResting \|\| scrollGesture \? 0 : autonomousTapping \? 1 : interactionPending \? 0 : 1/);
   assert.match(scene, /opacity: deviceResting \? 1 : 0,[\s\S]{0,240}x: deviceResting \? '-8%' : 0,[\s\S]{0,100}y: deviceResting \? '10%' : '12%'/);
   assert.match(scene, /opacity: deviceResting && !interactionPending && !scrollGesture \? 1 : 0/);
   assert.equal((scene.match(/scale: deviceResting \? 0\.46 : 0\.46/g) ?? []).length, 2);
@@ -332,11 +332,12 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   assert.equal((sceneSource.match(/data-resting-hand-perspective="desk-plane"/g) ?? []).length, 2);
   assert.equal((sceneSource.match(/data-wrist-crop="below-scene-edge"/g) ?? []).length, 2);
   assert.match(sceneSource, /left-\[-3%\][\s\S]{0,700}data-hand-edge-offset="-3%"/);
-  assert.match(sceneSource, /right-\[-3%\][\s\S]{0,700}data-hand-edge-offset="3%"/);
+  assert.match(sceneSource, /autonomousTapping \? 'right-\[-18%\]' : 'right-\[-3%\]'/);
+  assert.match(sceneSource, /data-hand-edge-offset=\{autonomousTapping \? '18%' : '3%'\}/);
   assert.match(sceneSource, /clipPath: 'inset\(0 50% 0 0\)'/);
   assert.match(sceneSource, /clipPath: 'inset\(0 0 0 50%\)'/);
   assert.match(sceneSource, /opacity: deviceResting \? 0 : 1[\s\S]{0,900}id="meta-left-hand-asset"/);
-  assert.match(sceneSource, /opacity: deviceResting \|\| interactionPending \|\| scrollGesture \? 0 : 1[\s\S]{0,900}id="meta-right-hand-asset"/);
+  assert.match(sceneSource, /opacity: deviceResting \|\| scrollGesture \? 0 : autonomousTapping \? 1 : interactionPending \? 0 : 1[\s\S]{0,1300}id="meta-right-hand-asset"/);
   assert.match(sceneSource, /opacity: deviceResting \? 1 : 0[\s\S]{0,1000}id="meta-left-resting-hand"/);
   assert.match(sceneSource, /opacity: deviceResting && !interactionPending && !scrollGesture \? 1 : 0[\s\S]{0,1000}id="meta-right-resting-hand"/);
   assert.equal((sceneSource.match(/rotateX: deviceResting \? 4 : 18/g) ?? []).length, 2);

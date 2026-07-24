@@ -11,10 +11,9 @@ import {
 import audio from './lib/audio';
 import music, { getMusicPhase } from './lib/music';
 import { 
-  Award, Terminal, RefreshCw, Volume2, VolumeX,
-  CheckCircle, Database, HelpCircle, Archive, Globe
+  Terminal, Volume2, VolumeX,
+  CheckCircle, Database, HelpCircle
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
 
 const INITIAL_PROGRESS: GameProgress = {
   currentChapter: 1,
@@ -51,24 +50,6 @@ const INITIAL_PROGRESS: GameProgress = {
 };
 
 const FULLSCREEN_ONLY_STORAGE_KEY = 'skg.fullscreenOnly';
-const ENDING_PREVIEW_LINES: Readonly<Record<NonNullable<GameProgress['selectedEnding']>, readonly string[]>> = {
-  submit: [
-    'So I let the board keep it.',
-    'Negative sixty-five thousand, five hundred and thirty-five. Dead last.',
-    'Honestly? There is a lot less pressure down here.',
-  ],
-  publicize: [
-    'So I tell everyone what happened.',
-    'They argue over the score, the archive, and whether any of it counts.',
-    'At least nobody gets to pretend the game never existed.',
-  ],
-  preserve: [
-    'So I keep the build alive and leave the scoreboard alone.',
-    'No victory announcement. No permanent server.',
-    'Just a door that still opens when someone needs it.',
-  ],
-};
-
 export default function App() {
   const [progress, setProgress] = useState<GameProgress>(INITIAL_PROGRESS);
   const [isMuted, setIsMuted] = useState(false);
@@ -199,27 +180,6 @@ export default function App() {
   const openDeveloperTools = () => {
     setDebugMode(true);
     setMetaViewActive(true);
-  };
-
-  const selectEnding = (ending: 'submit' | 'publicize' | 'preserve') => {
-    // §4.8 — each ending owns its sound: preserving is a file finishing
-    // its write; submitting is a complete but hollow ad victory;
-    // publicizing is a notification swarm cut off by the server.
-    audio.play(
-      ending === 'preserve' ? 'story.endingPreserve'
-        : ending === 'submit' ? 'story.endingSubmit'
-          : 'story.endingPublicize',
-    );
-    if (ending === 'preserve') {
-      // "Download count: 1 (ARC_184), then 2." — audible, barely (§4.8).
-      audio.play('story.downloadCount', { delay: 2.4 });
-      audio.play('story.downloadCount', { delay: 3.6 });
-    }
-    setProgress((prev) => ({
-      ...prev,
-      phase: 'ending_choice',
-      selectedEnding: ending
-    }));
   };
 
   const chapterAdvanceGuide = getChapterAdvanceGuide(progress.currentChapter);
@@ -451,144 +411,6 @@ export default function App() {
         </MetaInteractionScene>
 
       </div>
-
-      {/* ENDING DECISION OVERLAY (Phase triggered) */}
-      <AnimatePresence>
-        {progress.phase === 'ending_choice' && (
-          /* The final choice belongs to the old system's page too. Three
-             plain documents, no fireworks — attention stays on the decision. */
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.9, ease: 'easeOut' }}
-            className="fixed inset-0 bg-[#0a0e13]/[0.99] flex flex-col justify-center items-center p-6 z-50 overflow-y-auto"
-            id="ending-choice-overlay"
-          >
-            <div className="max-w-2xl w-full space-y-8" id="ending-container">
-
-              <div className="text-center space-y-1.5">
-                <h1 className="font-laos font-semibold text-2xl text-[var(--laos-text)] tracking-[0.04em]">
-                  HOW SHOULD THE SKYLINE CONCLUDE?
-                </h1>
-                <p className="font-laos text-xs text-[var(--laos-dim)] max-w-md mx-auto">
-                  Three player-controlled previews. None of them changes the real story.
-                </p>
-                <div className="laos-label text-[8px] !text-[var(--laos-warm)]">
-                  NON-CANON EPILOGUE PREVIEW
-                </div>
-              </div>
-
-              {/* Three Final Choices */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4" id="ending-options-grid">
-
-                {/* Option 1: Submit Score */}
-                <div
-                  onClick={() => selectEnding('submit')}
-                  className={`laos-slow p-4 border text-left cursor-pointer flex flex-col justify-between h-[200px] bg-[var(--laos-surface)] ${
-                    progress.selectedEnding === 'submit'
-                      ? 'border-[var(--laos-warm)]'
-                      : 'border-[var(--laos-line)] hover:border-[var(--laos-dim)]'
-                  }`}
-                  id="opt-submit-score"
-                >
-                  <div className="space-y-2">
-                    <div className="w-8 h-8 border border-[var(--laos-line)] bg-[var(--laos-surface-2)] flex items-center justify-center">
-                      <Award className="w-4 h-4 text-[var(--laos-dim)]" strokeWidth={1.5} />
-                    </div>
-                    <h3 className="font-laos font-semibold text-xs text-[var(--laos-text)] tracking-wide">1. SUBMIT SCORE</h3>
-                    <p className="font-laos text-[10px] text-[var(--laos-dim)] leading-normal">
-                      Leave ARCANE's signed −65535 record on the public leaderboard and let the impossible score speak for itself.
-                    </p>
-                  </div>
-                  <span className="laos-label text-[8px] mt-2">SELECT BRANCH</span>
-                </div>
-
-                {/* Option 2: Publicize the story */}
-                <div
-                  onClick={() => selectEnding('publicize')}
-                  className={`laos-slow p-4 border text-left cursor-pointer flex flex-col justify-between h-[200px] bg-[var(--laos-surface)] ${
-                    progress.selectedEnding === 'publicize'
-                      ? 'border-[var(--laos-warm)]'
-                      : 'border-[var(--laos-line)] hover:border-[var(--laos-dim)]'
-                  }`}
-                  id="opt-publicize"
-                >
-                  <div className="space-y-2">
-                    <div className="w-8 h-8 border border-[var(--laos-line)] bg-[var(--laos-surface-2)] flex items-center justify-center">
-                      <Globe className="w-4 h-4 text-[var(--laos-dim)]" strokeWidth={1.5} />
-                    </div>
-                    <h3 className="font-laos font-semibold text-xs text-[var(--laos-text)] tracking-wide">2. PUBLICIZE STORY</h3>
-                    <p className="font-laos text-[10px] text-[var(--laos-dim)] leading-normal">
-                      Release the route, the recovered conversations, and the story behind Skyline 256.
-                    </p>
-                  </div>
-                  <span className="laos-label text-[8px] mt-2">SELECT BRANCH</span>
-                </div>
-
-                {/* Option 3: Archive & Preserve */}
-                <div
-                  onClick={() => selectEnding('preserve')}
-                  className={`laos-slow p-4 border text-left cursor-pointer flex flex-col justify-between h-[200px] bg-[var(--laos-surface)] ${
-                    progress.selectedEnding === 'preserve'
-                      ? 'border-[var(--laos-warm)]'
-                      : 'border-[var(--laos-line)] hover:border-[var(--laos-dim)]'
-                  }`}
-                  id="opt-preserve"
-                >
-                  <div className="space-y-2">
-                    <div className="w-8 h-8 border border-[var(--laos-line)] bg-[var(--laos-surface-2)] flex items-center justify-center">
-                      <Archive className="w-4 h-4 text-[var(--laos-warm)]" strokeWidth={1.5} />
-                    </div>
-                    <h3 className="font-laos font-semibold text-xs text-[var(--laos-text)] tracking-wide">3. ARCHIVE &amp; PRESERVE</h3>
-                    <p className="font-laos text-[10px] text-[var(--laos-dim)] leading-normal">
-                      Preserve the playable build and its records without declaring any public winner.
-                    </p>
-                  </div>
-                  <span className="laos-label text-[8px] mt-2 !text-[var(--laos-warm)]">TRUE ARCHIVIST</span>
-                </div>
-
-              </div>
-
-              {/* Dynamic ending narrative text based on chosen option */}
-              {progress.selectedEnding && (
-                <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, ease: 'easeOut' }}
-                  className="laos-panel p-4 text-xs space-y-2 font-laos leading-relaxed"
-                  id="ending-narrative"
-                >
-                  <div className="flex items-center gap-2 font-mono text-[8px] font-bold tracking-[0.3em] text-[#91a7bb]">
-                    <span className="h-1.5 w-1.5 rounded-[1px] border border-[#91a7bb]/60" aria-hidden="true" />
-                    ARCANE
-                  </div>
-
-                  <div className="space-y-1.5 font-thought text-[15px] leading-relaxed text-[#c6d1de]">
-                    {ENDING_PREVIEW_LINES[progress.selectedEnding].map((line) => (
-                      <p key={line}>{line}</p>
-                    ))}
-                  </div>
-
-                  <div className="pt-2 border-t border-[var(--laos-line-dim)] flex justify-between items-center text-[10px]">
-                    <span className="laos-label text-[7.5px]">PREVIEW ONLY · SWITCH BRANCHES FREELY</span>
-                    <button
-                      onClick={restartLoop}
-                      className="laos-slow px-3 py-1 bg-[var(--laos-surface-2)] text-[var(--laos-text)] hover:bg-[var(--laos-line-dim)] flex items-center gap-1 border border-[var(--laos-line)] font-laos tracking-wide"
-                      id="restart-loop-btn"
-                    >
-                      <RefreshCw className="w-3 h-3" />
-                      Restart Loop
-                    </button>
-                  </div>
-                </motion.div>
-              )}
-
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
     </div>
   );
 }

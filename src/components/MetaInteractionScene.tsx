@@ -1990,21 +1990,23 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
               alt=""
               draggable={false}
               animate={{
-                opacity: deviceResting || interactionPending || scrollGesture ? 0 : 1,
-                x: interactionPending ? 18 : deviceResting ? '3%' : 0,
+                opacity: deviceResting || scrollGesture ? 0 : autonomousTapping ? 1 : interactionPending ? 0 : 1,
+                x: autonomousTapping ? '18%' : interactionPending ? 18 : deviceResting ? '3%' : 0,
                 y: deviceResting ? '5%' : 0,
                 scale: deviceResting ? 0.98 : 1,
               }}
               initial={false}
               transition={{ duration: reducedMotion ? 0 : deviceResting ? 0.82 : 0.42, ease: [0.22, 1, 0.36, 1] }}
-              className="pointer-events-none absolute right-[-3%] top-0 z-[22] h-full w-full select-none object-fill drop-shadow-[0_16px_14px_rgba(0,0,0,0.28)]"
+              className={`pointer-events-none absolute top-0 z-[22] h-full w-full select-none object-fill drop-shadow-[0_16px_14px_rgba(0,0,0,0.28)] ${
+                autonomousTapping ? 'right-[-18%]' : 'right-[-3%]'
+              }`}
               style={{
                 clipPath: 'inset(0 0 0 50%)',
                 rotateX: cameraPitchStyle,
                 transformOrigin: '50% 72%',
                 transformPerspective: 1500,
               }}
-              data-hand-edge-offset="3%"
+              data-hand-edge-offset={autonomousTapping ? '18%' : '3%'}
               aria-hidden="true"
               id="meta-right-hand-asset"
             />

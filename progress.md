@@ -1104,3 +1104,12 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Added three explicitly non-canon epilogue previews. Each selection is narrated by Arcane and may be switched freely before restarting the loop.
 - Restarting preserves ARCANE at the bottom of the public leaderboard with `-65535` and a deliberately relaxed last-place remark.
 - Browser and Preview remain intentionally unused by project instruction; validation is static only.
+
+## 2026-07-24 — Skyline 256 optional afterword and final-board correction
+
+- Credits and ARCANE's signed `-65535` score are now the canonical stopping point; the three imagined outcomes moved out of the room-wide ending overlay and into an optional in-phone afterword.
+- The in-phone heading is `THREE THINGS THAT COULD HAVE HAPPENED.` and explicitly states that none of its branches alters the real story.
+- The compact score remains in the phone's upper-right throughout the credit roll, then yields to the large centre score only for the final overflow reveal.
+- The post-restart leaderboard suppresses the stale blue `YOU · LOCAL PLAYER 256` row. It retains only ARCANE's `-65535` record and reports `You defeated 0% of all totally real flyers.`
+- During autonomous flight, the right grip remains visible and is pushed to the far screen edge so the wrist crop reads as an intentional edge crop rather than a hollow arm.
+- Browser and Preview remain intentionally unused by project instruction; validation is static only.

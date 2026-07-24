@@ -547,9 +547,9 @@ test('the final lyric, overflow score, and Arcane signature form one determinist
   assert.match(gameSource, /beginAutonomousControl\('chapter-ten-score-name'\)/);
   assert.match(gameSource, /ARCANE_SCORE_NAME = 'ARCANE'/);
   assert.match(gameSource, /ARCANE_NEGATIVE_RECORD_STORAGE_KEY/);
-  assert.match(appSource, /NON-CANON EPILOGUE PREVIEW/);
-  assert.match(appSource, /ENDING_PREVIEW_LINES\[progress\.selectedEnding\]/);
-  assert.doesNotMatch(appSource, /TRUE ENDING/);
+  assert.match(gameSource, /THREE THINGS THAT COULD HAVE HAPPENED\./);
+  assert.match(gameSource, /CHAPTER_TEN_AFTERWORD_LINES\[progress\.selectedEnding\]/);
+  assert.doesNotMatch(appSource, /id="ending-choice-overlay"/);
 });
 
 test('Chapter 10 removes both drink stories for a suddenly clean desk', () => {

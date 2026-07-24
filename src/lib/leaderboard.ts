@@ -30,6 +30,7 @@ export const createPublicLeaderboard = (
   playerBestScore: number,
   anonymousCount = 48,
   includeArcaneNegativeRecord = false,
+  includeCurrentPlayer = true,
 ): PublicLeaderboardEntry[] => {
   const safePlayerScore = Math.max(0, Math.floor(playerBestScore));
   const anonymousEntries = Array.from({ length: anonymousCount }, (_, index) => ({
@@ -41,7 +42,12 @@ export const createPublicLeaderboard = (
 
   return [
     ...NAMED_PLAYERS,
-    { id: 'current-player', name: 'YOU · LOCAL PLAYER', score: safePlayerScore, kind: 'player' as const },
+    ...(includeCurrentPlayer ? [{
+      id: 'current-player',
+      name: 'YOU · LOCAL PLAYER',
+      score: safePlayerScore,
+      kind: 'player' as const,
+    }] : []),
     ...anonymousEntries,
     ...(includeArcaneNegativeRecord ? [{
       id: 'arcane-negative-record',

@@ -55,6 +55,11 @@ import {
   NOAH_FINAL_TRANSMISSION,
 } from '../lib/chapterTenCredits';
 import {
+  CHAPTER_TEN_AFTERWORD_LINES,
+  CHAPTER_TEN_AFTERWORD_OPTIONS,
+  type ChapterTenAfterword,
+} from '../lib/chapterTenAfterword';
+import {
   computePerformancePlan,
   getPerformanceObstaclePositions,
   performanceSampleAt,
@@ -71,6 +76,7 @@ interface FlappyGameProps {
   onSuspiciousRunSelected: () => void;
   chapterTenPlayerFullscreen: boolean;
   onChapterTenTakeover: () => void;
+  onRestartLoop: () => void;
 }
 
 // Sequence of target altitudes near pipe 40
@@ -90,6 +96,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
   onSuspiciousRunSelected,
   chapterTenPlayerFullscreen,
   onChapterTenTakeover,
+  onRestartLoop,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -118,6 +125,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
   const [creditsScrollComplete, setCreditsScrollComplete] = useState(false);
   const [scoreSubmissionStage, setScoreSubmissionStage] = useState<ScoreSubmissionStage>('idle');
   const [scoreSubmissionName, setScoreSubmissionName] = useState('');
+  const [afterwordOpen, setAfterwordOpen] = useState(false);
   const creditsScrollRef = useRef<HTMLDivElement | null>(null);
   const scoreTypingTimerRef = useRef<number | null>(null);
   const scoreTransitionTimerRef = useRef<number | null>(null);
@@ -156,6 +164,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
       setCreditsScrollComplete(false);
       setScoreSubmissionStage('idle');
       setScoreSubmissionName('');
+      setAfterwordOpen(false);
       return;
     }
 
@@ -222,7 +231,6 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
       window.localStorage.setItem(ARCANE_NEGATIVE_RECORD_STORAGE_KEY, 'true');
       scoreTransitionTimerRef.current = window.setTimeout(() => {
         endAutonomousControl();
-        updateProgress((previous) => ({ ...previous, phase: 'ending_choice' }));
       }, 1500);
     }, 260);
   };
@@ -1565,12 +1573,24 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
   ]);
 
   const playerBestScore = Math.max(progress.bestScore, highScore, score);
+  const showingArcaneFinalRecord = arcaneNegativeRecordSubmitted;
+  const leaderboardDisplayScore = showingArcaneFinalRecord ? 0 : playerBestScore;
   const publicLeaderboard = createPublicLeaderboard(
-    playerBestScore,
+    leaderboardDisplayScore,
     48,
-    arcaneNegativeRecordSubmitted,
+    showingArcaneFinalRecord,
+    !showingArcaneFinalRecord,
   );
-  const beatPercentage = calculateBeatPercentage(playerBestScore);
+  const beatPercentage = showingArcaneFinalRecord ? 0 : calculateBeatPercentage(playerBestScore);
+
+  const chooseAfterword = (afterword: ChapterTenAfterword) => {
+    audio.play(
+      afterword === 'preserve' ? 'story.endingPreserve'
+        : afterword === 'submit' ? 'story.endingSubmit'
+          : 'story.endingPublicize',
+    );
+    updateProgress((previous) => ({ ...previous, selectedEnding: afterword }));
+  };
 
   return (
     <div className="flex flex-col h-full bg-slate-950 font-sans select-none overflow-hidden" id="flappy-root">
@@ -1701,7 +1721,20 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
               </div>
             </div>
 
-            {((creditsPlaybackProgress ?? 0) >= FINAL_LYRIC_END_PROGRESS
+            {!afterwordOpen && (creditsPlaybackProgress ?? 0) < FINAL_LYRIC_END_PROGRESS && (
+              <div
+                className="absolute right-[5%] top-[5%] z-20 text-right font-mono"
+                id="chapter-ten-credit-score-corner"
+                data-score={creditsScore}
+              >
+                <div className="text-[6px] tracking-[0.22em] text-white/42">SCORE</div>
+                <div className="mt-0.5 text-[15px] font-bold tabular-nums tracking-[0.08em] text-white/88">
+                  {creditsScore}
+                </div>
+              </div>
+            )}
+
+            {!afterwordOpen && ((creditsPlaybackProgress ?? 0) >= FINAL_LYRIC_END_PROGRESS
               || scoreSubmissionStage !== 'idle') && (
               <div
                 className="absolute inset-0 z-30 flex items-center justify-center bg-black/94 px-[14%] text-center"
@@ -1741,15 +1774,84 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
                             className="w-full border-b border-white/65 bg-transparent px-1 py-2 text-center text-[18px] font-bold tracking-[0.32em] text-white outline-none"
                             aria-label="Flyer name entered by Arcane"
                           />
-                          <div className="text-center text-[7px] tracking-[0.22em] text-white/38">
-                            {scoreSubmissionStage === 'naming'
-                              ? 'PLAYER INPUT LOCKED'
-                              : 'RECORD ACCEPTED · RANK LAST'}
-                          </div>
-                        </div>
-                      )}
+                           <div className="text-center text-[7px] tracking-[0.22em] text-white/38">
+                             {scoreSubmissionStage === 'naming'
+                               ? 'PLAYER INPUT LOCKED'
+                               : 'RECORD ACCEPTED · RANK LAST'}
+                           </div>
+                           {scoreSubmissionStage === 'submitted' && (
+                             <button
+                               type="button"
+                               onClick={() => setAfterwordOpen(true)}
+                               className="mt-5 w-full border border-white/30 px-4 py-2 text-[8px] font-bold tracking-[0.25em] text-white/70 hover:border-white hover:text-white"
+                               id="chapter-ten-open-afterword"
+                             >
+                               AFTERWORD / OPTIONAL
+                             </button>
+                           )}
+                         </div>
+                       )}
                     </div>
                   )}
+                </div>
+              </div>
+            )}
+
+            {afterwordOpen && (
+              <div
+                className="absolute inset-0 z-40 overflow-y-auto bg-black px-[11%] py-[8%] text-left"
+                id="chapter-ten-afterword"
+              >
+                <div className="mx-auto max-w-[470px] space-y-5">
+                  <div className="text-center">
+                    <h2 className="text-[14px] font-bold tracking-[0.13em] text-white">
+                      THREE THINGS THAT COULD HAVE HAPPENED.
+                    </h2>
+                    <p className="mt-2 text-[8px] leading-relaxed tracking-[0.08em] text-white/45">
+                      OPTIONAL AFTERWORD · NONE OF THESE CHANGE THE REAL STORY
+                    </p>
+                  </div>
+
+                  <div className="space-y-2" id="chapter-ten-afterword-options">
+                    {CHAPTER_TEN_AFTERWORD_OPTIONS.map((option) => (
+                      <button
+                        type="button"
+                        key={option.id}
+                        onClick={() => chooseAfterword(option.id)}
+                        className={`w-full border px-4 py-3 text-left transition-colors ${
+                          progress.selectedEnding === option.id
+                            ? 'border-white bg-white text-black'
+                            : 'border-white/28 text-white/78 hover:border-white/70 hover:text-white'
+                        }`}
+                        id={`chapter-ten-afterword-${option.id}`}
+                      >
+                        <div className="text-[9px] font-bold tracking-[0.17em]">{option.label}</div>
+                        <div className={`mt-1 text-[8px] leading-relaxed ${
+                          progress.selectedEnding === option.id ? 'text-black/65' : 'text-white/48'
+                        }`}>{option.description}</div>
+                      </button>
+                    ))}
+                  </div>
+
+                  {progress.selectedEnding && (
+                    <div className="border-t border-white/20 pt-4" id="chapter-ten-afterword-arcane">
+                      <div className="text-[7px] font-bold tracking-[0.32em] text-white/45">ARCANE</div>
+                      <div className="mt-2 space-y-1.5 font-thought text-[14px] leading-relaxed text-white/88">
+                        {CHAPTER_TEN_AFTERWORD_LINES[progress.selectedEnding].map((line) => (
+                          <p key={line}>{line}</p>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={onRestartLoop}
+                    className="w-full border border-white/45 py-2.5 text-[8px] font-bold tracking-[0.24em] text-white/80 hover:border-white hover:text-white"
+                    id="chapter-ten-afterword-restart-loop"
+                  >
+                    RESTART LOOP
+                  </button>
                 </div>
               </div>
             )}
