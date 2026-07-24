@@ -11,7 +11,7 @@ test('cross-app handoffs receive protagonist guidance without exposing the solut
   assert.match(CHAPTER_SIX_DIALOGUE.maraCommentSelected.join(' '), /another page tied to the family backup/);
   assert.match(CHAPTER_SIX_DIALOGUE.profilePageOpened.join(' '), /linked accounts/);
   assert.match(CHAPTER_SEVEN_DIALOGUE.momMappingRead.join(' '), /Silver Kite account.*corner/);
-  assert.match(CHAPTER_NINE_DIALOGUE.storageBlocked.join(' '), /Holding an icon.*tapping will not/);
+  assert.match(CHAPTER_NINE_DIALOGUE.cleanupInstruction.join(' '), /Holding an icon.*tapping will not/);
 });
 
 test('phone handoffs move the badge and recent-use trace at the relevant chapter checkpoints', () => {

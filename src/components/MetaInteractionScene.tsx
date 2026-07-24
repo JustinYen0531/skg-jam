@@ -31,6 +31,7 @@ import { getChapterPhoneWidgetState } from '../lib/chapterPhoneWidgets';
 import { MetaWallClock } from './MetaWallClock';
 import { MetaWindowScene } from './MetaWindowScene';
 import { ChapterEnvironment } from './ChapterEnvironment';
+import { assetPath } from '../lib/assetPath';
 
 interface MetaInteractionSceneProps {
   active: boolean;
@@ -1831,7 +1832,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
                 id="meta-wall-surface"
               >
                 <img
-                  src={`/assets/meta-wall-stage-${wallStage}.png`}
+                  src={assetPath(`assets/meta-wall-stage-${wallStage}.png`)}
                   alt=""
                   className="absolute left-[-10%] top-[-11.6%] h-[94.6%] w-[120%] max-w-none object-fill"
                   data-source-floor="visible-over-floor"
@@ -1843,7 +1844,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
             )}
             {floorStage > 0 && (
               <img
-                src={`/assets/meta-floor-stage-${floorStage}.png`}
+                src={assetPath(`assets/meta-floor-stage-${floorStage}.png`)}
                 alt=""
                 className="pointer-events-none absolute left-1/2 top-[28%] z-[0] h-full w-[180%] max-w-none -translate-x-1/2 object-fill"
                 data-floor-stage={floorStage}
@@ -1867,7 +1868,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
               id="meta-desk-perspective-frame"
             >
               <motion.img
-                src="/assets/meta-desk-table.png"
+                src={assetPath('assets/meta-desk-table.png')}
                 alt=""
                 initial={false}
                 animate={deviceResting
@@ -2092,7 +2093,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
         {active && (
           <>
             <motion.img
-              src="/assets/meta-hand-grip.png"
+              src={assetPath('assets/meta-hand-grip.png')}
               alt=""
               draggable={false}
               initial={{ opacity: 0, x: -24 }}
@@ -2116,7 +2117,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
             />
 
             <motion.img
-              src="/assets/meta-hand-grip.png"
+              src={assetPath('assets/meta-hand-grip.png')}
               alt=""
               draggable={false}
               animate={{
@@ -2148,7 +2149,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
               id="meta-resting-hands-perspective"
             >
               <motion.img
-                src="/assets/meta-resting-hands.png"
+                src={assetPath('assets/meta-resting-hands.png')}
                 alt=""
                 draggable={false}
                 initial={false}
@@ -2174,7 +2175,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
               />
 
               <motion.img
-                src="/assets/meta-resting-hands.png"
+                src={assetPath('assets/meta-resting-hands.png')}
                 alt=""
                 draggable={false}
                 initial={false}
@@ -2222,7 +2223,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
                   id="meta-scroll-finger"
                 >
                   <img
-                    src="/assets/meta-tapping-finger.png"
+                    src={assetPath('assets/meta-tapping-finger.png')}
                     alt=""
                     draggable={false}
                     className="absolute left-0 top-0 h-[clamp(441px,64.5vh,630px)] w-auto max-w-none select-none drop-shadow-[0_14px_12px_rgba(0,0,0,0.3)]"
@@ -2282,7 +2283,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
               id="meta-pointer-hand"
             >
               <motion.img
-                src="/assets/meta-tapping-finger.png"
+                src={assetPath('assets/meta-tapping-finger.png')}
                 alt=""
                 draggable={false}
                 className="absolute left-0 top-0 h-[clamp(441px,64.5vh,630px)] w-auto max-w-none select-none drop-shadow-[0_14px_12px_rgba(0,0,0,0.3)]"

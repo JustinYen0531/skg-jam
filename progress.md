@@ -1316,3 +1316,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Long-press and launcher deletion input remain locked until that final line finishes, giving the player a quiet beat to interpret it before acting.
 - The cleanup widget reports that it is waiting for local operator input during the handoff, then restores the existing press-and-hold instruction.
 - Browser and Preview remain intentionally unused by project instruction; validation is static only.
+
+## 2026-07-24 — itch.io relative-path packaging
+
+- Set Vite's production base to `./` so generated entry files resolve under itch.io's game sub-path.
+- Replaced every hard-coded `/assets/...` runtime URL with an `import.meta.env.BASE_URL` helper, including environment art, hands, coffee, drinks, music, and Finale subtitles.
+- Confirmed all 33 public asset paths use ASCII-only names.
+- Browser and Preview remain intentionally unused by project instruction; packaging validation is static only.

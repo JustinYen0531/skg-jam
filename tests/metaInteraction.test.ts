@@ -419,10 +419,10 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
     createHash('sha256').update(tappingFingerBytes).digest('hex'),
     'b42d7942dff190af75a5ea5d3d6495e645cd5d37bfcdefdb1c5c9bd6f714b7fa',
   );
-  assert.equal((sceneSource.match(/src="\/assets\/meta-hand-grip\.png"/g) ?? []).length, 2);
+  assert.equal((sceneSource.match(/src=\{assetPath\('assets\/meta-hand-grip\.png'\)\}/g) ?? []).length, 2);
   assert.match(sceneSource, /id="meta-left-hand-asset"/);
   assert.match(sceneSource, /id="meta-right-hand-asset"/);
-  assert.equal((sceneSource.match(/src="\/assets\/meta-resting-hands\.png"/g) ?? []).length, 2);
+  assert.equal((sceneSource.match(/src=\{assetPath\('assets\/meta-resting-hands\.png'\)\}/g) ?? []).length, 2);
   assert.match(sceneSource, /id="meta-left-resting-hand"/);
   assert.match(sceneSource, /id="meta-right-resting-hand"/);
   assert.equal((sceneSource.match(/data-resting-hand-perspective="desk-plane"/g) ?? []).length, 2);
@@ -467,7 +467,7 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   assert.match(sceneSource, /opacity: interactionPending && pointer\.x > 0 \? 1 : 0/);
   assert.match(sceneSource, /className="[^"]*z-\[8\][^"]*"[\s\S]{0,180}id="meta-tapping-hand-back"/);
   assert.match(sceneSource, /className="[^"]*z-\[60\][^"]*"[\s\S]{0,500}id="meta-pointer-hand"/);
-  assert.equal((sceneSource.match(/src="\/assets\/meta-tapping-finger\.png"/g) ?? []).length, 2);
+  assert.equal((sceneSource.match(/src=\{assetPath\('assets\/meta-tapping-finger\.png'\)\}/g) ?? []).length, 2);
   assert.equal((sceneSource.match(/data-finger-orientation="restored-right-hand-upper-left-scroll"/g) ?? []).length, 1);
   assert.equal((sceneSource.match(/data-finger-orientation="restored-right-hand-upper-left-tap"/g) ?? []).length, 1);
   assert.equal((sceneSource.match(/rotate: '-35deg'/g) ?? []).length, 2);

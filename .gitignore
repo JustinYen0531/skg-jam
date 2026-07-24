@@ -31,3 +31,6 @@ coverage/
 
 # Generated hand-composition previews; keep the renderer, not its output.
 /scripts/__hand_previews/
+
+# Locally generated itch.io upload packages; source and packager stay tracked.
+/output/*.zip

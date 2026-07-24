@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import audio from '../lib/audio';
 import music from '../lib/music';
 import { useReducedMotion } from '../lib/useReducedMotion';
+import { assetPath } from '../lib/assetPath';
 
 /**
  * The first-run title logo, driven by two taps.
@@ -302,17 +303,17 @@ export const GameLogoIntro: React.FC<{
         data-intro-meta-room={metaFramed ? 'revealed' : 'hidden'}
       >
         <img
-          src="/assets/meta-wall-stage-1.png"
+          src={assetPath('assets/meta-wall-stage-1.png')}
           alt=""
           className="absolute left-[-10%] top-[-11.6%] h-[94.6%] w-[120%] max-w-none object-fill"
         />
         <img
-          src="/assets/meta-floor-stage-1.png"
+          src={assetPath('assets/meta-floor-stage-1.png')}
           alt=""
           className="absolute left-1/2 top-[28%] h-full w-[180%] max-w-none -translate-x-1/2 object-fill"
         />
         <img
-          src="/assets/meta-desk-table.png"
+          src={assetPath('assets/meta-desk-table.png')}
           alt=""
           className="absolute left-1/2 top-[-40%] h-[212%] w-auto max-w-none -translate-x-1/2 object-fill"
         />
@@ -422,7 +423,7 @@ export const GameLogoIntro: React.FC<{
       {/* Same supplied grip art as the live Meta scene, so the reveal and the
           real Chapter 1 hand-off share one silhouette. */}
       <motion.img
-        src="/assets/meta-hand-grip.png"
+        src={assetPath('assets/meta-hand-grip.png')}
         alt=""
         draggable={false}
         initial={false}
@@ -433,7 +434,7 @@ export const GameLogoIntro: React.FC<{
         id="intro-meta-left-hand"
       />
       <motion.img
-        src="/assets/meta-hand-grip.png"
+        src={assetPath('assets/meta-hand-grip.png')}
         alt=""
         draggable={false}
         initial={false}

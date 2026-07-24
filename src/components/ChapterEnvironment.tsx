@@ -9,6 +9,7 @@ import {
   type NotebookState,
   type PenState,
 } from '../lib/chapterEnvironment';
+import { assetPath } from '../lib/assetPath';
 
 interface ChapterEnvironmentProps {
   chapter: EnvironmentChapter;
@@ -21,18 +22,18 @@ interface ChapterEnvironmentProps {
 }
 
 const COFFEE_ASSET_SOURCE: Record<Exclude<CoffeeState, 'none'>, string> = {
-  fresh: '/assets/coffee-full.png',
-  sipped: '/assets/coffee-full.png',
-  half: '/assets/coffee-empty-drip.png',
-  'near-empty': '/assets/coffee-empty-drip.png',
-  empty: '/assets/coffee-empty-drip.png',
-  'tipped-empty': '/assets/coffee-tipped-spill.png',
-  'pushed-away': '/assets/coffee-empty-drip.png',
+  fresh: assetPath('assets/coffee-full.png'),
+  sipped: assetPath('assets/coffee-full.png'),
+  half: assetPath('assets/coffee-empty-drip.png'),
+  'near-empty': assetPath('assets/coffee-empty-drip.png'),
+  empty: assetPath('assets/coffee-empty-drip.png'),
+  'tipped-empty': assetPath('assets/coffee-tipped-spill.png'),
+  'pushed-away': assetPath('assets/coffee-empty-drip.png'),
 };
 const DRINK_ASSET_SOURCE: Record<Exclude<DrinkVariant, 'none'>, string> = {
-  one: '/assets/drink-1.png',
-  two: '/assets/drink-2.png',
-  three: '/assets/drink-3.png',
+  one: assetPath('assets/drink-1.png'),
+  two: assetPath('assets/drink-2.png'),
+  three: assetPath('assets/drink-3.png'),
 };
 const NOTEBOOK_COPY: Record<NotebookState, readonly string[]> = {
   none: [],

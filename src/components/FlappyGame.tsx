@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { GameProgress, ActiveApp } from '../types';
 import audio from '../lib/audio';
 import music, { getFinaleCreditProgress } from '../lib/music';
+import { assetPath } from '../lib/assetPath';
 import { EASY_FLAPPY_SETTINGS, FlappyDeathCause, GATE_40_INDEX, getCheapTelemetry, getFlappyNightMix, getGateHeights, getGateSpawnX, getGateVisualStyle, getScoreAfterPassingGate, nextGate40DeathCount, resolvePipeCollision } from '../lib/flappyPhysics';
 import {
   ARCANE_NEGATIVE_RECORD_STORAGE_KEY,
@@ -204,7 +205,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
   useEffect(() => {
     if (!chapterTenActive || finaleLyricCues.length > 0) return;
     let cancelled = false;
-    fetch('/assets/music/Phase%2010%20(Finale).srt')
+    fetch(assetPath('assets/music/Phase%2010%20(Finale).srt'))
       .then((response) => {
         if (!response.ok) throw new Error(`Finale subtitle unavailable: ${response.status}`);
         return response.text();

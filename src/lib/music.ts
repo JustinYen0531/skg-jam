@@ -1,4 +1,5 @@
 import type { GameProgress } from '../types';
+import { assetPath } from './assetPath';
 
 export type MusicPhase = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 'finale';
 
@@ -29,18 +30,18 @@ export function getFinaleCreditProgress(
 }
 
 export const MUSIC_TRACKS: Readonly<Record<MusicPhase, string>> = {
-  0: '/assets/music/Phase 00.mp3',
-  1: '/assets/music/Phase 01.mp3',
-  2: '/assets/music/Phase 02.mp3',
-  3: '/assets/music/Phase 03.mp3',
-  4: '/assets/music/Phase 04.mp3',
-  5: '/assets/music/Phase 05.mp3',
-  6: '/assets/music/Phase 06.mp3',
-  7: '/assets/music/Phase 07.mp3',
-  8: '/assets/music/Phase 08.mp3',
-  9: '/assets/music/Phase 09.mp3',
-  10: '/assets/music/Phase 10.mp3',
-  finale: '/assets/music/Phase 10 (Finale).mp3',
+  0: assetPath('assets/music/Phase 00.mp3'),
+  1: assetPath('assets/music/Phase 01.mp3'),
+  2: assetPath('assets/music/Phase 02.mp3'),
+  3: assetPath('assets/music/Phase 03.mp3'),
+  4: assetPath('assets/music/Phase 04.mp3'),
+  5: assetPath('assets/music/Phase 05.mp3'),
+  6: assetPath('assets/music/Phase 06.mp3'),
+  7: assetPath('assets/music/Phase 07.mp3'),
+  8: assetPath('assets/music/Phase 08.mp3'),
+  9: assetPath('assets/music/Phase 09.mp3'),
+  10: assetPath('assets/music/Phase 10.mp3'),
+  finale: assetPath('assets/music/Phase 10 (Finale).mp3'),
 };
 
 /** The cheap opening uses Phase 00; the Meta view follows Chapters 1–10. */

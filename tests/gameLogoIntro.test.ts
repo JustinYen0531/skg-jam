@@ -52,7 +52,7 @@ test('the same title remains on a framed phone with hands until the final tap', 
   assert.match(logoSource, /id="intro-meta-phone-frame"/);
   assert.match(logoSource, /id="intro-meta-left-hand"/);
   assert.match(logoSource, /id="intro-meta-right-hand"/);
-  assert.match(logoSource, /src="\/assets\/meta-hand-grip\.png"/);
+  assert.match(logoSource, /src=\{assetPath\('assets\/meta-hand-grip\.png'\)\}/);
   assert.match(logoSource, /perspectivePhase === 'screen'\) beginPerspectiveReveal\(\)/);
   assert.match(logoSource, /perspectivePhase === 'meta-ready'\) finish\(\)/);
 });
