@@ -1294,3 +1294,11 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Replaced the tiny screenshot footer watermark with one standardized `SKG // CAPTURE` anti-counterfeit stamp.
 - The mark now spans 135% of each screenshot, crosses its center at a 17-degree angle, uses heavy type and rule lines, and remains translucent so the evidence stays readable.
 - The same component covers both screenshot cards and enlarged inspection views.
+
+## 2026-07-24 — Chapter 9 resting-surface reboot guidance
+
+- Left the Chapter 9 long-press deletion flow unchanged per user direction.
+- The powered-off phone now reports `RECOVERY SUSPENDED` and `WAITING FOR A STABLE SURFACE` instead of presenting an unexplained black screen.
+- If the upright phone remains off for 2.6 seconds, the protagonist quietly reasons, `It is dead. ...Maybe I should put it down.`
+- Resting the device cancels the hint timer and preserves the existing automatic recovery sequence.
+- Browser and Preview remain intentionally unused by project instruction; validation is static only.

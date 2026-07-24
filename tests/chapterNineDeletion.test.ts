@@ -62,6 +62,10 @@ test('the legacy assistant separates its ARC-184 authorization record from its m
   assert.match(CHAPTER_NINE_DIALOGUE.recordClarified.join(' '), /When was I ARC-184/);
   assert.match(CHAPTER_NINE_DIALOGUE.operatorIdentityRestored.join(' '), /score and the name belonged to the same person/);
   assert.deepEqual(CHAPTER_NINE_DIALOGUE.poweredDown, ['You win.']);
+  assert.deepEqual(CHAPTER_NINE_DIALOGUE.restingHint, [
+    'It is dead.',
+    '...Maybe I should put it down.',
+  ]);
 });
 
 test('Messages standoff is available only after every other app has been removed', () => {
@@ -128,11 +132,16 @@ test('runtime connects storage cleanup, the unresolved power loss, and silent Ch
   assert.match(phone, /if \(data\) \{[\s\S]*setPendingTransitions[\s\S]*setEvidenceBanner/);
   assert.match(phone, /audio\.playChapterTransition/);
   assert.match(phone, /CHAPTER_NINE_DIALOGUE\.poweredDown/);
+  assert.match(phone, /CHAPTER_NINE_DIALOGUE\.restingHint/);
+  assert.match(phone, /chapterNineRestingHintTimer/);
   assert.match(phone, /completePuzzleChapter\(poweredDownState, 9/);
 
   assert.match(home, /id="chapter-nine-messages-standoff"/);
   assert.match(home, /CONFLICTING INPUT/);
   assert.match(home, /id="chapter-nine-power-loss"/);
+  assert.match(home, /id="chapter-nine-resting-hint"/);
+  assert.match(home, /RECOVERY SUSPENDED/);
+  assert.match(home, /WAITING FOR A STABLE SURFACE/);
   assert.match(home, /id="chapter-ten-only-flappy"/);
   assert.match(home, /data-arcane-dialogue="silent"/);
 });

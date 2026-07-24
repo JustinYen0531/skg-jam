@@ -26,6 +26,10 @@ export const CHAPTER_NINE_DIALOGUE = {
   poweredDown: [
     'You win.',
   ],
+  restingHint: [
+    'It is dead.',
+    '...Maybe I should put it down.',
+  ],
   restoreBlocked: [
     'The authorization is intact. The phone is not.',
     'It needs room for one last local restore.',

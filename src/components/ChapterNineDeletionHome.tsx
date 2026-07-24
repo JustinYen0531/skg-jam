@@ -176,10 +176,27 @@ export const ChapterNineDeletionHome: React.FC<ChapterNineDeletionHomeProps> = (
   if (phase === 'blackout') {
     return (
       <div
-        className="absolute inset-0 flex items-center justify-center bg-black"
+        className="absolute inset-0 flex items-center justify-center overflow-hidden bg-black"
         id="chapter-nine-power-loss"
         data-device-resting={deviceResting}
       >
+        {!deviceResting && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0, 0.42, 0.28] }}
+            transition={{ duration: reducedMotion ? 0 : 2.8, times: [0, 0.72, 1] }}
+            className="flex w-[min(76%,540px)] flex-col items-center font-mono text-[10px] tracking-[0.24em] text-slate-500"
+            id="chapter-nine-resting-hint"
+          >
+            <div>RECOVERY SUSPENDED</div>
+            <div className="mt-3 text-[9px] text-slate-600">WAITING FOR A STABLE SURFACE</div>
+            <motion.div
+              className="mt-6 h-px w-28 bg-slate-700"
+              animate={reducedMotion ? undefined : { scaleX: [0.65, 1, 0.65], opacity: [0.25, 0.6, 0.25] }}
+              transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
+            />
+          </motion.div>
+        )}
         {deviceResting && (
           <motion.div
             initial={{ opacity: 0 }}

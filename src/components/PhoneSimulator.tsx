@@ -191,6 +191,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   const restoreTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const chapterNinePowerTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const chapterNineRebootTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const chapterNineRestingHintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const chapterNineLongPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const chapterNineEditModeRef = useRef(false);
   const chapterOneDialogueTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -345,6 +346,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
     if (chapterOneDialogueTimer.current) clearTimeout(chapterOneDialogueTimer.current);
     if (chapterNinePowerTimer.current) clearTimeout(chapterNinePowerTimer.current);
     if (chapterNineRebootTimer.current) clearTimeout(chapterNineRebootTimer.current);
+    if (chapterNineRestingHintTimer.current) clearTimeout(chapterNineRestingHintTimer.current);
     if (chapterNineLongPressTimer.current) clearTimeout(chapterNineLongPressTimer.current);
   }, []);
 
@@ -369,6 +371,32 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
     progress.currentChapter,
     reducedMotion,
     updateProgress,
+  ]);
+
+  useEffect(() => {
+    const waitingForSurface = progress.currentChapter === 9
+      && chapterNineRestorePhase === 'blackout'
+      && metaInteraction.active
+      && !metaInteraction.deviceResting;
+
+    if (!waitingForSurface) {
+      if (chapterNineRestingHintTimer.current) {
+        clearTimeout(chapterNineRestingHintTimer.current);
+        chapterNineRestingHintTimer.current = null;
+      }
+      return;
+    }
+    if (chapterNineRestingHintTimer.current) return;
+
+    chapterNineRestingHintTimer.current = setTimeout(() => {
+      metaInteraction.speak(CHAPTER_NINE_DIALOGUE.restingHint);
+      chapterNineRestingHintTimer.current = null;
+    }, reducedMotion ? 600 : 2600);
+  }, [
+    chapterNineRestorePhase,
+    metaInteraction,
+    progress.currentChapter,
+    reducedMotion,
   ]);
 
   useEffect(() => {
