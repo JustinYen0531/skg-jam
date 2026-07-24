@@ -55,8 +55,10 @@ import {
   NOAH_FINAL_TRANSMISSION,
 } from '../lib/chapterTenCredits';
 import {
+  CHAPTER_TEN_AFTERWORD_EASTER_EGG_HINTS,
   CHAPTER_TEN_AFTERWORD_LINES,
   CHAPTER_TEN_AFTERWORD_OPTIONS,
+  CHAPTER_TEN_AFTERWORD_MEMORY_STORAGE_KEY,
   type ChapterTenAfterword,
 } from '../lib/chapterTenAfterword';
 import {
@@ -126,6 +128,17 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
   const [scoreSubmissionStage, setScoreSubmissionStage] = useState<ScoreSubmissionStage>('idle');
   const [scoreSubmissionName, setScoreSubmissionName] = useState('');
   const [afterwordOpen, setAfterwordOpen] = useState(false);
+  const [rememberedAfterwords, setRememberedAfterwords] = useState<ChapterTenAfterword[]>(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      const saved = JSON.parse(window.localStorage.getItem(CHAPTER_TEN_AFTERWORD_MEMORY_STORAGE_KEY) ?? '[]');
+      return Array.isArray(saved)
+        ? saved.filter((value): value is ChapterTenAfterword => ['submit', 'publicize', 'preserve'].includes(value))
+        : [];
+    } catch {
+      return [];
+    }
+  });
   const creditsScrollRef = useRef<HTMLDivElement | null>(null);
   const scoreTypingTimerRef = useRef<number | null>(null);
   const scoreTransitionTimerRef = useRef<number | null>(null);
@@ -1590,6 +1603,16 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
           : 'story.endingPublicize',
     );
     updateProgress((previous) => ({ ...previous, selectedEnding: afterword }));
+    speak(CHAPTER_TEN_AFTERWORD_LINES[afterword]);
+  };
+
+  const rememberAfterword = (afterword: ChapterTenAfterword) => {
+    if (rememberedAfterwords.includes(afterword)) return;
+    const next = [...rememberedAfterwords, afterword];
+    setRememberedAfterwords(next);
+    window.localStorage.setItem(CHAPTER_TEN_AFTERWORD_MEMORY_STORAGE_KEY, JSON.stringify(next));
+    audio.play('ui.primaryTap');
+    speak(['I remember this one.', CHAPTER_TEN_AFTERWORD_EASTER_EGG_HINTS[afterword]]);
   };
 
   return (
@@ -1802,9 +1825,9 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
                 className="absolute inset-0 z-40 overflow-y-auto bg-black px-[11%] py-[8%] text-left"
                 id="chapter-ten-afterword"
               >
-                <div className="mx-auto max-w-[470px] space-y-5">
+                <div className="mx-auto max-w-[600px] space-y-6">
                   <div className="text-center">
-                    <h2 className="text-[14px] font-bold tracking-[0.13em] text-white">
+                    <h2 className="text-[16px] font-bold tracking-[0.15em] text-white">
                       THREE THINGS THAT COULD HAVE HAPPENED.
                     </h2>
                     <p className="mt-2 text-[8px] leading-relaxed tracking-[0.08em] text-white/45">
@@ -1812,37 +1835,47 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
                     </p>
                   </div>
 
-                  <div className="space-y-2" id="chapter-ten-afterword-options">
+                  <div className="space-y-3" id="chapter-ten-afterword-options">
                     {CHAPTER_TEN_AFTERWORD_OPTIONS.map((option) => (
-                      <button
-                        type="button"
+                      <div
                         key={option.id}
-                        onClick={() => chooseAfterword(option.id)}
-                        className={`w-full border px-4 py-3 text-left transition-colors ${
+                        className={`border px-5 py-4 transition-colors ${
                           progress.selectedEnding === option.id
                             ? 'border-white bg-white text-black'
                             : 'border-white/28 text-white/78 hover:border-white/70 hover:text-white'
                         }`}
-                        id={`chapter-ten-afterword-${option.id}`}
                       >
-                        <div className="text-[9px] font-bold tracking-[0.17em]">{option.label}</div>
-                        <div className={`mt-1 text-[8px] leading-relaxed ${
-                          progress.selectedEnding === option.id ? 'text-black/65' : 'text-white/48'
-                        }`}>{option.description}</div>
-                      </button>
+                        <button
+                          type="button"
+                          onClick={() => chooseAfterword(option.id)}
+                          className="w-full text-left"
+                          id={`chapter-ten-afterword-${option.id}`}
+                        >
+                          <div className="text-[11px] font-bold tracking-[0.18em]">{option.label}</div>
+                          <div className={`mt-2 text-[9px] leading-relaxed ${
+                            progress.selectedEnding === option.id ? 'text-black/65' : 'text-white/48'
+                          }`}>{option.description}</div>
+                        </button>
+
+                        {progress.selectedEnding === option.id && (
+                          <button
+                            type="button"
+                            onClick={() => rememberAfterword(option.id)}
+                            className="mt-4 flex items-center gap-2 text-[8px] font-bold tracking-[0.18em] text-black/70 hover:text-black"
+                            id={`chapter-ten-afterword-remember-${option.id}`}
+                            data-remembered={rememberedAfterwords.includes(option.id)}
+                          >
+                            <span className="text-[20px] leading-none" aria-hidden="true">
+                              {rememberedAfterwords.includes(option.id) ? '★' : '☆'}
+                            </span>
+                            {rememberedAfterwords.includes(option.id)
+                              ? 'REMEMBERED FOR THE NEXT LOOP'
+                              : 'REMEMBER THIS POSSIBILITY'}
+                          </button>
+                        )}
+                      </div>
                     ))}
                   </div>
-
-                  {progress.selectedEnding && (
-                    <div className="border-t border-white/20 pt-4" id="chapter-ten-afterword-arcane">
-                      <div className="text-[7px] font-bold tracking-[0.32em] text-white/45">ARCANE</div>
-                      <div className="mt-2 space-y-1.5 font-thought text-[14px] leading-relaxed text-white/88">
-                        {CHAPTER_TEN_AFTERWORD_LINES[progress.selectedEnding].map((line) => (
-                          <p key={line}>{line}</p>
-                        ))}
-                      </div>
-                    </div>
-                  )}
 
                   <button
                     type="button"

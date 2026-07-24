@@ -2,7 +2,11 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { createPublicLeaderboard } from '../src/lib/leaderboard';
-import { CHAPTER_TEN_AFTERWORD_OPTIONS } from '../src/lib/chapterTenAfterword';
+import {
+  CHAPTER_TEN_AFTERWORD_EASTER_EGG_HINTS,
+  CHAPTER_TEN_AFTERWORD_OPTIONS,
+  CHAPTER_TEN_AFTERWORD_LINES,
+} from '../src/lib/chapterTenAfterword';
 import { getFinalLyricWordIndex } from '../src/lib/chapterTenCredits';
 
 test('the three imagined outcomes are an optional afterword inside Skyline 256', () => {
@@ -16,6 +20,14 @@ test('the three imagined outcomes are an optional afterword inside Skyline 256',
   assert.match(gameSource, /NONE OF THESE CHANGE THE REAL STORY/);
   assert.match(gameSource, /id="chapter-ten-afterword-restart-loop"/);
   assert.match(gameSource, /id="chapter-ten-credit-score-corner"/);
+  assert.match(gameSource, /chapter-ten-afterword-remember-/);
+  assert.match(gameSource, /CHAPTER_TEN_AFTERWORD_MEMORY_STORAGE_KEY/);
+  assert.doesNotMatch(gameSource, /id="chapter-ten-afterword-arcane"/);
+  assert.match(gameSource, /speak\(CHAPTER_TEN_AFTERWORD_LINES\[afterword\]\)/);
+  assert.match(CHAPTER_TEN_AFTERWORD_LINES.submit.join(' '), /being first matters/);
+  assert.match(CHAPTER_TEN_AFTERWORD_LINES.publicize.join(' '), /SKG Automation/);
+  assert.match(CHAPTER_TEN_AFTERWORD_LINES.preserve.join(' '), /Dad would understand/);
+  assert.match(CHAPTER_TEN_AFTERWORD_EASTER_EGG_HINTS.submit, /LOWEST SCORE/);
   assert.ok(gameSource.indexOf('id="chapter-ten-credit-score"') < gameSource.indexOf('id="chapter-ten-final-lyric"'));
   assert.equal(getFinalLyricWordIndex(0.85), -1);
   assert.equal(getFinalLyricWordIndex(0.86), 0);

@@ -548,7 +548,7 @@ test('the final lyric, overflow score, and Arcane signature form one determinist
   assert.match(gameSource, /ARCANE_SCORE_NAME = 'ARCANE'/);
   assert.match(gameSource, /ARCANE_NEGATIVE_RECORD_STORAGE_KEY/);
   assert.match(gameSource, /THREE THINGS THAT COULD HAVE HAPPENED\./);
-  assert.match(gameSource, /CHAPTER_TEN_AFTERWORD_LINES\[progress\.selectedEnding\]/);
+  assert.match(gameSource, /speak\(CHAPTER_TEN_AFTERWORD_LINES\[afterword\]\)/);
   assert.doesNotMatch(appSource, /id="ending-choice-overlay"/);
 });
 

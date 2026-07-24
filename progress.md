@@ -1119,3 +1119,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Removed `Thank you for reaching the end.` from beneath Noah's transmission so the letter can finish on its own.
 - The lyric and its white rhythm ball now appear only when the `256` score leaves the upper-right corner, fills the centre of the Skyline screen, and begins its deterministic overflow.
 - Browser and Preview remain intentionally unused by project instruction; validation is static only.
+
+## 2026-07-24 — Skyline 256 afterword as a final player conversation
+
+- Enlarged the three optional outcomes and removed the duplicate Arcane text from inside the phone: choosing an outcome now continues through the existing desk-level thought box.
+- Each selected outcome has a black hollow-star memory action. Remembering it persists across Restart Loop and stores a matching next-loop Easter-egg hint.
+- Arcane's three responses now frame the outcomes as a final conversation with the player: leave the negative score, expose the route despite the risk of erasure, or keep the door open without making either of them disappear.
+- Browser and Preview remain intentionally unused by project instruction; validation is static only.
