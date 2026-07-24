@@ -2178,9 +2178,9 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
                 className="absolute left-0 top-0 h-[clamp(441px,64.5vh,630px)] w-auto max-w-none select-none drop-shadow-[0_14px_12px_rgba(0,0,0,0.3)]"
                 style={{ transformOrigin: '83% 13%', translate: '-83% -13%' }}
                 initial={false}
-                animate={{ y: pressed ? 5 : 0, scale: pressed ? 0.98 : 1, scaleX: 1 }}
+                animate={{ y: pressed ? 5 : 0, scale: pressed ? 0.98 : 1, scaleX: -1 }}
                 transition={reducedMotion ? { duration: 0 } : HAND_PRESS_SPRING}
-                data-finger-orientation="horizontal-flip-right-hand"
+                data-finger-orientation="right-hand-upper-left"
                 aria-hidden="true"
                 id="meta-tapping-finger-asset"
               />

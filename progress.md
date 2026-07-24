@@ -1152,3 +1152,8 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Kept the 88% / 52% right-side coordinate exclusively for Arcane's autonomous Flappy performance.
 - Horizontally flipped the pointing-hand asset back to the requested right-hand orientation and restored its matching fingertip anchor.
 - Browser and Preview remain intentionally unused by project instruction; validation is static only.
+
+## 2026-07-24 — Right hand points toward the upper-left
+
+- Mirrored the shared Meta tapping-hand sprite around its existing fingertip anchor. The fingertip still follows the player's real click coordinates, while the wrist now extends toward the lower-right so the gesture reads as a right hand pointing upper-left.
+- Browser and Preview remain intentionally unused by project instruction; validation is static only.
