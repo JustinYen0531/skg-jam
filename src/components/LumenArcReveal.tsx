@@ -98,6 +98,8 @@ export const LumenArcReveal: React.FC<LumenArcRevealProps> = ({ reducedMotion, o
   // Otherwise that drag's mouse-up/click can land on the contents that were
   // physically beneath the parcel a moment earlier.
   const scratchReadyToOpen = useRef(false);
+  const suppressScratchClick = useRef(false);
+  const scratchClickReleaseTimer = useRef<number | null>(null);
   const phonePointer = useRef<number | null>(null);
   const phonePointerX = useRef(0);
   const rotationRef = useRef(0);
@@ -140,7 +142,7 @@ export const LumenArcReveal: React.FC<LumenArcRevealProps> = ({ reducedMotion, o
     };
   }, [finish, phase, reducedMotion]);
 
-  const scratchAt = (clientX: number, clientY: number) => {
+  const scratchAt = useCallback((clientX: number, clientY: number) => {
     const canvas = canvasRef.current;
     if (!canvas || phase !== 'scratch') return;
     const rect = canvas.getBoundingClientRect();
@@ -180,13 +182,90 @@ export const LumenArcReveal: React.FC<LumenArcRevealProps> = ({ reducedMotion, o
       audio.play('amazemart.delivery');
       scratchReadyToOpen.current = true;
     }
-  };
+  }, [phase]);
 
-  const finishScratchGesture = () => {
+  const finishScratchGesture = useCallback(() => {
     if (!scratchReadyToOpen.current) return;
     scratchReadyToOpen.current = false;
     setPhase('phone-ready');
-  };
+  }, []);
+
+  useEffect(() => {
+    const blockScratchClick = (event: MouseEvent) => {
+      if (!suppressScratchClick.current) return;
+      suppressScratchClick.current = false;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    };
+
+    window.addEventListener('click', blockScratchClick, true);
+    return () => {
+      window.removeEventListener('click', blockScratchClick, true);
+      if (scratchClickReleaseTimer.current !== null) {
+        window.clearTimeout(scratchClickReleaseTimer.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (phase !== 'scratch') return;
+
+    const releaseClickGuardSoon = () => {
+      if (scratchClickReleaseTimer.current !== null) {
+        window.clearTimeout(scratchClickReleaseTimer.current);
+      }
+      scratchClickReleaseTimer.current = window.setTimeout(() => {
+        suppressScratchClick.current = false;
+        scratchClickReleaseTimer.current = null;
+      }, 0);
+    };
+
+    const handleScratchPointerDown = (event: PointerEvent) => {
+      const canvas = canvasRef.current;
+      if (!canvas || event.button !== 0 || scratchPointer.current !== null) return;
+      const rect = canvas.getBoundingClientRect();
+      const insideCanvas = event.clientX >= rect.left
+        && event.clientX <= rect.right
+        && event.clientY >= rect.top
+        && event.clientY <= rect.bottom;
+      if (!insideCanvas) return;
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      suppressScratchClick.current = true;
+      scratchPointer.current = event.pointerId;
+      scratchPoint.current = null;
+      scratchAt(event.clientX, event.clientY);
+    };
+
+    const handleScratchPointerMove = (event: PointerEvent) => {
+      if (scratchPointer.current !== event.pointerId) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      scratchAt(event.clientX, event.clientY);
+    };
+
+    const finishCapturedScratch = (event: PointerEvent) => {
+      if (scratchPointer.current !== event.pointerId) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      scratchPointer.current = null;
+      scratchPoint.current = null;
+      finishScratchGesture();
+      releaseClickGuardSoon();
+    };
+
+    window.addEventListener('pointerdown', handleScratchPointerDown, true);
+    window.addEventListener('pointermove', handleScratchPointerMove, true);
+    window.addEventListener('pointerup', finishCapturedScratch, true);
+    window.addEventListener('pointercancel', finishCapturedScratch, true);
+    return () => {
+      window.removeEventListener('pointerdown', handleScratchPointerDown, true);
+      window.removeEventListener('pointermove', handleScratchPointerMove, true);
+      window.removeEventListener('pointerup', finishCapturedScratch, true);
+      window.removeEventListener('pointercancel', finishCapturedScratch, true);
+    };
+  }, [finishScratchGesture, phase, scratchAt]);
 
   const triggerBurst = useCallback(() => {
     if (phase !== 'inspect') return;

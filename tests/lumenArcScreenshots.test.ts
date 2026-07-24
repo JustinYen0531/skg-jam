@@ -101,10 +101,16 @@ test('the parcel only reveals after scratching and angle-driven paper inspection
   assert.match(reveal, /globalCompositeOperation = 'destination-out'/);
   assert.match(reveal, /onPointerMove=\{\(event\) =>[\s\S]{0,240}scratchAt\(event\.clientX, event\.clientY\)/);
   assert.match(reveal, /next >= SCRATCH_COMPLETE_AT[\s\S]{0,120}scratchReadyToOpen\.current = true/);
-  assert.match(reveal, /const finishScratchGesture = \(\) => \{[\s\S]{0,180}setPhase\('phone-ready'\)/);
+  assert.match(reveal, /const finishScratchGesture = useCallback\(\(\) => \{[\s\S]{0,180}setPhase\('phone-ready'\)/);
   assert.match(reveal, /onPointerUp=\{\(event\) =>[\s\S]{0,480}finishScratchGesture\(\)/);
   assert.match(reveal, /data-reveal-input-lock=\{phase === 'scratch' \? 'parcel-only' : 'released'\}/);
   assert.match(reveal, /id="lumen-arc-package-scratch-layer"[\s\S]{0,180}data-meta-direct-gesture="true"/);
+  assert.match(reveal, /window\.addEventListener\('pointerdown', handleScratchPointerDown, true\)/);
+  assert.match(reveal, /window\.addEventListener\('pointermove', handleScratchPointerMove, true\)/);
+  assert.match(reveal, /window\.addEventListener\('pointerup', finishCapturedScratch, true\)/);
+  assert.match(reveal, /insideCanvas[\s\S]{0,260}event\.stopImmediatePropagation\(\)[\s\S]{0,180}scratchAt\(event\.clientX, event\.clientY\)/);
+  assert.match(reveal, /suppressScratchClick\.current = true/);
+  assert.match(reveal, /window\.addEventListener\('click', blockScratchClick, true\)/);
   assert.doesNotMatch(reveal, /OPEN PARCEL/);
 
   assert.match(reveal, /id="lumen-arc-inspect-phone"/);
