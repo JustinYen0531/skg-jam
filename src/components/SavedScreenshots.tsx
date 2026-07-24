@@ -314,7 +314,6 @@ export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, up
   const completedRevisitSpoken = useRef(false);
   const completedHere = useRef(false);
   const caseDialogueTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const revealReactionTimers = useRef<number[]>([]);
   const revealReactionScope = useRef(0);
 
   const assembled = hasAssembledCase(found);
@@ -324,8 +323,6 @@ export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, up
   useEffect(() => () => {
     if (caseDialogueTimer.current) clearTimeout(caseDialogueTimer.current);
     revealReactionScope.current += 1;
-    revealReactionTimers.current.forEach((timer) => window.clearTimeout(timer));
-    revealReactionTimers.current = [];
   }, []);
 
   useEffect(() => {
@@ -469,24 +466,20 @@ export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, up
   const runPackageRevealReaction = () => {
     revealReactionScope.current += 1;
     const scope = revealReactionScope.current;
-    revealReactionTimers.current.forEach((timer) => window.clearTimeout(timer));
-    revealReactionTimers.current = [];
 
-    metaInteraction.speak(CHAPTER_FOUR_DIALOGUE.packageOpened);
-    const angerTimer = window.setTimeout(() => {
+    metaInteraction.speak(CHAPTER_FOUR_DIALOGUE.packageOpened, () => {
       if (revealReactionScope.current !== scope) return;
-      metaInteraction.speak(CHAPTER_FOUR_DIALOGUE.packageAnger);
-      metaInteraction.tapSequence('lumen-arc-frustration-tap-zone', 5, () => {
+      metaInteraction.speak(CHAPTER_FOUR_DIALOGUE.packageAnger, () => {
         if (revealReactionScope.current !== scope) return;
-        metaInteraction.speak(CHAPTER_FOUR_DIALOGUE.packageDespair);
-        const resolveTimer = window.setTimeout(() => {
+        metaInteraction.tapSequence('lumen-arc-frustration-tap-zone', 5, () => {
           if (revealReactionScope.current !== scope) return;
-          metaInteraction.speak(CHAPTER_FOUR_DIALOGUE.packageResolve);
-        }, 2200);
-        revealReactionTimers.current.push(resolveTimer);
+          metaInteraction.speak(CHAPTER_FOUR_DIALOGUE.packageDespair, () => {
+            if (revealReactionScope.current !== scope) return;
+            metaInteraction.speak(CHAPTER_FOUR_DIALOGUE.packageResolve);
+          });
+        });
       });
-    }, 1700);
-    revealReactionTimers.current.push(angerTimer);
+    });
   };
 
   return (
@@ -580,6 +573,7 @@ export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, up
               style={{ rotate: `${sheet.angle}deg` }}
               data-sheet-id={sheet.id}
               data-sheet-kind={sheet.clueId ? 'clue' : 'decoy'}
+              data-meta-hit-recovery="true"
               className={`paper-texture paper-crease relative flex min-h-[92px] flex-col justify-between overflow-hidden rounded-sm border border-black/20 p-2.5 text-left shadow-[0_10px_22px_rgba(0,0,0,0.45)] ${sheet.bg} ${sheet.textColor}`}
             >
               <span className="pointer-events-none absolute -top-0.5 left-6 h-1.5 w-3 rotate-[8deg] rounded-sm bg-gradient-to-b from-stone-400 to-stone-600 shadow-sm" />

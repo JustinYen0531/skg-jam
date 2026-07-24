@@ -316,11 +316,12 @@ export const LumenArcReveal: React.FC<LumenArcRevealProps> = ({ reducedMotion, o
       ref={revealRef}
       className="absolute inset-0 z-40 overflow-hidden bg-[#090f16] text-slate-100"
       id="lumen-arc-reveal"
-      data-meta-direct-gesture="true"
+      data-meta-direct-gesture={phase === 'clear' ? undefined : 'true'}
       data-reveal-phase={phase}
       data-package-damage={Math.round(damage)}
       data-phone-rotation={Math.round(rotation)}
       data-reveal-input-lock={phase === 'scratch' ? 'parcel-only' : 'released'}
+      style={{ pointerEvents: phase === 'clear' ? 'none' : 'auto' }}
       animate={{ opacity: phase === 'clear' ? 0 : 1 }}
       transition={{ duration: 0.55, ease: 'easeInOut' }}
     >

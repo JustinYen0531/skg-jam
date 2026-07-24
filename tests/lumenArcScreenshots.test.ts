@@ -104,7 +104,8 @@ test('the parcel only reveals after scratching and angle-driven paper inspection
   assert.match(reveal, /const finishScratchGesture = useCallback\(\(\) => \{[\s\S]{0,180}setPhase\('phone-ready'\)/);
   assert.match(reveal, /onPointerUp=\{\(event\) =>[\s\S]{0,480}finishScratchGesture\(\)/);
   assert.match(reveal, /data-reveal-input-lock=\{phase === 'scratch' \? 'parcel-only' : 'released'\}/);
-  assert.match(reveal, /id="lumen-arc-reveal"[\s\S]{0,120}data-meta-direct-gesture="true"/);
+  assert.match(reveal, /id="lumen-arc-reveal"[\s\S]{0,160}data-meta-direct-gesture=\{phase === 'clear' \? undefined : 'true'\}/);
+  assert.match(reveal, /style=\{\{ pointerEvents: phase === 'clear' \? 'none' : 'auto' \}\}/);
   assert.match(reveal, /id="lumen-arc-package-scratch-layer"[\s\S]{0,180}data-meta-direct-gesture="true"/);
   assert.match(reveal, /window\.addEventListener\('pointerdown', handleScratchPointerDown, true\)/);
   assert.match(reveal, /window\.addEventListener\('pointermove', handleScratchPointerMove, true\)/);

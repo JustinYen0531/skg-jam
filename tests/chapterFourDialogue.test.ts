@@ -104,7 +104,9 @@ test('Chapter 4 dialogue is wired to every runtime interaction boundary', () => 
   assert.match(screenshots, /&& !completedHere\.current/);
   assert.match(screenshots, /CHAPTER_FOUR_DIALOGUE\.caseAssembled/);
   assert.match(screenshots, /CHAPTER_FOUR_DIALOGUE\.completed/);
-  assert.match(screenshots, /CHAPTER_FOUR_DIALOGUE\.packageOpened[\s\S]{0,500}CHAPTER_FOUR_DIALOGUE\.packageAnger[\s\S]{0,500}tapSequence\('lumen-arc-frustration-tap-zone', 5[\s\S]{0,500}CHAPTER_FOUR_DIALOGUE\.packageDespair[\s\S]{0,500}CHAPTER_FOUR_DIALOGUE\.packageResolve/);
+  assert.match(screenshots, /speak\(CHAPTER_FOUR_DIALOGUE\.packageOpened, \(\) => \{[\s\S]{0,240}speak\(CHAPTER_FOUR_DIALOGUE\.packageAnger, \(\) => \{[\s\S]{0,240}tapSequence\('lumen-arc-frustration-tap-zone', 5, \(\) => \{[\s\S]{0,240}speak\(CHAPTER_FOUR_DIALOGUE\.packageDespair, \(\) => \{[\s\S]{0,240}speak\(CHAPTER_FOUR_DIALOGUE\.packageResolve\)/);
+  assert.doesNotMatch(screenshots, /packageOpened[\s\S]{0,1000}setTimeout/);
+  assert.match(screenshots, /data-sheet-kind=\{sheet\.clueId \? 'clue' : 'decoy'\}[\s\S]{0,100}data-meta-hit-recovery="true"/);
   assert.match(screenshots, /id="lumen-arc-frustration-tap-zone"/);
   assert.match(screenshots, /decoysSinceClue\.current % 3 === 0/);
   assert.match(screenshots, /caseDialogueTimer\.current = setTimeout/);
