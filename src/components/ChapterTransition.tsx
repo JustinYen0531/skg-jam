@@ -325,6 +325,13 @@ export const ChapterTransition: React.FC<{
         >
           Evidence Secured · Case Advancing
         </span>
+        <span
+          className="text-center text-[clamp(7px,1.2cqw,9px)] font-medium tracking-[0.14em] text-[#66798b]"
+          style={{ fontFamily: FONT_LABEL }}
+          id="chapter-transition-save-reminder"
+        >
+          Auto checkpoint saved · FileBox can keep a manual save too
+        </span>
         <motion.span
           initial={{ opacity: 0 }}
           animate={{ opacity: readyForInput ? [0.42, 0.9, 0.42] : 0 }}

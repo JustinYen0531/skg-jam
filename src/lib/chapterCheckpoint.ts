@@ -1,6 +1,7 @@
 import type { GameProgress, PuzzleChapter } from '../types';
 
 const CHAPTER_CHECKPOINT_STORAGE_KEY = 'game-questing.chapter-checkpoint';
+const MANUAL_CHECKPOINT_STORAGE_KEY = 'game-questing.manual-checkpoint';
 const CHAPTER_CHECKPOINT_VERSION = 1;
 
 interface CheckpointStorage {
@@ -26,6 +27,21 @@ export const saveChapterCheckpoint = (
   progress: GameProgress,
   storage: CheckpointStorage | null = getDefaultStorage(),
 ): ChapterCheckpoint | null => {
+  return saveCheckpoint(progress, CHAPTER_CHECKPOINT_STORAGE_KEY, storage);
+};
+
+export const saveManualCheckpoint = (
+  progress: GameProgress,
+  storage: CheckpointStorage | null = getDefaultStorage(),
+): ChapterCheckpoint | null => {
+  return saveCheckpoint(progress, MANUAL_CHECKPOINT_STORAGE_KEY, storage);
+};
+
+const saveCheckpoint = (
+  progress: GameProgress,
+  storageKey: string,
+  storage: CheckpointStorage | null,
+): ChapterCheckpoint | null => {
   if (!storage) return null;
 
   const checkpoint: ChapterCheckpoint = {
@@ -34,18 +50,37 @@ export const saveChapterCheckpoint = (
     progress,
   };
 
-  storage.setItem(CHAPTER_CHECKPOINT_STORAGE_KEY, JSON.stringify(checkpoint));
-  return checkpoint;
+  try {
+    storage.setItem(storageKey, JSON.stringify(checkpoint));
+    return checkpoint;
+  } catch {
+    return null;
+  }
 };
 
 export const loadChapterCheckpoint = (
   fallback: GameProgress,
   storage: CheckpointStorage | null = getDefaultStorage(),
 ): ChapterCheckpoint | null => {
+  return loadCheckpoint(fallback, CHAPTER_CHECKPOINT_STORAGE_KEY, storage);
+};
+
+export const loadManualCheckpoint = (
+  fallback: GameProgress,
+  storage: CheckpointStorage | null = getDefaultStorage(),
+): ChapterCheckpoint | null => {
+  return loadCheckpoint(fallback, MANUAL_CHECKPOINT_STORAGE_KEY, storage);
+};
+
+const loadCheckpoint = (
+  fallback: GameProgress,
+  storageKey: string,
+  storage: CheckpointStorage | null,
+): ChapterCheckpoint | null => {
   if (!storage) return null;
 
   try {
-    const raw = storage.getItem(CHAPTER_CHECKPOINT_STORAGE_KEY);
+    const raw = storage.getItem(storageKey);
     if (!raw) return null;
 
     const parsed = JSON.parse(raw) as Partial<ChapterCheckpoint>;

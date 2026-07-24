@@ -129,6 +129,10 @@ interface PhoneSimulatorProps {
   checkpointChapter: number;
   checkpointSavedAt: string | null;
   onLoadCheckpoint: () => void;
+  manualCheckpointChapter: number | null;
+  manualCheckpointSavedAt: string | null;
+  onSaveManualCheckpoint: () => void;
+  onLoadManualCheckpoint: () => void;
 }
 
 export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
@@ -164,11 +168,16 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   checkpointChapter,
   checkpointSavedAt,
   onLoadCheckpoint,
+  manualCheckpointChapter,
+  manualCheckpointSavedAt,
+  onSaveManualCheckpoint,
+  onLoadManualCheckpoint,
 }) => {
   const metaInteraction = useMetaInteraction();
   const [activeApp, setActiveApp] = useState<ActiveApp>('flappy');
   const [homePage, setHomePage] = useState<0 | 1>(0);
   const [chapterNineEditMode, setChapterNineEditMode] = useState(false);
+  const [chapterNineCleanupReady, setChapterNineCleanupReady] = useState(true);
   const [familyAccountsOpen, setFamilyAccountsOpen] = useState(false);
   const [familyAccountConfirmed, setFamilyAccountConfirmed] = useState(false);
   const homeSwipeGesture = useRef<{
@@ -561,7 +570,15 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
     setActiveApp('home');
     chapterNineEditModeRef.current = false;
     setChapterNineEditMode(false);
-    if (metaInteraction.active) metaInteraction.speak(CHAPTER_NINE_DIALOGUE.restoreBlocked);
+    setChapterNineCleanupReady(false);
+    if (metaInteraction.active) {
+      metaInteraction.speak(
+        CHAPTER_NINE_DIALOGUE.cleanupInstruction,
+        () => setChapterNineCleanupReady(true),
+      );
+    } else {
+      setChapterNineCleanupReady(true);
+    }
   };
 
   const stopChapterNineLongPress = () => {
@@ -570,7 +587,12 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   };
 
   const handleChapterNineLongPressStart = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (!chapterNineCleanupHome || chapterNineEditModeRef.current || event.button !== 0) return;
+    if (
+      !chapterNineCleanupHome
+      || !chapterNineCleanupReady
+      || chapterNineEditModeRef.current
+      || event.button !== 0
+    ) return;
     stopChapterNineLongPress();
     chapterNineLongPressTimer.current = setTimeout(() => {
       chapterNineEditModeRef.current = true;
@@ -638,6 +660,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
     event.stopPropagation();
     stopChapterNineLongPress();
     if (chapterNineCleanupHome) {
+      if (!chapterNineCleanupReady) return;
       if (!chapterNineEditModeRef.current) return;
       if (app === 'flappy') {
         if (metaInteraction.active) metaInteraction.speak(CHAPTER_NINE_DIALOGUE.restoreBlocked);
@@ -927,6 +950,21 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
             <button type="button" onClick={onLoadCheckpoint} className={`${actionButtonClassName} w-full`} id="dock-load-checkpoint">
               Load saved game
             </button>
+            <div className="rounded-lg border border-cyan-300/15 bg-cyan-400/[0.04] px-3 py-2.5">
+              <div className="text-[9px] text-cyan-200/70">MANUAL SAVE SLOT</div>
+              <div className="mt-1 font-mono text-[11px] text-slate-200">
+                {manualCheckpointChapter === null ? 'EMPTY' : `CHAPTER ${manualCheckpointChapter.toString().padStart(2, '0')}`}
+              </div>
+              <div className="mt-0.5 text-[9px] text-slate-500">
+                {manualCheckpointSavedAt ? `SAVED · ${formatCheckpointTimestamp(manualCheckpointSavedAt)}` : 'SAVED LOCALLY IN THIS BROWSER'}
+              </div>
+            </div>
+            <button type="button" onClick={onSaveManualCheckpoint} className={`${actionButtonClassName} w-full`} id="dock-save-manual">
+              Save progress here
+            </button>
+            <button type="button" onClick={onLoadManualCheckpoint} disabled={manualCheckpointChapter === null} className={`${actionButtonClassName} w-full disabled:cursor-not-allowed disabled:opacity-40`} id="dock-load-manual">
+              Load manual save
+            </button>
             <button type="button" onClick={() => handleResetRequest('chapter')} className={`${actionButtonClassName} w-full`} id="dock-restart-chapter">
               {resetConfirmation === 'chapter' ? 'Press again to restore chapter start' : 'Restore current chapter'}
             </button>
@@ -1174,6 +1212,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                     deletedAppIds={chapterNineDeletedAppIds}
                     messageAttempts={chapterNineMessageAttempts}
                     editMode={chapterNineEditMode}
+                    interactionReady={chapterNineCleanupReady}
                     onDone={leaveChapterNineEditMode}
                   />
                 ) : (
@@ -1455,6 +1494,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                   data-meta-direct-gesture="true"
                   data-chapter-nine-cleanup={chapterNineCleanupHome}
                   data-chapter-nine-edit-mode={chapterNineEditMode}
+                  data-chapter-nine-cleanup-ready={chapterNineCleanupReady}
                   onPointerDownCapture={handleChapterNineLongPressStart}
                   onPointerUpCapture={stopChapterNineLongPress}
                   onPointerCancelCapture={stopChapterNineLongPress}

@@ -19,7 +19,9 @@ import audio from './lib/audio';
 import music, { getMusicPhase } from './lib/music';
 import {
   loadChapterCheckpoint,
+  loadManualCheckpoint,
   saveChapterCheckpoint,
+  saveManualCheckpoint,
   type ChapterCheckpoint,
 } from './lib/chapterCheckpoint';
 import { 
@@ -69,6 +71,7 @@ export default function App() {
     loadChapterCheckpoint(INITIAL_PROGRESS) ?? saveChapterCheckpoint(INITIAL_PROGRESS)
   ));
   const [progress, setProgress] = useState<GameProgress>(() => checkpoint?.progress ?? INITIAL_PROGRESS);
+  const [manualCheckpoint, setManualCheckpoint] = useState<ChapterCheckpoint | null>(() => loadManualCheckpoint(INITIAL_PROGRESS));
   const pendingCheckpointChapter = useRef<PuzzleChapter | null>(null);
   const [isMuted, setIsMuted] = useState(false);
   const [soundVolume, setSoundVolume] = useState(1);
@@ -212,6 +215,25 @@ export default function App() {
     if (!savedCheckpoint) return;
     audio.play('ui.primaryTap');
     setCheckpoint(savedCheckpoint);
+    setProgress(savedCheckpoint.progress);
+    setChapterTenPlayerFullscreen(false);
+    setChapterTenSceneryRewound(false);
+    setMetaViewActive(savedCheckpoint.progress.phase !== 'intro_game');
+    setDebugTargetApp(null);
+  };
+
+  const saveManualGame = () => {
+    const savedCheckpoint = saveManualCheckpoint(progress);
+    if (!savedCheckpoint) return;
+    audio.play('ui.primaryTap');
+    setManualCheckpoint(savedCheckpoint);
+  };
+
+  const loadManualGame = () => {
+    const savedCheckpoint = loadManualCheckpoint(INITIAL_PROGRESS);
+    if (!savedCheckpoint) return;
+    audio.play('ui.primaryTap');
+    setManualCheckpoint(savedCheckpoint);
     setProgress(savedCheckpoint.progress);
     setChapterTenPlayerFullscreen(false);
     setChapterTenSceneryRewound(false);
@@ -503,6 +525,10 @@ export default function App() {
             checkpointChapter={checkpoint?.progress.currentChapter ?? 1}
             checkpointSavedAt={checkpoint?.savedAt ?? null}
             onLoadCheckpoint={loadSavedCheckpoint}
+            manualCheckpointChapter={manualCheckpoint?.progress.currentChapter ?? null}
+            manualCheckpointSavedAt={manualCheckpoint?.savedAt ?? null}
+            onSaveManualCheckpoint={saveManualGame}
+            onLoadManualCheckpoint={loadManualGame}
           />
         </MetaInteractionScene>
 

@@ -34,6 +34,11 @@ test('every ready chapter card exposes the same explicit continue action', () =>
   assert.match(transitionSource, /event\.key !== 'Enter' && event\.key !== ' '/);
 });
 
+test('chapter transitions quietly point players to the persistent manual save slot', () => {
+  assert.match(transitionSource, /id="chapter-transition-save-reminder"/);
+  assert.match(transitionSource, /Auto checkpoint saved · FileBox can keep a manual save too/);
+});
+
 test('dismissing a chapter card always resolves onto the first Home page', () => {
   assert.match(
     phoneSource,
