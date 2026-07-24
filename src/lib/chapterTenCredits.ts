@@ -60,6 +60,20 @@ export const getCreditsScoreAtProgress = (progress: number): number => {
   return getCompletionScoreAtFrame(Math.round(clamped * 156));
 };
 
+export const FINAL_LYRIC_WORDS = ['Thank', 'you', 'for', 'reaching', 'the', 'end.'] as const;
+export const FINAL_LYRIC_START_PROGRESS = 0.72;
+export const FINAL_LYRIC_END_PROGRESS = 0.86;
+
+export const getFinalLyricWordIndex = (progress: number): number => {
+  if (progress < FINAL_LYRIC_START_PROGRESS || progress > FINAL_LYRIC_END_PROGRESS) return -1;
+  const normalized = (progress - FINAL_LYRIC_START_PROGRESS)
+    / (FINAL_LYRIC_END_PROGRESS - FINAL_LYRIC_START_PROGRESS);
+  return Math.min(FINAL_LYRIC_WORDS.length - 1, Math.floor(normalized * FINAL_LYRIC_WORDS.length));
+};
+
+export const getCreditsOverflowProgress = (progress: number): number =>
+  Math.max(0, Math.min(1, (progress - FINAL_LYRIC_END_PROGRESS) / (1 - FINAL_LYRIC_END_PROGRESS)));
+
 export const NOAH_FINAL_TRANSMISSION: readonly string[] = [
   'Arcane—',
   'If this page opened, you found the route without me giving you the answer.',

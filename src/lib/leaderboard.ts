@@ -4,7 +4,10 @@ export type PublicLeaderboardEntry = {
   score: number;
   kind: 'featured' | 'named' | 'anonymous' | 'player';
   rank: number;
+  tagline?: string;
 };
+
+export const ARCANE_NEGATIVE_RECORD_STORAGE_KEY = 'skg.arcaneNegativeRecord';
 
 const NAMED_PLAYERS = [
   { id: 'arc-184', name: 'ARC_184', score: 184, kind: 'featured' as const },
@@ -26,6 +29,7 @@ const getAnonymousScore = (index: number): number => {
 export const createPublicLeaderboard = (
   playerBestScore: number,
   anonymousCount = 48,
+  includeArcaneNegativeRecord = false,
 ): PublicLeaderboardEntry[] => {
   const safePlayerScore = Math.max(0, Math.floor(playerBestScore));
   const anonymousEntries = Array.from({ length: anonymousCount }, (_, index) => ({
@@ -39,6 +43,13 @@ export const createPublicLeaderboard = (
     ...NAMED_PLAYERS,
     { id: 'current-player', name: 'YOU · LOCAL PLAYER', score: safePlayerScore, kind: 'player' as const },
     ...anonymousEntries,
+    ...(includeArcaneNegativeRecord ? [{
+      id: 'arcane-negative-record',
+      name: 'ARCANE',
+      score: -65535,
+      kind: 'named' as const,
+      tagline: 'Last place. Finally, some room to breathe.',
+    }] : []),
   ]
     .sort((left, right) => right.score - left.score)
     .map((entry, index) => ({ ...entry, rank: index + 1 }));

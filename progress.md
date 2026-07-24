@@ -1094,3 +1094,13 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Kept the launcher named `Flappy Something` because the recovered download augments the existing app instead of replacing it with another game.
 - Chapter 10 entry now identifies the recovered material subtly as `SKYLINE 256 // ROUTE RECOVERY`; it does not call itself an assistant.
 - Browser and Preview remain intentionally unused by project instruction.
+
+## 2026-07-24 — Arcane final-score coda and non-canon previews
+
+- Cleared Chapter 10's coffee and energy drinks from the desk so the final Meta composition feels suddenly clean without erasing the lit fireplace.
+- Added `Thank you for reaching the end.` to the bottom of the in-phone Finale credits, with a white rhythm ball that advances across the lyric one word at a time.
+- Moved the overflow score into the centre of the phone and enlarged it for the deterministic `256 → 65535 → -65535` reveal.
+- The player may press `SUBMIT SCORE`, but Arcane takes over the name field and types `ARCANE` himself before signing the negative record.
+- Added three explicitly non-canon epilogue previews. Each selection is narrated by Arcane and may be switched freely before restarting the loop.
+- Restarting preserves ARCANE at the bottom of the public leaderboard with `-65535` and a deliberately relaxed last-place remark.
+- Browser and Preview remain intentionally unused by project instruction; validation is static only.

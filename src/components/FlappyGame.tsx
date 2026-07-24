@@ -3,7 +3,11 @@ import { GameProgress, ActiveApp } from '../types';
 import audio from '../lib/audio';
 import music, { getFinaleCreditProgress } from '../lib/music';
 import { EASY_FLAPPY_SETTINGS, FlappyDeathCause, GATE_40_INDEX, getCheapTelemetry, getFlappyNightMix, getGateHeights, getGateSpawnX, getGateVisualStyle, getScoreAfterPassingGate, nextGate40DeathCount, resolvePipeCollision } from '../lib/flappyPhysics';
-import { calculateBeatPercentage, createPublicLeaderboard } from '../lib/leaderboard';
+import {
+  ARCANE_NEGATIVE_RECORD_STORAGE_KEY,
+  calculateBeatPercentage,
+  createPublicLeaderboard,
+} from '../lib/leaderboard';
 import { RefreshCw, Play, Volume2, VolumeX, CheckCircle, Zap, Crown, Sparkles, Rocket, Brain, Activity } from 'lucide-react';
 import { LeaderboardPanel } from './LeaderboardPanel';
 import {
@@ -43,7 +47,11 @@ import { useMetaInteraction } from './MetaInteractionScene';
 import {
   ARCANE_FLIGHT_REFLECTIONS,
   ARCANE_TAKEOVER_LINES,
+  FINAL_LYRIC_END_PROGRESS,
+  FINAL_LYRIC_WORDS,
+  getCreditsOverflowProgress,
   getCreditsScoreAtProgress,
+  getFinalLyricWordIndex,
   NOAH_FINAL_TRANSMISSION,
 } from '../lib/chapterTenCredits';
 import {
@@ -72,6 +80,8 @@ const ALTITUDE_SEQUENCE = [184, 172, 149, 133, 121, 118, 126, 143];
 // room between gates. Scoring and gate spawning remain in lockstep.
 const PACE_INTERVAL_FRAMES = EASY_FLAPPY_SETTINGS.spawnIntervalFrames;
 const CHAPTER_TEN_TAKEOVER_FALLBACK_MS = 9000;
+const ARCANE_SCORE_NAME = 'ARCANE';
+type ScoreSubmissionStage = 'idle' | 'naming' | 'submitted';
 
 export const FlappyGame: React.FC<FlappyGameProps> = ({
   progress,
@@ -90,6 +100,10 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
   const [score, setScore] = useState(0);
   const [isMuted, setIsMuted] = useState(audio.getMuted());
   const [highScore, setHighScore] = useState(progress.bestScore);
+  const [arcaneNegativeRecordSubmitted, setArcaneNegativeRecordSubmitted] = useState(() => (
+    typeof window !== 'undefined'
+    && window.localStorage.getItem(ARCANE_NEGATIVE_RECORD_STORAGE_KEY) === 'true'
+  ));
   
   // Real-time debug metrics to display to user
   const [currentAlt, setCurrentAlt] = useState(0);
@@ -102,7 +116,11 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
   const [finalePlayback, setFinalePlayback] = useState(() => music.getFinalePlayback());
   const [creditsPlaybackStartedAt, setCreditsPlaybackStartedAt] = useState<number | null>(null);
   const [creditsScrollComplete, setCreditsScrollComplete] = useState(false);
+  const [scoreSubmissionStage, setScoreSubmissionStage] = useState<ScoreSubmissionStage>('idle');
+  const [scoreSubmissionName, setScoreSubmissionName] = useState('');
   const creditsScrollRef = useRef<HTMLDivElement | null>(null);
+  const scoreTypingTimerRef = useRef<number | null>(null);
+  const scoreTransitionTimerRef = useRef<number | null>(null);
   const reducedMotion = useReducedMotion();
   const {
     active: metaInteractionActive,
@@ -136,6 +154,8 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
     if (!chapterTenCreditsActive) {
       setCreditsPlaybackStartedAt(null);
       setCreditsScrollComplete(false);
+      setScoreSubmissionStage('idle');
+      setScoreSubmissionName('');
       return;
     }
 
@@ -150,7 +170,9 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
   const creditsPlaybackProgress = creditsPlaybackStartedAt === null
     ? null
     : getFinaleCreditProgress(creditsPlaybackStartedAt, finalePlayback);
-  const creditsScore = getCreditsScoreAtProgress(creditsPlaybackProgress ?? 0);
+  const creditsOverflowProgress = getCreditsOverflowProgress(creditsPlaybackProgress ?? 0);
+  const creditsScore = getCreditsScoreAtProgress(creditsOverflowProgress);
+  const finalLyricWordIndex = getFinalLyricWordIndex(creditsPlaybackProgress ?? 0);
 
   useEffect(() => {
     if (!chapterTenCreditsActive) return;
@@ -163,7 +185,10 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
       return;
     }
 
-    const progressRatio = creditsPlaybackProgress ?? 0;
+    const progressRatio = Math.min(
+      1,
+      (creditsPlaybackProgress ?? 0) / FINAL_LYRIC_END_PROGRESS,
+    );
     const maxScroll = Math.max(0, scrollBox.scrollHeight - scrollBox.clientHeight);
     scrollBox.scrollTop = maxScroll * progressRatio;
     setCreditsScrollComplete(finalePlayback.ended && progressRatio >= 1);
@@ -173,6 +198,39 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
     finalePlayback.ended,
     reducedMotion,
   ]);
+
+  const beginArcaneScoreSubmission = () => {
+    if (scoreSubmissionStage !== 'idle') return;
+    setScoreSubmissionStage('naming');
+    setScoreSubmissionName('');
+    beginAutonomousControl('chapter-ten-score-name');
+
+    let characterIndex = 0;
+    scoreTypingTimerRef.current = window.setInterval(() => {
+      characterIndex += 1;
+      setScoreSubmissionName(ARCANE_SCORE_NAME.slice(0, characterIndex));
+      pulseAutonomousTap();
+      audio.play('key.character', { variant: characterIndex % 2 });
+
+      if (characterIndex < ARCANE_SCORE_NAME.length) return;
+      if (scoreTypingTimerRef.current !== null) {
+        window.clearInterval(scoreTypingTimerRef.current);
+        scoreTypingTimerRef.current = null;
+      }
+      setScoreSubmissionStage('submitted');
+      setArcaneNegativeRecordSubmitted(true);
+      window.localStorage.setItem(ARCANE_NEGATIVE_RECORD_STORAGE_KEY, 'true');
+      scoreTransitionTimerRef.current = window.setTimeout(() => {
+        endAutonomousControl();
+        updateProgress((previous) => ({ ...previous, phase: 'ending_choice' }));
+      }, 1500);
+    }, 260);
+  };
+
+  useEffect(() => () => {
+    if (scoreTypingTimerRef.current !== null) window.clearInterval(scoreTypingTimerRef.current);
+    if (scoreTransitionTimerRef.current !== null) window.clearTimeout(scoreTransitionTimerRef.current);
+  }, []);
 
   // Chapter 10 route-point assist. After five straight sub-41 runs the game
   // offers a precise, deterministic click pattern (see chapterTenAssist.ts) that
@@ -1507,7 +1565,11 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
   ]);
 
   const playerBestScore = Math.max(progress.bestScore, highScore, score);
-  const publicLeaderboard = createPublicLeaderboard(playerBestScore);
+  const publicLeaderboard = createPublicLeaderboard(
+    playerBestScore,
+    48,
+    arcaneNegativeRecordSubmitted,
+  );
   const beatPercentage = calculateBeatPercentage(playerBestScore);
 
   return (
@@ -1566,17 +1628,6 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
             data-credit-surface="skyline-256-phone-game"
           >
             <div
-              className="pointer-events-none absolute right-5 top-4 z-20 text-right"
-              id="chapter-ten-credit-score"
-              data-score={creditsScore}
-            >
-              <div className="text-[7px] tracking-[0.28em] text-white/45">SCORE</div>
-              <div className="mt-0.5 text-[18px] font-bold tabular-nums tracking-[0.06em] text-white">
-                {creditsScore}
-              </div>
-            </div>
-
-            <div
               ref={creditsScrollRef}
               className={`h-full w-full px-[12%] ${
                 reducedMotion ? 'overflow-y-auto' : 'overflow-hidden'
@@ -1617,29 +1668,91 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
                   </div>
                 </div>
 
-                <div className="flex min-h-[52px] items-start justify-center">
-                  {finalePlayback.ended && creditsScrollComplete ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        audio.playUnlock();
-                        updateProgress((previous) => ({ ...previous, phase: 'ending_choice' }));
-                      }}
-                      className="border border-white/65 bg-black px-5 py-2 text-[9px] font-bold tracking-[0.2em] text-white hover:bg-white hover:text-black"
-                      id="credits-proceed-btn"
+                <div
+                  className="relative mx-auto grid w-full grid-cols-6 gap-1 pb-12 pt-10 text-center"
+                  id="chapter-ten-final-lyric"
+                  data-active-word={finalLyricWordIndex}
+                >
+                  {finalLyricWordIndex >= 0 && (
+                    <span
+                      className="pointer-events-none absolute top-5 h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,.75)] transition-[left] duration-200 ease-out animate-bounce"
+                      style={{ left: `${((finalLyricWordIndex + 0.5) / FINAL_LYRIC_WORDS.length) * 100}%` }}
+                      id="chapter-ten-lyric-ball"
+                      aria-hidden="true"
+                    />
+                  )}
+                  {FINAL_LYRIC_WORDS.map((word, index) => (
+                    <span
+                      key={word}
+                      className={`text-[10px] tracking-[0.04em] transition-colors duration-150 ${
+                        finalLyricWordIndex === index ? 'text-white' : 'text-white/42'
+                      }`}
                     >
-                      PROCEED TO FINAL STRATEGY
-                    </button>
-                  ) : (
-                    <div className="text-[7px] tracking-[0.26em] text-white/35" id="credits-finale-playing">
-                      {finalePlayback.duration === null
-                        ? 'WAITING FOR AUDIO'
-                        : 'TRANSMISSION IN PROGRESS'}
+                      {word}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="text-[7px] tracking-[0.26em] text-white/35" id="credits-finale-playing">
+                  {finalePlayback.duration === null
+                    ? 'WAITING FOR AUDIO'
+                    : 'TRANSMISSION IN PROGRESS'}
+                </div>
+              </div>
+            </div>
+
+            {((creditsPlaybackProgress ?? 0) >= FINAL_LYRIC_END_PROGRESS
+              || scoreSubmissionStage !== 'idle') && (
+              <div
+                className="absolute inset-0 z-30 flex items-center justify-center bg-black/94 px-[14%] text-center"
+                id="chapter-ten-credit-score"
+                data-score={creditsScore}
+                data-submission-stage={scoreSubmissionStage}
+              >
+                <div className="w-full max-w-[420px]">
+                  <div className="text-[8px] tracking-[0.36em] text-white/42">FINAL SCORE</div>
+                  <div className="mt-2 text-[clamp(42px,9cqh,72px)] font-black tabular-nums tracking-[-0.04em] text-white">
+                    {creditsScore}
+                  </div>
+
+                  {finalePlayback.ended && creditsScrollComplete && (
+                    <div className="mx-auto mt-5 max-w-[280px]">
+                      {scoreSubmissionStage === 'idle' ? (
+                        <button
+                          type="button"
+                          onClick={beginArcaneScoreSubmission}
+                          className="w-full border border-white/70 bg-black px-5 py-2.5 text-[10px] font-bold tracking-[0.24em] text-white hover:bg-white hover:text-black"
+                          id="chapter-ten-submit-score"
+                        >
+                          SUBMIT SCORE
+                        </button>
+                      ) : (
+                        <div className="space-y-2 text-left" id="chapter-ten-score-name-form">
+                          <label
+                            htmlFor="chapter-ten-score-name"
+                            className="block text-[7px] tracking-[0.28em] text-white/42"
+                          >
+                            ENTER FLYER NAME
+                          </label>
+                          <input
+                            id="chapter-ten-score-name"
+                            value={scoreSubmissionName}
+                            readOnly
+                            className="w-full border-b border-white/65 bg-transparent px-1 py-2 text-center text-[18px] font-bold tracking-[0.32em] text-white outline-none"
+                            aria-label="Flyer name entered by Arcane"
+                          />
+                          <div className="text-center text-[7px] tracking-[0.22em] text-white/38">
+                            {scoreSubmissionStage === 'naming'
+                              ? 'PLAYER INPUT LOCKED'
+                              : 'RECORD ACCEPTED · RANK LAST'}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
               </div>
-            </div>
+            )}
           </div>
         )}
 

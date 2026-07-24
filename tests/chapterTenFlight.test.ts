@@ -41,11 +41,15 @@ import {
   ARCANE_FLIGHT_REFLECTIONS,
   ARCANE_TAKEOVER_LINES,
   CHAPTER_TEN_FLIGHT_CREDITS,
+  FINAL_LYRIC_WORDS,
   getCompletionScoreAtFrame,
+  getCreditsOverflowProgress,
   getCreditsScoreAtProgress,
+  getFinalLyricWordIndex,
   getFlightCreditsAtScore,
   NOAH_FINAL_TRANSMISSION,
 } from '../src/lib/chapterTenCredits';
+import { getChapterEnvironment } from '../src/lib/chapterEnvironment';
 
 const CANVAS_HEIGHT = 320;
 const BIRD_RADIUS = 12;
@@ -520,12 +524,37 @@ test('Skyline credits stay inside the phone game and own the score overflow', ()
   assert.match(gameSource, /id="chapter-ten-game-credits"/);
   assert.match(gameSource, /data-credit-surface="skyline-256-phone-game"/);
   assert.match(gameSource, /id="chapter-ten-credit-score"/);
-  assert.match(gameSource, /getCreditsScoreAtProgress\(creditsPlaybackProgress \?\? 0\)/);
+  assert.match(gameSource, /getCreditsScoreAtProgress\(creditsOverflowProgress\)/);
   assert.match(canvasSource, /fillText\('SCORE 256'/);
   assert.doesNotMatch(canvasSource, /getCompletionScoreAtFrame/);
   assert.doesNotMatch(appSource, /id="credits-overlay"/);
   assert.match(phoneSource, />\s*Flappy Something\s*</);
   assert.doesNotMatch(phoneSource, /progress\.unlockedCodeRoute \? 'Skyline 256'/);
+});
+
+test('the final lyric, overflow score, and Arcane signature form one deterministic coda', () => {
+  const gameSource = readFileSync(new URL('../src/components/FlappyGame.tsx', import.meta.url), 'utf8');
+  const appSource = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
+
+  assert.deepEqual(FINAL_LYRIC_WORDS, ['Thank', 'you', 'for', 'reaching', 'the', 'end.']);
+  assert.equal(getFinalLyricWordIndex(0.71), -1);
+  assert.equal(getFinalLyricWordIndex(0.72), 0);
+  assert.equal(getFinalLyricWordIndex(0.86), 5);
+  assert.equal(getCreditsOverflowProgress(0.86), 0);
+  assert.equal(getCreditsOverflowProgress(1), 1);
+  assert.match(gameSource, /id="chapter-ten-lyric-ball"/);
+  assert.match(gameSource, /id="chapter-ten-submit-score"/);
+  assert.match(gameSource, /beginAutonomousControl\('chapter-ten-score-name'\)/);
+  assert.match(gameSource, /ARCANE_SCORE_NAME = 'ARCANE'/);
+  assert.match(gameSource, /ARCANE_NEGATIVE_RECORD_STORAGE_KEY/);
+  assert.match(appSource, /NON-CANON EPILOGUE PREVIEW/);
+  assert.match(appSource, /ENDING_PREVIEW_LINES\[progress\.selectedEnding\]/);
+  assert.doesNotMatch(appSource, /TRUE ENDING/);
+});
+
+test('Chapter 10 removes both drink stories for a suddenly clean desk', () => {
+  assert.equal(getChapterEnvironment(10).coffee, 'none');
+  assert.equal(getChapterEnvironment(10).coffeeRing, false);
 });
 
 test('Noah final transmission closes established canon without adding another puzzle', () => {

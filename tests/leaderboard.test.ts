@@ -22,6 +22,17 @@ test('player row uses the exact best score and receives its sorted rank', () => 
   assert.equal(player?.rank, 3);
 });
 
+test('Arcane returns at the very bottom only after signing the overflow record', () => {
+  const beforeSubmission = createPublicLeaderboard(40);
+  const afterSubmission = createPublicLeaderboard(40, 48, true);
+  const record = afterSubmission.at(-1);
+
+  assert.equal(beforeSubmission.some((entry) => entry.id === 'arcane-negative-record'), false);
+  assert.equal(record?.name, 'ARCANE');
+  assert.equal(record?.score, -65535);
+  assert.equal(record?.tagline, 'Last place. Finally, some room to breathe.');
+});
+
 test('public leaderboard does not reveal the hidden Noah overflow record', () => {
   const serialized = JSON.stringify(createPublicLeaderboard(40)).toLowerCase();
   const panelSource = readFileSync(new URL('../src/components/LeaderboardPanel.tsx', import.meta.url), 'utf8').toLowerCase();

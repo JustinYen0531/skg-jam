@@ -143,9 +143,16 @@ export const LeaderboardPanel: React.FC<LeaderboardPanelProps> = ({
                 }`}>
                   {isPlayer ? 'YOU' : isFeatured ? <Crown className="w-3 h-3" /> : isNamed ? entry.name.slice(0, 2).toUpperCase() : 'AV'}
                 </span>
-                <span className={`truncate font-bold ${isPlayer ? 'text-white' : isFeatured ? 'text-amber-100' : isNamed ? 'text-violet-200' : 'text-slate-400'}`}>{entry.name}</span>
-                {isPlayer && <span className="text-[7px] px-1 py-0.5 rounded bg-cyan-300 text-slate-950 font-black">LIVE BEST</span>}
-                {isFeatured && <span className="text-[7px] px-1 py-0.5 rounded bg-amber-300/15 border border-amber-300/25 text-amber-200 font-black">TRENDING</span>}
+                <div className="min-w-0">
+                  <div className="flex min-w-0 items-center gap-1.5">
+                    <span className={`truncate font-bold ${isPlayer ? 'text-white' : isFeatured ? 'text-amber-100' : isNamed ? 'text-violet-200' : 'text-slate-400'}`}>{entry.name}</span>
+                    {isPlayer && <span className="text-[7px] px-1 py-0.5 rounded bg-cyan-300 text-slate-950 font-black">LIVE BEST</span>}
+                    {isFeatured && <span className="text-[7px] px-1 py-0.5 rounded bg-amber-300/15 border border-amber-300/25 text-amber-200 font-black">TRENDING</span>}
+                  </div>
+                  {entry.tagline && (
+                    <div className="truncate font-thought text-[8px] font-normal text-slate-500">{entry.tagline}</div>
+                  )}
+                </div>
               </div>
               <span className={`text-right text-sm font-black tabular-nums ${isPlayer ? 'text-cyan-200' : isFeatured ? 'text-amber-300' : 'text-white'}`}>{entry.score}</span>
             </div>

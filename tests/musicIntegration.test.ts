@@ -92,7 +92,7 @@ test('Chapter 10 Finale starts after the typed Gate 40 takeover, plays once, and
   assert.match(musicSource, /window\.requestAnimationFrame\(update\)/);
   assert.match(flappySource, /getFinaleCreditProgress\(creditsPlaybackStartedAt, finalePlayback\)/);
   assert.match(flappySource, /scrollBox\.scrollTop = maxScroll \* progressRatio/);
-  assert.match(flappySource, /finalePlayback\.ended && creditsScrollComplete \?/);
+  assert.match(flappySource, /finalePlayback\.ended && creditsScrollComplete &&/);
   assert.match(flappySource, /music\.onFinalePlayback\(setFinalePlayback\)/);
   assert.match(flappySource, /TRANSMISSION IN PROGRESS/);
 });

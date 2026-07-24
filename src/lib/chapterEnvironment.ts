@@ -214,7 +214,7 @@ export const CHAPTER_ENVIRONMENTS: Readonly<Record<EnvironmentChapter, ChapterEn
     chapter: 10,
     caseLabel: 'THE ROUTE IN THE NAME',
     lighting: 'ready',
-    coffee: 'pushed-away',
+    coffee: 'none',
     coffeeRing: false,
     coffeeSteam: false,
     coffeeDrip: false,

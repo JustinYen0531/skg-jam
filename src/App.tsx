@@ -12,7 +12,7 @@ import audio from './lib/audio';
 import music, { getMusicPhase } from './lib/music';
 import { 
   Award, Terminal, RefreshCw, Volume2, VolumeX,
-  Sparkles, CheckCircle, Database, HelpCircle, Archive, Globe
+  CheckCircle, Database, HelpCircle, Archive, Globe
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -51,6 +51,23 @@ const INITIAL_PROGRESS: GameProgress = {
 };
 
 const FULLSCREEN_ONLY_STORAGE_KEY = 'skg.fullscreenOnly';
+const ENDING_PREVIEW_LINES: Readonly<Record<NonNullable<GameProgress['selectedEnding']>, readonly string[]>> = {
+  submit: [
+    'So I let the board keep it.',
+    'Negative sixty-five thousand, five hundred and thirty-five. Dead last.',
+    'Honestly? There is a lot less pressure down here.',
+  ],
+  publicize: [
+    'So I tell everyone what happened.',
+    'They argue over the score, the archive, and whether any of it counts.',
+    'At least nobody gets to pretend the game never existed.',
+  ],
+  preserve: [
+    'So I keep the build alive and leave the scoreboard alone.',
+    'No victory announcement. No permanent server.',
+    'Just a door that still opens when someone needs it.',
+  ],
+};
 
 export default function App() {
   const [progress, setProgress] = useState<GameProgress>(INITIAL_PROGRESS);
@@ -455,8 +472,11 @@ export default function App() {
                   HOW SHOULD THE SKYLINE CONCLUDE?
                 </h1>
                 <p className="font-laos text-xs text-[var(--laos-dim)] max-w-md mx-auto">
-                  Noah's negative score has been retrieved. You have the original source files. Decide how to manage this legacy.
+                  Three player-controlled previews. None of them changes the real story.
                 </p>
+                <div className="laos-label text-[8px] !text-[var(--laos-warm)]">
+                  NON-CANON EPILOGUE PREVIEW
+                </div>
               </div>
 
               {/* Three Final Choices */}
@@ -478,7 +498,7 @@ export default function App() {
                     </div>
                     <h3 className="font-laos font-semibold text-xs text-[var(--laos-text)] tracking-wide">1. SUBMIT SCORE</h3>
                     <p className="font-laos text-[10px] text-[var(--laos-dim)] leading-normal">
-                      Exploit modern system registers to report a score of 257. Become the absolute number one on the global leaderboards.
+                      Leave ARCANE's signed −65535 record on the public leaderboard and let the impossible score speak for itself.
                     </p>
                   </div>
                   <span className="laos-label text-[8px] mt-2">SELECT BRANCH</span>
@@ -500,7 +520,7 @@ export default function App() {
                     </div>
                     <h3 className="font-laos font-semibold text-xs text-[var(--laos-text)] tracking-wide">2. PUBLICIZE STORY</h3>
                     <p className="font-laos text-[10px] text-[var(--laos-dim)] leading-normal">
-                      Upload the complete coordinates sequence and story to ViewTube. Ignite discussion regarding original design preservation.
+                      Release the route, the recovered conversations, and the story behind Skyline 256.
                     </p>
                   </div>
                   <span className="laos-label text-[8px] mt-2">SELECT BRANCH</span>
@@ -520,9 +540,9 @@ export default function App() {
                     <div className="w-8 h-8 border border-[var(--laos-line)] bg-[var(--laos-surface-2)] flex items-center justify-center">
                       <Archive className="w-4 h-4 text-[var(--laos-warm)]" strokeWidth={1.5} />
                     </div>
-                    <h3 className="font-laos font-semibold text-xs text-[var(--laos-text)] tracking-wide">3. ARCHIVE & PRESERVE</h3>
+                    <h3 className="font-laos font-semibold text-xs text-[var(--laos-text)] tracking-wide">3. ARCHIVE &amp; PRESERVE</h3>
                     <p className="font-laos text-[10px] text-[var(--laos-dim)] leading-normal">
-                      Refuse database score submission. Upload the legacy source binary and tech flight logs to preservation platforms safely.
+                      Preserve the playable build and its records without declaring any public winner.
                     </p>
                   </div>
                   <span className="laos-label text-[8px] mt-2 !text-[var(--laos-warm)]">TRUE ARCHIVIST</span>
@@ -539,26 +559,19 @@ export default function App() {
                   className="laos-panel p-4 text-xs space-y-2 font-laos leading-relaxed"
                   id="ending-narrative"
                 >
-                  <div className="font-semibold text-[var(--laos-text)] flex items-center gap-1.5 tracking-wide">
-                    <Sparkles className="w-4 h-4 text-[var(--laos-warm)]" strokeWidth={1.5} />
-                    <span>
-                      {progress.selectedEnding === 'submit' && 'SUBMITTED ENDING: HIGHEST SCORE CHASER'}
-                      {progress.selectedEnding === 'publicize' && 'PUBLICIZED ENDING: COGNITIVE MASS DISRUPT'}
-                      {progress.selectedEnding === 'preserve' && 'TRUE ENDING: COGNITIVE PRESERVED CAPABILITY'}
-                    </span>
+                  <div className="flex items-center gap-2 font-mono text-[8px] font-bold tracking-[0.3em] text-[#91a7bb]">
+                    <span className="h-1.5 w-1.5 rounded-[1px] border border-[#91a7bb]/60" aria-hidden="true" />
+                    ARCANE
                   </div>
 
-                  <p className="text-[11px] text-[var(--laos-text)]">
-                    {progress.selectedEnding === 'submit' &&
-                      'You update the scoreboard data. Social discussion swarms with your score of 257 as the world record. Yet, the corporate system logo stays as a modern slop clone. Noah\'s negative score is pushed further deep into memory, unacknowledged.'}
-                    {progress.selectedEnding === 'publicize' &&
-                      'Your replay goes viral. Millions watch the altitude sensor bypassing Gate 40. SKG Automation reacts quickly: they close down the legacy database servers, claiming security breeches, and permanently scrub Noah\'s negative code records.'}
-                    {progress.selectedEnding === 'preserve' &&
-                      'You do not submit the score. You keep the secret safe on digital libraries. The original IPA remains possible. Download count: 1 (ARC_184), then 2. The game does not need to run forever. It only needs to remain possible.'}
-                  </p>
+                  <div className="space-y-1.5 font-thought text-[15px] leading-relaxed text-[#c6d1de]">
+                    {ENDING_PREVIEW_LINES[progress.selectedEnding].map((line) => (
+                      <p key={line}>{line}</p>
+                    ))}
+                  </div>
 
                   <div className="pt-2 border-t border-[var(--laos-line-dim)] flex justify-between items-center text-[10px]">
-                    <span className="laos-label text-[7.5px]">BRANCH DECIDED BY END USER RECODING</span>
+                    <span className="laos-label text-[7.5px]">PREVIEW ONLY · SWITCH BRANCHES FREELY</span>
                     <button
                       onClick={restartLoop}
                       className="laos-slow px-3 py-1 bg-[var(--laos-surface-2)] text-[var(--laos-text)] hover:bg-[var(--laos-line-dim)] flex items-center gap-1 border border-[var(--laos-line)] font-laos tracking-wide"
