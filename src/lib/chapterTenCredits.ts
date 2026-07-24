@@ -61,8 +61,11 @@ export const getCreditsScoreAtProgress = (progress: number): number => {
 };
 
 export const FINAL_LYRIC_WORDS = ['Thank', 'you', 'for', 'reaching', 'the', 'end.'] as const;
-export const FINAL_LYRIC_START_PROGRESS = 0.72;
-export const FINAL_LYRIC_END_PROGRESS = 0.86;
+// The letter finishes before the final musical phrase. The lyric belongs to
+// the score's overflow, not to Noah's transmission below it.
+export const CREDITS_SCROLL_END_PROGRESS = 0.86;
+export const FINAL_LYRIC_START_PROGRESS = CREDITS_SCROLL_END_PROGRESS;
+export const FINAL_LYRIC_END_PROGRESS = 1;
 
 export const getFinalLyricWordIndex = (progress: number): number => {
   if (progress < FINAL_LYRIC_START_PROGRESS || progress > FINAL_LYRIC_END_PROGRESS) return -1;
@@ -72,7 +75,7 @@ export const getFinalLyricWordIndex = (progress: number): number => {
 };
 
 export const getCreditsOverflowProgress = (progress: number): number =>
-  Math.max(0, Math.min(1, (progress - FINAL_LYRIC_END_PROGRESS) / (1 - FINAL_LYRIC_END_PROGRESS)));
+  Math.max(0, Math.min(1, (progress - CREDITS_SCROLL_END_PROGRESS) / (1 - CREDITS_SCROLL_END_PROGRESS)));
 
 export const NOAH_FINAL_TRANSMISSION: readonly string[] = [
   'Arcane—',

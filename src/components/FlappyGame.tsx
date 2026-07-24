@@ -47,7 +47,7 @@ import { useMetaInteraction } from './MetaInteractionScene';
 import {
   ARCANE_FLIGHT_REFLECTIONS,
   ARCANE_TAKEOVER_LINES,
-  FINAL_LYRIC_END_PROGRESS,
+  CREDITS_SCROLL_END_PROGRESS,
   FINAL_LYRIC_WORDS,
   getCreditsOverflowProgress,
   getCreditsScoreAtProgress,
@@ -196,7 +196,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
 
     const progressRatio = Math.min(
       1,
-      (creditsPlaybackProgress ?? 0) / FINAL_LYRIC_END_PROGRESS,
+      (creditsPlaybackProgress ?? 0) / CREDITS_SCROLL_END_PROGRESS,
     );
     const maxScroll = Math.max(0, scrollBox.scrollHeight - scrollBox.clientHeight);
     scrollBox.scrollTop = maxScroll * progressRatio;
@@ -1688,31 +1688,6 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
                   </div>
                 </div>
 
-                <div
-                  className="relative mx-auto grid w-full grid-cols-6 gap-1 pb-12 pt-10 text-center"
-                  id="chapter-ten-final-lyric"
-                  data-active-word={finalLyricWordIndex}
-                >
-                  {finalLyricWordIndex >= 0 && (
-                    <span
-                      className="pointer-events-none absolute top-5 h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,.75)] transition-[left] duration-200 ease-out animate-bounce"
-                      style={{ left: `${((finalLyricWordIndex + 0.5) / FINAL_LYRIC_WORDS.length) * 100}%` }}
-                      id="chapter-ten-lyric-ball"
-                      aria-hidden="true"
-                    />
-                  )}
-                  {FINAL_LYRIC_WORDS.map((word, index) => (
-                    <span
-                      key={word}
-                      className={`text-[10px] tracking-[0.04em] transition-colors duration-150 ${
-                        finalLyricWordIndex === index ? 'text-white' : 'text-white/42'
-                      }`}
-                    >
-                      {word}
-                    </span>
-                  ))}
-                </div>
-
                 <div className="text-[7px] tracking-[0.26em] text-white/35" id="credits-finale-playing">
                   {finalePlayback.duration === null
                     ? 'WAITING FOR AUDIO'
@@ -1721,7 +1696,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
               </div>
             </div>
 
-            {!afterwordOpen && (creditsPlaybackProgress ?? 0) < FINAL_LYRIC_END_PROGRESS && (
+            {!afterwordOpen && (creditsPlaybackProgress ?? 0) < CREDITS_SCROLL_END_PROGRESS && (
               <div
                 className="absolute right-[5%] top-[5%] z-20 text-right font-mono"
                 id="chapter-ten-credit-score-corner"
@@ -1734,7 +1709,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
               </div>
             )}
 
-            {!afterwordOpen && ((creditsPlaybackProgress ?? 0) >= FINAL_LYRIC_END_PROGRESS
+            {!afterwordOpen && ((creditsPlaybackProgress ?? 0) >= CREDITS_SCROLL_END_PROGRESS
               || scoreSubmissionStage !== 'idle') && (
               <div
                 className="absolute inset-0 z-30 flex items-center justify-center bg-black/94 px-[14%] text-center"
@@ -1746,6 +1721,31 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
                   <div className="text-[8px] tracking-[0.36em] text-white/42">FINAL SCORE</div>
                   <div className="mt-2 text-[clamp(42px,9cqh,72px)] font-black tabular-nums tracking-[-0.04em] text-white">
                     {creditsScore}
+                  </div>
+
+                  <div
+                    className="relative mx-auto mt-8 grid w-full max-w-[420px] grid-cols-6 gap-1 pt-6 text-center"
+                    id="chapter-ten-final-lyric"
+                    data-active-word={finalLyricWordIndex}
+                  >
+                    {finalLyricWordIndex >= 0 && (
+                      <span
+                        className="pointer-events-none absolute top-0 h-3 w-3 -translate-x-1/2 rounded-full bg-white shadow-[0_0_14px_rgba(255,255,255,.9)] transition-[left] duration-200 ease-out animate-bounce"
+                        style={{ left: `${((finalLyricWordIndex + 0.5) / FINAL_LYRIC_WORDS.length) * 100}%` }}
+                        id="chapter-ten-lyric-ball"
+                        aria-hidden="true"
+                      />
+                    )}
+                    {FINAL_LYRIC_WORDS.map((word, index) => (
+                      <span
+                        key={word}
+                        className={`text-[11px] tracking-[0.04em] transition-colors duration-150 ${
+                          finalLyricWordIndex === index ? 'text-white' : 'text-white/42'
+                        }`}
+                      >
+                        {word}
+                      </span>
+                    ))}
                   </div>
 
                   {finalePlayback.ended && creditsScrollComplete && (

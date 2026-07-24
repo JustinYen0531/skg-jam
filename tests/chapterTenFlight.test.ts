@@ -537,9 +537,9 @@ test('the final lyric, overflow score, and Arcane signature form one determinist
   const appSource = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
 
   assert.deepEqual(FINAL_LYRIC_WORDS, ['Thank', 'you', 'for', 'reaching', 'the', 'end.']);
-  assert.equal(getFinalLyricWordIndex(0.71), -1);
-  assert.equal(getFinalLyricWordIndex(0.72), 0);
-  assert.equal(getFinalLyricWordIndex(0.86), 5);
+  assert.equal(getFinalLyricWordIndex(0.85), -1);
+  assert.equal(getFinalLyricWordIndex(0.86), 0);
+  assert.equal(getFinalLyricWordIndex(1), 5);
   assert.equal(getCreditsOverflowProgress(0.86), 0);
   assert.equal(getCreditsOverflowProgress(1), 1);
   assert.match(gameSource, /id="chapter-ten-lyric-ball"/);

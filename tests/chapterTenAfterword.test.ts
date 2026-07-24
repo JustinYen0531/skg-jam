@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { createPublicLeaderboard } from '../src/lib/leaderboard';
 import { CHAPTER_TEN_AFTERWORD_OPTIONS } from '../src/lib/chapterTenAfterword';
+import { getFinalLyricWordIndex } from '../src/lib/chapterTenCredits';
 
 test('the three imagined outcomes are an optional afterword inside Skyline 256', () => {
   const gameSource = readFileSync(new URL('../src/components/FlappyGame.tsx', import.meta.url), 'utf8');
@@ -15,6 +16,9 @@ test('the three imagined outcomes are an optional afterword inside Skyline 256',
   assert.match(gameSource, /NONE OF THESE CHANGE THE REAL STORY/);
   assert.match(gameSource, /id="chapter-ten-afterword-restart-loop"/);
   assert.match(gameSource, /id="chapter-ten-credit-score-corner"/);
+  assert.ok(gameSource.indexOf('id="chapter-ten-credit-score"') < gameSource.indexOf('id="chapter-ten-final-lyric"'));
+  assert.equal(getFinalLyricWordIndex(0.85), -1);
+  assert.equal(getFinalLyricWordIndex(0.86), 0);
   assert.doesNotMatch(appSource, /id="ending-choice-overlay"/);
   assert.doesNotMatch(appSource, /HOW SHOULD THE SKYLINE CONCLUDE\?/);
 });

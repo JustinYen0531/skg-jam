@@ -1113,3 +1113,9 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - The post-restart leaderboard suppresses the stale blue `YOU · LOCAL PLAYER 256` row. It retains only ARCANE's `-65535` record and reports `You defeated 0% of all totally real flyers.`
 - During autonomous flight, the right grip remains visible and is pushed to the far screen edge so the wrist crop reads as an intentional edge crop rather than a hollow arm.
 - Browser and Preview remain intentionally unused by project instruction; validation is static only.
+
+## 2026-07-24 — Finale lyric follows the score overflow
+
+- Removed `Thank you for reaching the end.` from beneath Noah's transmission so the letter can finish on its own.
+- The lyric and its white rhythm ball now appear only when the `256` score leaves the upper-right corner, fills the centre of the Skyline screen, and begins its deterministic overflow.
+- Browser and Preview remain intentionally unused by project instruction; validation is static only.
