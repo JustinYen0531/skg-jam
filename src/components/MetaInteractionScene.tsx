@@ -1202,13 +1202,17 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
         setPressed(true);
         // Foley fires exactly when the fingertip lands, never earlier (§12).
         audio.play('meta.fingerContact');
+        // A control must not react until the rendered finger has arrived and
+        // visibly pressed the glass. Keep the visual contact and activation on
+        // the same beat; firing on release made the phone feel detached from
+        // the hand.
+        onActivate?.();
       }, META_TAP_TIMING.unfoldMs + META_TAP_TIMING.travelMs));
 
       timersRef.current.push(window.setTimeout(() => {
         setPressed(false);
         // The pad peels off the glass as the tap registers (§4.6).
         audio.play('meta.fingerRelease');
-        onActivate?.();
       }, META_TAP_TIMING.unfoldMs + META_TAP_TIMING.travelMs + META_TAP_TIMING.pressMs));
 
       timersRef.current.push(window.setTimeout(() => {
@@ -1669,16 +1673,14 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
         transition: { repeat: Infinity, duration, ease: 'easeInOut' as const },
       });
 
-  // The reaching hand travels on a spring so arrivals decelerate like a real
-  // wrist instead of easing on rails; opacity is kept on a short fade so the
-  // grip-to-reach handoff reads as one motion.
+  // This duration is deliberately identical to META_TAP_TIMING.travelMs.
+  // The functional click is emitted at that beat, so a spring cannot be used
+  // here: a spring's real arrival can trail behind its nominal duration.
   const travelTransition = reducedMotion
     ? { duration: 0 }
     : {
-        type: 'spring' as const,
-        stiffness: 300,
-        damping: 30,
-        mass: 0.72,
+        duration: META_TAP_TIMING.travelMs / 1000,
+        ease: [0.22, 1, 0.36, 1] as const,
         opacity: { duration: 0.16, ease: 'easeOut' as const },
       };
 

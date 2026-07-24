@@ -307,6 +307,26 @@ test('every player click on the phone keeps the shared right-hand relay visible'
   assert.match(sceneSource, /if \(button\?\.hasAttribute\('data-meta-key'\)\) return;/);
 });
 
+test('phone controls activate on fingertip contact, not when the finger lifts', () => {
+  const sceneSource = readFileSync(
+    new URL('../src/components/MetaInteractionScene.tsx', import.meta.url),
+    'utf8',
+  );
+
+  assert.match(
+    sceneSource,
+    /setPressed\(true\);[\s\S]{0,420}audio\.play\('meta\.fingerContact'\);[\s\S]{0,420}onActivate\?\.\(\);/,
+  );
+  assert.match(
+    sceneSource,
+    /const travelTransition = reducedMotion[\s\S]{0,360}duration: META_TAP_TIMING\.travelMs \/ 1000/,
+  );
+  assert.doesNotMatch(
+    sceneSource,
+    /setPressed\(false\);[\s\S]{0,260}audio\.play\('meta\.fingerRelease'\);[\s\S]{0,260}onActivate\?\.\(\);/,
+  );
+});
+
 test('settings range controls retain native pointer dragging', () => {
   const sceneSource = readFileSync(
     new URL('../src/components/MetaInteractionScene.tsx', import.meta.url),
