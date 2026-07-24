@@ -1497,20 +1497,12 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
       }
     }
 
-    if (source.closest('[data-meta-immediate="true"]')) {
-      if (
-        playerInitiated
-        && targetInsidePhone
-        && canStartMetaInteraction(active, pendingRef.current, reducedMotion)
-      ) {
-        void animateTap(source, undefined, pointerPoint);
-      }
-      return;
-    }
-
     const input = source.closest('input');
     const button = source.closest('button');
     const target = input ?? button;
+    // Virtual keys already enqueue their own fingertip-contact animation before
+    // committing a character. Do not wrap that sequence a second time.
+    if (button?.hasAttribute('data-meta-key')) return;
     if (!target || !sceneRef.current?.contains(target)) {
       if (
         playerInitiated

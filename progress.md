@@ -1176,3 +1176,10 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Exempted `input[type="range"]` controls from the Meta pointer-down recovery and delayed click replay. Music volume, interface volume, brightness, and contrast now retain the browser's complete pointer drag sequence instead of behaving like click-only fields.
 - Text inputs and ordinary buttons keep their existing projected-screen recovery paths.
 - Browser and Preview remain intentionally unused by project instruction; validation is static only.
+
+## 2026-07-24 — Button action waits for fingertip contact
+
+- Removed the `data-meta-immediate` bypass for ordinary phone buttons. Their real application action now replays only from the fingertip-contact callback inside the shared Meta tap animation.
+- Virtual keyboard keys remain a deliberate exception because their own queued hand animation already applies the character at contact.
+- Range sliders still retain immediate native dragging.
+- Browser and Preview remain intentionally unused by project instruction; validation is static only.

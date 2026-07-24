@@ -269,7 +269,7 @@ test('virtual keyboard is embedded in the phone surface at sixty percent opacity
   assert.match(scene, /bottom-\[7%\]/);
 });
 
-test('home-screen launchers open on pointer release without waiting for the hand click relay', () => {
+test('home-screen launchers preserve their synthetic click route for the hand relay', () => {
   const phoneSource = readFileSync(new URL('../src/components/PhoneSimulator.tsx', import.meta.url), 'utf8');
   assert.match(
     phoneSource,
@@ -287,10 +287,7 @@ test('every player click on the phone keeps the shared right-hand relay visible'
     'utf8',
   );
 
-  assert.match(
-    sceneSource,
-    /if \(source\.closest\('\[data-meta-immediate="true"\]'\)\) \{[\s\S]{0,260}void animateTap\(source, undefined, pointerPoint\)/,
-  );
+  assert.doesNotMatch(sceneSource, /if \(source\.closest\('\[data-meta-immediate="true"\]'\)\) \{/);
   assert.match(
     sceneSource,
     /if \(!target \|\| !sceneRef\.current\?\.contains\(target\)\) \{[\s\S]{0,260}void animateTap\(source, undefined, pointerPoint\)/,
@@ -303,6 +300,11 @@ test('every player click on the phone keeps the shared right-hand relay visible'
     sceneSource,
     /if \(!canStartMetaInteraction\(active, pendingRef\.current, reducedMotion\)\) return;\s*event\.preventDefault\(\);\s*event\.stopPropagation\(\);/,
   );
+  assert.match(
+    sceneSource,
+    /if \(button instanceof HTMLButtonElement && !button\.disabled\) \{[\s\S]{0,260}void animateTap\(button, \(\) => \{[\s\S]{0,160}button\.click\(\)/,
+  );
+  assert.match(sceneSource, /if \(button\?\.hasAttribute\('data-meta-key'\)\) return;/);
 });
 
 test('settings range controls retain native pointer dragging', () => {

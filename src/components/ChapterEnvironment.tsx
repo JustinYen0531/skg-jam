@@ -2,7 +2,9 @@ import React from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import {
   getChapterEnvironment,
+  getDeskDrink,
   type CoffeeState,
+  type DrinkVariant,
   type EnvironmentChapter,
   type NotebookState,
   type PenState,
@@ -24,6 +26,11 @@ const COFFEE_ASSET_SOURCE: Record<Exclude<CoffeeState, 'none'>, string> = {
   empty: '/assets/coffee-empty-drip.png',
   'tipped-empty': '/assets/coffee-tipped-spill.png',
   'pushed-away': '/assets/coffee-empty-drip.png',
+};
+const DRINK_ASSET_SOURCE: Record<Exclude<DrinkVariant, 'none'>, string> = {
+  one: '/assets/drink-1.png',
+  two: '/assets/drink-2.png',
+  three: '/assets/drink-3.png',
 };
 const NOTEBOOK_COPY: Record<NotebookState, readonly string[]> = {
   none: [],
@@ -60,8 +67,8 @@ const CoffeeCup: React.FC<{
   const tipped = state === 'tipped-empty';
   const assetSource = COFFEE_ASSET_SOURCE[state];
   const positionClass = deviceResting
-    ? (pushedAway ? 'right-[4%] top-[66%] scale-[1.875]' : tipped ? 'right-[8%] top-[64%] scale-[2.1]' : 'right-[6%] top-[64%] scale-[2.025]')
-    : (pushedAway ? 'right-[2%] top-[78%] scale-[2.475]' : tipped ? 'right-[6%] top-[77%] scale-[2.8125]' : 'right-[4%] top-[78%] scale-[2.7]');
+    ? (pushedAway ? 'right-[4%] top-[78%] scale-[1.875]' : tipped ? 'right-[8%] top-[76%] scale-[2.1]' : 'right-[6%] top-[76%] scale-[2.025]')
+    : (pushedAway ? 'right-[2%] top-[90%] scale-[2.475]' : tipped ? 'right-[6%] top-[89%] scale-[2.8125]' : 'right-[4%] top-[90%] scale-[2.7]');
 
   // Position is anchored purely in CSS and eased with a CSS transition —
   // deliberately NOT Framer's `layout`. This desk layer sits inside an env
@@ -118,6 +125,42 @@ const CoffeeCup: React.FC<{
   );
 };
 
+// The mirror of the coffee cup, on the LEFT of the desk. Every variant renders
+// through one identical box + object-contain, so Drink 1/2/3 can never change
+// size or drift — only their state changes (sealed pair → both cracked open →
+// crushed in a spill), exactly the way the mug empties on the right. It shares
+// the same resting/upright anchors and CSS-transition rules as the cup.
+const DrinkCans: React.FC<{
+  variant: DrinkVariant;
+  animateLayout: boolean;
+  deviceResting: boolean;
+}> = ({ variant, animateLayout, deviceResting }) => {
+  if (variant === 'none') return null;
+  const assetSource = DRINK_ASSET_SOURCE[variant];
+  const positionClass = deviceResting
+    ? 'left-[6%] top-[76%] scale-[2.025]'
+    : 'left-[4%] top-[90%] scale-[2.7]';
+  const motionClass = animateLayout
+    ? 'transition-[top,left,scale] duration-[620ms] ease-out'
+    : '';
+
+  return (
+    <div
+      className={`absolute z-[3] h-[27%] w-[17%] min-w-36 origin-bottom-left ${motionClass} ${positionClass}`}
+      data-composition-offset={deviceResting ? 'resting-desk-left' : 'upright-desk-bottom-left'}
+      data-scene-depth="front-of-device"
+      data-drink-variant={variant}
+      id="meta-desk-drink"
+    >
+      <img
+        src={assetSource}
+        alt=""
+        className="absolute inset-0 h-full w-full object-contain object-bottom drop-shadow-[0_10px_10px_rgba(0,0,0,0.36)]"
+        id="meta-drink-png"
+      />
+    </div>
+  );
+};
 // None of the desk objects use Framer's `layout` — they live inside an env
 // whose `scale` is Framer-animated when the device rests, and a `layout` child
 // there re-projects against its own already-transformed box, compounding into
@@ -311,6 +354,7 @@ export const ChapterEnvironment: React.FC<ChapterEnvironmentProps> = ({
           ) : (
             <>
               <CoffeeCup state={environment.coffee} ring={environment.coffeeRing} steam={environment.coffeeSteam} drip={environment.coffeeDrip} spill={environment.coffeeSpill} animateLayout={!reducedMotion} deviceResting={deviceResting} />
+              <DrinkCans variant={getDeskDrink(chapter)} animateLayout={!reducedMotion} deviceResting={deviceResting} />
               {environment.teaService && <TeaService />}
               {environment.paperBalls && <PaperBalls />}
               {environment.cable !== 'none' && <ChargingCable connected={environment.cable === 'connected'} animateLayout={!reducedMotion} part="body" />}
