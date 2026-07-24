@@ -1689,7 +1689,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
           )}
 
           {activeApp === 'about' && (
-            /* CONCEPTS / LORE PAGE */
+            /* Concept is a player-facing preservation statement, not a puzzle. */
             <motion.div
               key="about"
               initial={{ opacity: 0, scale: 0.985 }}
@@ -1699,33 +1699,53 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
               className="absolute inset-0 bg-[#111318] p-4 overflow-y-auto space-y-4 text-slate-100 font-sans"
               id="concept-info-page"
             >
-              <div className="border-b border-white/[0.07] pb-2 flex items-center gap-2 mt-4">
-                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                <h2 className="font-semibold text-sm text-white">THE STOP KILLING GAMES CONCEPT</h2>
+              <div className="border-b border-white/[0.07] pb-3 flex items-start gap-2 mt-4">
+                <CheckCircle2 className="mt-0.5 w-5 h-5 shrink-0 text-emerald-400" />
+                <div>
+                  <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-emerald-300/75">Concept // preservation note</p>
+                  <h2 className="mt-1 font-semibold text-sm text-white">WHEN SUPPORT ENDS, THE GAME SHOULD NOT.</h2>
+                </div>
               </div>
 
-              <div className="space-y-3 text-xs leading-relaxed text-slate-300">
+              <div className="space-y-4 text-xs leading-relaxed text-slate-300">
                 <p>
-                  <strong className="text-white">Game Questing, Questioning Game</strong> is a creative interactive homage to the global <strong className="text-amber-400">"Stop Killing Games"</strong> campaign, exploring game preservation and consumer ownership rights.
+                  <strong className="text-white">Skyline 256 / Flappy Something</strong> is an independent fictional reflection on <strong className="text-amber-400">Stop Killing Games</strong>: the idea that ending publisher support must not make a game that people bought impossible to play.
                 </p>
 
                 <p>
-                  Today, large automation and gaming corporations hold massive software catalog assets. When a device becomes obsolete or a backend server turns off, decades of human creativity, original art, and stories are programmatically replaced by high-yield slop, or erased entirely.
+                  This is not a request for every service to run forever. It is a question about the end of service: when the store, server, device, or company disappears, is there still a lawful, practical path for people to launch the game and keep its history intact?
                 </p>
 
-                <div className="bg-[#0c0e12] p-2.5 rounded-xl border border-white/[0.07] space-y-1 font-mono text-[10px] text-slate-400">
-                  <div className="font-bold text-white uppercase text-[11px] mb-1 text-amber-500">How to Play Guide:</div>
-                  <div>1. Open **Flappy Something** and die at 40 points.</div>
-                  <div>2. Examine the controversial replay in **ViewTube**.</div>
-                  <div>3. Search and order the obsolete schematic in **AmazeMart**.</div>
-                  <div>4. Use **Wayback Browser** (2014) to investigate Silver Kite Games.</div>
-                  <div>5. Explore Noah Kade's FaceSpace and message archives.</div>
-                  <div>6. Fly matching altitude sequences near Gate 40.</div>
+                <section className="rounded-xl border border-emerald-300/[0.14] bg-emerald-300/[0.045] p-3" aria-labelledby="concept-in-game">
+                  <h3 id="concept-in-game" className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-emerald-200">How this game carries that question</h3>
+                  <ul className="mt-2 space-y-2 text-slate-300 marker:text-emerald-300">
+                    <li><strong className="text-white">A replaced build:</strong> the current game preserves the shell, but removes the route that made the original whole.</li>
+                    <li><strong className="text-white">A disappearing dependency:</strong> the playable version survives only through an archived package and obsolete Lumen Arc hardware.</li>
+                    <li><strong className="text-white">A broken record:</strong> store pages, server history, creator context, and the leaderboard each hold a different part of what the game was.</li>
+                  </ul>
+                </section>
+
+                <section className="rounded-xl border border-white/[0.08] bg-[#0c0e12] p-3" aria-labelledby="concept-score">
+                  <h3 id="concept-score" className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-amber-300">Why it is also a High Score Chaser story</h3>
+                  <p className="mt-2">
+                    Everyone begins by chasing a number: first place, attention, proof, an ending. The score makes the loss visible, but it is not the answer. The chase only matters because it leads back to the people, tools, and playable version that a replacement system treated as disposable.
+                  </p>
+                </section>
+
+                <section className="rounded-xl border border-white/[0.07] bg-white/[0.025] p-3" aria-labelledby="concept-player">
+                  <h3 id="concept-player" className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-slate-200">What the player is being asked to notice</h3>
+                  <p className="mt-2">
+                    Preservation is more than saving a file. A game remains possible when its executable build, the means to run it, and enough context to understand it can outlive the business decision that ended support. This phone turns that principle into a small, uncomfortable act: deleting the explanation first makes the later losses easier to accept.
+                  </p>
+                </section>
+
+                <p className="border-l-2 border-amber-400/60 pl-3 text-sm leading-relaxed text-slate-100">
+                  A game does not need to run forever. It needs to remain possible.
+                </p>
+
+                <div className="border-t border-white/[0.07] pt-3 font-mono text-[9px] leading-relaxed text-slate-500">
+                  Fictional work. Not an official Stop Killing Games product or statement. Read this before Chapter 9: it is the first thing Arcane permits you to erase because it was written for whoever came after.
                 </div>
-
-                <p className="text-[10px] text-slate-500 font-mono">
-                  Created for digital preservation awareness. Thank you for exploring.
-                </p>
               </div>
             </motion.div>
           )}
