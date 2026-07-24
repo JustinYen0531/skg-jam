@@ -89,6 +89,7 @@ import {
 /** Modern widget chassis: translucent, friendly, current-year. */
 const WIDGET_SHELL =
   'relative rounded-[22px] border border-white/[0.08] bg-white/[0.055] backdrop-blur-md overflow-hidden';
+const HOME_SWIPE_THRESHOLD_PX = 28;
 
 type DockUtility = 'voicelog' | 'filebox' | 'gallery' | 'terminal' | 'controls';
 type ResetTarget = 'chapter' | 'loop';
@@ -162,7 +163,14 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   const [chapterNineEditMode, setChapterNineEditMode] = useState(false);
   const [familyAccountsOpen, setFamilyAccountsOpen] = useState(false);
   const [familyAccountConfirmed, setFamilyAccountConfirmed] = useState(false);
-  const homeSwipeStartX = useRef<number | null>(null);
+  const homeSwipeGesture = useRef<{
+    pointerId: number;
+    startX: number;
+    startY: number;
+    latestX: number;
+    latestY: number;
+    horizontal: boolean;
+  } | null>(null);
   // Restore flash: nonce re-keys the overlay so the CSS animation replays.
   const [restoreNonce, setRestoreNonce] = useState(0);
   const [restoreVisible, setRestoreVisible] = useState(false);
@@ -689,16 +697,54 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
   };
 
   const handleHomeSwipeStart = (event: React.PointerEvent<HTMLDivElement>) => {
-    homeSwipeStartX.current = event.clientX;
+    if (!event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0)) return;
+    homeSwipeGesture.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      latestX: event.clientX,
+      latestY: event.clientY,
+      horizontal: false,
+    };
+  };
+
+  const handleHomeSwipeMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    const gesture = homeSwipeGesture.current;
+    if (!gesture || gesture.pointerId !== event.pointerId) return;
+    gesture.latestX = event.clientX;
+    gesture.latestY = event.clientY;
+    const travelX = gesture.latestX - gesture.startX;
+    const travelY = gesture.latestY - gesture.startY;
+    if (
+      Math.abs(travelX) >= HOME_SWIPE_THRESHOLD_PX
+      && Math.abs(travelX) > Math.abs(travelY)
+    ) {
+      gesture.horizontal = true;
+      event.preventDefault();
+      event.stopPropagation();
+    }
   };
 
   const handleHomeSwipeEnd = (event: React.PointerEvent<HTMLDivElement>) => {
-    const startX = homeSwipeStartX.current;
-    homeSwipeStartX.current = null;
-    if (startX === null) return;
-    const travel = event.clientX - startX;
-    if (Math.abs(travel) < 64) return;
+    const gesture = homeSwipeGesture.current;
+    if (!gesture || gesture.pointerId !== event.pointerId) return;
+    homeSwipeGesture.current = null;
+    const travelX = event.clientX - gesture.startX;
+    const travelY = event.clientY - gesture.startY;
+    const horizontal = gesture.horizontal || (
+      Math.abs(travelX) >= HOME_SWIPE_THRESHOLD_PX
+      && Math.abs(travelX) > Math.abs(travelY)
+    );
+    if (!horizontal) return;
+    event.preventDefault();
+    event.stopPropagation();
     selectHomePage(homePage === 0 ? 1 : 0);
+  };
+
+  const handleHomeSwipeCancel = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (homeSwipeGesture.current?.pointerId === event.pointerId) {
+      homeSwipeGesture.current = null;
+    }
   };
 
   const handleMaraFound = () => {
@@ -1044,12 +1090,15 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
               transition={{ duration: 0.22, ease: 'easeOut' }}
               className={`absolute inset-0 p-3 md:p-4 flex flex-row gap-3 md:gap-4 overflow-y-auto ${wallpaperCool}`}
               id="phone-desktop"
-              onPointerDown={handleHomeSwipeStart}
-              onPointerUp={handleHomeSwipeEnd}
+              onPointerDownCapture={handleHomeSwipeStart}
+              onPointerMoveCapture={handleHomeSwipeMove}
+              onPointerUpCapture={handleHomeSwipeEnd}
+              onPointerCancelCapture={handleHomeSwipeCancel}
               data-home-page={homePage}
               style={{
                 background:
                   'radial-gradient(120% 130% at 82% -12%, #33405c 0%, #1d2434 44%, #10141d 100%)',
+                touchAction: 'pan-y',
               }}
             >
               {/* Soft dusk accent in the wallpaper — pleasant, unremarkable */}
@@ -1346,6 +1395,7 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                   }`}
                   id="home-apps-grid"
                   data-meta-immediate="true"
+                  data-meta-direct-gesture="true"
                   data-chapter-nine-cleanup={chapterNineCleanupHome}
                   data-chapter-nine-edit-mode={chapterNineEditMode}
                   onPointerDownCapture={handleChapterNineLongPressStart}
@@ -1481,9 +1531,20 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
                 </div>
 
                 {/* Page indicator dots */}
-                <div className="flex justify-center gap-1.5 py-0.5" id="home-page-indicator">
+                <div className="flex items-center justify-center gap-1.5 py-0.5" id="home-page-indicator">
                   <button type="button" onClick={() => selectHomePage(0)} className={`h-1.5 w-1.5 rounded-full ${homePage === 0 ? 'bg-slate-200/80' : 'bg-slate-200/25'}`} aria-label="Open apps home page" />
                   <button type="button" disabled={!profilePageUnlocked} onClick={() => selectHomePage(1)} className={`h-1.5 w-1.5 rounded-full ${homePage === 1 ? 'bg-slate-200/80' : 'bg-slate-200/25'} disabled:opacity-20`} aria-label="Open personal profile page" id="home-profile-page-dot" />
+                  <button
+                    type="button"
+                    disabled={!profilePageUnlocked}
+                    onClick={() => selectHomePage(1)}
+                    data-meta-hit-recovery="true"
+                    className="ml-1 flex h-7 w-7 items-center justify-center rounded-full border border-white/[0.08] bg-black/15 transition-colors hover:bg-white/[0.08] disabled:opacity-20"
+                    aria-label="Next page: linked accounts"
+                    id="home-profile-page-next"
+                  >
+                    <span className="h-0 w-0 border-y-[5px] border-l-[8px] border-y-transparent border-l-slate-200/75" aria-hidden="true" />
+                  </button>
                 </div>
                       </motion.div>
                     ) : profilePageUnlocked ? (

@@ -52,6 +52,9 @@ test('Chapter 6 only completes from Arcane Kade linked accounts after Mara is fo
   assert.match(phoneSource, /id="home-profile-owner-name">Arcane Kade/);
   assert.match(phoneSource, /profilePageUnlocked = progress\.discoveredMotherComment \|\| progress\.currentChapter >= 7/);
   assert.match(phoneSource, /id="home-linked-accounts-toggle"/);
+  assert.match(phoneSource, /id="home-profile-page-next"/);
+  assert.match(phoneSource, /aria-label="Next page: linked accounts"/);
+  assert.match(phoneSource, /onClick=\{\(\) => selectHomePage\(1\)\}[\s\S]{0,700}id="home-profile-page-next"/);
   assert.match(phoneSource, /id="home-mara-related-account"/);
   assert.match(phoneSource, /completePuzzleChapter\(prev, 6, \{ discoveredMotherComment: true \}\)/);
   const clueIndex = phoneSource.indexOf('const handleMaraFound');
@@ -66,4 +69,14 @@ test('the personal profile replaces only the right-side app grid', () => {
   assert.doesNotMatch(phoneSource, /className="absolute inset-0 z-40[^\"]*"[\s\S]{0,180}id="home-personal-profile-page"/);
   assert.ok(phoneSource.indexOf('id="home-widget"') < phoneSource.indexOf('id="home-right-page-content"'));
   assert.ok(phoneSource.indexOf('id="home-personal-profile-page"') < phoneSource.indexOf('id="home-dock"'));
+});
+
+test('home paging keeps a forgiving drag fallback without launching an app underneath', () => {
+  assert.match(phoneSource, /const HOME_SWIPE_THRESHOLD_PX = 28/);
+  assert.match(phoneSource, /onPointerDownCapture=\{handleHomeSwipeStart\}/);
+  assert.match(phoneSource, /onPointerMoveCapture=\{handleHomeSwipeMove\}/);
+  assert.match(phoneSource, /onPointerUpCapture=\{handleHomeSwipeEnd\}/);
+  assert.match(phoneSource, /Math\.abs\(travelX\) >= HOME_SWIPE_THRESHOLD_PX[\s\S]{0,180}gesture\.horizontal = true;[\s\S]{0,100}event\.preventDefault\(\);[\s\S]{0,100}event\.stopPropagation\(\)/);
+  assert.match(phoneSource, /touchAction: 'pan-y'/);
+  assert.match(phoneSource, /id="home-apps-grid"\s+data-meta-immediate="true"\s+data-meta-direct-gesture="true"/);
 });
