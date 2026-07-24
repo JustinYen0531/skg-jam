@@ -1392,6 +1392,10 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     // pointer-down handler dismiss the card; projected hit recovery must never
     // retarget that press to a launcher button hidden underneath.
     if (source.closest('#chapter-transition')) return;
+    // Native gesture surfaces own their full pointer sequence. The parcel
+    // scratch canvas is not a button, so projected hit recovery would
+    // otherwise search for and activate a nearby screenshot underneath it.
+    if (source.closest('[data-meta-direct-gesture="true"]')) return;
     // Virtual keyboard buttons own one native click. Sending them through the
     // projected pointer-down recovery as well would enqueue the same key twice.
     if (source.closest('button[data-meta-key]')) return;
@@ -1463,6 +1467,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     // The transition remains mounted as an input shield while it exits. It
     // must not trigger Meta hand recovery or any control behind the card.
     if (source.closest('#chapter-transition')) return;
+    if (source.closest('[data-meta-direct-gesture="true"]')) return;
     // The native range interaction has already updated continuously during
     // pointer movement; do not replay or delay its trailing click.
     if (source.closest('input[type="range"]')) return;

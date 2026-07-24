@@ -353,6 +353,8 @@ test('settings range controls retain native pointer dragging', () => {
   );
   assert.ok(pointerDownSource.indexOf('input[type="range"]') < pointerDownSource.indexOf('const selector'));
   assert.ok(clickSource.indexOf('input[type="range"]') < clickSource.indexOf('const recoveredPoint'));
+  assert.equal((pointerDownSource.match(/data-meta-direct-gesture="true"/g) ?? []).length, 1);
+  assert.equal((clickSource.match(/data-meta-direct-gesture="true"/g) ?? []).length, 1);
 });
 
 test('home navigation completes before the Chapter 1 entry transition starts', () => {

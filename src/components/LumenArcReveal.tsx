@@ -222,16 +222,6 @@ export const LumenArcReveal: React.FC<LumenArcRevealProps> = ({ reducedMotion, o
       data-reveal-input-lock={phase === 'scratch' ? 'parcel-only' : 'released'}
       animate={{ opacity: phase === 'clear' ? 0 : 1 }}
       transition={{ duration: 0.55, ease: 'easeInOut' }}
-      onPointerDownCapture={(event) => {
-        if (phase !== 'scratch' || event.target === canvasRef.current) return;
-        event.preventDefault();
-        event.stopPropagation();
-      }}
-      onClickCapture={(event) => {
-        if (phase !== 'scratch') return;
-        event.preventDefault();
-        event.stopPropagation();
-      }}
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_46%,rgba(53,87,108,0.28),transparent_38%),linear-gradient(180deg,#111a24_0%,#080d13_100%)]" />
       <div className="absolute inset-0 opacity-[0.09] [background-image:linear-gradient(rgba(148,163,184,0.35)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.35)_1px,transparent_1px)] [background-size:28px_28px]" />
@@ -269,6 +259,7 @@ export const LumenArcReveal: React.FC<LumenArcRevealProps> = ({ reducedMotion, o
               className="absolute inset-0 h-full w-full touch-none cursor-crosshair rounded-[16px]"
               id="lumen-arc-package-scratch-layer"
               data-meta-immediate="true"
+              data-meta-direct-gesture="true"
               aria-label="Hold and drag to tear open the parcel"
               onPointerDown={(event) => {
                 event.preventDefault();
