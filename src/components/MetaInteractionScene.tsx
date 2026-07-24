@@ -1388,6 +1388,10 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     if (event.button !== 0) return;
     const source = event.target;
     if (!(source instanceof Element)) return;
+    // Chapter transitions own the complete phone surface. Let their own
+    // pointer-down handler dismiss the card; projected hit recovery must never
+    // retarget that press to a launcher button hidden underneath.
+    if (source.closest('#chapter-transition')) return;
     // Virtual keyboard buttons own one native click. Sending them through the
     // projected pointer-down recovery as well would enqueue the same key twice.
     if (source.closest('button[data-meta-key]')) return;
@@ -1456,6 +1460,9 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     }
     const source = event.target;
     if (!(source instanceof Element)) return;
+    // The transition remains mounted as an input shield while it exits. It
+    // must not trigger Meta hand recovery or any control behind the card.
+    if (source.closest('#chapter-transition')) return;
     // The native range interaction has already updated continuously during
     // pointer movement; do not replay or delay its trailing click.
     if (source.closest('input[type="range"]')) return;

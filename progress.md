@@ -1,5 +1,13 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-24 — Chapter transitions bypass projected Meta hit recovery
+
+- Found the shared cause of intermittent Chapter 1–10 transition taps: Meta pointer recovery could intercept a transition press and retarget it to a launcher button underneath.
+- Both pointer-down and trailing-click recovery now explicitly yield to `#chapter-transition`, so the shared transition owns dismissal and preserves its exit input shield.
+- The existing forced return to Home page zero remains the only transition completion route.
+- Added a regression test that requires the transition bypass to occur before projected control lookup.
+- Browser and Preview remain intentionally unused by project instruction.
+
 ## 2026-07-24 — Chapter 1 two-clue ViewTube investigation
 
 - Removed every premature Lumen Arc hardware reference from the Chapter 1 ViewTube surface.

@@ -10,6 +10,10 @@ const phoneSource = readFileSync(
   new URL('../src/components/PhoneSimulator.tsx', import.meta.url),
   'utf8',
 );
+const metaSource = readFileSync(
+  new URL('../src/components/MetaInteractionScene.tsx', import.meta.url),
+  'utf8',
+);
 
 test('chapter cards accept the first player tap and keep shielding Home while leaving', () => {
   assert.match(transitionSource, /readyAt: RESOLVE_END \+ 0\.05/);
@@ -35,4 +39,19 @@ test('dismissing a chapter card always resolves onto the first Home page', () =>
     phoneSource,
     /<ChapterTransition[\s\S]{0,240}onDone=\{\(\) => \{[\s\S]{0,120}setActiveApp\('home'\);[\s\S]{0,80}setHomePage\(0\);[\s\S]{0,80}setActiveTransition\(null\);/,
   );
+});
+
+test('Meta pointer recovery never retargets a chapter transition to an app underneath', () => {
+  const pointerStart = metaSource.indexOf('const handlePointerDownCapture');
+  const clickStart = metaSource.indexOf('const handleClickCapture', pointerStart);
+  const pointerCapture = metaSource.slice(pointerStart, clickStart);
+  const clickCapture = metaSource.slice(clickStart, metaSource.indexOf('const handlePointerMove', clickStart));
+
+  assert.ok(pointerStart >= 0 && clickStart > pointerStart);
+  assert.match(pointerCapture, /if \(source\.closest\('#chapter-transition'\)\) return/);
+  assert.ok(
+    pointerCapture.indexOf("source.closest('#chapter-transition')") <
+      pointerCapture.indexOf('const selector ='),
+  );
+  assert.match(clickCapture, /if \(source\.closest\('#chapter-transition'\)\) return/);
 });
