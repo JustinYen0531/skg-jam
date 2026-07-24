@@ -1261,3 +1261,9 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Updated stale static assertions to the current all-button Meta recovery selector, fingertip-contact input path, optional dialogue completion callback, and Chapter 10 fullscreen Meta bypass.
 - Kept root source art/audio on disk but explicitly ignored it; public/assets remains the only runtime asset source. Removed the empty NUL file that broke recursive searches.
 - Static validation only by project rule: 304/304 tests passed, TypeScript passed, production build passed, and git diff --check passed. Browser/preview was not used.
+
+## 2026-07-24 — Two-stage leaderboard profile guidance
+
+- Reduced the leaderboard retention guidance to exactly two quiet prompts: one after six seconds on the first visit, and one after returning without opening a top-six profile.
+- Opening any of the six anomaly profiles permanently suppresses both prompts for the active game session.
+- Browser and Preview remain intentionally unused by project instruction; static verification only.

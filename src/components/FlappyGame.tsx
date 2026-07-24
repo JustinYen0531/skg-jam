@@ -113,6 +113,8 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
   
   const [isPlaying, setIsPlaying] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [leaderboardVisits, setLeaderboardVisits] = useState(0);
+  const [hasOpenedAnomalyProfile, setHasOpenedAnomalyProfile] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [score, setScore] = useState(0);
   const [isMuted, setIsMuted] = useState(audio.getMuted());
@@ -425,6 +427,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
 
   const openLeaderboard = () => {
     audio.play('leaderboard.open');
+    setLeaderboardVisits((visits) => visits + 1);
     setShowLeaderboard(true);
     updateProgress((prev) => ({ ...prev, seenLeaderboard: true }));
   };
@@ -2265,6 +2268,9 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
             onRetry={restartRun}
             onClose={() => { audio.play('ui.close'); setShowLeaderboard(false); }}
             suspiciousRunsEnabled={progress.deathsAt40 >= 1}
+            leaderboardVisit={leaderboardVisits}
+            hasOpenedAnomalyProfile={hasOpenedAnomalyProfile}
+            onAnomalyProfileOpened={() => setHasOpenedAnomalyProfile(true)}
             onSuspiciousRunSelected={enterMetaFromRun}
           />
         )}

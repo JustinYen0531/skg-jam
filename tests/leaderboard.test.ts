@@ -86,6 +86,23 @@ test('selecting a suspicious run asks whether to ignore it before the title can 
   assert.match(panelSource, /setShowTitleIntro\(true\)/);
 });
 
+test('leaderboard guidance uses only an idle hint and one return hint until a top-six profile is opened', () => {
+  const panelSource = readFileSync(new URL('../src/components/LeaderboardPanel.tsx', import.meta.url), 'utf8');
+  const flappySource = readFileSync(new URL('../src/components/FlappyGame.tsx', import.meta.url), 'utf8');
+
+  assert.match(panelSource, /id="leaderboard-profile-hint"/);
+  assert.match(panelSource, /SOME RECORDS HAVE MORE THAN SCORES\./);
+  assert.match(panelSource, /THE FIRST SIX LEFT SOMETHING BEHIND\. READ THEM\./);
+  assert.match(panelSource, /profileHintStage === 'initial' \? 6000 : 900/);
+  assert.match(panelSource, /!hasOpenedAnomalyProfile && !selectedRun && suspiciousRunsEnabled/);
+  assert.match(panelSource, /data-first-six-profile=\{entry\.rank <= 6 \? 'true' : undefined\}/);
+  assert.match(panelSource, /if \(entry\.rank <= 6\) onAnomalyProfileOpened\(\)/);
+  assert.match(flappySource, /setLeaderboardVisits\(\(visits\) => visits \+ 1\)/);
+  assert.match(flappySource, /hasOpenedAnomalyProfile=\{hasOpenedAnomalyProfile\}/);
+  assert.match(flappySource, /onAnomalyProfileOpened=\{\(\) => setHasOpenedAnomalyProfile\(true\)\}/);
+  assert.doesNotMatch(panelSource, /OPEN PROFILE|CLICK PROFILE|TAP PROFILE/);
+});
+
 test('the cheap landing page uses a non-functional premium unlock instead of Learn More', () => {
   const flappySource = readFileSync(new URL('../src/components/FlappyGame.tsx', import.meta.url), 'utf8');
   const documentSource = readFileSync(new URL('../index.html', import.meta.url), 'utf8');

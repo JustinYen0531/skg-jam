@@ -12,6 +12,9 @@ interface LeaderboardPanelProps {
   onRetry: () => void;
   onClose: () => void;
   suspiciousRunsEnabled: boolean;
+  leaderboardVisit: number;
+  hasOpenedAnomalyProfile: boolean;
+  onAnomalyProfileOpened: () => void;
   onSuspiciousRunSelected: () => void;
 }
 
@@ -24,6 +27,9 @@ export const LeaderboardPanel: React.FC<LeaderboardPanelProps> = ({
   onRetry,
   onClose,
   suspiciousRunsEnabled,
+  leaderboardVisit,
+  hasOpenedAnomalyProfile,
+  onAnomalyProfileOpened,
   onSuspiciousRunSelected,
 }) => {
   const listRef = useRef<HTMLDivElement | null>(null);
@@ -33,6 +39,10 @@ export const LeaderboardPanel: React.FC<LeaderboardPanelProps> = ({
   const [selectedRun, setSelectedRun] = useState<PublicLeaderboardEntry | null>(null);
   const [showTitleIntro, setShowTitleIntro] = useState(false);
   const [showEntryThought, setShowEntryThought] = useState(true);
+  const [showProfileHint, setShowProfileHint] = useState(false);
+  const profileHintStage = !hasOpenedAnomalyProfile && !selectedRun && suspiciousRunsEnabled
+    ? leaderboardVisit > 1 ? 'return' : 'initial'
+    : null;
 
   // The title intro is the animated wordmark logo; it drives the hand-off into
   // Chapter 1 when its sequence completes, rather than a fixed timer.
@@ -42,6 +52,21 @@ export const LeaderboardPanel: React.FC<LeaderboardPanelProps> = ({
     const timer = window.setTimeout(() => setShowEntryThought(false), 7000);
     return () => window.clearTimeout(timer);
   }, [selectedRun, showEntryThought]);
+
+  // A restrained two-step nudge: the first visit waits for a genuine pause;
+  // only a return without opening one of the six profiles gets the final hint.
+  useEffect(() => {
+    if (!profileHintStage) {
+      setShowProfileHint(false);
+      return;
+    }
+    setShowProfileHint(false);
+    const timer = window.setTimeout(
+      () => setShowProfileHint(true),
+      profileHintStage === 'initial' ? 6000 : 900,
+    );
+    return () => window.clearTimeout(timer);
+  }, [profileHintStage]);
 
   // §4.2 rowPass: only your own row and story rows announce themselves as
   // they scroll into view; the anonymous filler stays silent.
@@ -132,10 +157,12 @@ export const LeaderboardPanel: React.FC<LeaderboardPanelProps> = ({
           data-entry-kind={entry.kind}
           data-row-key={entry.id}
           data-suspicious-run="true"
+          data-first-six-profile={entry.rank <= 6 ? 'true' : undefined}
           aria-label={`Open rank ${entry.rank} run by ${entry.name}`}
           onClick={() => {
             if (selectedRun) return;
             audio.play('ui.primaryTap');
+            if (entry.rank <= 6) onAnomalyProfileOpened();
             setSelectedRun(entry);
             setShowTitleIntro(false);
           }}
@@ -237,6 +264,21 @@ export const LeaderboardPanel: React.FC<LeaderboardPanelProps> = ({
     </div>
 
     <AnimatePresence>
+      {showProfileHint && profileHintStage && (
+        <motion.div
+          initial={{ opacity: 0, y: -5 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -5 }}
+          transition={{ duration: 0.25, ease: 'easeOut' }}
+          className="pointer-events-none absolute left-1/2 top-[42%] z-20 w-fit max-w-[calc(100%-3rem)] -translate-x-1/2 rounded-full border border-cyan-200/25 bg-[#0b1220]/92 px-3 py-1.5 text-center font-mono text-[9px] font-bold tracking-[0.12em] text-cyan-100 shadow-[0_8px_18px_rgba(0,0,0,0.26)]"
+          data-hint-stage={profileHintStage}
+          id="leaderboard-profile-hint"
+        >
+          {profileHintStage === 'initial'
+            ? 'SOME RECORDS HAVE MORE THAN SCORES.'
+            : 'THE FIRST SIX LEFT SOMETHING BEHIND. READ THEM.'}
+        </motion.div>
+      )}
       {showEntryThought && !selectedRun && (
         <motion.button
           type="button"
