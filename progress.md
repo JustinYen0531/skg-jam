@@ -1288,3 +1288,9 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Fixed the Chapter 7 success path so `ARC184GATE40END256` finishes its protagonist monologue before advancing to Chapter 8.
 - Locked Chapter 10 credits to the upright Meta posture and hid the Home escape until the sequence completes, preventing random taps from flattening or unmounting the credits.
 - Targeted tests passed 42/42; TypeScript and production build passed. The full suite retains two pre-existing Meta pointer-regex failures unrelated to this change. Browser and Preview were not used by project instruction.
+
+## 2026-07-24 — Chapter 4 anti-counterfeit capture mark
+
+- Replaced the tiny screenshot footer watermark with one standardized `SKG // CAPTURE` anti-counterfeit stamp.
+- The mark now spans 135% of each screenshot, crosses its center at a 17-degree angle, uses heavy type and rule lines, and remains translucent so the evidence stays readable.
+- The same component covers both screenshot cards and enlarged inspection views.

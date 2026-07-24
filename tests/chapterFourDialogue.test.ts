@@ -109,6 +109,8 @@ test('Chapter 4 dialogue is wired to every runtime interaction boundary', () => 
   assert.match(screenshots, /speak\(CHAPTER_FOUR_DIALOGUE\.packageOpened, \(\) => \{[\s\S]{0,160}openingFinished = true;[\s\S]{0,160}tapSequence\('lumen-arc-frustration-tap-zone', 5, \(\) => \{[\s\S]{0,160}tappingFinished = true/);
   assert.match(screenshots, /speak\(CHAPTER_FOUR_DIALOGUE\.packageSelected\)/);
   assert.equal((screenshots.match(/<SkgCaptureMark \/>/g) ?? []).length, 2);
+  assert.match(screenshots, /SKG \/\/ CAPTURE/);
+  assert.match(screenshots, /w-\[135%\][\s\S]{0,180}-rotate-\[17deg\][\s\S]{0,220}text-\[clamp\(18px,6cqw,64px\)\]/);
   assert.match(screenshots, /aftermathStarted = true;[\s\S]{0,180}speak\(CHAPTER_FOUR_DIALOGUE\.packageDespair, \(\) => \{[\s\S]{0,180}speak\(CHAPTER_FOUR_DIALOGUE\.packageResolve\)/);
   assert.doesNotMatch(screenshots, /packageAnger|You sold me a stack of pictures|Come on\. Open\. Do something\./);
   assert.doesNotMatch(screenshots, /packageOpened[\s\S]{0,1000}setTimeout/);

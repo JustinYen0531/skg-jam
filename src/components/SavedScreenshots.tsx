@@ -293,10 +293,10 @@ const CLUE_SHEET_COUNT = SHEETS.filter((sheet) => sheet.clueId).length;
 
 const SkgCaptureMark = () => (
   <span
-    className="pointer-events-none absolute bottom-1.5 left-2 z-10 -rotate-2 font-mono text-[7px] font-black tracking-[0.18em] opacity-35"
+    className="pointer-events-none absolute left-1/2 top-1/2 z-10 w-[135%] -translate-x-1/2 -translate-y-1/2 -rotate-[17deg] whitespace-nowrap border-y-[3px] border-current py-1 text-center font-mono text-[clamp(18px,6cqw,64px)] font-black tracking-[0.16em] opacity-20"
     data-skg-watermark="true"
   >
-    SKG // LEGACY CAPTURE
+    SKG // CAPTURE
   </span>
 );
 
