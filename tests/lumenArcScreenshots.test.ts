@@ -100,7 +100,12 @@ test('the parcel only reveals after scratching and angle-driven paper inspection
   assert.match(reveal, /id="lumen-arc-package-scratch-layer"/);
   assert.match(reveal, /globalCompositeOperation = 'destination-out'/);
   assert.match(reveal, /onPointerMove=\{\(event\) =>[\s\S]{0,240}scratchAt\(event\.clientX, event\.clientY\)/);
-  assert.match(reveal, /next >= SCRATCH_COMPLETE_AT[\s\S]{0,120}setPhase\('phone-ready'\)/);
+  assert.match(reveal, /next >= SCRATCH_COMPLETE_AT[\s\S]{0,120}scratchReadyToOpen\.current = true/);
+  assert.match(reveal, /const finishScratchGesture = \(\) => \{[\s\S]{0,180}setPhase\('phone-ready'\)/);
+  assert.match(reveal, /onPointerUp=\{\(event\) =>[\s\S]{0,480}finishScratchGesture\(\)/);
+  assert.match(reveal, /data-reveal-input-lock=\{phase === 'scratch' \? 'parcel-only' : 'released'\}/);
+  assert.match(reveal, /onPointerDownCapture=\{\(event\) =>[\s\S]{0,240}event\.target === canvasRef\.current/);
+  assert.match(reveal, /onClickCapture=\{\(event\) =>[\s\S]{0,160}event\.stopPropagation\(\)/);
   assert.doesNotMatch(reveal, /OPEN PARCEL/);
 
   assert.match(reveal, /id="lumen-arc-inspect-phone"/);

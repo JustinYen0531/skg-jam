@@ -94,6 +94,10 @@ export const LumenArcReveal: React.FC<LumenArcRevealProps> = ({ reducedMotion, o
   const damageRef = useRef(0);
   const scratchPointer = useRef<number | null>(null);
   const scratchPoint = useRef<{ x: number; y: number } | null>(null);
+  // Do not remove the canvas in the middle of the drag that finishes it.
+  // Otherwise that drag's mouse-up/click can land on the contents that were
+  // physically beneath the parcel a moment earlier.
+  const scratchReadyToOpen = useRef(false);
   const phonePointer = useRef<number | null>(null);
   const phonePointerX = useRef(0);
   const rotationRef = useRef(0);
@@ -174,8 +178,14 @@ export const LumenArcReveal: React.FC<LumenArcRevealProps> = ({ reducedMotion, o
     }
     if (current < SCRATCH_COMPLETE_AT && next >= SCRATCH_COMPLETE_AT) {
       audio.play('amazemart.delivery');
-      setPhase('phone-ready');
+      scratchReadyToOpen.current = true;
     }
+  };
+
+  const finishScratchGesture = () => {
+    if (!scratchReadyToOpen.current) return;
+    scratchReadyToOpen.current = false;
+    setPhase('phone-ready');
   };
 
   const triggerBurst = useCallback(() => {
@@ -209,8 +219,19 @@ export const LumenArcReveal: React.FC<LumenArcRevealProps> = ({ reducedMotion, o
       data-reveal-phase={phase}
       data-package-damage={Math.round(damage)}
       data-phone-rotation={Math.round(rotation)}
+      data-reveal-input-lock={phase === 'scratch' ? 'parcel-only' : 'released'}
       animate={{ opacity: phase === 'clear' ? 0 : 1 }}
       transition={{ duration: 0.55, ease: 'easeInOut' }}
+      onPointerDownCapture={(event) => {
+        if (phase !== 'scratch' || event.target === canvasRef.current) return;
+        event.preventDefault();
+        event.stopPropagation();
+      }}
+      onClickCapture={(event) => {
+        if (phase !== 'scratch') return;
+        event.preventDefault();
+        event.stopPropagation();
+      }}
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_46%,rgba(53,87,108,0.28),transparent_38%),linear-gradient(180deg,#111a24_0%,#080d13_100%)]" />
       <div className="absolute inset-0 opacity-[0.09] [background-image:linear-gradient(rgba(148,163,184,0.35)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.35)_1px,transparent_1px)] [background-size:28px_28px]" />
@@ -270,10 +291,12 @@ export const LumenArcReveal: React.FC<LumenArcRevealProps> = ({ reducedMotion, o
                 if (event.currentTarget.hasPointerCapture(event.pointerId)) {
                   event.currentTarget.releasePointerCapture(event.pointerId);
                 }
+                finishScratchGesture();
               }}
               onPointerCancel={() => {
                 scratchPointer.current = null;
                 scratchPoint.current = null;
+                finishScratchGesture();
               }}
             />
           </motion.div>
