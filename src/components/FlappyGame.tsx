@@ -69,6 +69,7 @@ import {
   type PerformancePlan,
 } from '../lib/chapterTenPerformance';
 import { drawPerformanceBird, drawPerformanceObstacles } from './chapterTenPerformanceCanvas';
+import { getChapterTenFinaleLyric } from '../lib/chapterTenFinaleLyrics';
 import { useReducedMotion } from '../lib/useReducedMotion';
 
 interface FlappyGameProps {
@@ -195,6 +196,14 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
   const creditsOverflowProgress = getCreditsOverflowProgress(creditsPlaybackProgress ?? 0);
   const creditsScore = getCreditsScoreAtProgress(creditsOverflowProgress);
   const finalLyricWordIndex = getFinalLyricWordIndex(creditsPlaybackProgress ?? 0);
+  const finaleLyric = getChapterTenFinaleLyric(
+    finalePlayback.duration === null ? null : finalePlayback.currentTime / finalePlayback.duration,
+  );
+
+  useEffect(() => {
+    if (!chapterTenActive || !hackedMode) return;
+    return music.onFinalePlayback(setFinalePlayback);
+  }, [chapterTenActive, hackedMode]);
 
   useEffect(() => {
     if (!chapterTenCreditsActive) return;
@@ -1616,7 +1625,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
   };
 
   return (
-    <div className="flex flex-col h-full bg-slate-950 font-sans select-none overflow-hidden" id="flappy-root">
+    <div className="relative flex flex-col h-full bg-slate-950 font-sans select-none overflow-hidden" id="flappy-root">
       
       {/* Top App Header bar — hidden while the leaderboard/title intro owns the
           screen, so the intro is just the black backdrop and the logo. */}
@@ -1648,6 +1657,16 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
           </button>
         </div>
       </div>
+
+      {chapterTenActive && hackedMode && !chapterTenCreditsActive && finaleLyric && (
+        <div
+          className="pointer-events-none absolute inset-x-[10%] bottom-[12%] z-20 rounded border border-white/10 bg-black/35 px-5 py-2 text-center font-thought text-[clamp(10px,1.35cqh,15px)] tracking-[0.08em] text-white/72 shadow-[0_8px_22px_rgba(0,0,0,0.2)] backdrop-blur-[2px]"
+          id="chapter-ten-finale-lyric-subtitle"
+          data-lyric-progress={finalePlayback.duration === null ? 'unknown' : finalePlayback.currentTime / finalePlayback.duration}
+        >
+          {finaleLyric.line}
+        </div>
+      )}
 
       {/* Main Canvas Container */}
       <div 

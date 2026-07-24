@@ -1131,3 +1131,9 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 
 - Removed the lyric-following ball from the score-overflow finale. `Thank you for reaching the end.` now remains a clean, word-by-word emphasis without a separate moving element.
 - Browser and Preview remain intentionally unused by project instruction; validation is static only.
+
+## 2026-07-24 — Finale subtitle and right-edge pointing hand
+
+- Corrected the actual player-tap finger asset, not only the autonomous grip: it is now mirrored so its wrist enters from and is cropped by the right edge rather than exposing a hollow left-side forearm.
+- Added deterministic lower-screen subtitles for the user-supplied Finale lyric during Arcane's Chapter 10 performance. The subtitle follows real Finale playback progress and yields to the end-credit screen.
+- Browser and Preview remain intentionally unused by project instruction; validation is static only.
