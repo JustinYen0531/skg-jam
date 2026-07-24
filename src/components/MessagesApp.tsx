@@ -240,8 +240,12 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
     );
   }
 
-  const speakChapterSeven = (lines: readonly string[]) => {
-    if (progress.currentChapter === 7 && metaInteraction.active) metaInteraction.speak(lines);
+  const speakChapterSeven = (lines: readonly string[], onComplete?: () => void) => {
+    if (progress.currentChapter === 7 && metaInteraction.active) {
+      metaInteraction.speak(lines, onComplete);
+    } else {
+      onComplete?.();
+    }
   };
 
   const speakChapterEight = (lines: readonly string[]) => {
@@ -338,8 +342,9 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
       audio.play('auth.correct');
       setLoginError('');
       setFailCount(0);
-      updateProgress((prev) => completePuzzleChapter(prev, 7, { unlockedAdminLogin: true, loggedIntoAdmin: true }));
-      speakChapterSeven(CHAPTER_SEVEN_DIALOGUE.completed);
+      speakChapterSeven(CHAPTER_SEVEN_DIALOGUE.completed, () => {
+        updateProgress((prev) => completePuzzleChapter(prev, 7, { unlockedAdminLogin: true, loggedIntoAdmin: true }));
+      });
     } else {
       audio.play('auth.wrong');
       const nextFails = failCount + 1;

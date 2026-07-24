@@ -462,6 +462,7 @@ export default function App() {
           sceneryChapter={metaSceneActive && chapterTenSceneryRewound ? 1 : undefined}
           cameraPitchEnabled={cameraPitchEnabled}
           postureControlEnabled={postureControlEnabled}
+          forceUpright={progress.phase === 'credits'}
         >
           <PhoneSimulator
             progress={progress}

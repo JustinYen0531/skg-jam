@@ -91,7 +91,7 @@ test('the parcel only reveals after scratching and angle-driven paper inspection
 
   assert.match(source, /import \{ LumenArcReveal \}/);
   assert.match(source, /revealPlaying && viewingLumenPackage/);
-  assert.match(source, /if \(record\.id === 'lumen-arc'\) \{[\s\S]{0,280}setRevealPlaying\(true\)/);
+  assert.match(source, /if \(record\.id === 'lumen-arc'\) \{[\s\S]{0,420}setRevealPlaying\(true\)/);
   assert.match(source, /<LumenArcReveal[\s\S]{0,500}onDeceptionRevealed=\{\(\) =>[\s\S]{0,240}runPackageRevealReaction\(\)[\s\S]{0,300}onComplete=\{\(\) =>[\s\S]{0,120}setRevealPlaying\(false\)/);
 
   const reveal = readFileSync(new URL('../src/components/LumenArcReveal.tsx', import.meta.url), 'utf8');

@@ -38,6 +38,7 @@ interface MetaInteractionSceneProps {
   sceneryChapter?: EnvironmentChapter;
   cameraPitchEnabled?: boolean;
   postureControlEnabled?: boolean;
+  forceUpright?: boolean;
   children: React.ReactNode;
 }
 
@@ -812,6 +813,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   sceneryChapter,
   cameraPitchEnabled = true,
   postureControlEnabled = true,
+  forceUpright = false,
   children,
 }) => {
   const sceneRef = useRef<HTMLDivElement | null>(null);
@@ -1050,6 +1052,13 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   useEffect(() => {
     if (!postureControlEnabled) setDeviceResting(false);
   }, [postureControlEnabled]);
+
+  useEffect(() => {
+    if (!forceUpright) return;
+    setDeviceResting(false);
+    cameraPitchTarget.set(META_CAMERA_PITCH.restDeg);
+    idleDeskViewTarget.set(META_IDLE_DESK_VIEW.rest);
+  }, [cameraPitchTarget, forceUpright, idleDeskViewTarget]);
 
   useEffect(() => {
     if (!cameraPitchEnabled) {
@@ -1542,7 +1551,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
         getPhoneCollisionQuad(phone),
       ),
     );
-    const postureAction = postureControlEnabled
+    const postureAction = postureControlEnabled && !forceUpright
       ? getMetaDevicePostureAction(
           active,
           pendingRef.current,

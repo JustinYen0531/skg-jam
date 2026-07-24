@@ -20,6 +20,10 @@ export const CHAPTER_FOUR_DIALOGUE = {
     'Seven signed deliveries.',
     'Only one of them cost exactly one dollar and eighty-four cents.',
   ],
+  packageSelected: [
+    'Lumen Arc Recovery Lot.',
+    'All right. Show me what one dollar and eighty-four cents actually bought.',
+  ],
   packageOpened: [
     "Wait. No—no, that's not a phone.",
     'Those are screenshots. He sent me screenshots.',

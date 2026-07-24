@@ -92,6 +92,7 @@ test('Chapter 7 dialogue is wired to entry, phone navigation, FaceSpace evidence
   assert.match(messagesSource, /CHAPTER_SEVEN_DIALOGUE\.momPlacesRead/);
   assert.match(messagesSource, /CHAPTER_SEVEN_DIALOGUE\.momMappingRead/);
   assert.match(messagesSource, /getChapterSevenLoginDialogue/);
+  assert.match(messagesSource, /speakChapterSeven\(CHAPTER_SEVEN_DIALOGUE\.completed, \(\) => \{[\s\S]{0,220}completePuzzleChapter/);
   assert.match(messagesSource, /CHAPTER_SEVEN_DIALOGUE\.completed/);
   assert.match(messagesSource, /completePuzzleChapter\(prev, 7, \{ unlockedAdminLogin: true, loggedIntoAdmin: true \}\)/);
 });

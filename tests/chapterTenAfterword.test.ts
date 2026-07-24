@@ -20,6 +20,7 @@ test('the three imagined outcomes are an optional afterword inside Skyline 256',
   assert.match(gameSource, /NONE OF THESE CHANGE THE REAL STORY/);
   assert.match(gameSource, /id="chapter-ten-afterword-restart-loop"/);
   assert.match(gameSource, /id="chapter-ten-credit-score-corner"/);
+  assert.match(gameSource, /showLeaderboard \|\| chapterTenCreditsActive \? 'hidden'/);
   assert.match(gameSource, /id="chapter-ten-credits-lyric-subtitle"/);
   assert.match(gameSource, /chapter-ten-afterword-remember-/);
   assert.match(gameSource, /CHAPTER_TEN_AFTERWORD_MEMORY_STORAGE_KEY/);

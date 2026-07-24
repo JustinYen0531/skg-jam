@@ -1579,7 +1579,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
       
       {/* Top App Header bar — hidden while the leaderboard/title intro owns the
           screen, so the intro is just the black backdrop and the logo. */}
-      <div className={`bg-purple-900/60 border-b border-purple-800/50 px-3 py-1.5 flex items-center justify-between text-xs ${showLeaderboard ? 'hidden' : ''}`} id="game-header">
+      <div className={`bg-purple-900/60 border-b border-purple-800/50 px-3 py-1.5 flex items-center justify-between text-xs ${showLeaderboard || chapterTenCreditsActive ? 'hidden' : ''}`} id="game-header">
         <div className="flex items-center gap-1.5 font-display font-medium text-purple-200">
           <Zap className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
           <span>{hackedMode ? 'SKG: Skyline 256 (v1.04_Final)' : 'Flappy Something (New Version)'}</span>

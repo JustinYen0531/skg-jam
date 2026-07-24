@@ -1280,3 +1280,11 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - The slot is overwritten only when normal gameplay advances to a new chapter; clue collection and developer chapter jumps do not write saves.
 - Reopening the game restores the saved chapter automatically, while FileBox also exposes manual load, restore-current-chapter, and restart-loop controls.
 - New checkpoint tests, TypeScript, and production build passed. Browser and Preview were not used by project instruction.
+
+## 2026-07-24 — Chapter 4/7 dialogue visibility and Chapter 10 credits lock
+
+- Added a guaranteed Chapter 4 thought when the Lumen Arc parcel is selected, while preserving the later screenshot-reveal, frustration, despair, and resolve sequence.
+- Added an SKG legacy-capture watermark to every Chapter 4 screenshot card and its enlarged view.
+- Fixed the Chapter 7 success path so `ARC184GATE40END256` finishes its protagonist monologue before advancing to Chapter 8.
+- Locked Chapter 10 credits to the upright Meta posture and hid the Home escape until the sequence completes, preventing random taps from flattening or unmounting the credits.
+- Targeted tests passed 42/42; TypeScript and production build passed. The full suite retains two pre-existing Meta pointer-regex failures unrelated to this change. Browser and Preview were not used by project instruction.

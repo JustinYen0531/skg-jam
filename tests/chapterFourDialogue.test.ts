@@ -25,6 +25,7 @@ test('Chapter 4 preserves the physical-to-photo reveal until the target package 
     "Wait. No—no, that's not a phone.",
     'Those are screenshots. He sent me screenshots.',
   ]);
+  assert.match(CHAPTER_FOUR_DIALOGUE.packageSelected.join(' '), /Lumen Arc Recovery Lot/);
   assert.equal('packageAnger' in CHAPTER_FOUR_DIALOGUE, false);
   assert.deepEqual(CHAPTER_FOUR_DIALOGUE.packageDespair, ["There's nothing underneath.", "I paid for somebody else's leftovers."]);
   assert.deepEqual(CHAPTER_FOUR_DIALOGUE.packageResolve, ['Fine. Fine.', 'If this is all we have, then this is what we use.', "Let's see what these screenshots still know."]);
@@ -106,6 +107,8 @@ test('Chapter 4 dialogue is wired to every runtime interaction boundary', () => 
   assert.match(screenshots, /CHAPTER_FOUR_DIALOGUE\.completed/);
   assert.match(screenshots, /let openingFinished = false;[\s\S]{0,120}let tappingFinished = false;[\s\S]{0,260}!openingFinished[\s\S]{0,100}!tappingFinished/);
   assert.match(screenshots, /speak\(CHAPTER_FOUR_DIALOGUE\.packageOpened, \(\) => \{[\s\S]{0,160}openingFinished = true;[\s\S]{0,160}tapSequence\('lumen-arc-frustration-tap-zone', 5, \(\) => \{[\s\S]{0,160}tappingFinished = true/);
+  assert.match(screenshots, /speak\(CHAPTER_FOUR_DIALOGUE\.packageSelected\)/);
+  assert.equal((screenshots.match(/<SkgCaptureMark \/>/g) ?? []).length, 2);
   assert.match(screenshots, /aftermathStarted = true;[\s\S]{0,180}speak\(CHAPTER_FOUR_DIALOGUE\.packageDespair, \(\) => \{[\s\S]{0,180}speak\(CHAPTER_FOUR_DIALOGUE\.packageResolve\)/);
   assert.doesNotMatch(screenshots, /packageAnger|You sold me a stack of pictures|Come on\. Open\. Do something\./);
   assert.doesNotMatch(screenshots, /packageOpened[\s\S]{0,1000}setTimeout/);

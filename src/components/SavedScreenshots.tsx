@@ -291,6 +291,15 @@ const SHEETS: readonly Sheet[] = [
 
 const CLUE_SHEET_COUNT = SHEETS.filter((sheet) => sheet.clueId).length;
 
+const SkgCaptureMark = () => (
+  <span
+    className="pointer-events-none absolute bottom-1.5 left-2 z-10 -rotate-2 font-mono text-[7px] font-black tracking-[0.18em] opacity-35"
+    data-skg-watermark="true"
+  >
+    SKG // LEGACY CAPTURE
+  </span>
+);
+
 export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, updateProgress }) => {
   const metaInteraction = useMetaInteraction();
   const reducedMotion = useReducedMotion();
@@ -344,6 +353,7 @@ export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, up
       // solved re-visit skips the theatre and goes straight to the image pile.
       if (!progress.discoveredOriginalTitle && !revealSeen.current) {
         revealSeen.current = true;
+        if (chapterFourActive) metaInteraction.speak(CHAPTER_FOUR_DIALOGUE.packageSelected);
         setRevealPlaying(true);
       } else {
         audio.play('ui.primaryTap');
@@ -591,6 +601,7 @@ export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, up
               data-meta-hit-recovery="true"
               className={`paper-texture paper-crease relative flex min-h-[92px] flex-col justify-between overflow-hidden rounded-sm border border-black/20 p-2.5 text-left shadow-[0_10px_22px_rgba(0,0,0,0.45)] ${sheet.bg} ${sheet.textColor}`}
             >
+              <SkgCaptureMark />
               <span className="pointer-events-none absolute -top-0.5 left-6 h-1.5 w-3 rotate-[8deg] rounded-sm bg-gradient-to-b from-stone-400 to-stone-600 shadow-sm" />
               <div className="flex items-start justify-between gap-1">
                 <div className="min-w-0">
@@ -648,8 +659,9 @@ export const SavedScreenshots: React.FC<SavedScreenshotsProps> = ({ progress, up
                 initial={{ scale: 0.92, y: 10 }}
                 animate={{ scale: 1, y: 0 }}
                 exit={{ scale: 0.92, y: 10 }}
-                className={`paper-texture halftone-zoom flex max-h-full flex-col justify-between overflow-y-auto rounded-sm p-4 shadow-2xl ${SHEETS[activeSheet].bg} ${SHEETS[activeSheet].textColor}`}
+                className={`paper-texture halftone-zoom relative flex max-h-full flex-col justify-between overflow-y-auto rounded-sm p-4 shadow-2xl ${SHEETS[activeSheet].bg} ${SHEETS[activeSheet].textColor}`}
               >
+                <SkgCaptureMark />
                 <div>
                   <div className="mb-3 flex items-start justify-between border-b border-current pb-2">
                     <div>

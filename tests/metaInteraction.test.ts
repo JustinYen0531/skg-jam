@@ -508,3 +508,14 @@ test('chapter 0 is a bare fullscreen game while the unlocked view restores physi
   assert.match(phoneSource, /!immersiveIntro && <div[^>]+id="phone-footer"/);
   assert.match(appSource, /const restartLoop = \(\) => \{[\s\S]{0,180}setProgress\(INITIAL_PROGRESS\);[\s\S]{0,100}setMetaViewActive\(false\);/);
 });
+
+test('Chapter 10 credits lock the Meta phone upright and hide the Home escape', () => {
+  const appSource = readFileSync(new URL('../src/App.tsx', import.meta.url), 'utf8');
+  const gameSource = readFileSync(new URL('../src/components/FlappyGame.tsx', import.meta.url), 'utf8');
+  const sceneSource = readFileSync(new URL('../src/components/MetaInteractionScene.tsx', import.meta.url), 'utf8');
+
+  assert.match(appSource, /forceUpright=\{progress\.phase === 'credits'\}/);
+  assert.match(sceneSource, /postureControlEnabled && !forceUpright/);
+  assert.match(sceneSource, /if \(!forceUpright\) return;[\s\S]{0,180}setDeviceResting\(false\)/);
+  assert.match(gameSource, /showLeaderboard \|\| chapterTenCreditsActive \? 'hidden'/);
+});
