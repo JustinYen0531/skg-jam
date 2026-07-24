@@ -1747,18 +1747,10 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
                   </div>
 
                   <div
-                    className="relative mx-auto mt-8 grid w-full max-w-[420px] grid-cols-6 gap-1 pt-6 text-center"
+                    className="mx-auto mt-8 grid w-full max-w-[420px] grid-cols-6 gap-1 text-center"
                     id="chapter-ten-final-lyric"
                     data-active-word={finalLyricWordIndex}
                   >
-                    {finalLyricWordIndex >= 0 && (
-                      <span
-                        className="pointer-events-none absolute top-0 h-3 w-3 -translate-x-1/2 rounded-full bg-white shadow-[0_0_14px_rgba(255,255,255,.9)] transition-[left] duration-200 ease-out animate-bounce"
-                        style={{ left: `${((finalLyricWordIndex + 0.5) / FINAL_LYRIC_WORDS.length) * 100}%` }}
-                        id="chapter-ten-lyric-ball"
-                        aria-hidden="true"
-                      />
-                    )}
                     {FINAL_LYRIC_WORDS.map((word, index) => (
                       <span
                         key={word}

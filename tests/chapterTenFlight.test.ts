@@ -542,7 +542,7 @@ test('the final lyric, overflow score, and Arcane signature form one determinist
   assert.equal(getFinalLyricWordIndex(1), 5);
   assert.equal(getCreditsOverflowProgress(0.86), 0);
   assert.equal(getCreditsOverflowProgress(1), 1);
-  assert.match(gameSource, /id="chapter-ten-lyric-ball"/);
+  assert.doesNotMatch(gameSource, /id="chapter-ten-lyric-ball"/);
   assert.match(gameSource, /id="chapter-ten-submit-score"/);
   assert.match(gameSource, /beginAutonomousControl\('chapter-ten-score-name'\)/);
   assert.match(gameSource, /ARCANE_SCORE_NAME = 'ARCANE'/);

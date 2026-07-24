@@ -1126,3 +1126,8 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Each selected outcome has a black hollow-star memory action. Remembering it persists across Restart Loop and stores a matching next-loop Easter-egg hint.
 - Arcane's three responses now frame the outcomes as a final conversation with the player: leave the negative score, expose the route despite the risk of erasure, or keep the door open without making either of them disappear.
 - Browser and Preview remain intentionally unused by project instruction; validation is static only.
+
+## 2026-07-24 — Finale lyric restraint
+
+- Removed the lyric-following ball from the score-overflow finale. `Thank you for reaching the end.` now remains a clean, word-by-word emphasis without a separate moving element.
+- Browser and Preview remain intentionally unused by project instruction; validation is static only.
