@@ -152,16 +152,20 @@ export const ChapterTransition: React.FC<{
     onDone();
   };
 
-  const beginExit = () => {
-    if (phase === 'exit' || !readyForInput) return;
+  const beginExit = (event?: React.SyntheticEvent) => {
+    event?.preventDefault();
+    event?.stopPropagation();
+    if (phase === 'exit') return;
     timeoutsRef.current.forEach((id) => window.clearTimeout(id));
     timeoutsRef.current = [];
     setPhase('exit');
-    timeoutsRef.current.push(window.setTimeout(finish, timing.fadeOut * 1000));
+    // Keep the full-screen shield mounted through the trailing browser click.
+    // A short visible fade confirms the tap, then returns to Home.
+    timeoutsRef.current.push(window.setTimeout(finish, reducedMotion ? 60 : 140));
   };
 
-  // Resolve the title, then wait indefinitely. The player must acknowledge
-  // every objective/evidence card before the next home-screen beat can begin.
+  // Resolve the title, then wait indefinitely unless the player acknowledges
+  // early. The first deliberate tap always returns to the next Home beat.
   useEffect(() => {
     const raf = window.requestAnimationFrame(() => setVisible(true));
     const push = (fn: () => void, sec: number) =>
@@ -241,10 +245,10 @@ export const ChapterTransition: React.FC<{
       className="absolute inset-0 z-[70] flex flex-col items-center justify-center overflow-hidden"
       style={{
         opacity: visible && phase !== 'exit' ? 1 : 0,
-        transition: `opacity ${phase === 'exit' ? timing.fadeOut : timing.fadeIn}s ease-out`,
-        // Do not create an invisible input shield during the first animation
-        // frame or while the card is fading away.
-        pointerEvents: visible && phase !== 'exit' ? 'auto' : 'none',
+        transition: `opacity ${phase === 'exit' ? (reducedMotion ? 0.06 : 0.14) : timing.fadeIn}s ease-out`,
+        // Remain the input target while leaving so the release/click cannot
+        // fall through into a Home icon beneath the transition.
+        pointerEvents: 'auto',
         background: 'radial-gradient(120% 120% at 50% 42%, #0b0f15 0%, #05070a 68%, #030406 100%)',
       }}
       id="chapter-transition"
@@ -252,13 +256,12 @@ export const ChapterTransition: React.FC<{
       data-awaiting-input={readyForInput ? 'ready' : 'resolving'}
       role="button"
       tabIndex={0}
-      aria-disabled={!readyForInput}
       aria-label={`${data.evidenceLabel} collected: ${data.title}. Tap to continue.`}
       onPointerDown={beginExit}
       onKeyDown={(event) => {
         if (event.key !== 'Enter' && event.key !== ' ') return;
         event.preventDefault();
-        beginExit();
+        beginExit(event);
       }}
     >
       {/* Cold vignette + faint frame so the card reads as deliberate, not broken */}

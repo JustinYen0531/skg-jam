@@ -1388,6 +1388,9 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     if (event.button !== 0) return;
     const source = event.target;
     if (!(source instanceof Element)) return;
+    // Virtual keyboard buttons own one native click. Sending them through the
+    // projected pointer-down recovery as well would enqueue the same key twice.
+    if (source.closest('button[data-meta-key]')) return;
     // Range controls need the browser's uninterrupted pointer-down / move /
     // release sequence. Treating them like projected text inputs collapses
     // dragging into a single click.
@@ -2143,7 +2146,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
                     alt=""
                     draggable={false}
                     className="absolute left-0 top-0 h-[clamp(441px,64.5vh,630px)] w-auto max-w-none select-none drop-shadow-[0_14px_12px_rgba(0,0,0,0.3)]"
-                    style={{ transformOrigin: '50% 5%', translate: '-50% -5%', rotate: '-35deg' }}
+                    style={{ transformOrigin: '40% 5.8%', translate: '-40% -5.8%', rotate: '-35deg' }}
                     data-finger-orientation="restored-right-hand-upper-left-scroll"
                   />
                 </motion.div>
@@ -2203,7 +2206,7 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
                 alt=""
                 draggable={false}
                 className="absolute left-0 top-0 h-[clamp(441px,64.5vh,630px)] w-auto max-w-none select-none drop-shadow-[0_14px_12px_rgba(0,0,0,0.3)]"
-                style={{ transformOrigin: '50% 5%', translate: '-50% -5%', rotate: '-35deg' }}
+                style={{ transformOrigin: '40% 5.8%', translate: '-40% -5.8%', rotate: '-35deg' }}
                 initial={false}
                 animate={{ y: pressed ? 5 : 0, scale: pressed ? 0.98 : 1 }}
                 transition={reducedMotion ? { duration: 0 } : HAND_PRESS_SPRING}

@@ -305,6 +305,7 @@ test('every player click on the phone keeps the shared right-hand relay visible'
     /if \(button instanceof HTMLButtonElement && !button\.disabled\) \{[\s\S]{0,260}void animateTap\(button, \(\) => \{[\s\S]{0,160}button\.click\(\)/,
   );
   assert.match(sceneSource, /if \(button\?\.hasAttribute\('data-meta-key'\)\) return;/);
+  assert.match(sceneSource, /if \(source\.closest\('button\[data-meta-key\]'\)\) return;/);
 });
 
 test('phone controls activate on fingertip contact, not when the finger lifts', () => {
@@ -450,7 +451,7 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   assert.equal((sceneSource.match(/rotate: '-35deg'/g) ?? []).length, 2);
   assert.equal((sceneSource.match(/h-\[clamp\(441px,64\.5vh,630px\)\]/g) ?? []).length, 2);
   assert.doesNotMatch(sceneSource, /h-\[clamp\(294px,43vh,420px\)\]/);
-  assert.match(sceneSource, /transformOrigin: '50% 5%'[\s\S]{0,600}id="meta-tapping-finger-asset"/);
+  assert.match(sceneSource, /transformOrigin: '40% 5\.8%'[\s\S]{0,600}id="meta-tapping-finger-asset"/);
   assert.match(sceneSource, /animate=\{\{ y: pressed \? 5 : 0, scale: pressed \? 0\.98 : 1 \}\}/);
   assert.match(sceneSource, /onWheelCapture=\{handleWheelCapture\}/);
   assert.match(sceneSource, /id="meta-scroll-finger"/);

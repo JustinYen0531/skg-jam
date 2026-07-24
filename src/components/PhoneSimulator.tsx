@@ -1816,7 +1816,11 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
         <ChapterTransition
           data={activeTransition}
           reducedMotion={reducedMotion}
-          onDone={() => setActiveTransition(null)}
+          onDone={() => {
+            setActiveApp('home');
+            setHomePage(0);
+            setActiveTransition(null);
+          }}
         />
       )}
 

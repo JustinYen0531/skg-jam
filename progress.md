@@ -1,5 +1,13 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-24 — Transition click containment and single virtual-key input
+
+- Chapter evidence transitions now accept the first pointer-down even while the title is still resolving, visibly dismiss within 140ms, and keep their full-screen input shield mounted until removal so the trailing click cannot launch a Home app.
+- Transition completion explicitly restores Home page zero before clearing the cinematic.
+- Virtual keyboard buttons bypass projected pointer-down recovery and use exactly one native click, preventing one tap from enqueuing the same character twice.
+- Re-anchored both animated finger poses to the measured transparent-PNG fingertip at 40% x / 5.8% y instead of the former approximate 50% / 5%, aligning the visible contact point with the player's click.
+- Browser and Preview remain intentionally unused by project instruction.
+
 ## 2026-07-24 — Chapter 10 readable performance pace and outward pipe spikes
 
 - Corrected both pipe-lip spike rows: upper spikes now extend down into the flight gap and lower spikes extend up into it, rather than disappearing into the solid pipe bodies.
