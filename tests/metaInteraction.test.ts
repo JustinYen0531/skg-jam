@@ -482,7 +482,7 @@ test('meta camera uses layered anatomical hands instead of rounded placeholder b
   assert.match(appSource, /setMetaViewActive\(true\);[\s\S]{0,180}setDebugTargetApp/);
   assert.match(
     appSource,
-    /const metaSceneActive = !chapterTenPlayerFullscreen[\s\S]*?&& !fullscreenOnly[\s\S]*?&& shouldShowMetaScene\(metaViewActive, debugMode, progress\.phase\)/,
+    /const metaSceneActive = !chapterTenPlayerFullscreen[\s\S]*?&& shouldShowMetaScene\(metaViewActive, debugMode, progress\.phase\)/,
   );
   assert.match(appSource, /immersiveIntro=\{!metaSceneActive\}/);
   assert.match(appSource, /metaSceneActive \? 'bg-slate-950\/40' : 'bg-black'/);

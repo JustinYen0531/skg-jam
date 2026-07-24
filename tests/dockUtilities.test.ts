@@ -46,7 +46,6 @@ test('all five dock icons expose working utility controls', () => {
     'dock-open-developer-tools',
     'dock-camera-follow',
     'dock-desk-posture',
-    'dock-fullscreen-only',
   ]) {
     assert.match(phoneSource, new RegExp(`id="${controlId}"`));
   }
@@ -76,17 +75,10 @@ test('Controls independently gate camera follow and desk posture', () => {
   assert.match(phoneSource, /onPostureControlEnabledChange\(!postureControlEnabled\)/);
 });
 
-test('Controls provides a persistent fullscreen-only Meta bypass', () => {
-  assert.match(phoneSource, /id="dock-fullscreen-only"/);
-  assert.match(phoneSource, /aria-checked=\{fullscreenOnly\}/);
-  assert.match(phoneSource, /onFullscreenOnlyChange\(!fullscreenOnly\)/);
-  assert.match(phoneSource, /data-meta-hit-recovery="true"/);
-  assert.match(appSource, /FULLSCREEN_ONLY_STORAGE_KEY = 'skg\.fullscreenOnly'/);
-  assert.match(appSource, /localStorage\.getItem\(FULLSCREEN_ONLY_STORAGE_KEY\) === 'true'/);
-  assert.match(appSource, /localStorage\.setItem\(FULLSCREEN_ONLY_STORAGE_KEY, String\(fullscreenOnly\)\)/);
-  assert.match(appSource, /const metaSceneActive = !chapterTenPlayerFullscreen[\s\S]{0,100}&& !fullscreenOnly[\s\S]{0,100}&& shouldShowMetaScene/);
-  assert.match(appSource, /fullscreenOnly=\{fullscreenOnly\}/);
-  assert.match(appSource, /onFullscreenOnlyChange=\{setFullscreenOnly\}/);
+test('Controls keeps the Meta camera available and exposes no fullscreen-only bypass', () => {
+  assert.doesNotMatch(phoneSource, /dock-fullscreen-only|Fullscreen only|onFullscreenOnlyChange/);
+  assert.doesNotMatch(appSource, /FULLSCREEN_ONLY_STORAGE_KEY|fullscreenOnly|onFullscreenOnlyChange/);
+  assert.match(appSource, /const metaSceneActive = !chapterTenPlayerFullscreen[\s\S]{0,100}&& shouldShowMetaScene/);
 });
 
 test('FileBox destructive actions require the same choice twice', () => {
