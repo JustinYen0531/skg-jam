@@ -408,20 +408,14 @@ test('the live game wires Gate 40 to the deterministic Chapter 10 flight', () =>
   assert.match(source, /pulseAutonomousTap\(\)/);
 });
 
-test('missing one Chapter 10 route point dies at Gate 40 instead of using the old altitude bypass', () => {
+test('missing one Chapter 10 route point dies at Gate 40 with no legacy bypass fallback', () => {
   const source = readFileSync(new URL('../src/components/FlappyGame.tsx', import.meta.url), 'utf8');
-  const gate40Branch = source.slice(
-    source.indexOf('if (pipe.index === GATE_40_INDEX'),
-    source.indexOf('} else if (pipe.index > GATE_40_INDEX'),
-  );
+  const gate40Branch = source.slice(source.indexOf('if (pipe.index === GATE_40_INDEX'), source.indexOf('// Resolve pipe platforms'));
   assert.match(
     gate40Branch,
-    /else if \(chapterTenActive\) \{[\s\S]*?handleDeath\('Level 2 Seal #40', 'gate40'\);[\s\S]*?\} else if \(progress\.unlockedCodeRoute\)/,
+    /else \{[\s\S]*?handleDeath\('Level 2 Seal #40', 'gate40'\);/,
   );
-  assert.ok(
-    gate40Branch.indexOf('else if (chapterTenActive)') < gate40Branch.indexOf('const currentAltitude'),
-    'Chapter 10 death must be resolved before the legacy altitude fallback',
-  );
+  assert.doesNotMatch(gate40Branch, /currentAltitude|ALTITUDE_SEQUENCE|seqMatched|progress\.unlockedCodeRoute\) \{/);
 });
 
 test('Arcane stays silent before Gate 40 and the player tap uses the visible hand relay', () => {

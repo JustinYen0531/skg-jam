@@ -170,12 +170,12 @@ const SHEETS: readonly Sheet[] = [
         </div>
         <div className="space-y-1.5 rounded border border-sky-900/10 bg-sky-950/[0.04] p-2 font-mono text-[10px]">
           <div className="flex justify-between border-b border-sky-900/10 pb-1 text-[9px] font-bold"><span>AXIS</span><span>LIMIT</span></div>
-          <div className="flex justify-between"><span>Altitude</span><span className="font-bold">0 – 256 m</span></div>
+          <div className="flex justify-between"><span>Arc record</span><span className="font-bold">184</span></div>
           <div className="flex justify-between"><span>Gate index</span><span className="font-bold">0 – 256</span></div>
           <div className="flex justify-between"><span>End buffer</span><span className="font-bold">overflow</span></div>
         </div>
         <p className="border-t border-sky-900/10 pt-1.5 text-[9px] italic leading-relaxed text-sky-800/90">
-          Frame order (do not edit): {clue ? clue('ALT · GATE · END') : 'ALT · GATE · END'}
+          Frame order (do not edit): {clue ? clue('ARC · GATE · END') : 'ARC · GATE · END'}
         </p>
       </div>
     ),

@@ -144,7 +144,6 @@ export type ChapterOneSearchKind =
   | 'lumen_arc'
   | 'silver_kite'
   | 'future_password'
-  | 'future_altitudes'
   | 'irrelevant';
 
 export interface ChapterOneSearchResponse {
@@ -167,23 +166,12 @@ export const getChapterOneSearchResponse = (
     return { kind: 'empty', lines: ['Searching for nothing. Bold strategy.'], isArcSearch: false };
   }
 
-  if (compact.includes('alt184gate40end256')) {
+  if (compact.includes('arc184gate40end256')) {
     return {
       kind: 'future_password',
       lines: [
         'That is either a password or someone fell asleep on the keyboard.',
         "Let's pretend I didn't just receive information from the future.",
-      ],
-      isArcSearch: false,
-    };
-  }
-
-  if (/184\D+172\D+149\D+133/.test(normalized) || compact.includes('184172149133121118126143')) {
-    return {
-      kind: 'future_altitudes',
-      lines: [
-        'Those are numbers. Congratulations to us both.',
-        'Evidence first. Mysterious number ritual later.',
       ],
       isArcSearch: false,
     };

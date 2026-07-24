@@ -27,7 +27,7 @@ Chapter 4 分成兩層翻找，都不替玩家指認答案。
 主角此時不得知道（直到玩家自己在畫面上點出對應細節前）：
 
 - 十張截圖裡，哪三張藏著關鍵細節（要玩家自己讀出來）。
-- `ALT184GATE40END256` 這個完整密碼字串，或這三個細節「合起來是一組密碼」。
+- `ARC184GATE40END256` 這個完整密碼字串，或這三個細節「合起來是一組密碼」。
 - Silver Kite Games 的完整歷史、SKG Automation。
 - Noah Kade、Mara、Elias 或任何後續人物。
 - admin 登入、隱藏程式碼路線、任何結局。
@@ -54,7 +54,7 @@ Chapter 4 分成兩層翻找，都不替玩家指認答案。
 | 環顧整個截圖堆 | `Battery readings, storage bars, somebody's grocery list.` / `Whatever matters here is buried under a stranger's ordinary day.` |
 | 開啟任一截圖（含關鍵截圖，只描述表面，不透露重要性） | 見下方〈開啟截圖的觀察句〉輪替 |
 | 讀出遊戲真名（點擊 `Skyline 256`） | `SKG: Skyline 256.` / `So "Flappy" was never its real name. A knockoff buried the original.` |
-| 讀出飛行參數（點擊 `ALT · GATE · END`） | `Altitude, gate, end. The frame the whole flight runs on.` / `"Do not edit." Someone cared about the order.` |
+| 讀出飛行參數（點擊 `ARC · GATE · END`） | `Arc, gate, end. The frame the old account runs on.` / `"Do not edit." Someone cared about the order.` |
 | 讀出舊備份帳號（點擊 `SilverKite_Games`） | `SilverKite_Games. An old backup account, not a product label.` / `That gives the company name somewhere to exist outside these screenshots.` |
 | 三個細節全部找到、`CASE ASSEMBLED` 出現 | `A title, a flight structure, and an old account.` / `Someone arranged these on purpose. I just can't read the arrangement yet.` |
 | 按下 `Continue`、完成 Chapter 4 | `The game had a real name, and it starts with SKG.` / `That's finally a word I can search instead of guess.` |
@@ -91,7 +91,7 @@ Chapter 4 分成兩層翻找，都不替玩家指認答案。
 ## 誘餌與可點細節的邊界
 
 - 十張截圖中有七張是純粹殘渣：可以讀，讀完什麼也不會發生，畫面裡沒有任何可點的字。主角只給〈開啟截圖的觀察句〉，不把它們說成「錯誤選擇」。
-- 三張截圖各自藏著一個以虛線底線標示、可點擊的短語（`Skyline 256`、`ALT · GATE · END`、`SilverKite_Games`）。這個底線只有在玩家開啟並讀到那一行時才會被注意到；它是唯一的互動線索，不靠卡片標題或縮圖提示。完整三數不得在本章提前出現；它們要到 Chapter 7 才分散於 Mara 的生活貼文。
+- 三張截圖各自藏著一個以虛線底線標示、可點擊的短語（`Skyline 256`、`ARC · GATE · END`、`SilverKite_Games`）。這個底線只有在玩家開啟並讀到那一行時才會被注意到；它是唯一的互動線索，不靠卡片標題或縮圖提示。完整三數不得在本章提前出現；它們要到 Chapter 7 才分散於 Mara 的生活貼文。
 - 主角在玩家實際點下某個可點短語之前，不得預告那張截圖重要，也不得暗示「這裡有東西可以點」。
 
 ## 在錯誤 App 中的陪伴台詞

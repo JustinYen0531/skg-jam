@@ -39,7 +39,7 @@ const INITIAL_PROGRESS: GameProgress = {
   discoveredSKGHistory: false,
   discoveredNoahQA: false,
   discoveredMotherComment: false,
-  discoveredMaraAltitude184: false,
+  discoveredMaraArc184: false,
   discoveredMaraGate40: false,
   discoveredMaraEnd256: false,
   unlockedAdminLogin: false,

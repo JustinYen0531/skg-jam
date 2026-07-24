@@ -264,11 +264,11 @@ export const SocialApp: React.FC<SocialAppProps> = ({ progress, updateProgress, 
       if (previous.currentChapter !== 7) return previous;
       const next = {
         ...previous,
-        discoveredMaraAltitude184: previous.discoveredMaraAltitude184 || clue === 'altitude',
+        discoveredMaraArc184: previous.discoveredMaraArc184 || clue === 'arc',
         discoveredMaraGate40: previous.discoveredMaraGate40 || clue === 'gate',
         discoveredMaraEnd256: previous.discoveredMaraEnd256 || clue === 'end',
       };
-      const complete = next.discoveredMaraAltitude184 && next.discoveredMaraGate40 && next.discoveredMaraEnd256;
+      const complete = next.discoveredMaraArc184 && next.discoveredMaraGate40 && next.discoveredMaraEnd256;
       return complete ? { ...next, discoveredNoahQA: true } : next;
     });
   };

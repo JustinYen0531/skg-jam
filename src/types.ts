@@ -19,7 +19,7 @@ export interface GameProgress {
   discoveredSKGHistory: boolean;    // "Silver Kite Games" old site
   discoveredNoahQA: boolean;        // legacy marker: all three Mara number posts found
   discoveredMotherComment: boolean; // "Bought hundreds of keys... kept one for our child"
-  discoveredMaraAltitude184: boolean;
+  discoveredMaraArc184: boolean;
   discoveredMaraGate40: boolean;
   discoveredMaraEnd256: boolean;
   unlockedAdminLogin: boolean;      // correctly mapped the three collected Mara numbers

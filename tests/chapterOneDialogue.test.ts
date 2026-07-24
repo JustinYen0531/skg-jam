@@ -15,14 +15,14 @@ test('Chapter 1 only accepts ARC_184 variants as the intended search', () => {
     assert.equal(getChapterOneSearchResponse(query).isArcSearch, true, query);
   }
 
-  for (const query of ['184', 'ALT184GATE40END256', 'Lumen Arc', 'Noah Kade']) {
+  for (const query of ['184', 'ARC184GATE40END256', 'Lumen Arc', 'Noah Kade']) {
     assert.equal(getChapterOneSearchResponse(query).isArcSearch, false, query);
   }
 });
 
 test('future Chapter clues receive teasing warnings without unlocking the search result', () => {
-  assert.equal(getChapterOneSearchResponse('ALT184GATE40END256').kind, 'future_password');
-  assert.equal(getChapterOneSearchResponse('184 172 149 133 121 118 126 143').kind, 'future_altitudes');
+  assert.equal(getChapterOneSearchResponse('ARC184GATE40END256').kind, 'future_password');
+  assert.equal(getChapterOneSearchResponse('184 172 149 133 121 118 126 143').kind, 'irrelevant');
   assert.equal(getChapterOneSearchResponse('Noah Kade').kind, 'future_person');
   assert.equal(getChapterOneSearchResponse('Mara Vale').kind, 'future_person');
   assert.equal(getChapterOneSearchResponse('Lumen Arc').kind, 'lumen_arc');
@@ -48,7 +48,7 @@ test('all Chapter 1 protagonist dialogue is English-only', () => {
       .flatMap((app, index) => getChapterOneWrongAppDialogue(app, index)),
     ...[
       '', 'Gate 40', 'me', 'Noah Kade', 'Lumen Arc', 'Silver Kite Games',
-      'ALT184GATE40END256', '184 172 149 133 121 118 126 143', 'cats',
+      'ARC184GATE40END256', '184 172 149 133 121 118 126 143', 'cats',
     ].flatMap((query, index) => getChapterOneSearchResponse(query, index).lines),
   ];
 

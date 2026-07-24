@@ -1,4 +1,4 @@
-export type MaraNumberClue = 'altitude' | 'gate' | 'end';
+export type MaraNumberClue = 'arc' | 'gate' | 'end';
 export type MaraCoordinateMapping = Readonly<Record<MaraNumberClue, number | null>>;
 
 export const MARA_COLLECTIBLE_NUMBERS = [184, 40, 256] as const;
@@ -14,7 +14,7 @@ export interface MaraProfilePost {
 
 export const MARA_PROFILE_POSTS: readonly MaraProfilePost[] = [
   { id: 'mara-2014-09', date: '2014-09-03', content: 'Found the blue scarf again. It was exactly where I insisted I had already looked.', reactions: 18, comments: 3 },
-  { id: 'mara-2014-08', date: '2014-08-17', content: 'The harbor lookout is still my favorite place in the city. The old elevation plate says 184 m.', reactions: 40, comments: 6, clue: 'altitude' },
+  { id: 'mara-2014-08', date: '2014-08-17', content: 'The harbor lookout is still my favorite place in the city. Noah wrote ARC 184 beside it in the old family notebook.', reactions: 40, comments: 6, clue: 'arc' },
   { id: 'mara-2014-07', date: '2014-07-29', content: 'Noah says tea cannot count as dinner. This is a surprisingly rigid position for an experimental designer.', reactions: 31, comments: 4 },
   { id: 'mara-2014-06', date: '2014-06-12', content: 'Hundreds of tiny paper kites for the school fair. My fingers have formally resigned.', reactions: 56, comments: 9 },
   { id: 'mara-2014-05', date: '2014-05-04', content: 'Gate 40 at the old terminal. Same meeting place, every anniversary, even after the trains stopped using it.', reactions: 44, comments: 5, clue: 'gate' },
@@ -25,27 +25,27 @@ export const MARA_PROFILE_POSTS: readonly MaraProfilePost[] = [
 ] as const;
 
 export const getMaraNumberValue = (clue: MaraNumberClue): number => ({
-  altitude: 184,
+  arc: 184,
   gate: 40,
   end: 256,
 })[clue];
 
 export const isMaraCoordinateMappingCorrect = (mapping: MaraCoordinateMapping): boolean =>
-  mapping.altitude === getMaraNumberValue('altitude')
+  mapping.arc === getMaraNumberValue('arc')
   && mapping.gate === getMaraNumberValue('gate')
   && mapping.end === getMaraNumberValue('end');
 
 export const getMaraClueProgress = (progress: {
-  discoveredMaraAltitude184: boolean;
+  discoveredMaraArc184: boolean;
   discoveredMaraGate40: boolean;
   discoveredMaraEnd256: boolean;
 }): Readonly<Record<MaraNumberClue, boolean>> => ({
-  altitude: progress.discoveredMaraAltitude184,
+  arc: progress.discoveredMaraArc184,
   gate: progress.discoveredMaraGate40,
   end: progress.discoveredMaraEnd256,
 });
 
 export const hasAllMaraNumberClues = (progress: Parameters<typeof getMaraClueProgress>[0]): boolean => {
   const clues = getMaraClueProgress(progress);
-  return clues.altitude && clues.gate && clues.end;
+  return clues.arc && clues.gate && clues.end;
 };

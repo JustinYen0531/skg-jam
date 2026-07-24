@@ -49,7 +49,7 @@ const CHAPTER_ADVANCE_GUIDES: Record<PuzzleChapter, ChapterAdvanceGuide> = {
     objective: 'Recover the archived version built for the old device.',
     steps: [
       'Open Browser and locate the archived Skyline 256 download page.',
-      'Review the LAOS compatibility and native altitude sensor requirements.',
+      'Review the LAOS compatibility and preserved route-trace requirements.',
       'Download Skyline256_LAOS_Final.ipa.',
     ],
     completion: 'The archived build is downloaded.',
@@ -171,7 +171,7 @@ type ChapterEvidence = Partial<Pick<GameProgress,
   | 'discoveredSKGHistory'
   | 'discoveredNoahQA'
   | 'discoveredMotherComment'
-  | 'discoveredMaraAltitude184'
+  | 'discoveredMaraArc184'
   | 'discoveredMaraGate40'
   | 'discoveredMaraEnd256'
   | 'unlockedAdminLogin'
@@ -196,7 +196,7 @@ const BASE_PROGRESS: GameProgress = {
   discoveredSKGHistory: false,
   discoveredNoahQA: false,
   discoveredMotherComment: false,
-  discoveredMaraAltitude184: false,
+  discoveredMaraArc184: false,
   discoveredMaraGate40: false,
   discoveredMaraEnd256: false,
   unlockedAdminLogin: false,
@@ -241,9 +241,9 @@ const CHAPTER_OVERRIDES: Record<PuzzleChapter, Partial<GameProgress>> = {
   5: { viewTubeSearchedArc: true, watchedVideo: true, discoveredLegacyPassage: true, discoveredLegacyIpa: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true },
   6: { viewTubeSearchedArc: true, watchedVideo: true, discoveredLegacyPassage: true, discoveredLegacyIpa: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true },
   7: { viewTubeSearchedArc: true, watchedVideo: true, discoveredLegacyPassage: true, discoveredLegacyIpa: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredMotherComment: true },
-  8: { viewTubeSearchedArc: true, watchedVideo: true, discoveredLegacyPassage: true, discoveredLegacyIpa: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true, discoveredMaraAltitude184: true, discoveredMaraGate40: true, discoveredMaraEnd256: true, unlockedAdminLogin: true, loggedIntoAdmin: true },
-  9: { viewTubeSearchedArc: true, watchedVideo: true, discoveredLegacyPassage: true, discoveredLegacyIpa: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true, discoveredMaraAltitude184: true, discoveredMaraGate40: true, discoveredMaraEnd256: true, unlockedAdminLogin: true, loggedIntoAdmin: true, chapterEightMemoryIds: COMPLETED_CHAPTER_EIGHT_MEMORY_IDS, chapterEightRestoredMessageIds: COMPLETED_CHAPTER_EIGHT_MESSAGE_IDS, chapterNineRestorePhase: 'idle', chapterNineProfileChoice: null, chapterNinePasswordVerified: false, chapterNineDownloadState: 'idle', chapterNineDeletedAppIds: [], chapterNineMessageAttempts: 0, chapterNineArcaneSilent: false },
-  10: { viewTubeSearchedArc: true, watchedVideo: true, discoveredLegacyPassage: true, discoveredLegacyIpa: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true, discoveredMaraAltitude184: true, discoveredMaraGate40: true, discoveredMaraEnd256: true, unlockedAdminLogin: true, loggedIntoAdmin: true, chapterEightMemoryIds: COMPLETED_CHAPTER_EIGHT_MEMORY_IDS, chapterEightRestoredMessageIds: COMPLETED_CHAPTER_EIGHT_MESSAGE_IDS, chapterNineRestorePhase: 'rebooted', chapterNineProfileChoice: 'child', chapterNinePasswordVerified: true, chapterNineDownloadState: 'storage-error', chapterNineDeletedAppIds: [...CHAPTER_NINE_DELETABLE_APPS], chapterNineMessageAttempts: 3, chapterNineArcaneSilent: true, unlockedCodeRoute: true },
+  8: { viewTubeSearchedArc: true, watchedVideo: true, discoveredLegacyPassage: true, discoveredLegacyIpa: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true, discoveredMaraArc184: true, discoveredMaraGate40: true, discoveredMaraEnd256: true, unlockedAdminLogin: true, loggedIntoAdmin: true },
+  9: { viewTubeSearchedArc: true, watchedVideo: true, discoveredLegacyPassage: true, discoveredLegacyIpa: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true, discoveredMaraArc184: true, discoveredMaraGate40: true, discoveredMaraEnd256: true, unlockedAdminLogin: true, loggedIntoAdmin: true, chapterEightMemoryIds: COMPLETED_CHAPTER_EIGHT_MEMORY_IDS, chapterEightRestoredMessageIds: COMPLETED_CHAPTER_EIGHT_MESSAGE_IDS, chapterNineRestorePhase: 'idle', chapterNineProfileChoice: null, chapterNinePasswordVerified: false, chapterNineDownloadState: 'idle', chapterNineDeletedAppIds: [], chapterNineMessageAttempts: 0, chapterNineArcaneSilent: false },
+  10: { viewTubeSearchedArc: true, watchedVideo: true, discoveredLegacyPassage: true, discoveredLegacyIpa: true, archiveDownloaded: true, orderedPhone: true, deliveredPhone: true, discoveredOriginalTitle: true, discoveredSKGHistory: true, discoveredNoahQA: true, discoveredMotherComment: true, discoveredMaraArc184: true, discoveredMaraGate40: true, discoveredMaraEnd256: true, unlockedAdminLogin: true, loggedIntoAdmin: true, chapterEightMemoryIds: COMPLETED_CHAPTER_EIGHT_MEMORY_IDS, chapterEightRestoredMessageIds: COMPLETED_CHAPTER_EIGHT_MESSAGE_IDS, chapterNineRestorePhase: 'rebooted', chapterNineProfileChoice: 'child', chapterNinePasswordVerified: true, chapterNineDownloadState: 'storage-error', chapterNineDeletedAppIds: [...CHAPTER_NINE_DELETABLE_APPS], chapterNineMessageAttempts: 3, chapterNineArcaneSilent: true, unlockedCodeRoute: true },
 };
 
 export function getChapterById(chapter: PuzzleChapter): DebugChapter {

@@ -80,9 +80,9 @@ test('chapter snapshots accumulate discoveries instead of leaking future discove
   assert.equal(getChapterSnapshot(5).discoveredOriginalTitle, true);
   assert.equal(getChapterSnapshot(6).discoveredSKGHistory, true);
   assert.equal(getChapterSnapshot(7).discoveredNoahQA, false);
-  assert.equal(getChapterSnapshot(7).discoveredMaraAltitude184, false);
+  assert.equal(getChapterSnapshot(7).discoveredMaraArc184, false);
   assert.equal(getChapterSnapshot(7).loggedIntoAdmin, false);
-  assert.equal(getChapterSnapshot(8).discoveredMaraAltitude184, true);
+  assert.equal(getChapterSnapshot(8).discoveredMaraArc184, true);
   assert.equal(getChapterSnapshot(8).discoveredMaraGate40, true);
   assert.equal(getChapterSnapshot(8).discoveredMaraEnd256, true);
   assert.equal(getChapterSnapshot(8).loggedIntoAdmin, true);
@@ -137,7 +137,7 @@ test('normal player cannot use guessed archive credentials before the clue is un
   const chapterSeven = getChapterSnapshot(7);
   const ready = {
     ...chapterSeven,
-    discoveredMaraAltitude184: true,
+    discoveredMaraArc184: true,
     discoveredMaraGate40: true,
     discoveredMaraEnd256: true,
   };

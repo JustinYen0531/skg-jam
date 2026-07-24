@@ -20,7 +20,7 @@ const phoneSource = fs.readFileSync(path.join(root, 'src/components/PhoneSimulat
 const sceneSource = fs.readFileSync(path.join(root, 'src/components/MetaInteractionScene.tsx'), 'utf8');
 
 test('Chapter 7 dialogue covers Mara life posts, three place clues, noise, wrong apps, and companion loops', () => {
-  for (const clue of ['altitude', 'gate', 'end'] as const) {
+  for (const clue of ['arc', 'gate', 'end'] as const) {
     assert.equal(getChapterSevenClueDialogue(clue).length, 2);
   }
 
@@ -44,9 +44,9 @@ test('Chapter 7 dialogue covers Mara life posts, three place clues, noise, wrong
 
 test('archive login reactions respect clue and Mom-explanation knowledge boundaries', () => {
   assert.equal(classifyChapterSevenLogin('', false, false, 0), 'empty');
-  assert.equal(classifyChapterSevenLogin('ALT184GATE40END256', false, false, 0), 'clues-missing');
-  assert.equal(classifyChapterSevenLogin('ALT184GATE40END256', true, false, 0), 'mapping-unread');
-  assert.equal(classifyChapterSevenLogin('END256GATE40ALT184', true, true, 0), 'wrong-order');
+  assert.equal(classifyChapterSevenLogin('ARC184GATE40END256', false, false, 0), 'clues-missing');
+  assert.equal(classifyChapterSevenLogin('ARC184GATE40END256', true, false, 0), 'mapping-unread');
+  assert.equal(classifyChapterSevenLogin('END256GATE40ARC184', true, true, 0), 'wrong-order');
   assert.equal(classifyChapterSevenLogin('NOPE', true, true, 2), 'repeated');
 
   const beforeMapping = [
@@ -55,27 +55,27 @@ test('archive login reactions respect clue and Mom-explanation knowledge boundar
     ...CHAPTER_SEVEN_DIALOGUE.socialOpened,
     ...CHAPTER_SEVEN_DIALOGUE.messagesOpened,
     ...CHAPTER_SEVEN_DIALOGUE.momPlacesRead,
-    ...getChapterSevenLoginDialogue('ALT184GATE40END256', false, false, 0),
-    ...getChapterSevenLoginDialogue('ALT184GATE40END256', true, false, 0),
+    ...getChapterSevenLoginDialogue('ARC184GATE40END256', false, false, 0),
+    ...getChapterSevenLoginDialogue('ARC184GATE40END256', true, false, 0),
   ].join(' ');
-  assert.doesNotMatch(beforeMapping, /ALT184GATE40END256/);
+  assert.doesNotMatch(beforeMapping, /ARC184GATE40END256/);
   assert.doesNotMatch(beforeMapping, /184[^.]*altitude|40[^.]*gate|256[^.]*end/i);
   assert.match(CHAPTER_SEVEN_DIALOGUE.entry.join(' '), /Lumen Arc family backup/);
   assert.doesNotMatch(CHAPTER_SEVEN_DIALOGUE.entry.join(' '), /Silver Kite archive/);
-  assert.match(CHAPTER_SEVEN_DIALOGUE.momMappingRead.join(' '), /Altitude, gate, end/);
+  assert.match(CHAPTER_SEVEN_DIALOGUE.momMappingRead.join(' '), /Arc, gate, end/);
 });
 
 test('all Chapter 7 protagonist dialogue remains English-only', () => {
   const lines = [
     ...Object.values(CHAPTER_SEVEN_DIALOGUE).flat(),
-    ...(['altitude', 'gate', 'end'] as const).flatMap(getChapterSevenClueDialogue),
+    ...(['arc', 'gate', 'end'] as const).flatMap(getChapterSevenClueDialogue),
     ...['mara-2014-09', 'mara-2014-07', 'mara-2014-06', 'mara-2014-04', 'mara-2014-03', 'mara-2014-02']
       .flatMap((postId, index) => getChapterSevenMaraPostDialogue(postId, index)),
     ...(['home-feed', 'left-sidebar', 'right-sidebar', 'sidebar-ad', 'noah-profile', 'search'] as const)
       .flatMap((kind, index) => getChapterSevenNoiseDialogue(kind, index)),
     ...(['flappy', 'viewtube', 'amazemart', 'browser', 'screenshots', 'about'] as const)
       .flatMap((app, index) => getChapterSevenWrongAppDialogue(app, index)),
-    ...['', 'ALT184GATE40END256', 'END256GATE40ALT184', 'NOPE']
+    ...['', 'ARC184GATE40END256', 'END256GATE40ARC184', 'NOPE']
       .flatMap((input, index) => getChapterSevenLoginDialogue(input, index > 1, index > 1, index)),
   ];
   assert.doesNotMatch(lines.join('\n'), /[\u3400-\u9fff]/);

@@ -117,7 +117,7 @@ Seller Relay 只會在玩家接受風險並實際讀到「What score belongs to 
 | `1.84` | 這是 listing 價格的視覺提示，但格式不符 | `That is the price.` / `They asked for a score.` |
 | `256` | 已在檔名看見，但不是已知 runner 分數 | `That number belongs to the filename.` / `Wrong piece of evidence.` |
 | `184` | 正確；核對成功 | `ARC_184.` / `The score was sitting in the name the whole time.` |
-| `ALT184GATE40END256`／高度序列 | 尚未取得的未來資料，不可接受 | `That string has not appeared anywhere.` |
+| `ARC184GATE40END256` | 尚未取得的未來資料，不可接受 | `That string has not appeared anywhere.` |
 | 其他數字 | 不懲罰、不鎖定 | `A score, not a guess.` |
 
 錯誤輸入不得造成永久鎖定；重複輸入時從短句中輪替，避免不斷完整複誦提示。

@@ -16,7 +16,7 @@ const messagesSource = readFileSync(new URL('../src/components/MessagesApp.tsx',
 test('Mara owns three separate number clues inside a larger personal timeline', () => {
   assert.equal(MARA_PROFILE_POSTS.length, 9);
   const clues = MARA_PROFILE_POSTS.filter((post) => post.clue);
-  assert.deepEqual(clues.map((post) => post.clue), ['altitude', 'gate', 'end']);
+  assert.deepEqual(clues.map((post) => post.clue), ['arc', 'gate', 'end']);
   assert.deepEqual(clues.map((post) => getMaraNumberValue(post.clue!)), [184, 40, 256]);
   assert.doesNotMatch(MARA_PROFILE_POSTS.map((post) => post.content).join(' '), /184\s*[-–—/]\s*40\s*[-–—/]\s*256/);
 });
@@ -32,7 +32,7 @@ test('Chapter 7 re-entry exposes Mara through Recently viewed instead of Noah Q&
 test('all three Mara posts are persistent evidence required by the archive login', () => {
   assert.equal(hasAllMaraNumberClues(getChapterSnapshot(7)), false);
   assert.equal(hasAllMaraNumberClues(getChapterSnapshot(8)), true);
-  assert.match(socialSource, /discoveredMaraAltitude184/);
+  assert.match(socialSource, /discoveredMaraArc184/);
   assert.match(socialSource, /discoveredMaraGate40/);
   assert.match(socialSource, /discoveredMaraEnd256/);
   assert.match(socialSource, /data-mara-number=\{clueValue\}/);
@@ -42,10 +42,10 @@ test('all three Mara posts are persistent evidence required by the archive login
   assert.match(messagesSource, /completePuzzleChapter\(prev, 7, \{ unlockedAdminLogin: true, loggedIntoAdmin: true \}\)/);
 });
 
-test('collecting the three numbers unlocks a separate ALT GATE END mapping puzzle', () => {
+test('collecting the three numbers unlocks a separate ARC GATE END mapping puzzle', () => {
   assert.deepEqual(MARA_COLLECTIBLE_NUMBERS, [184, 40, 256]);
-  assert.equal(isMaraCoordinateMappingCorrect({ altitude: 184, gate: 40, end: 256 }), true);
-  assert.equal(isMaraCoordinateMappingCorrect({ altitude: 40, gate: 184, end: 256 }), false);
+  assert.equal(isMaraCoordinateMappingCorrect({ arc: 184, gate: 40, end: 256 }), true);
+  assert.equal(isMaraCoordinateMappingCorrect({ arc: 40, gate: 184, end: 256 }), false);
   assert.match(messagesSource, /id="archive-number-collection-lock"/);
   assert.match(messagesSource, /id="archive-coordinate-mapping"/);
   assert.match(messagesSource, /id=\{`archive-map-\$\{label\}`\}/);

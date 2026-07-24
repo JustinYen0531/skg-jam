@@ -38,7 +38,7 @@ export const CHAPTER_SEVEN_DIALOGUE = {
     'She used them so she would never forget the numbers.',
   ],
   momMappingRead: [
-    'Altitude, gate, end. Her three places, in their order.',
+    'Arc, gate, end. Her three places, in their order.',
     'The old Silver Kite account is still waiting in the corner.',
   ],
   maraProfileOpened: [
@@ -66,9 +66,9 @@ export const CHAPTER_SEVEN_DIALOGUE = {
 } as const satisfies Record<string, DialogueLines>;
 
 const CLUE_DIALOGUE: Readonly<Record<MaraNumberClue, DialogueLines>> = {
-  altitude: [
-    'The harbor lookout. Elevation, 184.',
-    'The score I kept chasing was her favorite view.',
+  arc: [
+    'The harbor lookout. ARC 184, in Dad\'s old notebook.',
+    'The score I kept chasing was already written beside her favorite view.',
   ],
   gate: [
     'Gate 40. Their anniversary spot, in a station the trains gave up on.',
@@ -194,7 +194,7 @@ const LOGIN_DIALOGUE: Readonly<Record<ChapterSevenLoginKind, DialogueLines>> = {
   empty: ['Sending an empty key to a twelve-year-old lock. Optimistic.'],
   'clues-missing': ['I know the numbers. I do not know which is which yet.', 'Her places first. Then the door.'],
   'mapping-unread': ['I found the places. I should ask Mom how the old login named them.'],
-  'wrong-order': ['Right memories, wrong arrangement. Altitude, gate, end—her order, not mine.'],
+  'wrong-order': ['Right memories, wrong arrangement. Arc, gate, end—her order, not mine.'],
   wrong: ['That is not one of her places. Guessing makes the archive less personal, not more open.'],
   repeated: ['He left this for someone who walked it, not someone who guessed.'],
 };

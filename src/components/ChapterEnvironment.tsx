@@ -41,11 +41,11 @@ const NOTEBOOK_COPY: Record<NotebookState, readonly string[]> = {
   skg: ['SKG', '?'],
   company: ['SILVER KITE GAMES', '→ SKG AUTOMATION', 'YEAR ?'],
   noah: ['NOAH KADE?', 'old posts / earliest'],
-  mara: ['MARA · PLACES', 'ALT?  GATE?  END?'],
-  numbers: ['184 — 40 — 256', 'ALT?  GATE?  END?'],
-  password: ['184 / 40 / 256', 'ALT184GATE40END256'],
+  mara: ['MARA · PLACES', 'ARC?  GATE?  END?'],
+  numbers: ['184 — 40 — 256', 'ARC?  GATE?  END?'],
+  password: ['184 / 40 / 256', 'ARC184GATE40END256'],
   quiet: [],
-  route: ['184 · 172 · 149 · 133', '121 · 118 · 126 · 143'],
+  route: ['ARC_184 · GATE 40', 'END 256'],
 };
 
 const LIGHTING_CLASS = {

@@ -29,7 +29,7 @@ test('search and seller replies separate known evidence from future answers', ()
   assert.equal(getChapterThreeSellerCodeResponse('184').kind, 'correct');
   assert.equal(getChapterThreeSellerCodeResponse('40').kind, 'gate');
   assert.equal(getChapterThreeSellerCodeResponse('1.84').kind, 'price');
-  assert.equal(getChapterThreeSellerCodeResponse('ALT184GATE40END256').kind, 'future_code');
+  assert.equal(getChapterThreeSellerCodeResponse('ARC184GATE40END256').kind, 'future_code');
 });
 
 test('storefront noise is grouped but does not collapse into one reaction', () => {
@@ -53,7 +53,7 @@ test('all Chapter 3 protagonist dialogue is English-only', () => {
     ...apps.flatMap((app, index) => getChapterThreeWrongAppDialogue(app, index)),
     ...Array.from({ length: 5 }, (_, index) => getChapterThreeCompanionDialogue(index)).flat(),
     ...['', 'Lumen Arc', 'Skyline256_LAOS_Final.ipa', 'SKG', 'Mara Vale', '184', 'old phone', 'wrong'].flatMap((query, index) => getChapterThreeSearchResponse(query, index).lines),
-    ...['', '184', '40', '42', '1.84', '256', 'ALT184GATE40END256', '99'].flatMap((code) => getChapterThreeSellerCodeResponse(code).lines),
+    ...['', '184', '40', '42', '1.84', '256', 'ARC184GATE40END256', '99'].flatMap((code) => getChapterThreeSellerCodeResponse(code).lines),
   ];
   for (const line of lines) assert.doesNotMatch(line, /[\u3400-\u9fff]/, line);
 });

@@ -159,7 +159,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
   const [failCount, setFailCount] = useState(0);
   const [momMappingRead, setMomMappingRead] = useState(false);
   const [coordinateMapping, setCoordinateMapping] = useState<MaraCoordinateMapping>({
-    altitude: null,
+    arc: null,
     gate: null,
     end: null,
   });
@@ -235,7 +235,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
   if (hasAllMaraNumberClues(progress)) {
     momMessages.push(
       { sender: 'me', time: '11:25 AM', content: 'I found three of them. The harbor lookout, the old terminal gate, and the ending of your book.' },
-      { sender: 'mom', time: '11:26 AM', content: 'Then they were mine, not your father\'s. Numbers are not passwords by themselves, dear. They are places. The old login asked for altitude, gate, and end—in that order.' },
+      { sender: 'mom', time: '11:26 AM', content: 'Then they were mine, not your father\'s. Numbers are not passwords by themselves, dear. They are places. The old login asked for ARC, gate, and end—in that order.' },
       { sender: 'mom', time: '11:27 AM', content: 'My memory wanders, but the Silver Kite archive should still recognize the path if you label each number correctly.' },
     );
   }
@@ -327,14 +327,14 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
       return;
     }
 
-    if (formattedInput === 'ALT184GATE40END256' && !developerPreview && !canUseProgressionAction('admin-login', progress)) {
+    if (formattedInput === 'ARC184GATE40END256' && !developerPreview && !canUseProgressionAction('admin-login', progress)) {
       audio.play('auth.wrong');
       setLoginError('NICE TRY, TIME TRAVELER. FIND THE CLUES BEFORE THE PASSWORD FINDS YOU.');
       speakChapterSeven(getChapterSevenLoginDialogue(passwordInput, false, momMappingRead, failCount));
       return;
     }
 
-    if (formattedInput === 'ALT184GATE40END256') {
+    if (formattedInput === 'ARC184GATE40END256') {
       audio.play('auth.correct');
       setLoginError('');
       setFailCount(0);
@@ -346,7 +346,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
       setFailCount(nextFails);
       setLoginError(nextFails >= 3
         ? 'HINT WITHHELD. HE LEFT THIS FOR SOMEONE WHO WALKS THE PATH, NOT SOMEONE WHO GUESSES IT.'
-        : 'CREDENTIALS REJECTED. ENSURE ALTITUDE, GATE, AND END VALUES ARE PROPERLY SEQUENCE-PAIRED.');
+        : 'CREDENTIALS REJECTED. ENSURE ARC, GATE, AND END VALUES ARE PROPERLY SEQUENCE-PAIRED.');
       speakChapterSeven(getChapterSevenLoginDialogue(passwordInput, hasAllMaraNumberClues(progress), momMappingRead, nextFails));
     }
   };
@@ -613,7 +613,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
     ...(sellerThreadAvailable
       ? [{ id: 'seller' as ThreadId, name: 'coldboot_17', initials: 'C7', tint: '#059669', time: 'now', preview: 'Buyer check. What score belongs to the impossible runner?', unread: sellerUnread, badge: 'marketplace relay' }]
       : []),
-    { id: 'mom', name: 'Mom (Mara)', initials: 'MK', tint: '#3c66c4', time: 'Today', preview: hasAllMaraNumberClues(progress) ? 'The old login asked for altitude, gate, and end.' : 'Those little places mattered to me.' },
+    { id: 'mom', name: 'Mom (Mara)', initials: 'MK', tint: '#3c66c4', time: 'Today', preview: hasAllMaraNumberClues(progress) ? 'The old login asked for ARC, gate, and end.' : 'Those little places mattered to me.' },
     ...DECOY_THREADS.map((t) => ({ id: t.id as ThreadId, name: t.name, initials: t.initials, tint: t.tint, time: t.time, preview: t.preview })),
   ];
 
@@ -766,7 +766,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                       <div className="laos-label text-[8px]">COORDINATE FRAGMENTS REQUIRED</div>
                       <div className="mt-2 font-mono text-[9px] text-[var(--laos-dim)]">
                         {Object.values({
-                          altitude: progress.discoveredMaraAltitude184,
+                          arc: progress.discoveredMaraArc184,
                           gate: progress.discoveredMaraGate40,
                           end: progress.discoveredMaraEnd256,
                         }).filter(Boolean).length}/3 NUMBERS COLLECTED
@@ -785,9 +785,9 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                         ))}
                       </div>
                       <div className="grid grid-cols-3 gap-2">
-                        {(['altitude', 'gate', 'end'] as const).map((label) => (
+                        {(['arc', 'gate', 'end'] as const).map((label) => (
                           <label key={label} className="space-y-1">
-                            <span className="laos-label block text-center text-[7px]">{label === 'altitude' ? 'ALT' : label.toUpperCase()}</span>
+                            <span className="laos-label block text-center text-[7px]">{label.toUpperCase()}</span>
                             <select
                               value={coordinateMapping[label] ?? ''}
                               onChange={(event) => handleCoordinateSelection(label, event.target.value)}
@@ -804,10 +804,10 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                     </div>
                   ) : (
                     <div className="space-y-1" id="archive-password-stage">
-                      <label className="laos-label text-[8px] block">COORDINATE PASSWORD KEY (ALT___GATE__END___)</label>
+                      <label className="laos-label text-[8px] block">COORDINATE PASSWORD KEY (ARC___GATE__END___)</label>
                       <input
                         type="text"
-                        placeholder="e.g. ALT100GATE10END10"
+                        placeholder="e.g. ARC100GATE10END10"
                         value={passwordInput}
                         onChange={(e) => setPasswordInput(e.target.value)}
                         autoComplete="off"
@@ -1317,12 +1317,11 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                       <span>2014-04-20 22:20</span>
                     </div>
                     <p className="text-[var(--laos-text)] font-laos leading-relaxed">
-                      Yes. I hid the true route within the collision loop. The scraper doesn't examine the old barometric altitude sensor registers. I hardcoded a structural bypass on Gate 40.
+                      Yes. I hid the true route inside the collision loop. The scraper only sees scores; it never sees the archived ARC, Gate, End trace that ties the route to us.
                     </p>
                     {progress.unlockedCodeRoute && (
                       <p className="font-mono text-[10px] bg-[var(--laos-bg)] p-2 border border-[var(--laos-line)] leading-relaxed text-[var(--laos-dim)]">
-                        If you fly precisely at the following altitudes as you pass each consecutive gate starting at 40, the collider fails and you enter the legacy wireframe layer: <br />
-                        <span className="text-[var(--laos-text)] font-bold">184, 172, 149, 133, 121, 118, 126, 143</span>
+                        The route was not a height sequence. ARC_184, Gate 40, and the ending at 256 were the trace I left for him to recognize.
                       </p>
                     )}
                     <p className="text-[var(--laos-text)] font-laos leading-relaxed">

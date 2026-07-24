@@ -50,7 +50,7 @@ Chapter 1 打開其他 App 時，依 App 回應目前為何不重要。例如 Am
 | 提前或錯誤輸入 | 回應方向 |
 |---|---|
 | 空白 | `Searching for nothing. Bold strategy.` |
-| `ALT184GATE40END256` | 把它當成來自未來的可疑密碼，不解鎖 |
+| `ARC184GATE40END256` | 把它當成來自未來的可疑密碼，不解鎖 |
 | 完整高度序列 | 稱它為「mysterious number ritual」，不解鎖 |
 | Noah／Mara／Elias | 指出主角尚未從任何證據得知此人 |
 | `Lumen Arc` | 指出這像「沒有問題的答案」，不解鎖 |
@@ -66,7 +66,7 @@ Chapter 1 打開其他 App 時，依 App 回應目前為何不重要。例如 Am
 4. 回首頁兩次：第一次引導 ViewTube，第二次開始出現陪伴句。
 5. 依序打開 AmazeMart、Browser、Messages，再打開 ViewTube；每個錯誤 App 都應有英文短句。
 6. 在 ViewTube 點擊至少三個推薦影片，確認吐槽會輪替，且不會切換成那些影片。
-7. 搜尋 `ALT184GATE40END256`、`Noah Kade`、`Lumen Arc`、完整高度序列；都只能收到提前輸入警示，不得出現 ARC_184 影片。
+7. 搜尋 `ARC184GATE40END256`、`Noah Kade`、`Lumen Arc`；都只能收到提前輸入警示，不得出現 ARC_184 影片。
 8. 搜尋 `ARC_184` 並播放影片：0–40 應有少量無底色彈幕流過；41–42 才突然出現大小不一的密集洗板，關鍵穿越幾乎看不清，但分數增加仍可被察覺。水管經過小鳥後只能繼續向左，不得消失或上下跳動。
 9. 42 分附近主角右手應自行伸出點擊 Canvas 並暫停，底部顯示 `I've seen enough…`；這就是本段影片結尾，再次點擊只能顯示證據獨白，不得續播或產生 42 之後的畫面。
 10. 點擊幾則普通留言，確認會出現對應英文內心反應，但 `EVIDENCE` 保持 `0/2`。

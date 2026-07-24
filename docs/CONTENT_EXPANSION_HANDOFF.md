@@ -34,8 +34,7 @@
 1. **偽隨機只能重排，不能生成新答案，也不能破壞依賴鏈。** 新增的內容池全部是「風味」，只有既有的承重字串能推進謎題。
 2. **不得提前洩漏後段專有答案。** 以下東西在它們各自的謎題階段之前，**任何留言／貼文／頁尾都不准出現字面值**：
    - 人名真身：`Noah Kade` / `Mara` / `Elias Vale` / ARC_184 的真名
-   - 密碼：`ALT184GATE40END256`
-   - 高度序列：`184, 172, 149, 133, 121, 118, 126, 143`
+   - 密碼：`ARC184GATE40END256`
    - 負分：`−65535`（以及 `65537` / 16-bit 溢位的機制解釋）
    - 終點：256 關的 `SERVICE TERMINATED` 黑牆與「高度 0 落下」通關法
 3. **伏筆可以「指向」上述東西，但要用旁人的無知口吻包裝**，例如「有人說排行榜滑到最底會出事」可以暗示負分，但不能寫出數字或機制。
@@ -373,11 +372,11 @@ GUESTBOOK (archived · 6 of 214 entries recovered)
 ```text
 FIELD LABELS
   CREATOR ID:            MARA_KADE (SEC_PARTNER)     ← disabled，已存在
-  COORDINATE PASSWORD:   ALT___GATE__END___          ← placeholder 已存在
+  COORDINATE PASSWORD:   ARC___GATE__END___          ← placeholder 已存在
 
 STATES
   空白提交:      COORDINATE STRING REQUIRED. THE NODE HAS WAITED TWELVE YEARS. IT CAN WAIT LONGER.
-  格式錯誤:      CREDENTIALS REJECTED. ENSURE ALTITUDE, GATE, AND END VALUES ARE PROPERLY SEQUENCE-PAIRED.  ← 已存在
+  格式錯誤:      CREDENTIALS REJECTED. ENSURE ARC, GATE, AND END VALUES ARE PROPERLY SEQUENCE-PAIRED.  ← 已存在
   正解但太早:    NICE TRY, TIME TRAVELER. FIND THE CLUES BEFORE THE PASSWORD FINDS YOU.  ← 已存在
   正解且合法:    （無錯誤字串，直接解鎖）
   第 3 次連錯:   HINT WITHHELD. HE LEFT THIS FOR SOMEONE WHO WALKS THE PATH, NOT SOMEONE WHO GUESSES IT.

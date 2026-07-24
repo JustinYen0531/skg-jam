@@ -37,7 +37,7 @@ export const CHAPTER_FOUR_DIALOGUE = {
     'Skyline 256. So Flappy was never the real name.',
   ],
   paramsFound: [
-    'Altitude. Gate. End. Three labels, in that order.',
+    'Arc. Gate. End. Three labels, in that order.',
   ],
   archiveFound: [
     'SilverKite_Games. An old backup account, not a product label.',
@@ -89,7 +89,7 @@ const REPEATED_DECOY = [
 
 const REPEATED_CLUE: Readonly<Record<LumenArcClueId, DialogueLines>> = {
   title: ['Already marked. Skyline 256.'],
-  params: ['Already marked. Altitude, gate, end.'],
+  params: ['Already marked. Arc, gate, end.'],
   archive: ['Already marked. SilverKite_Games.'],
 };
 

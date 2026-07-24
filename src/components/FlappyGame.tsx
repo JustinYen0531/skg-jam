@@ -89,9 +89,6 @@ interface FlappyGameProps {
   onRestartLoop: () => void;
 }
 
-// Sequence of target altitudes near pipe 40
-const ALTITUDE_SEQUENCE = [184, 172, 149, 133, 121, 118, 126, 143];
-
 // Easier pacing: slower horizontal motion, wider openings, and more breathing
 // room between gates. Scoring and gate spawning remain in lockstep.
 const PACE_INTERVAL_FRAMES = EASY_FLAPPY_SETTINGS.spawnIntervalFrames;
@@ -124,10 +121,6 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
     && window.localStorage.getItem(ARCANE_NEGATIVE_RECORD_STORAGE_KEY) === 'true'
   ));
   
-  // Real-time debug metrics to display to user
-  const [currentAlt, setCurrentAlt] = useState(0);
-  const [seqIndex, setSeqIndex] = useState(0); // index in altitude matching
-  const [seqMatched, setSeqMatched] = useState<boolean[]>(new Array(8).fill(false));
   const [hackedMode, setHackedMode] = useState(false);
   const [showChapterTenWelcome, setShowChapterTenWelcome] = useState(
     progress.currentChapter === 10,
@@ -309,8 +302,6 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
     pipeIndexCounter: 0,
     gameOver: false,
     bypassActive: false,
-    seqIndex: 0,
-    seqMatched: new Array(8).fill(false),
     terminalGlitchActive: false,
     devNotes: [] as Array<{ x: number; y: number; text: string; opacity: number }>,
     trail: [] as number[], // visual-only motion residue for the wireframe layer
@@ -345,8 +336,6 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
       pipeIndexCounter: 0,
       gameOver: false,
       bypassActive: false,
-      seqIndex: 0,
-      seqMatched: new Array(8).fill(false),
       terminalGlitchActive: false,
       devNotes: [
         { x: 400, y: 80, text: 'INIT SYSTEM_CORE', opacity: 0.8 },
@@ -381,8 +370,6 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
     }
     if (chapterTenActive) music.setPhase(10);
     setScore(0);
-    setSeqIndex(0);
-    setSeqMatched(new Array(8).fill(false));
     setHackedMode(false);
     setIsPlaying(true);
     setShowLeaderboard(false);
@@ -664,12 +651,6 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
           ctx.stroke();
           ctx.fillText(alt.toString().padStart(3, '0'), width - 40, Math.min(height - 2, Math.max(8, y + 2)));
         }
-        // Noah's preserved flight path rendered as brighter scale marks
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-        ALTITUDE_SEQUENCE.forEach((alt) => {
-          const y = height - (alt / 256) * height;
-          ctx.fillRect(width - 18, y - 1, 12, 2);
-        });
         ctx.restore();
       }
 
@@ -707,7 +688,6 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
               speak([...reflection.lines]);
               state.chapterTenReflectionIndex += 1;
             }
-            setCurrentAlt(Math.max(0, Math.min(256, Math.round(((height - state.birdY) / height) * 256))));
             // The tap is the single shared event: it drives the Meta finger too.
             if (perfSample.tapped) {
               state.lastJumpFrame = state.frameCount;
@@ -744,7 +724,6 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
               EASY_FLAPPY_SETTINGS.maxFallSpeed * 1.8,
             );
             state.birdY += state.birdVelocity;
-            setCurrentAlt(Math.max(0, Math.min(256, Math.round(((height - state.birdY) / height) * 256))));
             if (state.birdY - 12 > height) {
               state.chapterTenFlight = { ...state.chapterTenFlight, completed: true };
               state.chapterTenCompleteFrames = 1;
@@ -762,11 +741,6 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
         // Visual-only motion residue drawn by the wireframe layer
         state.trail.push(state.birdY);
         if (state.trail.length > 16) state.trail.shift();
-
-        // Altitude sensor feedback (mapped from 0 to 256 based on canvas height)
-        // Canvas height is 400. 0 is bottom, 400 is top. Let's map it: 256 is top, 0 is bottom
-        const computedAltitude = Math.round(((height - state.birdY) / height) * 256);
-        setCurrentAlt(Math.max(0, Math.min(256, computedAltitude)));
 
         // Boundary deaths (except in bypass/hacked mode or diving offscreen at 256)
         if (state.birdY < 0 && !state.bypassActive) {
@@ -806,7 +780,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
                   && touchesRoutePoint(80, state.birdY, pipe.x + point.offsetX, point.y)
                 ) {
                   state.chapterTenRoute.add(point.id);
-                  audio.play('flight.altitudeStep', { variant: point.id % ALTITUDE_SEQUENCE.length });
+                  audio.play('flight.altitudeStep', { variant: point.id % 8 });
                 }
               });
           });
@@ -925,68 +899,8 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
                 state.chapterTenPerfFrame = 0;
                 state.chapterTenGravitySign = 1;
                 state.chapterTenDiving = false;
-              } else if (chapterTenActive) {
-                // Chapter 10 has exactly one Gate 40 key: every light point in
-                // this run. Never fall through to the obsolete altitude bypass
-                // when even one point is missing.
-                handleDeath('Level 2 Seal #40', 'gate40');
-              } else if (progress.unlockedCodeRoute) {
-                // If the player knows the code, let's track real-time sequence matching!
-                // Let's check the current altitude against target altitude sequence at index 0 (184)
-                const currentAltitude = Math.round(((height - state.birdY) / height) * 256);
-                const target = ALTITUDE_SEQUENCE[0];
-                if (Math.abs(currentAltitude - target) <= 18) {
-                  // MATCHED step 0! Trigger bypass start.
-                  state.bypassActive = true;
-                  state.seqIndex = 1;
-                  state.seqMatched[0] = true;
-                  setSeqIndex(1);
-                  setSeqMatched([...state.seqMatched]);
-                  audio.play('flight.altitudeStep', { variant: 0 });
-                  // spawn developer logs instantly
-                  state.devNotes.push({ x: width, y: 100, text: 'COLLIDER_BYPASS_STAGE_01: INITIATED', opacity: 1 });
-                } else {
-                  handleDeath('Level 2 Seal #40', 'gate40');
-                }
               } else {
                 handleDeath('Level 2 Seal #40', 'gate40');
-              }
-            } else if (pipe.index > GATE_40_INDEX && state.bypassActive) {
-              // We are active in the bypass mode!
-              // For each pipe index from 41 to 47, check if the player matches the sequence target.
-              const seqOffset = pipe.index - 40;
-              if (seqOffset < ALTITUDE_SEQUENCE.length) {
-                const currentAltitude = Math.round(((height - state.birdY) / height) * 256);
-                const target = ALTITUDE_SEQUENCE[seqOffset];
-
-                // If they are passing this pipe, check their altitude
-                if (pipe.x < birdX + 20 && pipe.x > birdX - 20 && !state.seqMatched[seqOffset]) {
-                  if (Math.abs(currentAltitude - target) <= 20) {
-                    state.seqMatched[seqOffset] = true;
-                    state.seqIndex = seqOffset + 1;
-                    setSeqIndex(seqOffset + 1);
-                    setSeqMatched([...state.seqMatched]);
-                    audio.play('flight.altitudeStep', { variant: seqOffset });
-                    
-                    state.devNotes.push({ 
-                      x: width, 
-                      y: pipe.topHeight + 20, 
-                      text: `BYPASS_LINK [${seqOffset}] MATCHED: OK`, 
-                      opacity: 1 
-                    });
-
-                    // At stage 5 (Altitude 118), complete the full structural collapse!
-                    if (seqOffset === 5) {
-                      state.terminalGlitchActive = true;
-                      // The collision sound loses its middle — a data gap,
-                      // not a glitch burst (§4.1).
-                      audio.play('flight.collisionBypass');
-                    }
-                  } else {
-                    // Missed the height sequence! Structural breakdown fails, you hit the pipe!
-                    handleDeath(`Altitude Sequence Unstable at Gate ${pipe.index}`, 'sequence');
-                  }
-                }
               }
             } else {
               // Only a true vertical-face impact is fatal.
@@ -1460,7 +1374,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
         ctx.fillStyle = '#22c55e';
         ctx.font = '14px "JetBrains Mono"';
         ctx.fillText(`SYS_DIST: ${state.score.toString().padStart(3, '0')}/256`, 20, 30);
-        ctx.fillText(`ALTITUDE: ${currentAlt.toString().padStart(3, '0')}`, 20, 50);
+        ctx.fillText('ARC TRACE: ACTIVE', 20, 50);
         ctx.fillText(`BYPASS_ENGINE: ACTIVE`, 20, 70);
         
         // Progress bar to 256
@@ -1956,49 +1870,6 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
           >
             <div className="font-thought text-[9px] tracking-[0.3em] text-slate-400/75">ARCANE</div>
             <div className="mt-1 font-thought text-[18px] tracking-[0.18em] text-slate-100/90">...</div>
-          </div>
-        )}
-
-        {/* Debug panel: Shown when player has unlocked the code route */}
-        {progress.unlockedCodeRoute && isPlaying && !showLeaderboard && !chapterTenActive && (
-          <div className="absolute left-3 top-3 bottom-3 w-40 bg-[var(--laos-bg)]/[0.94] border border-[var(--laos-line)] p-2 text-[10px] font-laos text-[var(--laos-text)] flex flex-col justify-between pointer-events-none z-10" id="altitude-sensor-panel">
-            <div>
-              <div className="flex items-center gap-1.5 laos-label text-[8px] border-b border-[var(--laos-line-dim)] pb-1.5 mb-1.5">
-                <span className="w-1.5 h-1.5 bg-[var(--laos-warm)]"></span>
-                <span>LUMEN ALT_SENSOR</span>
-              </div>
-              <div className="text-xs font-mono font-bold text-center py-1 bg-[var(--laos-surface-2)] border border-[var(--laos-line-dim)] mb-2 text-[var(--laos-text)]">
-                ALT: {currentAlt}m
-              </div>
-
-              {/* Target Sequence Checklist */}
-              <div className="space-y-0.5">
-                <div className="laos-label text-[7.5px] mb-1">GATE 40 SEQUENCER:</div>
-                {ALTITUDE_SEQUENCE.map((alt, idx) => (
-                  <div
-                    key={idx}
-                    className={`flex items-center justify-between px-1.5 py-0.5 font-mono ${
-                      seqIndex === idx
-                        ? 'bg-[var(--laos-surface-2)] text-[var(--laos-warm)] border-l-2 border-[var(--laos-warm)] font-bold'
-                        : seqIndex > idx
-                          ? 'text-[var(--laos-faint)] line-through'
-                          : 'text-[var(--laos-dim)]'
-                    }`}
-                  >
-                    <span>P{40 + idx} Alt Target:</span>
-                    <span>{alt}m</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="border-t border-[var(--laos-line-dim)] pt-1.5 mt-1 text-[8px] leading-tight">
-              {seqIndex >= 6 ? (
-                <span className="text-[var(--laos-warm)] font-bold tracking-wide">!! BOUNDING COLLIDER DISRUPTED !!</span>
-              ) : (
-                <span className="text-[var(--laos-dim)]">Fly matching target heights strictly as you pass each gate section starting at 40!</span>
-              )}
-            </div>
           </div>
         )}
 

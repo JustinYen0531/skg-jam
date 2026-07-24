@@ -20,7 +20,7 @@ Chapter 6 不組密碼、不追 Mara 的個人頁（那是 Chapter 7）；它只
 
 主角此時不得知道（直到實際取得對應證據 / 本章結束前）：
 
-- 完整密碼 `ALT184GATE40END256` 的組法（Chapter 7）。
+- 完整密碼 `ARC184GATE40END256` 的組法（Chapter 7）。
 - Mara 個人頁中分散於三篇生活貼文的 `184`、`40`、`256`（Chapter 7；Chapter 6 尚未出現 Recently viewed 入口）。
 - Silver Kite 舊帳號登入、隱藏飛行路線、任何結局。
 - 「for our child」與自己身分的連結——這正是本章要讓玩家自己讀出來的。

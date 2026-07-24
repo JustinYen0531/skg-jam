@@ -1267,3 +1267,9 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Reduced the leaderboard retention guidance to exactly two quiet prompts: one after six seconds on the first visit, and one after returning without opening a top-six profile.
 - Opening any of the six anomaly profiles permanently suppresses both prompts for the active game session.
 - Browser and Preview remain intentionally unused by project instruction; static verification only.
+
+## 2026-07-24 — ARC_184 identifier migration
+
+- Replaced the obsolete `ALT / GATE / END` login frame with `ARC / GATE / END`: Mara's first clue, notebook, account mapping, password (`ARC184GATE40END256`), progress keys, dialogue, tests, and design documentation now agree.
+- Removed the abandoned Gate 40 altitude-sequence bypass and its sensor panel. Gate 40 now has no non-Chapter-10 fallback; Chapter 10 continues to use its existing route-point gate.
+- Static verification only by project instruction; targeted migration tests and TypeScript passed. Browser and Preview were not used.
