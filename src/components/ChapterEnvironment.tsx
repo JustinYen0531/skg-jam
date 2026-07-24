@@ -3,6 +3,7 @@ import { AnimatePresence, motion, useMotionValue, useTransform, type MotionValue
 import {
   getChapterEnvironment,
   getDeskDrink,
+  type CoffeeState,
   type DrinkVariant,
   type EnvironmentChapter,
   type NotebookState,
@@ -19,6 +20,15 @@ interface ChapterEnvironmentProps {
   restingView?: MotionValue<number>;
 }
 
+const COFFEE_ASSET_SOURCE: Record<Exclude<CoffeeState, 'none'>, string> = {
+  fresh: '/assets/coffee-full.png',
+  sipped: '/assets/coffee-full.png',
+  half: '/assets/coffee-empty-drip.png',
+  'near-empty': '/assets/coffee-empty-drip.png',
+  empty: '/assets/coffee-empty-drip.png',
+  'tipped-empty': '/assets/coffee-tipped-spill.png',
+  'pushed-away': '/assets/coffee-empty-drip.png',
+};
 const DRINK_ASSET_SOURCE: Record<Exclude<DrinkVariant, 'none'>, string> = {
   one: '/assets/drink-1.png',
   two: '/assets/drink-2.png',
@@ -45,6 +55,71 @@ const LIGHTING_CLASS = {
   still: 'bg-[linear-gradient(rgba(6,8,12,0.13),rgba(0,0,0,0.24))]',
   ready: 'bg-[radial-gradient(circle_at_50%_66%,rgba(232,177,115,0.11),transparent_42%)]',
 } as const;
+
+const CoffeeCup: React.FC<{
+  state: CoffeeState;
+  ring: boolean;
+  steam: boolean;
+  drip: boolean;
+  spill: boolean;
+  animateLayout: boolean;
+  deviceResting: boolean;
+}> = ({ state, ring, steam, drip, spill, animateLayout, deviceResting }) => {
+  if (state === 'none') return null;
+  const pushedAway = state === 'pushed-away';
+  const tipped = state === 'tipped-empty';
+  const assetSource = COFFEE_ASSET_SOURCE[state];
+  const positionClass = deviceResting
+    ? (pushedAway ? 'right-[4%] top-[78%] scale-[1.875]' : tipped ? 'right-[8%] top-[76%] scale-[2.1]' : 'right-[6%] top-[76%] scale-[2.025]')
+    : (pushedAway ? 'right-[2%] top-[90%] scale-[2.475]' : tipped ? 'right-[6%] top-[89%] scale-[2.8125]' : 'right-[4%] top-[90%] scale-[2.7]');
+
+  const motionClass = animateLayout
+    ? 'transition-[top,right,scale] duration-[620ms] ease-out'
+    : '';
+
+  return (
+    <div
+      className={`absolute z-[3] h-[27%] w-[17%] min-w-36 origin-bottom-right ${motionClass} ${positionClass}`}
+      data-composition-offset={deviceResting ? 'resting-desk-right' : 'upright-desk-bottom'}
+      data-scene-depth="front-of-device"
+      data-coffee-state={state}
+      data-coffee-asset-state={tipped ? 'tipped' : state === 'fresh' || state === 'sipped' ? 'full' : 'empty'}
+      data-coffee-drip={drip || undefined}
+      data-coffee-spill={spill || undefined}
+      id="meta-desk-coffee"
+    >
+      {ring && !tipped && (
+        <div
+          className="absolute left-[14%] top-[84%] h-[14%] w-[67%] rounded-[50%] border-[3px] border-amber-950/35 opacity-60 blur-[0.4px]"
+          id="meta-coffee-ring"
+        />
+      )}
+      {steam && (
+        <svg className="absolute -top-[94%] left-[2%] z-[1] h-[100%] w-[92%] overflow-visible" viewBox="0 0 100 100" id="meta-coffee-steam" aria-hidden="true">
+          {[28, 50, 72].map((x, index) => (
+            <motion.path
+              key={x}
+              d={`M${x} 92 C${x - 11} 70 ${x + 13} 57 ${x} 30 C${x - 7} 18 ${x + 5} 10 ${x + 1} 2`}
+              fill="none"
+              stroke="rgba(237, 228, 213, 0.45)"
+              strokeLinecap="round"
+              strokeWidth="5"
+              initial={{ opacity: 0.15, y: 8 }}
+              animate={{ opacity: [0.12, 0.52, 0.08], y: [8, -4, -12] }}
+              transition={{ duration: 2.2 + index * 0.2, repeat: Infinity, ease: 'easeInOut', delay: index * 0.25 }}
+            />
+          ))}
+        </svg>
+      )}
+      <img
+        src={assetSource}
+        alt=""
+        className="absolute inset-0 h-full w-full object-contain drop-shadow-[0_10px_10px_rgba(0,0,0,0.36)]"
+        id="meta-coffee-png"
+      />
+    </div>
+  );
+};
 
 // Every energy-drink variant renders through one identical box, so its chapter
 // state can change without changing size or drifting across the desk.
@@ -254,6 +329,7 @@ export const ChapterEnvironment: React.FC<ChapterEnvironmentProps> = ({
             </>
           ) : (
             <>
+              <CoffeeCup state={environment.coffee} ring={environment.coffeeRing} steam={environment.coffeeSteam} drip={environment.coffeeDrip} spill={environment.coffeeSpill} animateLayout={!reducedMotion} deviceResting={deviceResting} />
               <DrinkCans variant={getDeskDrink(chapter)} animateLayout={!reducedMotion} deviceResting={deviceResting} />
               {environment.cable !== 'none' && <ChargingCable connected={environment.cable === 'connected'} animateLayout={!reducedMotion} part="body" />}
             </>

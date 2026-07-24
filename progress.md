@@ -1,5 +1,13 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-24 — Restore coffee; remove only tea clutter
+
+- Corrected the previous over-removal: the coffee cup and its chapter-specific full, empty, dripping, tipped, and spilled states are restored exactly.
+- Restored all three established coffee PNG assets and the original desk/camera anchors.
+- The separate tea service and the pale paper-ball/white-stain clutter remain removed as requested.
+- Added regression coverage so a future cleanup cannot confuse the coffee prop with the tea clutter again.
+- Browser and Preview remain intentionally unused by project instruction.
+
 ## 2026-07-24 — Remove cups, spills, and white desk clutter
 
 - Removed the shared coffee-cup renderer, its rings, steam and spill artwork from every chapter.

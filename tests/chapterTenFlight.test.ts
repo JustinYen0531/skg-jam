@@ -49,7 +49,7 @@ import {
   getFlightCreditsAtScore,
   NOAH_FINAL_TRANSMISSION,
 } from '../src/lib/chapterTenCredits';
-import { getDeskDrink } from '../src/lib/chapterEnvironment';
+import { getChapterEnvironment, getDeskDrink } from '../src/lib/chapterEnvironment';
 
 const CANVAS_HEIGHT = 320;
 const BIRD_RADIUS = 12;
@@ -552,7 +552,9 @@ test('the final lyric, overflow score, and Arcane signature form one determinist
   assert.doesNotMatch(appSource, /id="ending-choice-overlay"/);
 });
 
-test('Chapter 10 clears the optional energy-drink clutter', () => {
+test('Chapter 10 keeps the abandoned coffee but clears the optional energy-drink clutter', () => {
+  assert.equal(getChapterEnvironment(10).coffee, 'tipped-empty');
+  assert.equal(getChapterEnvironment(10).coffeeSpill, true);
   assert.equal(getDeskDrink(10), 'none');
 });
 
