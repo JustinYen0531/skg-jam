@@ -25,7 +25,7 @@
 | 影片抵達 42、主角自動伸手暫停 | `I've seen enough. He's pulling some kind of cheating trick.` / `What I need is the exact moment forty becomes forty-one.` |
 | 播放後點擊影片證據 | `That should have killed him.` / `No cut. No jump. So what changed?` |
 | 播放前點 ARC 回覆 | `184 points. If this is edited, I want to see where.` |
-| 播放後點 ARC 回覆 | 收集第一條證據：`So the old Legacy build really could pass from forty to forty-one.` / `That proves the route existed. It doesn't tell me where the build went.` |
+| 播放後點 ARC 回覆 | 收集第一條證據：`So the update can imitate the old route. That does not prove the old build did it.` / `The upload is new. The record isn't. I need the 2014 build.` |
 | 點擊最底部 IPA 留言 | 收集第二條證據：`There. A filename, not a theory.` / `Skyline256_LAOS_Final.ipa. That is something an archive can actually find.` |
 | 收齊兩條證據 | `Two pieces. The old route existed, and the build has a name.` / `Next stop: an archive.`；此時才進入 Chapter 2 |
 
@@ -39,7 +39,7 @@
 - `The algorithm can wait.`
 - `Cute bird. Wrong mystery.`
 
-留言區的普通留言也可點擊。具體內容依留言輪替，例如十二年後被演算法重新推薦時回應 `Twelve years later, and the algorithm is doing archaeology by accident.`；畫質抱怨回應 `The compression is awful. Unfortunately, the score still changes.`；完全沒有證據的留言則回應 `A timestamp, an opinion, and no evidence.`。這些反應只提供陪伴感，不增加 `EVIDENCE` 計數。
+留言區的普通留言也可點擊。具體內容依留言輪替，例如談及演算法把舊紀錄炒熱時回應 `A 2026 update turned a 2014 record into algorithm bait.`；畫質抱怨回應 `The compression is awful. Unfortunately, the score still changes.`；完全沒有證據的留言則回應 `A timestamp, an opinion, and no evidence.`。影片與留言皆為近期，只有原始紀錄與 archive 檔案屬於 2014。這些反應只提供陪伴感，不增加 `EVIDENCE` 計數。
 
 Chapter 1 打開其他 App 時，依 App 回應目前為何不重要。例如 AmazeMart 顯示 `I'm investigating cheating, not shopping.`，Browser 顯示 `An archive of what? I don't even know what I'm looking for yet.`。重複回首頁則輪替 `Still here.`、`I'm thinking.`、`Let's follow what we actually know.` 等陪伴句，不反覆複誦同一個教學提示。
 

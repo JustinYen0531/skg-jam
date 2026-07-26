@@ -85,42 +85,42 @@ type FeedComment = { handle: string; age: string; text: string; tier: 'foreshado
 
 // Rendered above SkyFlapMaster (load-bearing #1): pure crowd, no signal.
 const VT_COMMENTS_TOP: readonly FeedComment[] = [
-  { handle: '_gg_', age: '5y ago', text: 'first', tier: 'noise' },
+  { handle: '_gg_', age: '3 weeks ago', text: 'first', tier: 'noise' },
   { handle: 'algorithm_victim', age: '3 weeks ago', text: "who's here in 2026 💀 the algorithm really said “remember this?”", tier: 'noise' },
-  { handle: 'passing_through', age: '1 month ago', text: 'why is this in my recommended twelve years later', tier: 'noise' },
+  { handle: 'passing_through', age: '2 weeks ago', text: 'why is this in my recommended when the record is from twelve years ago', tier: 'noise' },
 ] as const;
 
 // Rendered between the ARC reply and the ordinary Legacy-build folklore.
 const VT_COMMENTS_MID: readonly FeedComment[] = [
-  { handle: 'quietframes', age: '11y ago', text: 'whatever happened to the person who actually made the original? one final update, then just... gone. nobody ever talks about them.', tier: 'foreshadow' },
-  { handle: 'pixel_grief', age: '9y ago', text: 'the compression on this is a war crime, i genuinely cannot see anything', tier: 'noise' },
-  { handle: 'warranty_void', age: '10y ago', text: 'old uploads from this version keep disappearing. half the links in this thread are dead now.', tier: 'foreshadow' },
-  { handle: 'uncle_of_the_year', age: '8y ago', text: 'my nephew could clear 40 in his sleep, 184 is just sweaty', tier: 'noise' },
-  { handle: 'former_QA_maybe', age: '12y ago', text: "he's not tapping randomly. watch the rhythm. it's like he's reading a map only he can see.", tier: 'foreshadow' },
+  { handle: 'quietframes', age: '2 weeks ago', text: 'whatever happened to the person who actually made the original? one update from SKG and suddenly everyone is talking about a player from 2014.', tier: 'foreshadow' },
+  { handle: 'pixel_grief', age: '13 days ago', text: 'the compression on this is a war crime, i genuinely cannot see anything', tier: 'noise' },
+  { handle: 'warranty_void', age: '11 days ago', text: 'old uploads of the ORIGINAL keep disappearing. this is clearly the 2026 reskin.', tier: 'foreshadow' },
+  { handle: 'uncle_of_the_year', age: '9 days ago', text: 'my nephew could clear 40 in his sleep, 184 is just sweaty', tier: 'noise' },
+  { handle: 'former_QA_maybe', age: '1 week ago', text: "he's not tapping randomly. watch the rhythm. it's like he's reading a map only he can see.", tier: 'foreshadow' },
 ] as const;
 
 // Rendered between the ordinary folklore and the bottom archive filename.
 const VT_COMMENTS_LOW: readonly FeedComment[] = [
-  { handle: 'ratio_enjoyer', age: '7y ago', text: "L + ratio + it's fake + didn't watch", tier: 'noise' },
-  { handle: 'mall_ghost_2011', age: '10y ago', text: 'old heads know this used to be a game you could FINISH. like it had an ending. an actual one. not this infinite ad slop.', tier: 'foreshadow' },
-  { handle: 'sticky_screen', age: '6y ago', text: "tapped so hard my screen has ARC_184's fingerprints on it now", tier: 'noise' },
-  { handle: 'not_a_bot_i_swear', age: '9y ago', text: 'has anyone scrolled the leaderboard all the way to the BOTTOM? it does something weird down there. like the sort just gives up.', tier: 'foreshadow' },
-  { handle: 'three_g_summary', age: '5y ago', text: 'gatekept, gaslit, girlbossed his way past gate 40', tier: 'noise' },
+  { handle: 'ratio_enjoyer', age: '6 days ago', text: "L + ratio + it's fake + didn't watch", tier: 'noise' },
+  { handle: 'mall_ghost_2011', age: '5 days ago', text: 'old heads know the 2014 game could FINISH. this infinite ad slop is the update, not the original.', tier: 'foreshadow' },
+  { handle: 'sticky_screen', age: '4 days ago', text: "tapped so hard my screen has ARC_184's fingerprints on it now", tier: 'noise' },
+  { handle: 'not_a_bot_i_swear', age: '3 days ago', text: 'has anyone scrolled the leaderboard all the way to the BOTTOM? it does something weird down there. like the sort just gives up.', tier: 'foreshadow' },
+  { handle: 'three_g_summary', age: '2 days ago', text: 'gatekept, gaslit, girlbossed his way past gate 40', tier: 'noise' },
 ] as const;
 
 // Authored crowd rows that trail before the two collectible leads.
 const VT_COMMENTS_TAIL: readonly FeedComment[] = [
-  { handle: 'keeps_receipts', age: '12y ago', text: "my mum saved old games too. never said why. she's not really... around to ask anymore.", tier: 'foreshadow' },
-  { handle: 'taking_notes', age: '8y ago', text: 'downloading an entire dead operating system to beat a bird game is certified insane behavior and i am taking notes', tier: 'noise' },
-  { handle: 'dead_link_collector', age: '8y ago', text: 'this got swallowed by some "automation" company. they gut old apps, staple ads on the corpse, call it a business model. classic.', tier: 'foreshadow' },
-  { handle: 'here_for_replies', age: '6y ago', text: 'this comment section is genuinely more entertaining than the run', tier: 'noise' },
-  { handle: 'FreeC0ins_Daily', age: '3y ago', text: '🔥 WANT UNLIMITED COINS?? check my profile for the mod 🔥', tier: 'noise' },
-  { handle: 'cardboardbox_archive', age: '7y ago', text: 'the original store page listed it under a totally different name. three letters. i forget which. someone renamed the whole thing.', tier: 'foreshadow' },
+  { handle: 'keeps_receipts', age: '3 weeks ago', text: "my mum saved old games too. never said why. she's not really... around to ask anymore.", tier: 'foreshadow' },
+  { handle: 'taking_notes', age: '2 weeks ago', text: 'downloading an entire dead operating system to check a bird-game record is certified insane behavior and i am taking notes', tier: 'noise' },
+  { handle: 'dead_link_collector', age: '12 days ago', text: 'SKG Automation did this. they gut old apps, staple ads on the corpse, call it a 2026 update. classic.', tier: 'foreshadow' },
+  { handle: 'here_for_replies', age: '10 days ago', text: 'this comment section is genuinely more entertaining than the run', tier: 'noise' },
+  { handle: 'FreeC0ins_Daily', age: '8 days ago', text: '🔥 WANT UNLIMITED COINS?? check my profile for the mod 🔥', tier: 'noise' },
+  { handle: 'cardboardbox_archive', age: '6 days ago', text: 'the original store page listed it under a totally different name. three letters. i forget which. someone renamed the whole thing.', tier: 'foreshadow' },
   { handle: 'streambrain_2026', age: '2 weeks ago', text: 'chat is this real', tier: 'noise' },
-  { handle: 'soft_reset', age: '9y ago', text: "i don't think 184 was even the point for this guy. feels like he was trying to show us the score isn't the score.", tier: 'foreshadow' },
-  { handle: 'wholesome_100', age: '5y ago', text: 'the real world record is the friends we ratioed along the way', tier: 'noise' },
-  { handle: 'latekeeper', age: '6y ago', text: "if you have to ask how he did it, the answer won't help you yet. find the build first. everything else is downstream.", tier: 'foreshadow' },
-  { handle: 'above_it_all', age: '4y ago', text: 'imagine caring this much about a flappy clone', tier: 'noise' },
+  { handle: 'soft_reset', age: '5 days ago', text: "i don't think 184 was even the point for the original player. feels like the score isn't the score.", tier: 'foreshadow' },
+  { handle: 'wholesome_100', age: '4 days ago', text: 'the real world record is the friends we ratioed along the way', tier: 'noise' },
+  { handle: 'latekeeper', age: '2 days ago', text: "if you want to know whether this is fake, find the 2014 build first. everything else is downstream.", tier: 'foreshadow' },
+  { handle: 'above_it_all', age: '1 day ago', text: 'imagine caring this much about a flappy clone', tier: 'noise' },
 ] as const;
 
 const ARCHIVE_COMMENT_TEXT = [
@@ -138,12 +138,14 @@ const ARCHIVE_COMMENT_TEXT = [
   'watching this at work with the sound off feels illegal',
 ] as const;
 
+const RECENT_COMMENT_AGES = ['3 weeks ago', '2 weeks ago', '12 days ago', '9 days ago', '1 week ago', '5 days ago', '2 days ago'] as const;
+
 // The visible discussion starts with authored context, then opens into a long
 // but deliberately non-progression archive. Every row is deterministic: the
 // player can browse it without receiving future puzzle answers.
 const VT_COMMENT_ARCHIVE: readonly FeedComment[] = Array.from({ length: 114 }, (_, index) => ({
   handle: `archive_viewer_${(index + 1).toString().padStart(3, '0')}`,
-  age: `${2 + ((index * 7) % 11)}y ago`,
+  age: RECENT_COMMENT_AGES[index % RECENT_COMMENT_AGES.length],
   text: ARCHIVE_COMMENT_TEXT[index % ARCHIVE_COMMENT_TEXT.length],
   tier: 'noise' as const,
 }));
@@ -757,7 +759,7 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress, de
                   I BROKE THE UNBEATABLE FLAPPY GAME — 184 POINTS WORLD RECORD
                 </h2>
                 <div className="flex justify-between items-center text-[10px] text-slate-400 font-mono">
-                  <span>ARC_184 • 14,832 views • 12 years ago</span>
+                  <span>ARC_184 • 14,832 views • 3 weeks ago</span>
                   <span className="text-red-400 font-bold flex items-center gap-1">
                     <AlertTriangle className="w-3.5 h-3.5" /> Checked
                   </span>
@@ -808,7 +810,7 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress, de
                 <div className="bg-slate-900/50 p-2.5 rounded border border-slate-800/40 space-y-1">
                   <div className="flex justify-between items-center text-[10px] font-mono text-slate-400">
                     <span className="font-bold text-purple-400">SkyFlapMaster</span>
-                    <span>12y ago</span>
+                    <span>2 weeks ago</span>
                   </div>
                   <p className="text-slate-200">
                     This is 100% fake. At score 40, there is a hardcoded collision barrier. I inspected the bytecode. He is either using an emulator modification or spoofing values.
@@ -821,7 +823,7 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress, de
                     onClick={() => collectChapterOneEvidence('legacy-passage')}
                   >
                     <span className="min-w-0 flex-1">
-                      💬 **ARC_184 replied**: No emulator edits. No scripts. Gate 40 to 41 was passable in the old Legacy build. That is the version in this recording.
+                      💬 **ARC_184 replied**: No emulator edits. No scripts. SKG's 2026 update made Gate 40 to 41 passable again. This is a recreation of the old record, not the Legacy build.
                     </span>
                     {progress.discoveredLegacyPassage ? (
                       <span className="shrink-0 font-mono text-[8px] text-emerald-400">COLLECTED</span>
@@ -852,10 +854,10 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress, de
                 <div className="bg-slate-900/50 p-2.5 rounded border border-slate-800/40 space-y-1">
                   <div className="flex justify-between items-center text-[10px] font-mono text-slate-400">
                     <span className="font-bold text-amber-400">legacy_runner</span>
-                    <span>11y ago</span>
+                    <span>1 week ago</span>
                   </div>
                   <p className="text-slate-200">
-                    People keep arguing about the score, but this upload clearly is not the current build. Half the old mirrors are gone, so good luck proving which release it was.
+                    People keep arguing about the score, but this upload clearly is the current build. The 2014 game looked nothing like this. Half the old mirrors are gone, so good luck proving what ARC_184 actually played.
                   </p>
                 </div>
 
@@ -897,7 +899,7 @@ export const ViewTube: React.FC<ViewTubeProps> = ({ progress, updateProgress, de
                 onClick={() => collectChapterOneEvidence('legacy-ipa')}
               >
                 <span className="flex items-center justify-between gap-3 text-[10px] font-mono text-slate-400">
-                  <span className="font-bold text-blue-400">WaybackLover · 10y ago</span>
+                  <span className="font-bold text-blue-400">WaybackLover · 1 day ago</span>
                   {progress.discoveredLegacyIpa && (
                     <span className="text-[8px] text-emerald-400">COLLECTED</span>
                   )}

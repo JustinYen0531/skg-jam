@@ -35,7 +35,9 @@ test('Chapter 1 requires two comment clues without naming the later hardware', (
   assert.match(source, /id="vt-evidence-counter"/);
   assert.match(source, /EVIDENCE \{chapterOneEvidenceCount\}\/2/);
   assert.match(source, /id="vt-arc-reply"/);
-  assert.match(source, /Gate 40 to 41 was passable in the old Legacy build/);
+  assert.match(source, /SKG's 2026 update made Gate 40 to 41 passable again/);
+  assert.match(source, /This is a recreation of the old record, not the Legacy build/);
+  assert.match(source, /ARC_184 • 14,832 views • 3 weeks ago/);
   assert.match(source, /id="vt-ipa-evidence"/);
   assert.match(source, /Skyline256_LAOS_Final\.ipa/);
   assert.match(source, /collectChapterOneEvidence\('legacy-passage'\)/);

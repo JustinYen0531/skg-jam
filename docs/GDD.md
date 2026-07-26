@@ -94,11 +94,11 @@ Chapter 0–10 的 Meta 木桌、實體物件、雙手狀態與手機首頁重�
 
 ### 謎題 1：尋找第一名
 
-在 ViewTube 搜尋 `ARC_184`。影片顯示第 40 分的奇怪低空路線，但 Chapter 1 不得提前說出 Lumen Arc 或任何特定硬體解法。玩家必須收集兩條分開的留言證據，介面以 `EVIDENCE 0/2`、`1/2`、`2/2` 回饋：第一條是冒用名稱的 ViewTube 上傳者回覆，`No emulator edits. No scripts. Gate 40 to 41 was passable in the old Legacy build. That is the version in this recording.`；第二條固定放在整個留言區最底部，指出 Internet Archive 仍索引 `Skyline256_LAOS_Final.ipa`。兩條都按過才完成 Chapter 1。其餘普通留言可點擊並觸發 Arcane 的簡短內心反應，但不得提供裝置、人名、密碼或後期高度答案。
+在 ViewTube 搜尋 `ARC_184`。這是一段 **2026 年上傳** 的影片：冒用 ARC_184 名稱的上傳者，趁 SKG Automation 將《Skyline 256》更新成《Flappy Something》後，以新版畫面重現並操弄 Gate 40→41，藉 2014 年的 184 分紀錄博取流量。影片與所有討論留言都必須是數天至數週前；「十二年前」只指原始紀錄與原版檔案，不能成為新版影片的上傳日期。Chapter 1 不得提前說出 Lumen Arc 或任何特定硬體解法。玩家必須收集兩條分開的留言證據，介面以 `EVIDENCE 0/2`、`1/2`、`2/2` 回饋：第一條是冒用名稱的 ViewTube 上傳者回覆，`No emulator edits. No scripts. SKG's 2026 update made Gate 40 to 41 passable again. This is a recreation of the old record, not the Legacy build.`；第二條固定放在整個留言區最底部，指出 Internet Archive 仍索引 2014 年的 `Skyline256_LAOS_Final.ipa`。兩條都按過才完成 Chapter 1。其餘普通留言可點擊並觸發 Arcane 的簡短內心反應，但不得提供裝置、人名、密碼或後期高度答案。
 
 本階段底部 `LIVE TRANSCRIPT` 的英文內心獨白、無關操作回應、提前輸入警示與實測流程，以 [Chapter 1 主角內心獨白規格](./CHAPTER_1_PROTAGONIST_DIALOGUE.md) 為準。主角只能根據已看見的證據推理，不得提前知道後續人名、裝置、密碼或高度序列。
 
-ARC_184 的影片不是診斷動畫，而是一段約 21.5 秒、停在 42 分證據點的加速遊戲節錄：前半以原重播一半的水平速度壓縮 0–38，後半連續通過 Gate 39、40、41。所有水管都以固定世界座標連續移動，通過小鳥後仍留在畫面左側，不得依目前分數重建、消失或改變高度。畫面必須沿用真正遊戲的鳥、水管、分數與廉價視覺語言，只以 15 FPS、低飽和、輕微掃描線與壓縮雜訊表現十二年前的低畫質手機錄影；不得顯示 `COLLISION_BYPASS_DETECTION` 或替玩家解說穿越機制。
+ARC_184 的影片不是診斷動畫，而是一段約 21.5 秒、停在 42 分證據點的加速遊戲節錄：前半以原重播一半的水平速度壓縮 0–38，後半連續通過 Gate 39、40、41。所有水管都以固定世界座標連續移動，通過小鳥後仍留在畫面左側，不得依目前分數重建、消失或改變高度。畫面必須明確沿用 2026《Flappy Something》的鳥、水管、分數與廉價視覺語言；可保留低 FPS、掃描線與壓縮雜訊作為平台轉碼，不得偽裝成十二年前的原版手機錄影。不得顯示 `COLLISION_BYPASS_DETECTION` 或替玩家解說穿越機制。
 
 0–40 仍有少量無底色白字彈幕緩慢流過；分數進入 41–42 才爆發不同大小、速度與位置的洗板彈幕，並以少量中央停留文字刻意遮住關鍵穿越。抵達 42 後，Meta 場景中的主角右手會自行伸出點擊影片並暫停，說明他已確定這是一種作弊把戲，現在需要找出 40 變成 41 的確切瞬間。這次暫停就是 Chapter 1 影片段落的敘事結尾；後續點擊只能檢視證據與觸發獨白，不得恢復或生成 42 之後的重播畫面。影片標題仍可宣稱 184 分，玩家在本章只觀看與調查其中最有爭議的 Gate 40 節錄。
 

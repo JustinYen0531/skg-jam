@@ -110,52 +110,52 @@
 每則後面標註〔指向：___〕。這些**不觸發任何謎題狀態**，純風味。
 
 ```text
-[F1]  handle: quietframes         age: 11y ago
+[F1]  handle: quietframes         age: 2 weeks ago
       whatever happened to the person who actually made the original?
       one final update, then just... gone. nobody ever talks about them.
       〔指向：Noah 的消失。禁止出現名字。〕
 
-[F2]  handle: mall_ghost_2011      age: 10y ago
+[F2]  handle: mall_ghost_2011      age: 5 days ago
       old heads know this used to be a game you could FINISH.
       like it had an ending. an actual one. not this infinite ad slop.
       〔指向：Skyline 256 的有限終點。禁止描述通關機制。〕
 
-[F3]  handle: not_a_bot_i_swear    age: 9y ago
+[F3]  handle: not_a_bot_i_swear    age: 3 days ago
       has anyone scrolled the leaderboard all the way to the BOTTOM?
       it does something weird down there. like the sort just gives up.
       〔指向：−65535 隱藏底端。禁止出現任何數字或「負分/溢位」字眼。〕
 
-[F4]  handle: keeps_receipts       age: 12y ago
+[F4]  handle: keeps_receipts       age: 3 weeks ago
       my mum had one of these devices. bought a whole stack of them once,
       wouldn't say why. she's not really... around to ask anymore.
       〔指向：Mara 買下數百份、記憶衰退。禁止出現名字。〕
 
-[F5]  handle: former_QA_maybe      age: 12y ago
+[F5]  handle: former_QA_maybe      age: 1 week ago
       he's not tapping randomly. watch the rhythm.
       it's like he's reading a map only he can see.
       〔指向：高度序列即「路」。禁止出現任何數字。〕
 
-[F6]  handle: dead_link_collector  age: 8y ago
+[F6]  handle: dead_link_collector  age: 12 days ago
       this got swallowed by some "automation" company. they gut old apps,
       staple ads on the corpse, call it a business model. classic.
       〔指向：SKG Automation 收購（謎題 4–5）。可提「automation」，禁止提 Elias。〕
 
-[F7]  handle: warranty_void        age: 10y ago
+[F7]  handle: warranty_void        age: 11 days ago
       fun fact these things got recalled for overheating lol.
       government made them collect every unit. rip my childhood brick.
       〔指向：Lumen Arc 回收。已是 Chapter 2 合法線索，可較明確。〕
 
-[F8]  handle: soft_reset           age: 9y ago
+[F8]  handle: soft_reset           age: 5 days ago
       i don't think 184 was even the point for this guy.
       feels like he was trying to show us the score isn't the score.
       〔指向：高分不是終點的主題。刻意曖昧，不可解釋。〕
 
-[F9]  handle: cardboardbox_archive age: 7y ago
+[F9]  handle: cardboardbox_archive age: 6 days ago
       the original store page listed it under a totally different name.
       three letters. i forget which. someone renamed the whole thing.
       〔指向：SKG / Skyline 256 原名（謎題 3–4）。禁止拼出全名。〕
 
-[F10] handle: latekeeper           age: 6y ago
+[F10] handle: latekeeper           age: 2 days ago
       if you have to ask how he did it, the answer won't help you yet.
       you find the device first. everything else is downstream.
       〔指向：依賴鏈本身（先找裝置）。像 gatekeeping，其實是給玩家的節奏提示。〕
@@ -173,7 +173,7 @@
 [N5]  imagine caring this much about a flappy clone
 [N6]  bro made a 21 second video just to flex a number. respect ig
 [N7]  the compression on this is a war crime, i can't see anything
-[N8]  why is this in my recommended twelve years later
+[N8]  why is this in my recommended when the record is from twelve years ago
 [N9]  not me watching a bird die at gate 40 instead of sleeping
 [N10] L + ratio + it's fake + didn't watch
 [N11] 🔥 WANT UNLIMITED COINS?? check my profile for the mod 🔥   ← 業配 bot，SKG-slop 時代垃圾留言

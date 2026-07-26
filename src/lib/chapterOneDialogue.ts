@@ -46,8 +46,8 @@ export const CHAPTER_ONE_DIALOGUE = {
     'What I need is the exact moment forty becomes forty-one.',
   ],
   legacyPassageLead: [
-    'So the old Legacy build really could pass from forty to forty-one.',
-    "That proves the route existed. It doesn't tell me where the build went.",
+    'So the update can imitate the old route. That does not prove the old build did it.',
+    "The upload is new. The record isn't. I need the 2014 build.",
   ],
   ipaLead: [
     'There. A filename, not a theory.',
@@ -87,8 +87,8 @@ const COMPANION_LINES = [
 ] as const;
 
 const COMMENT_REACTIONS: Readonly<Record<string, DialogueLines>> = {
-  algorithm_victim: ['Twelve years later, and the algorithm is doing archaeology by accident.'],
-  passing_through: ['Recommended after twelve years. Useful timing. Terrible filing system.'],
+  algorithm_victim: ['A 2026 update turned a 2014 record into algorithm bait.'],
+  passing_through: ['The record is twelve years old. This upload is not. Important difference.'],
   quietframes: ["The uploader isn't the developer. Different mystery."],
   pixel_grief: ['The compression is awful. Unfortunately, the score still changes.'],
   former_QA_maybe: ['A route, maybe. But through which version?'],
