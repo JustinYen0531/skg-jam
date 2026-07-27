@@ -1,5 +1,13 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-28 — Static audit of reported viewport-height instant death
+
+- The reported 1000px-versus-800px collision split is not supported by the current physics path: the gameplay canvas and all collision coordinates remain fixed at 640 x 320, with no `window.innerHeight` dependency.
+- Starting a run immediately enables gravity at bird Y 150; without a flap, the bird reaches the fixed bottom boundary on frame 57, before the first pipe can reach it, so a zero-score death is expected at every viewport height.
+- The update loop is frame-based rather than elapsed-time-based, so high-refresh-rate displays can make those 57 frames feel substantially faster; this is a plausible confounder, but it is not a viewport-height collision bug.
+- Focused Flappy physics tests pass 21/21. No gameplay behavior was changed pending a design choice about first-input waiting or frame-rate-independent physics.
+- Browser and Preview remain intentionally unused by project instruction.
+
 ## 2026-07-24 — Persistent afterword traces and clean-demo debug control
 
 - The publicize trace now remains visible as an `ARCHIVE WITNESS` comment with a separate platform moderation divider; it no longer auto-hides.
