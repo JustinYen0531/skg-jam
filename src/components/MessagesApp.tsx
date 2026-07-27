@@ -213,32 +213,17 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
 
   const sellerThreadAvailable = chapterThreeOrderPhase !== 'idle';
 
-  // Modern chat messages with Mother (Mara)
-  const momMessages: ChatMessage[] = [
-    {
-      sender: 'mom',
-      time: '11:22 AM',
-      content: 'Hello Noah... oh sorry, my dear, I mean my sweet boy. Did you find what you were looking for?',
-    },
-    {
-      sender: 'me',
-      time: '11:23 AM',
-      content: 'I found the old Silver Kite pages. And your FaceSpace profile.',
-    },
-    {
-      sender: 'mom',
-      time: '11:24 AM',
-      content: 'Those little places mattered to me. I used them when I needed numbers I would not forget.',
-    }
-  ];
-
-  if (hasAllMaraNumberClues(progress)) {
-    momMessages.push(
-      { sender: 'me', time: '11:25 AM', content: 'I found three of them. The harbor lookout, the old terminal gate, and the ending of your book.' },
-      { sender: 'mom', time: '11:26 AM', content: 'Then they were mine, not your father\'s. Numbers are not passwords by themselves, dear. They are places. The old login asked for ARC, gate, and end—in that order.' },
-      { sender: 'mom', time: '11:27 AM', content: 'My memory wanders, but the Silver Kite archive should still recognize the path if you label each number correctly.' },
-    );
-  }
+  // The player's ordinary Mom thread mirrors the first window-seat exchange
+  // in her later recovered account. The words are the same; only account
+  // ownership changes their sides and colours. This lets Chapter 8 reveal the
+  // relationship through recognition instead of naming Mara or Silver Kite
+  // inside the early personal inbox.
+  const momMessages: ChatMessage[] = (getMaraArchiveThread('son')?.messages.slice(0, 3) ?? [])
+    .flatMap((message) => message.text ? [{
+      sender: message.from === 'mara' ? 'mom' as const : 'me' as const,
+      time: message.time,
+      content: message.text,
+    }] : []);
 
   const speakChapterSeven = (lines: readonly string[], onComplete?: () => void) => {
     if (progress.currentChapter === 7 && metaInteraction.active) {
@@ -620,7 +605,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
     ...(sellerThreadAvailable
       ? [{ id: 'seller' as ThreadId, name: 'coldboot_17', initials: 'C7', tint: '#059669', time: 'now', preview: 'Buyer check. What score belongs to the impossible runner?', unread: sellerUnread, badge: 'marketplace relay' }]
       : []),
-    { id: 'mom', name: 'Mom (Mara)', initials: 'MK', tint: '#3c66c4', time: 'Today', preview: hasAllMaraNumberClues(progress) ? 'The old login asked for ARC, gate, and end.' : 'Those little places mattered to me.' },
+    { id: 'mom', name: 'Mom', initials: 'M', tint: '#3c66c4', time: 'Today', preview: 'It is always your window seat.' },
     ...DECOY_THREADS.map((t) => ({ id: t.id as ThreadId, name: t.name, initials: t.initials, tint: t.tint, time: t.time, preview: t.preview })),
   ];
 
@@ -640,7 +625,7 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
           ? activeArchive.name
           : 'Mara Kade')
     : activeThread === 'mom'
-      ? 'Mom (Mara)'
+      ? 'Mom'
       : activeThread === 'seller'
         ? 'coldboot_17'
         : activeDecoy
@@ -1444,8 +1429,8 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                     className={`px-3 py-2 text-xs leading-relaxed ${
                       msg.sender === 'me'
                         ? msg.isUnlockedCode
-                          ? 'bg-[#3c66c4] text-white rounded-2xl rounded-br-md font-mono font-bold ring-1 ring-amber-300/70'
-                          : 'bg-[#3c66c4] text-white rounded-2xl rounded-br-md'
+                          ? 'bg-[#2f7d60] text-white rounded-2xl rounded-br-md font-mono font-bold ring-1 ring-amber-300/70'
+                          : 'bg-[#2f7d60] text-white rounded-2xl rounded-br-md'
                         : 'bg-[#1d212b] text-slate-200 rounded-2xl rounded-bl-md'
                     }`}
                   >
@@ -1454,43 +1439,6 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
                   <span className="text-[8px] text-slate-500 mt-0.5 px-1">{msg.time}</span>
                 </div>
               ))}
-
-            </div>
-
-            {/* Decayed archive artifacts: the system kept the slots, not the words */}
-            <div className="flex flex-col max-w-[80%] mr-auto items-start">
-              <div className="px-3 py-2 rounded-2xl rounded-bl-md text-[10px] italic text-slate-500 border border-dashed border-slate-700/70 bg-transparent">
-                Message unavailable · expired from carrier archive
-              </div>
-              <span className="text-[8px] text-slate-600 mt-0.5 px-1">--:--</span>
-            </div>
-
-            <div className="flex flex-col max-w-[80%] mr-auto items-start">
-              <div className="px-3 py-2 rounded-2xl rounded-bl-md text-[10px] italic text-slate-500 border border-dashed border-slate-700/70 bg-transparent">
-                [voice message · 0:04 · could not be restored]
-              </div>
-              <span className="text-[8px] text-slate-600 mt-0.5 px-1">--:--</span>
-            </div>
-
-            <div className="flex flex-col max-w-[80%] mr-auto items-start">
-              <div className="px-3 py-2 rounded-2xl rounded-bl-md text-xs text-slate-300 bg-[#1d212b]">
-                sweetheart did you eat
-              </div>
-              <span className="text-[8px] text-slate-600 mt-0.5 px-1">sent 4 years ago · delivered today</span>
-            </div>
-
-            {/* Mara keeps typing, and never quite finishes */}
-            <div className="mr-auto space-y-1">
-              <div className="flex items-center gap-1.5 bg-[#1d212b] rounded-2xl rounded-bl-md px-3 py-2 w-fit">
-                <span className="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce"></span>
-                <span className="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce [animation-delay:150ms]"></span>
-                <span className="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce [animation-delay:300ms]"></span>
-              </div>
-              <div className="text-[8px] text-slate-600 ml-1">Mara is typing…</div>
-            </div>
-
-            <div className="pt-2 text-[9px] text-center text-slate-600 italic">
-              Mara's memories are fading, but she preserved your father's database credentials.
             </div>
           </div>
         ) : activeDecoy ? (

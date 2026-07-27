@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import {
   CHAPTER_EIGHT_MEMORY_IDS,
   MARA_ARCHIVE_THREADS,
@@ -69,6 +70,38 @@ test('the human archive never leaks the Chapter 9 altitude attachment', () => {
   const ceiling = NOAH_ARCHIVE_FRAGMENTS.find(({ id }) => id === 'ceiling');
   assert.match(ceiling?.restoredText ?? '', /Not my signature/);
   assert.doesNotMatch(JSON.stringify(NOAH_ARCHIVE_FRAGMENTS), /ARC_184\s*=\s*Noah/i);
+});
+
+test('the player Mom thread mirrors the recovered window-seat exchange without early identity spoilers', () => {
+  const messagesSource = readFileSync(new URL('../src/components/MessagesApp.tsx', import.meta.url), 'utf8');
+  const sonThread = MARA_ARCHIVE_THREADS.find(({ id }) => id === 'son');
+  assert.ok(sonThread);
+  const windowExchange = sonThread.messages.slice(0, 3);
+
+  assert.deepEqual(windowExchange.map(({ from }) => from), ['mara', 'them', 'mara']);
+  assert.deepEqual(windowExchange.map(({ text }) => text), [
+    'Look at you. Taller than the door frame already. Come home before the harbor lights go out.',
+    'Next month, I promise. Save me the window seat.',
+    'It is always your window seat. It has your name on it, even the days I forget to write it.',
+  ]);
+  assert.match(messagesSource, /getMaraArchiveThread\('son'\)\?\.messages\.slice\(0, 3\)/);
+  assert.match(messagesSource, /message\.from === 'mara' \? 'mom' as const : 'me' as const/);
+
+  assert.doesNotMatch(messagesSource, /I found the old Silver Kite pages/);
+  assert.doesNotMatch(messagesSource, /And your FaceSpace profile/);
+  assert.doesNotMatch(messagesSource, /The old login asked for ARC, gate, and end/);
+  assert.doesNotMatch(messagesSource, /My memory wanders, but the Silver Kite archive/);
+  assert.doesNotMatch(messagesSource, /Mom \(Mara\)/);
+  assert.match(messagesSource, /id: 'mom', name: 'Mom', initials: 'M'/);
+  assert.match(messagesSource, /activeThread === 'mom'\s*\? 'Mom'/);
+  const momPanel = messagesSource.slice(
+    messagesSource.indexOf("activeThread === 'mom' ?"),
+    messagesSource.indexOf("activeThread === 'jules'"),
+  );
+  assert.match(momPanel, /msg\.sender === 'me'[\s\S]{0,220}bg-\[#2f7d60\]/);
+  assert.match(momPanel, /bg-\[#1d212b\] text-slate-200/);
+  assert.doesNotMatch(momPanel, /Mara is typing|Mara's memories|father's database credentials/);
+  assert.doesNotMatch(momPanel, /sweetheart did you eat|Message unavailable|voice message/);
 });
 
 test('the archive treats Arcane as an existing young son and leaves Noah missing', () => {

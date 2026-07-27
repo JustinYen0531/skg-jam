@@ -1,5 +1,15 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-28 — Mirror the Mom window-seat conversation without early Mara spoilers
+
+- Replaced the player's prematurely revealing Mom chat about FaceSpace, Silver Kite, and the archive login with the exact first three window-seat messages from the later recovered `son` thread.
+- The same words now mirror across account ownership: Mara's green/right archive bubbles become Mom's white/left bubbles in the player's inbox, while the son's archived reply becomes the player's coloured/right reply.
+- The player's contact row and chat header now say only `Mom`, never `Mom (Mara)`, and no longer expose Mara's initials.
+- Removed the leftover typing indicator, database-credential summary, and decayed-message extras so the early thread contains only the three mirrored window-seat messages.
+- Chapter 7's collected-clue and account-switch progression remains intact; only the personal chat transcript and its identity boundary changed.
+- Added regression coverage for exact shared wording, mirrored speaker ownership, and absence of early Mara/Silver Kite/FaceSpace labels.
+- Browser and Preview remain intentionally unused by project instruction.
+
 ## 2026-07-28 — First flap starts gravity
 
 - Starting or retrying a run now enters a safe ready state: the bird floats gently around its established Y position while gravity, the run clock, scoring, and pipe spawning remain frozen.
