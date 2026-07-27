@@ -92,7 +92,13 @@ test('Chapter 7 dialogue is wired to entry, phone navigation, FaceSpace evidence
   assert.match(messagesSource, /CHAPTER_SEVEN_DIALOGUE\.momPlacesRead/);
   assert.match(messagesSource, /CHAPTER_SEVEN_DIALOGUE\.momMappingRead/);
   assert.match(messagesSource, /getChapterSevenLoginDialogue/);
-  assert.match(messagesSource, /speakChapterSeven\(CHAPTER_SEVEN_DIALOGUE\.completed, \(\) => \{[\s\S]{0,220}completePuzzleChapter/);
-  assert.match(messagesSource, /CHAPTER_SEVEN_DIALOGUE\.completed/);
-  assert.match(messagesSource, /completePuzzleChapter\(prev, 7, \{ unlockedAdminLogin: true, loggedIntoAdmin: true \}\)/);
+  const successfulLogin = messagesSource.slice(
+    messagesSource.indexOf("if (formattedInput === 'ARC184GATE40END256') {"),
+    messagesSource.indexOf('} else {', messagesSource.indexOf("if (formattedInput === 'ARC184GATE40END256') {")),
+  );
+  const revealMaraAccount = successfulLogin.indexOf('completePuzzleChapter(prev, 7, { unlockedAdminLogin: true, loggedIntoAdmin: true })');
+  const beginReflection = successfulLogin.indexOf('speakChapterSeven(CHAPTER_SEVEN_DIALOGUE.completed)');
+  assert.ok(revealMaraAccount >= 0, 'successful login should reveal Mara\'s restored Messages account');
+  assert.ok(beginReflection > revealMaraAccount, 'Mara\'s Messages account should appear before the completion reflection begins');
+  assert.doesNotMatch(successfulLogin, /speakChapterSeven\(CHAPTER_SEVEN_DIALOGUE\.completed,\s*\(\) =>/);
 });

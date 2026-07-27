@@ -342,9 +342,11 @@ export const MessagesApp: React.FC<MessagesAppProps> = ({
       audio.play('auth.correct');
       setLoginError('');
       setFailCount(0);
-      speakChapterSeven(CHAPTER_SEVEN_DIALOGUE.completed, () => {
-        updateProgress((prev) => completePuzzleChapter(prev, 7, { unlockedAdminLogin: true, loggedIntoAdmin: true }));
-      });
+      // Reveal Mara's restored Messages account as soon as the reflection
+      // begins; the dialogue should play over its subject instead of holding
+      // the player on the authorization screen until the final character.
+      updateProgress((prev) => completePuzzleChapter(prev, 7, { unlockedAdminLogin: true, loggedIntoAdmin: true }));
+      speakChapterSeven(CHAPTER_SEVEN_DIALOGUE.completed);
     } else {
       audio.play('auth.wrong');
       const nextFails = failCount + 1;
