@@ -237,3 +237,17 @@ test('death results appear immediately without exposing the home screen', () => 
   assert.match(deathHandler, /setShowResults\(true\)/);
   assert.doesNotMatch(deathHandler, /setTimeout/);
 });
+
+test('a fresh run floats safely until the player deliberately flaps', () => {
+  const source = readFileSync('src/components/FlappyGame.tsx', 'utf8');
+  const reset = source.slice(source.indexOf('const resetGame'), source.indexOf('const resumeChapterTenTakeover'));
+  const jump = source.slice(source.indexOf('const handleJump'), source.indexOf('// Main Canvas Render Loop'));
+
+  assert.match(reset, /awaitingFirstFlap: true/);
+  assert.match(reset, /readyFrameCount: 0/);
+  assert.match(source, /state\.awaitingFirstFlap[\s\S]{0,180}state\.readyFrameCount \+= 1/);
+  assert.match(source, /state\.birdY = 150 \+ Math\.sin\(state\.readyFrameCount \* 0\.06\) \* 3/);
+  assert.match(source, /if \(isPlaying && !state\.gameOver && !state\.awaitingFirstFlap\)/);
+  assert.match(jump, /restartRun\(\);[\s\S]{0,400}stateRef\.current\.awaitingFirstFlap = false/);
+  assert.match(jump, /stateRef\.current\.awaitingFirstFlap = false;[\s\S]{0,180}stateRef\.current\.birdVelocity = stateRef\.current\.birdJump/);
+});

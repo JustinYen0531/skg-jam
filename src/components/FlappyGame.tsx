@@ -338,6 +338,8 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
     birdVelocity: 0,
     birdGravity: 0.18,
     birdJump: -3.6,
+    awaitingFirstFlap: false,
+    readyFrameCount: 0,
     pipes: [] as Array<{ x: number; topHeight: number; bottomHeight: number; passed: boolean; index: number }>,
     frameCount: 0,
     score: 0,
@@ -372,6 +374,8 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
       birdVelocity: 0,
       birdGravity: 0.18,
       birdJump: -3.6,
+      awaitingFirstFlap: true,
+      readyFrameCount: 0,
       pipes: [],
       frameCount: 0,
       score: 0,
@@ -493,11 +497,12 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
     if (!isPlaying) {
       if (showLeaderboard) {
         setShowLeaderboard(false);
+        return;
       } else {
-        // From the results screen or the start screen, SPACE starts a new run
+        // From the results or title screen, this same Space press both creates
+        // the ready run and counts as its deliberate first flap.
         restartRun();
       }
-      return;
     }
 
     if (stateRef.current.gameOver) {
@@ -509,6 +514,10 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
       chapterTenActive
       && !shouldAcceptPlayerInput(stateRef.current.chapterTenPhase)
     ) return;
+    if (stateRef.current.awaitingFirstFlap) {
+      stateRef.current.awaitingFirstFlap = false;
+      stateRef.current.readyFrameCount = 0;
+    }
     stateRef.current.birdVelocity = stateRef.current.birdJump;
     stateRef.current.lastJumpFrame = stateRef.current.frameCount; // tap ripple
     if (chapterTenActive) {
@@ -700,8 +709,18 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
         ctx.restore();
       }
 
-      // --- Game Physics (Only update when playing) ---
-      if (isPlaying && !state.gameOver) {
+      // A fresh run renders immediately, but its clock and gravity stay frozen
+      // until the player deliberately flaps. This prevents loading time,
+      // viewport changes, or a high-refresh display from spending the run's
+      // opening frames before the player is ready.
+      if (isPlaying && !state.gameOver && state.awaitingFirstFlap) {
+        state.readyFrameCount += 1;
+        state.birdY = 150 + Math.sin(state.readyFrameCount * 0.06) * 3;
+        state.birdVelocity = 0;
+      }
+
+      // --- Game Physics (Only update after the first flap) ---
+      if (isPlaying && !state.gameOver && !state.awaitingFirstFlap) {
         if (!(chapterTenActive && state.chapterTenTakeoverPaused)) state.frameCount++;
         if (chapterTenActive && state.chapterTenFlight) {
           if (state.chapterTenTakeoverPaused) {

@@ -1,5 +1,13 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-28 — First flap starts gravity
+
+- Starting or retrying a run now enters a safe ready state: the bird floats gently around its established Y position while gravity, the run clock, scoring, and pipe spawning remain frozen.
+- The first deliberate canvas tap or Space press clears the ready state, applies the normal jump impulse, and starts the existing physics loop.
+- Chapter 10's later deterministic takeover and autonomous route remain unchanged; only the player-controlled opening boundary was adjusted.
+- Added a regression test for the ready-state reset, idle float, physics gate, and first-flap handoff.
+- Browser and Preview remain intentionally unused by project instruction.
+
 ## 2026-07-28 — Static audit of reported viewport-height instant death
 
 - The reported 1000px-versus-800px collision split is not supported by the current physics path: the gameplay canvas and all collision coordinates remain fixed at 640 x 320, with no `window.innerHeight` dependency.
