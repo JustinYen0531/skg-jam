@@ -3,7 +3,7 @@ import { GameProgress, ActiveApp } from '../types';
 import audio from '../lib/audio';
 import music, { getFinaleCreditProgress } from '../lib/music';
 import { assetPath } from '../lib/assetPath';
-import { EASY_FLAPPY_SETTINGS, FlappyDeathCause, GATE_40_INDEX, getCheapTelemetry, getFlappyNightMix, getGateHeights, getGateSpawnX, getGateVisualStyle, getScoreAfterPassingGate, nextGate40DeathCount, resolvePipeCollision } from '../lib/flappyPhysics';
+import { createFlappyFrameClock, EASY_FLAPPY_SETTINGS, FlappyDeathCause, GATE_40_INDEX, getCheapTelemetry, getFlappyNightMix, getGateHeights, getGateSpawnX, getGateVisualStyle, getScoreAfterPassingGate, nextGate40DeathCount, resolvePipeCollision, shouldAdvanceFlappyFrame } from '../lib/flappyPhysics';
 import {
   ARCANE_NEGATIVE_RECORD_STORAGE_KEY,
   calculateBeatPercentage,
@@ -551,8 +551,14 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
     let animationFrameId: number;
     const width = canvas.width;
     const height = canvas.height;
+    const frameClock = createFlappyFrameClock();
 
-    const gameLoop = () => {
+    const gameLoop = (timestamp: number) => {
+      if (!shouldAdvanceFlappyFrame(frameClock, timestamp)) {
+        animationFrameId = requestAnimationFrame(gameLoop);
+        return;
+      }
+
       const state = stateRef.current;
       // width and height are already defined in outer scope if needed, or we can use local duplicates
       const width = canvas.width;

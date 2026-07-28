@@ -7,6 +7,45 @@ export const EASY_FLAPPY_SETTINGS = {
   maxFallSpeed: 3.2,
 } as const;
 
+export const FLAPPY_TARGET_FPS = 60;
+export const FLAPPY_FRAME_DURATION_MS = 1000 / FLAPPY_TARGET_FPS;
+
+export interface FlappyFrameClock {
+  lastTimestamp: number | null;
+  accumulatorMs: number;
+}
+
+export const createFlappyFrameClock = (): FlappyFrameClock => ({
+  lastTimestamp: null,
+  accumulatorMs: 0,
+});
+
+/**
+ * Keep the frame-authored Flappy physics on its intended 60 Hz cadence even
+ * when requestAnimationFrame follows a 120/144/165 Hz display.
+ */
+export const shouldAdvanceFlappyFrame = (
+  clock: FlappyFrameClock,
+  timestamp: number,
+): boolean => {
+  if (clock.lastTimestamp === null) {
+    clock.lastTimestamp = timestamp;
+    return false;
+  }
+
+  const elapsed = Math.max(0, timestamp - clock.lastTimestamp);
+  clock.lastTimestamp = timestamp;
+  clock.accumulatorMs += Math.min(elapsed, FLAPPY_FRAME_DURATION_MS * 4);
+
+  if (clock.accumulatorMs + Number.EPSILON < FLAPPY_FRAME_DURATION_MS) return false;
+
+  clock.accumulatorMs = Math.min(
+    clock.accumulatorMs - FLAPPY_FRAME_DURATION_MS,
+    FLAPPY_FRAME_DURATION_MS,
+  );
+  return true;
+};
+
 export const SCORE_PER_PIPE = 2;
 export const GATE_40_INDEX = 20;
 

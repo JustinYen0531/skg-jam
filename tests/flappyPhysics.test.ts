@@ -2,6 +2,7 @@ import { strict as assert } from 'node:assert';
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import {
+  createFlappyFrameClock,
   EASY_FLAPPY_SETTINGS,
   GATE_40_INDEX,
   GATE_40_CLEAR_GAP,
@@ -15,6 +16,7 @@ import {
   isGate40NormalRouteImpossible,
   nextGate40DeathCount,
   resolvePipeCollision,
+  shouldAdvanceFlappyFrame,
 } from '../src/lib/flappyPhysics';
 
 const pipe = {
@@ -112,6 +114,35 @@ test('horizontal movement is twenty-five percent slower without crowding gates t
   const horizontalSpacing =
     EASY_FLAPPY_SETTINGS.pipeSpeed * EASY_FLAPPY_SETTINGS.spawnIntervalFrames;
   assert.ok(horizontalSpacing >= 190);
+});
+
+test('high-refresh displays advance Flappy at the same 60 Hz cadence', () => {
+  const countUpdates = (refreshRate: number) => {
+    const clock = createFlappyFrameClock();
+    let updates = 0;
+
+    for (let frame = 0; frame <= refreshRate; frame += 1) {
+      if (shouldAdvanceFlappyFrame(clock, frame * (1000 / refreshRate))) updates += 1;
+    }
+
+    return updates;
+  };
+
+  const updatesAt60Hz = countUpdates(60);
+  assert.ok(updatesAt60Hz >= 59 && updatesAt60Hz <= 60);
+  for (const refreshRate of [120, 144, 165]) {
+    assert.ok(
+      Math.abs(countUpdates(refreshRate) - updatesAt60Hz) <= 1,
+      `${refreshRate} Hz must not make the game run faster than 60 Hz`,
+    );
+  }
+});
+
+test('the Flappy render loop is gated by the shared frame clock', () => {
+  const source = readFileSync('src/components/FlappyGame.tsx', 'utf8');
+
+  assert.match(source, /const frameClock = createFlappyFrameClock\(\)/);
+  assert.match(source, /if \(!shouldAdvanceFlappyFrame\(frameClock, timestamp\)\)/);
 });
 
 test('the final score-40 gate pair is at the ceiling and floor in the real canvas', () => {

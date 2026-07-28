@@ -1,5 +1,14 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-07-28 — Flappy high-refresh-rate speed cap
+
+- Added a shared 60 Hz frame clock so 120/144/165 Hz displays no longer run the frame-authored Flappy physics and Chapter 10 performance faster than intended.
+- Kept the established gravity, jump, pipe speed, gate spacing, score pacing, and Chapter 10 frame thresholds unchanged.
+- Added regression coverage comparing one second of updates across 60, 120, 144, and 165 Hz schedules.
+- Focused Flappy and Chapter 10 validation passed 85/85; TypeScript, production build, and diff checks passed.
+- The full suite retains two pre-existing Meta pointer/Dock source-regex failures outside this change; no unrelated code was altered to mask them.
+- Browser and Preview remain intentionally unused by project instruction.
+
 ## 2026-07-28 — Mirror the Mom window-seat conversation without early Mara spoilers
 
 - Replaced the player's prematurely revealing Mom chat about FaceSpace, Silver Kite, and the archive login with the exact first three window-seat messages from the later recovered `son` thread.
