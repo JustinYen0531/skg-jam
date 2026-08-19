@@ -32,10 +32,13 @@ import { MetaWallClock } from './MetaWallClock';
 import { MetaWindowScene } from './MetaWindowScene';
 import { ChapterEnvironment } from './ChapterEnvironment';
 import { assetPath } from '../lib/assetPath';
+import { type GameLanguage, translateDialogueLines } from '../lib/language';
 
 interface MetaInteractionSceneProps {
   active: boolean;
   chapter: EnvironmentChapter;
+  language: GameLanguage;
+  onLanguageChange: (language: GameLanguage) => void;
   sceneryChapter?: EnvironmentChapter;
   cameraPitchEnabled?: boolean;
   postureControlEnabled?: boolean;
@@ -72,6 +75,8 @@ interface MetaTapPoint {
 interface MetaInteractionContextValue {
   active: boolean;
   deviceResting: boolean;
+  language: GameLanguage;
+  onLanguageChange: (language: GameLanguage) => void;
   registerInput: (id: string, controller: MetaInputController) => () => void;
   speak: (lines: DialogueLines, onComplete?: () => void) => void;
   tapElement: (id: string, onActivate: () => void) => void;
@@ -85,6 +90,8 @@ interface MetaInteractionContextValue {
 const MetaInteractionContext = createContext<MetaInteractionContextValue>({
   active: false,
   deviceResting: false,
+  language: 'en',
+  onLanguageChange: () => undefined,
   registerInput: () => () => undefined,
   speak: () => undefined,
   tapElement: (_id, onActivate) => onActivate(),
@@ -811,6 +818,8 @@ const MetaFireplace: React.FC<{ reducedMotion: boolean; chapter: number }> = ({ 
 export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   active,
   chapter,
+  language,
+  onLanguageChange,
   sceneryChapter,
   cameraPitchEnabled = true,
   postureControlEnabled = true,
@@ -872,6 +881,15 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     dialogueCompletionRef.current = onComplete ?? null;
     setDialogueLines(lines);
   }, []);
+
+  const localizedDialogueLines = useMemo(
+    () => translateDialogueLines(dialogueLines, language),
+    [dialogueLines, language],
+  );
+  const dialogueLineKeys = useMemo(
+    () => dialogueLines.map((line, index) => `${line}-${index}`),
+    [dialogueLines],
+  );
 
   const handleDialogueComplete = useCallback(() => {
     const complete = dialogueCompletionRef.current;
@@ -1735,6 +1753,8 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
   const contextValue = useMemo<MetaInteractionContextValue>(() => ({
     active,
     deviceResting,
+    language,
+    onLanguageChange,
     registerInput,
     speak,
     tapElement,
@@ -1748,6 +1768,8 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
     beginAutonomousControl,
     deviceResting,
     endAutonomousControl,
+    language,
+    onLanguageChange,
     pulsePlayerTap,
     pulseAutonomousTap,
     registerInput,
@@ -2342,14 +2364,14 @@ export const MetaInteractionScene: React.FC<MetaInteractionSceneProps> = ({
 
               {/* Screen readers get the whole thought at once, not keystrokes */}
               <div className="sr-only" aria-live="polite">
-                {dialogueLines.map((line, index) => (
-                  <p key={`${line}-${index}`}>{line}</p>
+                {localizedDialogueLines.map((line, index) => (
+                  <p key={dialogueLineKeys[index]}>{line}</p>
                 ))}
               </div>
 
               {/* The thought, arriving one keystroke at a time */}
               <TypewriterThoughts
-                lines={dialogueLines}
+                lines={localizedDialogueLines}
                 instant={reducedMotion}
                 onComplete={handleDialogueComplete}
               />

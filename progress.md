@@ -1,5 +1,13 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-08-19 — Flappy bilingual dialogue toggle
+
+- Added a persisted English/Traditional Chinese game-language state with a one-click toggle in the OS Dock `Controls` utility, plus a compact shortcut in the Flappy header.
+- Routed Meta dialogue rendering through the shared translation dictionary so the current dialogue updates immediately when the language changes.
+- Added runtime mappings for all 670 bilingual dialogue inventory entries, including the Afterword replay hint, Noah's final transmission, Finale subtitles, and the ending lyric words.
+- Added static regression coverage for toggle behavior, inventory-to-runtime mapping completeness, and both visible toggle entry points.
+- `npm run lint`, the focused language test, production build, and diff checks are the local verification targets; browser and Preview remain intentionally unused by project instruction.
+
 ## 2026-07-28 — Flappy high-refresh-rate speed cap
 
 - Added a shared 60 Hz frame clock so 120/144/165 Hz displays no longer run the frame-authored Flappy physics and Chapter 10 performance faster than intended.

@@ -1687,6 +1687,11 @@
 
 ### 結尾選擇：Afterword
 
+**重播提示**
+
+- English: “I remember this one.”
+  繁中：我記得這個選擇。
+
 #### I. LET THE SCORE REMAIN
 
 - English: “You want me to leave it there.”  

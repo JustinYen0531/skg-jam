@@ -80,6 +80,8 @@ import {
   type FinaleLyricCue,
 } from '../lib/chapterTenFinaleLyrics';
 import { useReducedMotion } from '../lib/useReducedMotion';
+import { getLanguageToggleDescription, getLanguageToggleLabel, toggleGameLanguage } from '../lib/language';
+import { translateDialogueLine } from '../lib/dialogueTranslations';
 
 interface FlappyGameProps {
   progress: GameProgress;
@@ -146,6 +148,8 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
     pulseAutonomousTap,
     endAutonomousControl,
     speak,
+    language,
+    onLanguageChange,
   } = useMetaInteraction();
   const chapterTenActive = progress.currentChapter === 10;
   const chapterTenCreditsActive = chapterTenActive && progress.phase === 'credits';
@@ -237,10 +241,13 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
   const creditsScore = getCreditsScoreAtProgress(creditsOverflowProgress);
   const finaleLyric = getChapterTenFinaleLyric(finalePlayback.currentTime, finaleLyricCues);
   const finalLyricCue = finaleLyricCues.find((cue) => cue.line === 'Thank you for reaching the end.') ?? null;
+  const finalLyricWords = language === 'zh-Hant'
+    ? ['謝謝', '你', '抵達', '終點。']
+    : FINAL_LYRIC_WORDS;
   const finalLyricWordIndex = getFinaleLyricWordIndex(
     finalePlayback.currentTime,
     finalLyricCue,
-    FINAL_LYRIC_WORDS.length,
+    finalLyricWords.length,
   );
 
   useEffect(() => {
@@ -1658,6 +1665,16 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
         </div>
         <div className="flex items-center gap-2">
           <button
+            type="button"
+            onClick={() => onLanguageChange(toggleGameLanguage(language))}
+            className="rounded border border-purple-700/50 px-1.5 py-0.5 font-mono text-[9px] text-purple-200 transition-colors hover:bg-purple-900 hover:text-white"
+            title={getLanguageToggleDescription(language)}
+            aria-label={getLanguageToggleDescription(language)}
+            id="flappy-language-toggle"
+          >
+            {getLanguageToggleLabel(language)}
+          </button>
+          <button
             onClick={() => {
               const nextMuted = !isMuted;
               setIsMuted(nextMuted);
@@ -1686,7 +1703,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
           id="chapter-ten-finale-lyric-subtitle"
           data-lyric-time={finalePlayback.currentTime.toFixed(3)}
         >
-          {finaleLyric.line}
+          {translateDialogueLine(finaleLyric.line, language)}
         </div>
       )}
 
@@ -1737,7 +1754,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
 
                 <div className="space-y-5 text-left text-[10px] leading-[1.9] text-white/88">
                   {NOAH_FINAL_TRANSMISSION.map((line) => (
-                    <p key={line}>{line}</p>
+                    <p key={line}>{translateDialogueLine(line, language)}</p>
                   ))}
                 </div>
 
@@ -1781,7 +1798,7 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
                 id="chapter-ten-credits-lyric-subtitle"
                 data-lyric-time={finalePlayback.currentTime.toFixed(3)}
               >
-                {finaleLyric.line}
+                {translateDialogueLine(finaleLyric.line, language)}
               </div>
             )}
 
@@ -1800,13 +1817,15 @@ export const FlappyGame: React.FC<FlappyGameProps> = ({
                   </div>
 
                   {finalLyricWordIndex >= 0 && <div
-                    className="mx-auto mt-8 grid w-full max-w-[420px] grid-cols-6 gap-1 text-center"
+                    className={`mx-auto mt-8 grid w-full max-w-[420px] gap-1 text-center ${
+                      language === 'zh-Hant' ? 'grid-cols-4' : 'grid-cols-6'
+                    }`}
                     id="chapter-ten-final-lyric"
                     data-active-word={finalLyricWordIndex}
                   >
-                    {FINAL_LYRIC_WORDS.map((word, index) => (
+                    {finalLyricWords.map((word, index) => (
                       <span
-                        key={word}
+                        key={`${word}-${index}`}
                         className={`text-[11px] tracking-[0.04em] transition-colors duration-150 ${
                           finalLyricWordIndex === index ? 'text-white' : 'text-white/42'
                         }`}

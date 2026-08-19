@@ -25,6 +25,7 @@ import {
   type ChapterCheckpoint,
 } from './lib/chapterCheckpoint';
 import { canConsumeVerticalWheel } from './lib/wheelContainment';
+import { loadGameLanguage, saveGameLanguage, type GameLanguage } from './lib/language';
 import { 
   Terminal, Volume2, VolumeX,
   CheckCircle, Database, HelpCircle
@@ -81,6 +82,7 @@ export default function App() {
   const [screenContrast, setScreenContrast] = useState(1);
   const [cameraPitchEnabled, setCameraPitchEnabled] = useState(true);
   const [postureControlEnabled, setPostureControlEnabled] = useState(true);
+  const [language, setLanguage] = useState<GameLanguage>(loadGameLanguage);
   const [deskLamp, setDeskLamp] = useState(true);
   const [metaViewActive, setMetaViewActive] = useState(() => {
     if (typeof window === 'undefined') return false;
@@ -257,6 +259,11 @@ export default function App() {
     setChapterTenSceneryRewound(false);
     setMetaViewActive(savedCheckpoint.progress.phase !== 'intro_game');
     setDebugTargetApp(null);
+  };
+
+  const handleLanguageChange = (nextLanguage: GameLanguage) => {
+    setLanguage(nextLanguage);
+    saveGameLanguage(nextLanguage);
   };
 
   const saveManualGame = () => {
@@ -515,6 +522,8 @@ export default function App() {
         <MetaInteractionScene
           active={metaSceneActive}
           chapter={metaSceneActive ? progress.currentChapter : 0}
+          language={language}
+          onLanguageChange={handleLanguageChange}
           sceneryChapter={metaSceneActive && chapterTenSceneryRewound ? 1 : undefined}
           cameraPitchEnabled={cameraPitchEnabled}
           postureControlEnabled={postureControlEnabled}

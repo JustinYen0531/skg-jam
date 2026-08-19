@@ -87,6 +87,7 @@ import {
 } from '../lib/chapterNineDialogue';
 import { getChapterPhoneBatteryPercent } from '../lib/chapterPhoneBattery';
 import { formatCheckpointTimestamp } from '../lib/chapterCheckpoint';
+import { getLanguageToggleDescription, getLanguageToggleLabel, toggleGameLanguage } from '../lib/language';
 
 /** Modern widget chassis: translucent, friendly, current-year. */
 const WIDGET_SHELL =
@@ -1028,6 +1029,21 @@ export const PhoneSimulator: React.FC<PhoneSimulatorProps> = ({
       case 'controls':
         return (
           <div className="space-y-2" id="dock-camera-controls">
+            <div className="rounded-lg border border-cyan-300/15 bg-cyan-300/[0.05] px-3 py-2.5" id="dock-language-controls">
+              <div className="font-mono text-[8px] tracking-[0.14em] text-cyan-200/70">LANGUAGE / 語言</div>
+              <div className="mt-1 flex items-center justify-between gap-3">
+                <span className="text-[9px] leading-snug text-slate-400">{getLanguageToggleDescription(metaInteraction.language)}</span>
+                <button
+                  type="button"
+                  onClick={() => metaInteraction.onLanguageChange(toggleGameLanguage(metaInteraction.language))}
+                  className={`${actionButtonClassName} shrink-0 px-3 py-1.5 font-mono text-[9px]`}
+                  id="dock-language-toggle"
+                  aria-label={getLanguageToggleDescription(metaInteraction.language)}
+                >
+                  {getLanguageToggleLabel(metaInteraction.language)}
+                </button>
+              </div>
+            </div>
             <button
               type="button"
               role="switch"
