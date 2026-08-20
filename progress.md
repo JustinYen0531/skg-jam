@@ -8,6 +8,14 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - Added static regression coverage for toggle behavior, inventory-to-runtime mapping completeness, and both visible toggle entry points.
 - `npm run lint`, the focused language test, production build, and diff checks are the local verification targets; browser and Preview remain intentionally unused by project instruction.
 
+## 2026-08-20 — itch.io upload package
+
+- Rebuilt the current branch with Vite's relative `./` base and packaged `dist` through `scripts/package-itch.ps1`.
+- Created `output/SKG-Scorekeeper-itch.io-2026-08-20.zip`; `index.html` is at the ZIP root and all 36 generated entries use forward-slash paths.
+- Package size is 33,799,178 bytes (32.23 MiB), below itch.io's 500 MB upload limit; SHA-256 is `E207435F5B7A2D5E50937957503471B1721D733C2C2BC097E090CEA2F77B19A8`.
+- The ZIP is intentionally ignored by Git as a local generated upload artifact; the tracked source packager remains `scripts/package-itch.ps1`.
+- Static packaging checks passed; browser and Preview remain intentionally unused by project instruction.
+
 ## 2026-07-28 — Flappy high-refresh-rate speed cap
 
 - Added a shared 60 Hz frame clock so 120/144/165 Hz displays no longer run the frame-authored Flappy physics and Chapter 10 performance faster than intended.
