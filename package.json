@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite --port=3000 --host=0.0.0.0",
     "build": "vite build",
@@ -22,6 +23,32 @@
     "express": "^4.21.2",
     "dotenv": "^17.2.3",
     "motion": "^12.23.24"
+  },
+  "build": {
+    "appId": "com.silverkite.scorekeeper",
+    "productName": "SKG Scorekeeper",
+    "electronVersion": "36.4.0",
+    "asar": true,
+    "compression": "maximum",
+    "files": [
+      "dist/**/*",
+      "electron/main.cjs",
+      "package.json"
+    ],
+    "directories": {
+      "output": "output/windows-portable"
+    },
+    "win": {
+      "executableName": "SKGScorekeeper",
+      "signAndEditExecutable": false,
+      "target": [
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "artifactName": "SKG-Scorekeeper-Windows-x64.${ext}"
+    }
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

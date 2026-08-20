@@ -16,6 +16,14 @@ Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死
 - The ZIP is intentionally ignored by Git as a local generated upload artifact; the tracked source packager remains `scripts/package-itch.ps1`.
 - Static packaging checks passed; browser and Preview remain intentionally unused by project instruction.
 
+## 2026-08-21 — Portable Windows executable
+
+- Added an Electron desktop entry at `electron/main.cjs` that loads the local Vite `dist/index.html` with context isolation enabled and Node integration disabled.
+- Added an Electron Builder portable x64 target and `scripts/package-windows.ps1`; the script rebuilds the web game before packaging.
+- Created `output/windows-portable-v3/SKG-Scorekeeper-Windows-x64.exe` as a single portable executable, 120,556,012 bytes (114.97 MiB), SHA-256 `4ADFC3DF5A2F2134F3101CB1496D63B66D196820B5F0B571B7F7CC748E8480D7`.
+- The executable is structurally valid with a PE `MZ` header and the unpacked runtime contains `resources/app.asar`; it is intentionally unsigned because this local environment cannot install the builder's signing tool symlinks.
+- Added static coverage for the Windows packaging configuration. Browser, Preview, and executable launch checks remain intentionally unused by project instruction.
+
 ## 2026-07-28 — Flappy high-refresh-rate speed cap
 
 - Added a shared 60 Hz frame clock so 120/144/165 Hz displays no longer run the frame-authored Flappy physics and Chapter 10 performance faster than intended.

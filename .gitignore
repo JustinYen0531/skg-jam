@@ -34,3 +34,4 @@ coverage/
 
 # Locally generated itch.io upload packages; source and packager stay tracked.
 /output/*.zip
+/output/windows-portable*/
