@@ -1,5 +1,10 @@
 Original prompt: 實作 Meta 視角第一至第三階段：第二次 Gate 37 死亡後實際打開排行榜才鏡頭拉遠；顯示主角雙手、終端對話；手機按鈕改為延遲手指點擊；ViewTube 打字顯示虛擬鍵盤並讓手逐鍵觸碰。只做靜態分析與自動測試，不開瀏覽器。
 
+## 2026-08-21 — Developer log
+
+- Added `docs/DEVELOPER_LOG_2026-07-24_to_2026-08-21.md`, summarizing 88 commits from the Chapter 9/10 closure through bilingual dialogue, itch.io ZIP packaging, and Windows portable packaging.
+- The log separates newly added features, modifications/fixes, release artifacts, validation results, and current limitations.
+
 ## 2026-08-19 — Flappy bilingual dialogue toggle
 
 - Added a persisted English/Traditional Chinese game-language state with a one-click toggle in the OS Dock `Controls` utility, plus a compact shortcut in the Flappy header.
